@@ -1,0 +1,189 @@
+#pragma once
+
+#define NAME "CE2BIT"
+#define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
+#define MAXPOSITIONMOVES 256
+#define MAXDEPTH 64
+
+
+
+// define bitboard data type
+#define Bitboard unsigned long long
+
+// set/get/pop bit macros
+#define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
+#define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
+#define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+#define clr_bit(bitboard, square) ((bitboard) &= (bitboard-1))
+
+#define TEST
+
+#define get_antidiagonal(sq)  (get_rank[sq] + get_file[sq])
+
+
+
+// FEN dedug positions
+#define empty_board "8/8/8/8/8/8/8/8 b - - "
+#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
+#define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+
+// board squares
+enum {
+	a8, b8, c8, d8, e8, f8, g8, h8,
+	a7, b7, c7, d7, e7, f7, g7, h7,
+	a6, b6, c6, d6, e6, f6, g6, h6,
+	a5, b5, c5, d5, e5, f5, g5, h5,
+	a4, b4, c4, d4, e4, f4, g4, h4,
+	a3, b3, c3, d3, e3, f3, g3, h3,
+	a2, b2, c2, d2, e2, f2, g2, h2,
+	a1, b1, c1, d1, e1, f1, g1, h1, no_sq
+};
+
+// extract rank from a square [square]
+extern const int get_rank[64];
+
+extern const int Color[12];
+
+// extract rank from a square [square]
+extern const int get_file[64];
+
+// extract diagonal from a square [square]
+extern const int get_diagonal[64];
+
+
+enum { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE };
+enum { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_NONE };
+
+// encode pieces
+enum { WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK, EMPTY = 14 };
+
+// sides to move (colors)
+enum { WHITE, BLACK, BOTH };
+
+// bishop and rook
+enum { rook, bishop };
+
+enum { WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8 };
+
+enum { FALSE, TRUE };
+
+enum { UCIMODE, XBOARDMODE, CONSOLEMODE };
+
+
+enum { HFNONE, HFALPHA, HFBETA, HFEXACT };
+
+
+
+typedef struct {
+	Bitboard posKey;
+	int move;
+	int score;
+	int depth;
+	int flags;
+} S_HASHENTRY;
+
+typedef struct {
+	S_HASHENTRY* pTable;
+	int numEntries;
+	int newWrite;
+	int overWrite;
+	int hit;
+	int cut;
+} S_HASHTABLE;
+
+
+
+typedef struct {
+	int move;
+	int castlePerm;
+	int capture;
+	int enPas;
+	int fiftyMove;
+	Bitboard posKey;
+	Bitboard occupancies[3];
+} S_Undo; //stores a move and the state of the game before that move is made for rollback purposes 
+
+
+
+
+typedef struct {
+	int pieces[64]; //array that stores for every square of the board if there's a piece, or if the square is invalid
+
+	int side; //what side has to move
+	int enPas; // if enpassant is possible and in which square
+	int fiftyMove;//Counter for the 50 moves rule
+	int ply;   //number of halfmoves in a search instance
+	int hisPly; //total number of halfmoves
+	int castleperm; //integer that represents the castling permission in his bits (1111) = all castlings allowed (0000) no castling allowed, (0101) only WKCA and BKCA allowed... 
+	Bitboard posKey;// unique  hashkey  che codifica the  position on the board,utile per il controllo delle posizioni ripetute.
+	S_Undo history[512]; //stores every single move and the state of the board when that move was made for rollback purposes 
+	
+	int pvArray[MAXDEPTH];
+
+	int searchHistory[12][MAXDEPTH];
+	int searchKillers[2][MAXDEPTH];
+	int checks;
+	Bitboard pinHV;
+	Bitboard pinD;
+	Bitboard checkMask;
+
+	// piece pos->bitboards
+	Bitboard bitboards[12];
+
+	// occupancy pos->bitboards
+	 Bitboard occupancies[3];
+	
+} S_Board;
+
+extern S_HASHTABLE HashTable[1];
+
+extern Bitboard SQUARES_BETWEEN_BB[64][64];
+
+typedef struct {
+	int starttime;
+	int stoptime;
+	int depth;
+	int depthset;
+	int timeset;
+	int movestogo;
+	int infinite;
+
+	int quit;
+	int stopped;
+
+	long nodes;
+
+
+	float fh;
+	float fhf;
+
+	int GAME_MODE;
+	int POST_THINKING;
+
+} S_SearchINFO;
+
+
+
+// castling rights update constants
+extern const int castling_rights[64];
+
+// convert squares to coordinates
+extern const char* square_to_coordinates[];
+
+extern char RankChar[];
+extern char FileChar[];
+
+// ASCII pieces
+extern const char ascii_pieces[13];
+
+int count_bits(Bitboard bitboard);
+
+// get least significant 1st bit index
+int get_ls1b_index(Bitboard bitboard);
+int  square_distance(int a, int b);
+
+// parse FEN string
+void parse_fen( char* fen, S_Board* pos);
+
