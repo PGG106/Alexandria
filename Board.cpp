@@ -117,10 +117,6 @@ inline Square lsb(Bitboard b) {
 // get least significant 1st bit index
 int get_ls1b_index(Bitboard bitboard)
 {
-    // make sure bitboard is not 0
-    if (!bitboard)
-        return(-100) ;
-
     unsigned long idx;
     _BitScanForward64(&idx, bitboard);
     return (int)idx;
