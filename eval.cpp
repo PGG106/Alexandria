@@ -320,126 +320,225 @@ int EvalPosition(const S_Board* pos)
 
 
 	// static evaluation score
-	int score = 0, score_opening = 0, score_endgame = 0, double_pawns = 0;
+	int score = 0, score_opening = 0, score_endgame = 0;
 
-	// current pieces bitboard copy
-	Bitboard bitboard;
+	
 
 	// init piece & square
-	int piece, square;
+	int square;
 
-	// loop over piece pos->bitboards
-	for (int bb_piece = WP; bb_piece <= BK; bb_piece++)
-	{
-		// init piece bitboard copy
-		bitboard = pos->bitboards[bb_piece];
+	Bitboard white_pawns = pos->bitboards[WP];
 
-		// loop over pieces within a bitboard
-		while (bitboard)
-		{
-			// init piece
-			piece = bb_piece;
+	while (white_pawns) {
 
-			// init square
-			square = get_ls1b_index(bitboard);
+		// init square
+		square = get_ls1b_index(white_pawns);
 
-			score_opening += material_score[opening][piece];
-			score_endgame += material_score[endgame][piece];
+		score_opening += material_score[opening][WP];
+		score_endgame += material_score[endgame][WP];
 
+		score_opening += positional_score[opening][PAWN][square];
+		score_endgame += positional_score[endgame][PAWN][square];
 
+		clr_bit(white_pawns, square);
 
-			// score positional piece scores
-			switch (piece)
-			{
-				// evaluate white pieces
-			case WP:
+		
 
-				score_opening += positional_score[opening][PAWN][square];
-				score_endgame += positional_score[endgame][PAWN][square];
-
-				break;
-
-			case WN:
-
-				score_opening += positional_score[opening][KNIGHT][square];
-				score_endgame += positional_score[endgame][KNIGHT][square];
-
-				break;
-
-			case WB:
-
-				score_opening += positional_score[opening][BISHOP][square];
-				score_endgame += positional_score[endgame][BISHOP][square];
-
-
-				break;
-
-			case WR:
-				/// interpolate scores in middle_game
-				score_opening += positional_score[opening][ROOK][square];
-				score_endgame += positional_score[endgame][ROOK][square];
-
-				break;
-			case WK:
-
-				score_opening += positional_score[opening][KING][square];
-				score_endgame += positional_score[endgame][KING][square];
-
-				
-
-				break;
-
-				// evaluate black pieces
-			case BP:
-
-				score_opening -= positional_score[opening][PAWN][mirror_score[square]];
-				score_endgame -= positional_score[endgame][PAWN][mirror_score[square]];
-
-
-				break;
-
-
-			case BN:
-				score_opening -= positional_score[opening][KNIGHT][mirror_score[square]];
-				score_endgame -= positional_score[endgame][KNIGHT][mirror_score[square]];
-
-				break;
-
-			case BB:
-				// positional score
-				score_opening -= positional_score[opening][BISHOP][mirror_score[square]];
-				score_endgame -= positional_score[endgame][BISHOP][mirror_score[square]];
-
-				
-
-				break;
-			case BR:
-
-				score_opening -= positional_score[opening][ROOK][mirror_score[square]];
-				score_endgame -= positional_score[endgame][ROOK][mirror_score[square]];
-
-
-				break;
-			case BQ:
-
-				score_opening -= positional_score[opening][QUEEN][mirror_score[square]];
-				score_endgame -= positional_score[endgame][QUEEN][mirror_score[square]];
-
-				
-				break;
-
-			case BK:
-				score_opening -= positional_score[opening][KING][mirror_score[square]];
-				score_endgame -= positional_score[endgame][KING][mirror_score[square]];
-
-				break;
-			}
-
-
-			// pop ls1b
-			pop_bit(bitboard, square);
-		}
 	}
+
+
+
+	Bitboard white_knights = pos->bitboards[WN];
+
+	while (white_knights) {
+
+		// init square
+		square = get_ls1b_index(white_knights);
+
+		score_opening += material_score[opening][WN];
+		score_endgame += material_score[endgame][WN];
+
+		score_opening += positional_score[opening][KNIGHT][square];
+		score_endgame += positional_score[endgame][KNIGHT][square];
+
+		clr_bit(white_knights, square);
+
+	}
+
+
+
+	Bitboard white_bishops = pos->bitboards[WB];
+
+	while (white_bishops) {
+
+		// init square
+		square = get_ls1b_index(white_bishops);
+
+		score_opening += material_score[opening][WB];
+		score_endgame += material_score[endgame][WB];
+
+		score_opening += positional_score[opening][BISHOP][square];
+		score_endgame += positional_score[endgame][BISHOP][square];
+
+		clr_bit(white_bishops, square);
+
+	}
+
+
+
+	Bitboard white_rooks = pos->bitboards[WR];
+
+	while (white_rooks) {
+
+		// init square
+		square = get_ls1b_index(white_rooks);
+
+		score_opening += material_score[opening][WR];
+		score_endgame += material_score[endgame][WR];
+
+		score_opening += positional_score[opening][ROOK][square];
+		score_endgame += positional_score[endgame][ROOK][square];
+
+		clr_bit(white_rooks, square);
+
+	}
+
+
+
+
+
+
+	Bitboard white_queens = pos->bitboards[WQ];
+
+	while (white_queens) {
+
+		// init square
+		square = get_ls1b_index(white_queens);
+
+		score_opening += material_score[opening][WQ];
+		score_endgame += material_score[endgame][WQ];
+
+		score_opening += positional_score[opening][QUEEN][square];
+		score_endgame += positional_score[endgame][QUEEN][square];
+
+		clr_bit(white_queens, square);
+
+	}
+
+
+	int kingsquare = get_ls1b_index(pos->bitboards[WK]);
+
+	score_opening += material_score[opening][WK];
+	score_endgame += material_score[endgame][WK];
+
+	score_opening += positional_score[opening][KING][kingsquare];
+	score_endgame += positional_score[endgame][KING][kingsquare];
+
+
+
+	Bitboard black_pawns = pos->bitboards[BP];
+
+	while (black_pawns) {
+
+		// init square
+		square = get_ls1b_index(black_pawns);
+
+
+		score_opening += material_score[opening][BP];
+		score_endgame += material_score[endgame][BP];
+
+		score_opening -= positional_score[opening][PAWN][mirror_score[square]];
+		score_endgame -= positional_score[endgame][PAWN][mirror_score[square]];
+
+		clr_bit(black_pawns, square);
+	}
+
+
+	Bitboard black_knights = pos->bitboards[BN];
+
+	while (black_knights) {
+
+		// init square
+		square = get_ls1b_index(black_knights);
+
+
+		score_opening += material_score[opening][BN];
+		score_endgame += material_score[endgame][BN];
+
+		score_opening -= positional_score[opening][KNIGHT][mirror_score[square]];
+		score_endgame -= positional_score[endgame][KNIGHT][mirror_score[square]];
+
+
+		clr_bit(black_knights, square);
+	}
+
+
+	Bitboard black_bishops = pos->bitboards[BB];
+
+	while (black_bishops) {
+
+		// init square
+		square = get_ls1b_index(black_bishops);
+
+
+		score_opening += material_score[opening][BB];
+		score_endgame += material_score[endgame][BB];
+
+		score_opening -= positional_score[opening][BISHOP][mirror_score[square]];
+		score_endgame -= positional_score[endgame][BISHOP][mirror_score[square]];
+
+
+		clr_bit(black_bishops, square);
+	}
+
+
+	Bitboard black_rooks = pos->bitboards[BR];
+
+	while (black_rooks) {
+
+		// init square
+		square = get_ls1b_index(black_rooks);
+
+
+		score_opening += material_score[opening][BR];
+		score_endgame += material_score[endgame][BR];
+
+		score_opening -= positional_score[opening][ROOK][mirror_score[square]];
+		score_endgame -= positional_score[endgame][ROOK][mirror_score[square]];
+
+
+		clr_bit(black_rooks, square);
+	}
+
+
+
+	Bitboard black_queens = pos->bitboards[BQ];
+
+	while (black_queens) {
+
+		// init square
+		square = get_ls1b_index(black_queens);
+
+
+		score_opening += material_score[opening][BQ];
+		score_endgame += material_score[endgame][BQ];
+
+		score_opening -= positional_score[opening][QUEEN][mirror_score[square]];
+		score_endgame -= positional_score[endgame][QUEEN][mirror_score[square]];
+
+
+		clr_bit(black_queens, square);
+	}
+
+
+	 kingsquare = get_ls1b_index(pos->bitboards[BK]);
+
+	score_opening += material_score[opening][BK];
+	score_endgame += material_score[endgame][BK];
+
+	score_opening -= positional_score[opening][KING][mirror_score[kingsquare]];
+	score_endgame -= positional_score[endgame][KING][mirror_score[kingsquare]];
+
 
 
 	if (game_phase == middlegame)

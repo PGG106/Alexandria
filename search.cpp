@@ -623,11 +623,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 		if (show) {
 			if (score > -mate_value && score < -mate_score)
-				printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_value) / 2, current_depth, info->nodes, GetTimeMs() - info->starttime);
+				printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_value) / 2 +1, current_depth, info->nodes, GetTimeMs() - info->starttime);
 
 
 			else if (score > mate_score && score < mate_value)
-				printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_value - score) / 2, current_depth, info->nodes, GetTimeMs() - info->starttime);
+				printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_value - score) / 2 +1, current_depth, info->nodes, GetTimeMs() - info->starttime);
 
 			else
 				printf("info score cp %d depth %d nodes %ld  time %d pv ", score, current_depth, info->nodes, GetTimeMs() - info->starttime);
