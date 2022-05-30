@@ -357,36 +357,6 @@ int EvalPosition(const S_Board* pos)
 				score_opening += positional_score[opening][PAWN][square];
 				score_endgame += positional_score[endgame][PAWN][square];
 
-
-				double_pawns = count_bits(pos->bitboards[WP] & FileBBMask[get_file[square]]);
-
-
-				if (double_pawns > 1)
-				{
-					score += double_pawns * double_pawn_penalty;
-
-				}
-
-
-				// on isolated pawn
-				if ((pos->bitboards[WP] & IsolatedMask[square]) == 0)
-					// give an isolated pawn penalty
-				{
-					score += isolated_pawn_penalty;
-				}
-
-
-
-				// on passed pawn
-				if ((WhitePassedMask[square] & pos->bitboards[BP]) == 0)
-					// give passed pawn bonus
-				{
-					score += passed_pawn_bonus[get_rank[square]];
-				}
-
-
-
-
 				break;
 
 			case WN:
@@ -401,10 +371,6 @@ int EvalPosition(const S_Board* pos)
 				score_opening += positional_score[opening][BISHOP][square];
 				score_endgame += positional_score[endgame][BISHOP][square];
 
-				// mobility
-				score += 5 * count_bits(get_bishop_attacks(square, pos->occupancies[BOTH]));
-
-
 
 				break;
 
@@ -413,31 +379,6 @@ int EvalPosition(const S_Board* pos)
 				score_opening += positional_score[opening][ROOK][square];
 				score_endgame += positional_score[endgame][ROOK][square];
 
-				//open file
-				if (((pos->bitboards[WP] | pos->bitboards[BP]) & FileBBMask[get_file[square]]) == 0)
-					// add  open file bonus
-				{
-					score += open_file_score;
-				}
-
-				// semi open file
-				 if ((pos->bitboards[WP] & FileBBMask[get_file[square]]) == 0)
-					// add semi open file bonus
-				{
-					score += semi_open_file_score;
-				}
-
-				// mobility
-				score += 5 * count_bits(get_bishop_attacks(square, pos->occupancies[BOTH]));
-				break;
-			case WQ:
-
-				score_opening += positional_score[opening][QUEEN][square];
-				score_endgame += positional_score[endgame][QUEEN][square];
-
-				//mobility
-				score += 3 * count_bits(get_queen_attacks(square, pos->occupancies[BOTH]));
-
 				break;
 			case WK:
 
@@ -445,22 +386,6 @@ int EvalPosition(const S_Board* pos)
 				score_endgame += positional_score[endgame][KING][square];
 
 				
-				//  open file
-				if (((pos->bitboards[WP] | pos->bitboards[BP]) & FileBBMask[get_file[square]]) == 0)
-					// add semi open file penalty
-				{
-					score -= open_file_score;
-				}
-
-
-
-				// semi open file
-				 if ((pos->bitboards[WP] & FileBBMask[get_file[square]]) == 0)
-					// add semi open file penalty
-				{
-					score -= semi_open_file_score;
-				}
-
 
 				break;
 
@@ -469,27 +394,6 @@ int EvalPosition(const S_Board* pos)
 
 				score_opening -= positional_score[opening][PAWN][mirror_score[square]];
 				score_endgame -= positional_score[endgame][PAWN][mirror_score[square]];
-
-				// double pawn penalty
-				double_pawns = count_bits(pos->bitboards[BP] & FileBBMask[get_file[square]]);
-
-				// on double pawns (triple, etc)
-				if (double_pawns > 1) {
-					score -= double_pawns * double_pawn_penalty;
-				}
-				// on isolated pawnd
-				if ((pos->bitboards[BP] & IsolatedMask[square]) == 0)
-					// give an isolated pawn penalty
-				{
-					score -= isolated_pawn_penalty;
-				}
-
-				// on passed pawn
-				if ((BlackPassedMask[square] & pos->bitboards[WP]) == 0)
-					// give passed pawn bonus
-				{
-					score -= passed_pawn_bonus[7 - get_rank[square]];
-				}
 
 
 				break;
@@ -506,9 +410,7 @@ int EvalPosition(const S_Board* pos)
 				score_opening -= positional_score[opening][BISHOP][mirror_score[square]];
 				score_endgame -= positional_score[endgame][BISHOP][mirror_score[square]];
 
-				// mobility
-				score -= 5 * count_bits(get_bishop_attacks(square, pos->occupancies[BOTH]));
-
+				
 
 				break;
 			case BR:
@@ -516,19 +418,6 @@ int EvalPosition(const S_Board* pos)
 				score_opening -= positional_score[opening][ROOK][mirror_score[square]];
 				score_endgame -= positional_score[endgame][ROOK][mirror_score[square]];
 
-				// semi open file
-				if (((pos->bitboards[WP] | pos->bitboards[BP]) & FileBBMask[get_file[square]]) == 0)
-					// add semi open file bonus
-					score -= open_file_score;
-
-				// semi open file
-				 if ((pos->bitboards[BP] & FileBBMask[get_file[square]]) == 0)
-					// add semi open file bonus
-					score -= semi_open_file_score;
-
-
-				// mobility
-				score -= 5 * count_bits(get_bishop_attacks(square, pos->occupancies[BOTH]));
 
 				break;
 			case BQ:
@@ -536,24 +425,12 @@ int EvalPosition(const S_Board* pos)
 				score_opening -= positional_score[opening][QUEEN][mirror_score[square]];
 				score_endgame -= positional_score[endgame][QUEEN][mirror_score[square]];
 
-
-				// mobility
-				score -= 3 * count_bits(get_queen_attacks(square, pos->occupancies[BOTH]) & ~(pos->bitboards[pos->side*6+5] | pos->bitboards[pos->side * 6 + 4] ));
+				
 				break;
 
 			case BK:
 				score_opening -= positional_score[opening][KING][mirror_score[square]];
 				score_endgame -= positional_score[endgame][KING][mirror_score[square]];
-				
-				// semi open file
-				if ((pos->bitboards[BP] & FileBBMask[square]) == 0)
-					// add semi open file penalty
-					score += semi_open_file_score;
-
-				// semi open file
-				if (((pos->bitboards[WP] | pos->bitboards[BP]) & FileBBMask[get_file[square]]) == 0)
-					// add semi open file penalty
-					score += open_file_score;
 
 				break;
 			}
