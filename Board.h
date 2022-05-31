@@ -165,7 +165,7 @@ typedef struct {
 } S_SearchINFO;
 
 
-
+extern int CounterMoves[MAXDEPTH][MAXDEPTH];
 // castling rights update constants
 extern const int castling_rights[64];
 

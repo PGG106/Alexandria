@@ -16,7 +16,7 @@
 // follow PV & score PV move
 int follow_pv, score_pv;
 
-
+int CounterMoves[64][64];
 
 // enable PV move scoring
 static inline void enable_pv_scoring(S_MOVELIST* move_list, S_Board* pos)
@@ -114,6 +114,7 @@ static void  sort_moves(S_MOVELIST* move_list, int moveNum)
 
 
 	for (index = moveNum; index < move_list->count; ++index) {
+
 		if (move_list->moves[index].score > bestScore) {
 			bestScore = move_list->moves[index].score;
 			bestNum = index;
@@ -208,6 +209,7 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 		// fail-hard beta cutoff
 		if (score >= beta)
 		{
+
 			// node (move) fails high
 			return beta;
 		}
@@ -240,7 +242,7 @@ const int reduction_limit = 3;
 // negamax alpha beta search
 static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
 {
-	
+
 	int found_pv = 0;
 	// init PV length
 	// 
@@ -249,7 +251,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 
 		return Quiescence(alpha, beta, pos, info);
 	}
-	
+
 
 	if ((info->nodes & 8095) == 0) {
 		CheckUp(info);
@@ -260,7 +262,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	info->nodes++;
 
 	if ((IsRepetition(pos))) {
-	
+
 		return 0;
 	}
 
@@ -273,10 +275,15 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 		return EvalPosition(pos);
 	}
 
+	int mating_value = mate_value - pos->ply;
 
+	if (mating_value < beta) {
+		beta = mating_value;
+		if (alpha >= mating_value) return mating_value;
+	}
 
 	// is king in check
-	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[pos->side*6+5]),
+	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[pos->side * 6 + 5]),
 		pos->side ^ 1);
 
 	if (in_check) depth++;
@@ -510,6 +517,11 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
 					pos->searchKillers[0][pos->ply] = move_list->moves[count].move;
+
+					int previousMove = pos->history[pos->hisPly].move;
+					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move_list->moves[count].move;
+
+
 				}
 
 				StoreHashEntry(pos, bestmove, beta, HFBETA, depth);
@@ -559,9 +571,9 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	}
 	bestmove = GetBookMove(pos);
 	if (bestmove == NOMOVE) {
-	
+
 		for (int i = 0;i < num_threads - 1;i++) {
-			threads.push_back(std::thread(search_position, initial_depth+1,depth,&pos_copies[i], info, FALSE)); // init help threads
+			threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
 		}
 
 		search_position(1, depth, pos, info, TRUE); //root search 
@@ -569,7 +581,7 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 		for (auto& th : threads) {
 			th.join(); //stop helper threads
 		}
-	
+
 	}
 
 	else {
@@ -591,6 +603,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	ClearForSearch(pos, info);
 	follow_pv = 1;
 
+	int alpha_window = -50;
+
+	int beta_window = 50;
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -607,6 +622,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
 		if ((score <= alpha) || (score >= beta)) {
+
 			alpha = -MAXSCORE;
 			beta = MAXSCORE;
 			current_depth--;
@@ -614,8 +630,8 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 		}
 
 		// set up the window for the next iteration
-		alpha = score - 50;
-		beta = score + 50;
+		alpha = score + alpha_window;
+		beta = score + beta_window;
 
 		if (info->stopped == 1)
 			// stop calculating and return best move so far 
@@ -623,11 +639,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 		if (show) {
 			if (score > -mate_value && score < -mate_score)
-				printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_value) / 2 +1, current_depth, info->nodes, GetTimeMs() - info->starttime);
+				printf("info score mate %d depth %d nodes %ld time %d pv ", -(score + mate_value) / 2, current_depth, info->nodes, GetTimeMs() - info->starttime);
 
 
 			else if (score > mate_score && score < mate_value)
-				printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_value - score) / 2 +1, current_depth, info->nodes, GetTimeMs() - info->starttime);
+				printf("info score mate %d depth %d nodes %ld time %d pv ", (mate_value - score) / 2 + 1, current_depth, info->nodes, GetTimeMs() - info->starttime);
 
 			else
 				printf("info score cp %d depth %d nodes %ld  time %d pv ", score, current_depth, info->nodes, GetTimeMs() - info->starttime);
@@ -640,15 +656,15 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 				// print PV move
 				print_move(pos->pvArray[count]);
 				printf(" ");
-			}	
+			}
 			// print new line
 			printf("\n");
 
-			
+
 		}
-		
+
 	}
-	
+
 	if (show) {
 
 		// best move placeholder

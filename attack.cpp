@@ -15,6 +15,10 @@ const Bitboard not_hg_file = 4557430888798830399ULL;
 // not AB file constant
 const Bitboard not_ab_file = 18229723555195321596ULL;
 
+const Bitboard rank_2_mask = 65280ULL;
+
+const Bitboard rank_7_mask = 71776119061217280ULL;
+
 
 // bishop relevant occupancy bit count for every square on board
 const int bishop_relevant_bits[64] = {

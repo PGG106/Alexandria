@@ -180,7 +180,7 @@ char* FormatMove(const int move) {
 }
 
 
-void PrintMoveList(const S_MOVELIST* list) {
+void PrintMoveList( S_MOVELIST* list) {
     int index = 0;
     int score = 0;
     int move = 0;

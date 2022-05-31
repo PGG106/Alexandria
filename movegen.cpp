@@ -103,6 +103,15 @@ static inline void AddMove(const S_Board* pos, int move, S_MOVELIST* list) { //f
 		list->moves[list->count].score = 8000;
 
 	}
+
+
+	else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
+
+	
+		list->moves[list->count].score = 7000;
+
+	}
+
 	else {
 		list->moves[list->count].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
 	}
@@ -484,7 +493,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 			// init source square
 			source_square = get_ls1b_index(pawn_mask);
 
-			Bitboard moves = LegalPawnMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1] | RANK_1 | RANK_8);
+			Bitboard moves = LegalPawnMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1] | 255 | 18374686479671623680);
 			while (moves) {
 				// init target square
 				target_square = get_ls1b_index(moves);

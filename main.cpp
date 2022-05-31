@@ -51,10 +51,10 @@ position startpos moves b1c3 d7d5 d2d4 g8f6 g1f3 b8c6 c1f4 e7e6 e2e3 f8d6 f1d3 e
     {
 
 
-        parse_fen("r1bq1rk1/pppp1ppp/2n2n2/2bNp3/4P3/3B1N2/PPPP1PPP/R1BQ1RK1 b - - 9 6", pos);
+        parse_fen(tricky_position, pos);
         print_board(pos);
-      
-        Root_search_position(100, pos, info);
+        Root_search_position(13, pos, info);
+    
     }
 
     else
