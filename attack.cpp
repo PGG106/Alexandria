@@ -1,5 +1,8 @@
 
 #include "attack.h"
+#include <algorithm>
+#include "move.h"
+#include "magic.h"
 
 
 
@@ -19,6 +22,9 @@ const Bitboard rank_2_mask = 65280ULL;
 
 const Bitboard rank_7_mask = 71776119061217280ULL;
 
+
+
+int scores[12] = { 100, 325, 325, 500 ,900,-10000,100, 300, 300, 500 ,900,-10000 };
 
 // bishop relevant occupancy bit count for every square on board
 const int bishop_relevant_bits[64] = {
@@ -466,3 +472,111 @@ Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask)
     // return occupancy map
     return occupancy;
 }
+
+
+
+Bitboard getLeastValuablePiece(S_Board* pos, Bitboard attadef, int bySide, int& piece)
+{
+    for (piece = WP + 6 * bySide; piece <= WK + 6 * bySide; piece++) {
+        Bitboard subset = attadef & pos->bitboards[piece];
+        if (subset)
+            return subset & -subset; // single bit
+    }
+    return 0; // empty set
+}
+
+
+Bitboard AttacksTo(S_Board* pos, int to) {
+
+    Bitboard occ = pos->bitboards[BOTH];
+
+    uint64_t attacks =
+        (pawn_attacks[BLACK][to] & pos->bitboards[WP]) | (pawn_attacks[WHITE][to] & pos->bitboards[BP]);
+
+    uint64_t bsliders =
+        pos->bitboards[WB] | pos->bitboards[BB] | pos->bitboards[WQ] | pos->bitboards[BQ];
+
+    uint64_t rsliders =
+        pos->bitboards[WR] | pos->bitboards[BR] | pos->bitboards[WQ] | pos->bitboards[BQ];
+
+    attacks |= (knight_attacks[to] & (pos->bitboards[WN] | pos->bitboards[BN]));
+
+
+    if (get_bishop_attacks(to, pos->occupancies[BOTH]) & bsliders)
+        attacks |= get_bishop_attacks(to, occ) & bsliders;
+
+
+
+    if (get_rook_attacks(to, pos->occupancies[BOTH]) & rsliders)
+        attacks |= get_rook_attacks(to, occ) & rsliders;
+
+
+
+    attacks |= king_attacks[to] & (pos->bitboards[WK] | pos->bitboards[BK]);
+    return attacks;
+}
+
+
+Bitboard considerXrays(S_Board* pos, int sq) {
+    Bitboard occ = pos->bitboards[BOTH];
+    Bitboard attackers = 0ULL;
+    Bitboard attackingBishops = pos->bitboards[WB] | pos->bitboards[BB];
+    Bitboard attackingRooks = pos->bitboards[WR] | pos->bitboards[BR];
+    Bitboard attackingQueens = pos->bitboards[WQ] | pos->bitboards[BQ];
+
+
+    Bitboard intercardinalRays = get_bishop_attacks(sq, occ);
+    Bitboard cardinalRaysRays = get_rook_attacks(sq, occ);
+
+    attackers |= intercardinalRays & (attackingBishops | attackingQueens);
+    attackers |= cardinalRaysRays & (attackingRooks | attackingQueens);
+    return attackers;
+
+
+}
+
+//Inspired by Crafty and Blunder engines
+int see(S_Board* pos, int move) {
+
+    int to = get_move_target(move);
+    int from = get_move_source(move);
+    int target = pos->pieces[to];
+    int attacker = pos->pieces[from];
+    int gain[32], d = 0;
+
+
+
+    Bitboard occupiedBB = pos->bitboards[BOTH];
+    Bitboard attadef = AttacksTo(pos, to);
+    Bitboard maxXray = occupiedBB & ~(pos->bitboards[WN] | pos->bitboards[WK] | pos->bitboards[BN] | pos->bitboards[BK]);
+    Bitboard fromSet = 1ULL << from;
+
+    gain[d] = scores[target];
+
+    do {
+        d++; // next depth and side
+        gain[d] = scores[attacker] - gain[d - 1]; // speculative store, if defended
+        if ((std::max)(-gain[d - 1], gain[d]) < 0) break; // pruning does not influence the result
+        attadef ^= fromSet; // reset bit in set to traverse
+        occupiedBB ^= fromSet; // reset bit in temporary occupancy (for x-Rays)
+        if (fromSet & maxXray)
+            attadef |= considerXrays(pos, to);
+        fromSet = getLeastValuablePiece(pos, attadef, d & 1, target);
+    } while (fromSet);
+
+
+    while (--d) {
+        gain[d - 1] = (-std::max(-gain[d - 1], gain[d]));
+    }
+
+    if (pos->side == BLACK) {
+        return -gain[0];
+    }
+
+
+    return gain[0];
+
+
+}
+
+
