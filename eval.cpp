@@ -5,6 +5,7 @@
 #include "stdlib.h"
 #include "io.h"
 #include "PieceData.h"
+#include "attack.h"
 
 
 
@@ -19,15 +20,7 @@ const int material_score[2][12] =
 	94, 281, 297, 512,  936, 12000, -94, -281, -297, -512,  -936, -12000
 };
 
-// game phase scores
-const int opening_phase_score = 6192;
-const int endgame_phase_score = 518;
 
-// game phases
-enum { opening, endgame, middlegame };
-
-// piece types
-enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 // positional piece scores [game phase][piece][square]
 const int positional_score[2][6][64] =

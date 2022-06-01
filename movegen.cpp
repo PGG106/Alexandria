@@ -8,7 +8,7 @@
 #include "stdint.h"
 
 // is square current given attacked by the current given side
-int is_square_attacked(S_Board* pos,int square, int side)
+int is_square_attacked(S_Board* pos, int square, int side)
 {
 	// attacked by white pawns
 	if ((side == WHITE) && (pawn_attacks[BLACK][square] & pos->bitboards[WP])) return 1;
@@ -17,20 +17,20 @@ int is_square_attacked(S_Board* pos,int square, int side)
 	else if ((side == BLACK) && (pawn_attacks[WHITE][square] & pos->bitboards[BP])) return 1;
 
 	// attacked by queens
-	if (get_queen_attacks(square, pos->occupancies[BOTH]) & ( pos->bitboards[side*6+4] )) return 1;
+	if (get_queen_attacks(square, pos->occupancies[BOTH]) & (pos->bitboards[side * 6 + 4])) return 1;
 
 	// attacked by rooks
-	if (get_rook_attacks(square, pos->occupancies[BOTH]) & ( pos->bitboards[side*6+3] )) return 1;
+	if (get_rook_attacks(square, pos->occupancies[BOTH]) & (pos->bitboards[side * 6 + 3])) return 1;
 
 	// attacked by bishops
-	if (get_bishop_attacks(square, pos->occupancies[BOTH]) & (pos->bitboards[side*6+2] )) return 1;
+	if (get_bishop_attacks(square, pos->occupancies[BOTH]) & (pos->bitboards[side * 6 + 2])) return 1;
 
 	// attacked by knights
-	if (knight_attacks[square] & ( pos->bitboards[side*6+1])) return 1;
+	if (knight_attacks[square] & (pos->bitboards[side * 6 + 1])) return 1;
 
 
 	// attacked by kings
-	if (king_attacks[square] &  (pos->bitboards[side*6+5] )) return 1;
+	if (king_attacks[square] & (pos->bitboards[side * 6 + 5])) return 1;
 
 
 	// by default return false
@@ -43,7 +43,7 @@ static inline Bitboard PawnPush(int color, int sq) {
 }
 
 
-static inline int KingSQ(S_Board* pos,int c) {
+static inline int KingSQ(S_Board* pos, int c) {
 
 	return (get_ls1b_index(pos->bitboards[c * 6 + 5]));
 }
@@ -85,17 +85,16 @@ static inline void AddMove(const S_Board* pos, int move, S_MOVELIST* list) { //f
 
 
 
-	if (get_move_capture(move)) {
+	else  if (get_move_capture(move)) {
 		list->moves[list->count].move = move;
 		list->moves[list->count].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
 		list->count++;
 		return;
 	}
 
-
-
 	list->moves[list->count].move = move;
-	if (pos->searchKillers[0][pos->ply] == move) {
+
+	 if (pos->searchKillers[0][pos->ply] == move) {
 		list->moves[list->count].score = 9000;
 	}
 
@@ -107,7 +106,7 @@ static inline void AddMove(const S_Board* pos, int move, S_MOVELIST* list) { //f
 
 	else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
 
-	
+
 		list->moves[list->count].score = 7000;
 
 	}
@@ -201,8 +200,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 	// Horizontal rook pins our pawn through another pawn, our pawn can push but not take enpassant 
 	// remove both the pawn that made the push and our pawn that could take in theory and check if that would give check
 	if (pos->enPas != no_sq && square_distance(square, pos->enPas) == 1 && (1ULL << pos->enPas) & attacks) {
-		int ourPawn = color*6;
-		int theirPawn = (color^1) * 6;
+		int ourPawn = color * 6;
+		int theirPawn = (color ^ 1) * 6;
 		int kSQ = get_ls1b_index(pos->bitboards[color * 6 + 5]);
 		ClearPiece(ourPawn, square, pos);
 		ClearPiece(theirPawn, (pos->enPas + offset), pos);
@@ -262,7 +261,7 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
 	while (moves) {
 		int index = get_ls1b_index(moves);
 		clr_bit(moves, index);
-		if (is_square_attacked(pos,index, pos->side ^ 1))
+		if (is_square_attacked(pos, index, pos->side ^ 1))
 		{
 			continue;
 		}
@@ -287,7 +286,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 
 
 
-	init(pos, pos->side, KingSQ(pos,pos->side));
+	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
 
@@ -384,7 +383,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 		}
 
 	}
-	source_square = KingSQ(pos,pos->side);
+	source_square = KingSQ(pos, pos->side);
 	int piece = (pos->side == WHITE) ? WK : BK;
 
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square);
@@ -410,7 +409,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 				if (!get_bit(pos->occupancies[BOTH], f1) && !get_bit(pos->occupancies[BOTH], g1))
 				{
 					// make sure king and the f1 squares are not under attacks
-					if (!is_square_attacked(pos,e1, BLACK) && !is_square_attacked(pos,f1, BLACK) && !is_square_attacked(pos,g1, BLACK))
+					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, f1, BLACK) && !is_square_attacked(pos, g1, BLACK))
 						AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0, 0, 1), move_list);
 				}
 			}
@@ -421,7 +420,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 				if (!get_bit(pos->occupancies[BOTH], d1) && !get_bit(pos->occupancies[BOTH], c1) && !get_bit(pos->occupancies[BOTH], b1))
 				{
 					// make sure king and the d1 squares are not under attacks
-					if (!is_square_attacked(pos,e1, BLACK) && !is_square_attacked(pos,d1, BLACK) && !is_square_attacked(pos,c1, BLACK))
+					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, d1, BLACK) && !is_square_attacked(pos, c1, BLACK))
 						AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0, 0, 1), move_list);
 				}
 			}
@@ -436,7 +435,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 				if (!get_bit(pos->occupancies[BOTH], f8) && !get_bit(pos->occupancies[BOTH], g8))
 				{
 					// make sure king and the f8 squares are not under attacks
-					if (!is_square_attacked(pos,e8, WHITE) && !is_square_attacked(pos,f8, WHITE) && !is_square_attacked(pos,g8, WHITE))
+					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, f8, WHITE) && !is_square_attacked(pos, g8, WHITE))
 						AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0, 0, 1), move_list);
 
 
@@ -449,7 +448,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 				if (!get_bit(pos->occupancies[BOTH], d8) && !get_bit(pos->occupancies[BOTH], c8) && !get_bit(pos->occupancies[BOTH], b8))
 				{
 					// make sure king and the d8 squares are not under attacks
-					if (!is_square_attacked(pos,e8, WHITE) && !is_square_attacked(pos,d8, WHITE) && !is_square_attacked(pos,c8, WHITE))
+					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, d8, WHITE) && !is_square_attacked(pos, c8, WHITE))
 						AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0, 0, 1), move_list);
 
 				}
@@ -478,7 +477,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 
 
-	init(pos, pos->side, KingSQ(pos,pos->side));
+	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
 
@@ -572,8 +571,8 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 		}
 
 	}
-	source_square = KingSQ(pos,pos->side);
-	int piece = (pos->side == WHITE) ? WK : BK;
+	source_square = KingSQ(pos, pos->side);
+	int piece = (pos->side *6+5);
 
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1]);
 	while (moves) {

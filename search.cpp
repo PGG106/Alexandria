@@ -104,7 +104,7 @@ static inline  void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
 
 
-static void  sort_moves(S_MOVELIST* move_list, int moveNum)
+static void  pick_move(S_MOVELIST* move_list, int moveNum)
 {
 
 	S_MOVE temp;
@@ -187,7 +187,7 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 	{
 
 
-		sort_moves(move_list, count);
+		pick_move(move_list, count);
 
 
 		// make sure to make only legal moves
@@ -421,7 +421,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++)
 	{
-		sort_moves(move_list, count);
+		pick_move(move_list, count);
 
 		// make sure to make only legal moves
 		make_move(move_list->moves[count].move, all_moves, pos);

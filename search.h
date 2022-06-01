@@ -27,4 +27,4 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info);
 // search position for the best move
 void search_position(int start_depth,int final_depth, S_Board* pos, S_SearchINFO* info,int show);
 
-static void  sort_moves(S_MOVELIST* move_list, int moveNum);
+static void  pick_move(S_MOVELIST* move_list, int moveNum);
