@@ -435,19 +435,6 @@ Bitboard rook_attacks_on_the_fly(int square, Bitboard block)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // set occupancies
 Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask)
 {
@@ -475,7 +462,7 @@ Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask)
 
 
 
-Bitboard getLeastValuablePiece(S_Board* pos, Bitboard attadef, int bySide, int& piece)
+Bitboard getLeastValuablePiece(const S_Board* pos, Bitboard attadef, int bySide, int& piece)
 {
     for (piece = WP + 6 * bySide; piece <= WK + 6 * bySide; piece++) {
         Bitboard subset = attadef & pos->bitboards[piece];
@@ -486,7 +473,7 @@ Bitboard getLeastValuablePiece(S_Board* pos, Bitboard attadef, int bySide, int& 
 }
 
 
-Bitboard AttacksTo(S_Board* pos, int to) {
+Bitboard AttacksTo(const S_Board* pos, int to) {
 
     Bitboard occ = pos->bitboards[BOTH];
 
@@ -517,7 +504,7 @@ Bitboard AttacksTo(S_Board* pos, int to) {
 }
 
 
-Bitboard considerXrays(S_Board* pos, int sq) {
+Bitboard considerXrays(const S_Board* pos, int sq) {
     Bitboard occ = pos->bitboards[BOTH];
     Bitboard attackers = 0ULL;
     Bitboard attackingBishops = pos->bitboards[WB] | pos->bitboards[BB];
@@ -536,7 +523,7 @@ Bitboard considerXrays(S_Board* pos, int sq) {
 }
 
 //Inspired by Crafty and Blunder engines
-int see(S_Board* pos, int move) {
+int see(const S_Board* pos, int move) {
 
     int to = get_move_target(move);
     int from = get_move_source(move);
@@ -551,7 +538,10 @@ int see(S_Board* pos, int move) {
     Bitboard maxXray = occupiedBB & ~(pos->bitboards[WN] | pos->bitboards[WK] | pos->bitboards[BN] | pos->bitboards[BK]);
     Bitboard fromSet = 1ULL << from;
 
-    gain[d] = scores[target];
+
+
+    if (!(attadef & (1ULL<< to)))
+        return gain[0];
 
     do {
         d++; // next depth and side

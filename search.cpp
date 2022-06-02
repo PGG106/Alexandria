@@ -104,6 +104,88 @@ static inline  void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
 
 
+// score moves
+static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
+{
+	for (int i = 0;i < move_list->count;i++) {
+		int move = move_list->moves[i].move;
+
+		if (get_move_enpassant(move)) {
+
+			move_list->moves[i].score=  105 + 10000;
+			return;
+		}
+
+
+
+
+		else if (get_move_capture(move)) {
+
+
+
+			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
+			continue;
+
+		}
+
+
+		else if (pos->searchKillers[0][pos->ply] == move) {
+
+			move_list->moves[i].score = 9000;
+			continue;
+		}
+
+		else if (pos->searchKillers[1][pos->ply] == move) {
+
+			move_list->moves[i].score = 8000;
+			continue;
+
+		}
+
+
+
+		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
+
+
+
+			move_list->moves[i].score = 7000;
+			continue;
+
+		}
+
+		else {
+
+			move_list->moves[i].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
+			continue;
+		}
+
+
+
+	}
+
+
+
+
+	
+
+
+	return ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 static void  pick_move(S_MOVELIST* move_list, int moveNum)
 {
 
@@ -145,7 +227,6 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 
 	if (pos->ply > MAXDEPTH - 1) {
 		// evaluate position
-		printf("valore restituito");
 		return EvalPosition(pos);
 	}
 
@@ -175,6 +256,7 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 
 	// generate moves
 	generate_captures(move_list, pos);
+	score_moves(pos, move_list);
 	int legal = 0;
 	int OldAlpha = alpha;
 	score = -MAXSCORE;
@@ -392,6 +474,9 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	// generate moves
 	generate_moves(move_list, pos);
 
+
+	score_moves(pos, move_list);
+
 	// old value of alpha
 	int old_alpha = alpha;
 	int BestScore = -MAXSCORE;
@@ -408,7 +493,6 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 		for (MoveNum = 0; MoveNum < move_list->count; ++MoveNum) {
 			if (move_list->moves[MoveNum].move == PvMove) {
 				move_list->moves[MoveNum].score = 2000000;
-				//printf("Pv move found \n");
 				break;
 			}
 		}

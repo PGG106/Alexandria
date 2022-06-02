@@ -75,47 +75,10 @@ int MoveExists(S_Board* pos, const int move) {
 static inline void AddMove(const S_Board* pos, int move, S_MOVELIST* list) { //function that adds a quiet (non capturing move) to the move list
 
 
-	if (get_move_enpassant(move)) {
-		list->moves[list->count].move = move;
-		list->moves[list->count].score = 105 + 10000;
-		list->count++;
-		return;
-	}
-
-
-
-
-	else  if (get_move_capture(move)) {
-		list->moves[list->count].move = move;
-		list->moves[list->count].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
-		list->count++;
-		return;
-	}
-
 	list->moves[list->count].move = move;
-
-	 if (pos->searchKillers[0][pos->ply] == move) {
-		list->moves[list->count].score = 9000;
-	}
-
-	else if (pos->searchKillers[1][pos->ply] == move) {
-		list->moves[list->count].score = 8000;
-
-	}
-
-
-	else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
-
-
-		list->moves[list->count].score = 7000;
-
-	}
-
-	else {
-		list->moves[list->count].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
-	}
-
+	list->moves[list->count].score = 0;
 	list->count++;
+
 
 }
 
@@ -572,7 +535,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 	}
 	source_square = KingSQ(pos, pos->side);
-	int piece = (pos->side *6+5);
+	int piece = (pos->side * 6 + 5);
 
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1]);
 	while (moves) {
