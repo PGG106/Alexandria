@@ -12,6 +12,7 @@
 #include "ttable.h"
 #include "perft.h"
 #include "PieceData.h"
+#include "attack.h"
 
 int main()
 {
@@ -41,19 +42,16 @@ int main()
 
 
 	// debug mode variable
-	int debug = 1;
+	int debug =0;
 
 	// if debugging
 	if (debug)
 	{
 
 
-		parse_fen("1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -", pos);
+		parse_fen(start_position, pos);
 		print_board(pos);
-		int move = encode_move(d3, e5, WN, 0, 1, 0, 0, 0);
-		int x = see(pos, move);
-
-		printf("%d", x);
+		Root_search_position(18, pos, info);
 
 
 
