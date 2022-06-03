@@ -84,6 +84,8 @@ enum { opening, endgame, middlegame };
 // piece types
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
+extern int reductions[256];
+
 typedef struct {
 	Bitboard posKey;
 	int move;

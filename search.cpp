@@ -112,7 +112,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 		if (get_move_enpassant(move)) {
 
-			move_list->moves[i].score=  105 + 10000;
+			move_list->moves[i].score = 105 + 10000;
 			return;
 		}
 
@@ -166,22 +166,11 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 
 
-	
 
 
-	return ;
+
+	return;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -319,7 +308,11 @@ const int full_depth_moves = 4;
 // depth limit to consider reduction
 const int reduction_limit = 3;
 
+static inline int reduction(int depth, int num_moves) {
 
+	return 2;
+
+}
 
 // negamax alpha beta search
 static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
@@ -530,12 +523,17 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 			if (
 				moves_searched >= full_depth_moves &&
 				depth >= reduction_limit &&
-				in_check == 0 &&
-				get_move_capture(move_list->moves[count].move) == 0 &&
-				get_move_promoted(move_list->moves[count].move) == 0
+				!in_check &&
+				!get_move_capture(move_list->moves[count].move) &&
+				!get_move_promoted(move_list->moves[count].move)
 				)
+
+			{
+				int depth_reduction = reduction(depth, moves_searched);
+
 				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - 2, pos, info, TRUE);
+				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE);
+			}
 
 			// hack to ensure that full-depth search is done
 			else Score = alpha + 1;
@@ -543,20 +541,12 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 			// principle variation search PVS
 			if (Score > alpha)
 			{
-				/* Once you've found a move with a score that is between alpha and beta,
-				   the rest of the moves are searched with the goal of proving that they are all bad.
-				   It's possible to do this a bit faster than a search that worries that one
-				   of the remaining moves might be good. */
+
 				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE);
 
-				/* If the algorithm finds out that it was wrong, and that one of the
-				   subsequent moves was better than the first PV move, it has to search again,
-				   in the normal alpha-beta manner.  This happens sometimes, and it's a waste of time,
-				   but generally not often enough to counteract the savings gained from doing the
-				   "bad move proof" search referred to earlier. */
+
 				if ((Score > alpha) && (Score < beta))
-					/* re-search the move that has failed to be proved to be bad
-					   with normal alpha beta score bounds*/
+
 					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE);
 			}
 		}
