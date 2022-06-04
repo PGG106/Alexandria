@@ -113,7 +113,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 		if (get_move_enpassant(move)) {
 
 			move_list->moves[i].score = 105 + 10000;
-			return;
+			continue;
 		}
 
 

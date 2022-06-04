@@ -171,26 +171,6 @@ const int mirror_score[128] =
 
 
 
-
-// double pawns penalty
-const int double_pawn_penalty = -10;
-
-// isolated pawn penalty
-const int isolated_pawn_penalty = -10;
-
-// passed pawn bonus
-const int passed_pawn_bonus[8] = { 0, 5, 10, 20, 35, 60, 100, 200 };
-
-// semi open file score
-const int semi_open_file_score = 3;
-
-// open file score
-const int open_file_score = 5;
-
-// king's shield bonus
-const int king_shield_bonus = 5;
-
-
 const int KingE[64] = {
 	-50	,	-20	,	0	,	0	,	0	,	0	,	-20	,	-50	,
 	-20,	0	,	20	,	20	,	20	,	20	,	0	,	-20	,
@@ -333,6 +313,7 @@ int EvalPosition(const S_Board* pos)
 		score_opening += positional_score[opening][PAWN][square];
 		score_endgame += positional_score[endgame][PAWN][square];
 
+
 		clr_bit(white_pawns, square);
 
 		
@@ -442,6 +423,8 @@ int EvalPosition(const S_Board* pos)
 
 		score_opening -= positional_score[opening][PAWN][mirror_score[square]];
 		score_endgame -= positional_score[endgame][PAWN][mirror_score[square]];
+
+
 
 		clr_bit(black_pawns, square);
 	}
