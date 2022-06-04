@@ -10,9 +10,7 @@
   * Quiescence search
   * Transposition Table
   * Repetition detection
-  * Countermove heuristic
-  * Killer moves
-  * History heuristic
+  * killer move, history, Countermove heuristic
   * MVV-LVA move ordering
   * Null-move pruning
   * Razoring
