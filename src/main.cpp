@@ -14,7 +14,7 @@
 #include "PieceData.h"
 #include "attack.h"
 
-int main()
+int main(int argc, char** argv)
 {
 
 
@@ -60,7 +60,7 @@ int main()
 
 	else
 		// connect to the GUI
-		Uci_Loop(pos, info);
+		Uci_Loop(pos, info, argv);
 
 	return 0;
 }

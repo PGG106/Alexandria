@@ -252,7 +252,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 */
 
 // main UCI loop
-void Uci_Loop(S_Board* pos,S_SearchINFO* info)
+void Uci_Loop(S_Board* pos,S_SearchINFO* info, char** argv)
 {
     // reset STDIN & STDOUT buffers
     setvbuf(stdin, NULL, _IONBF, 0);
@@ -326,9 +326,9 @@ void Uci_Loop(S_Board* pos,S_SearchINFO* info)
             printf("uciok\n");
         }
 
-        else if (strncmp(input, "bench", 5) == 0) {
+        else if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
             start_bench();
-            return ;
+            exit(10);
 
         }
     }
