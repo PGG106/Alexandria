@@ -76,13 +76,12 @@ int start_bench() {
 
 		printf("\nPosition: %d\n", positions);
 
-		for (int depth = 1; depth <= 10; depth++) {
-			Root_search_position(depth, pos, info);
-		}
+		Root_search_position(10, pos, info);
+
 		total_nodes += info->nodes;
 		total_time += GetTimeMs() - info->starttime;
 	}
 
-	printf("\n %d nodes %d nps", total_nodes, total_nodes / (total_time/1000));
+	printf("\n nodes %d  nps %d ", total_nodes, total_nodes / (total_time / 1000));
 	return 0;
 }
