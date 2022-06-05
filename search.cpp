@@ -118,10 +118,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 
 
-
 		else if (get_move_capture(move)) {
-
-
 
 			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
 			continue;
@@ -146,8 +143,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
 
-
-
 			move_list->moves[i].score = 7000;
 			continue;
 
@@ -160,13 +155,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 		}
 
 
-
 	}
-
-
-
-
-
 
 
 	return;
@@ -310,7 +299,7 @@ const int reduction_limit = 3;
 
 static inline int reduction(int depth, int num_moves) {
 
-	return reductions[depth]*reductions[num_moves];
+	return reductions[depth] * reductions[num_moves];
 
 }
 
@@ -394,6 +383,11 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 			// evaluation margin substracted from static evaluation score
 			return static_eval - eval_margin;
 	}
+
+
+	
+		
+
 
 
 
@@ -499,6 +493,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	for (int count = 0; count < move_list->count; count++)
 	{
 		pick_move(move_list, count);
+
 
 		// make sure to make only legal moves
 		make_move(move_list->moves[count].move, all_moves, pos);
@@ -695,9 +690,18 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 		score = negamax(alpha, beta, current_depth, pos, info, TRUE);
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
-		if ((score <= alpha) || (score >= beta)) {
+		if ((score <= alpha) ) {
 
 			alpha = -MAXSCORE;
+			current_depth--;
+			continue;
+		}
+
+
+		// we fell outside the window, so try again with a full-width window (and the same depth)
+		else if ((score >= beta)) {
+
+			
 			beta = MAXSCORE;
 			current_depth--;
 			continue;

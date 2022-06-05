@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="attack.h" />
+    <ClInclude Include="bench.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="eval.h" />
     <ClInclude Include="hashkey.h" />
@@ -174,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="attack.cpp" />
+    <ClCompile Include="bench.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="eval.cpp" />
     <ClCompile Include="hashkey.cpp" />
@@ -192,6 +194,9 @@
     <ClCompile Include="search.cpp" />
     <ClCompile Include="ttable.cpp" />
     <ClCompile Include="uci.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="makefile" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

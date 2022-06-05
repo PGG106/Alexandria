@@ -9,6 +9,7 @@
 #include "io.h"
 #include "search.h"
 #include "ttable.h"
+#include "bench.h"
 
 int parse_move(char* move_string,S_Board* pos)
 {
@@ -323,6 +324,12 @@ void Uci_Loop(S_Board* pos,S_SearchINFO* info)
             printf("id name CE2BIT\n");
             printf("id author PGG106\n");
             printf("uciok\n");
+        }
+
+        else if (strncmp(input, "bench", 5) == 0) {
+            start_bench();
+            return ;
+
         }
     }
 }

@@ -69,6 +69,9 @@
     <ClInclude Include="search.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="bench.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Board.cpp">
@@ -128,5 +131,11 @@
     <ClCompile Include="uci.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="bench.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="makefile" />
   </ItemGroup>
 </Project>

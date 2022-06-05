@@ -537,7 +537,7 @@ int see(const S_Board* pos, int move) {
     Bitboard attadef = AttacksTo(pos, to);
     Bitboard maxXray = occupiedBB & ~(pos->bitboards[WN] | pos->bitboards[WK] | pos->bitboards[BN] | pos->bitboards[BK]);
     Bitboard fromSet = 1ULL << from;
-
+    gain[0] = scores[target];
 
 
     if (!(attadef & (1ULL<< to)))
