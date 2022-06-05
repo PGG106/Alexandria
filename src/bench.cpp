@@ -1,6 +1,7 @@
 #include "board.h"
 #include "search.h"
 #include "ttable.h"
+#include <iostream>
 
 //Benchmarks from Bitgenie
 char* benchmarkfens[50] = {
@@ -82,6 +83,6 @@ int start_bench() {
 		total_time += GetTimeMs() - info->starttime;
 	}
 
-	printf("\n nodes %d  nps %d ", total_nodes, total_nodes / (total_time / 1000));
+	std::cout << "\n" << total_nodes << " nodes " << total_time / 1000 << " nps " << std::endl;
 	return 0;
 }
