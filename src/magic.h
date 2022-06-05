@@ -1,5 +1,6 @@
 #pragma once
 #include "Board.h"
+#include <cstdint>
 
 // init slider piece's attack tables
 void init_sliders_attacks(int bishop);
