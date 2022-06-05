@@ -137,7 +137,7 @@ void ReadInput(S_SearchINFO* info) {
     if (InputWaiting()) {
         info->stopped = TRUE;
         do {
-            bytes = _read(_fileno(stdin), input, 256);
+            bytes = read(fileno(stdin), input, 256);
         } while (bytes < 0);
         endc = strchr(input, '\n');
         if (endc) *endc = 0;

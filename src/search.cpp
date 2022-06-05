@@ -72,7 +72,7 @@ static int IsRepetition(const S_Board* pos) {
 
 
 
-static inline  void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
+   void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
 	int index = 0;
 	int index2 = 0;

@@ -171,9 +171,9 @@ char* FormatMove(const int move) {
 
 
     if (promoted)
-        sprintf_s(Move, sizeof(Move), "%s%s%c", from, to, promoted_pieces[promoted]);
+        snprintf(Move, sizeof(Move), "%s%s%c", from, to, promoted_pieces[promoted]);
     else
-        sprintf_s(Move, sizeof(Move), "%s%s", from, to);
+        snprintf(Move, sizeof(Move), "%s%s", from, to);
 
 
     return Move;

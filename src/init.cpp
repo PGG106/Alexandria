@@ -2,6 +2,7 @@
 #include "attack.h"
 #include "magic.h"
 #include "io.h"
+#include <cmath>
 #include "PieceData.h"
 #include "polykeys.h"
 #include "random.h"

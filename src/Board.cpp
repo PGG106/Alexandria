@@ -2,6 +2,7 @@
 #include"PieceData.h"
 #include <stdio.h>
 #include "math.h"
+#include <cassert>
 #include <intrin.h>
 #include "hashkey.h"
 #include "string.h"
@@ -99,9 +100,9 @@ int count_bits(Bitboard bitboard)
 
 #if defined(__GNUC__)  // GCC, Clang, ICC
 
-inline Square lsb(Bitboard b) {
+ int get_ls1b_index(Bitboard b) {
     assert(b);
-    return Square(__builtin_ctzll(b));
+    return int(__builtin_ctzll(b));
 }
 
 
