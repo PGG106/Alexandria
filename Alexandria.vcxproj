@@ -153,50 +153,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="attack.h" />
-    <ClInclude Include="bench.h" />
-    <ClInclude Include="Board.h" />
-    <ClInclude Include="eval.h" />
-    <ClInclude Include="hashkey.h" />
-    <ClInclude Include="init.h" />
-    <ClInclude Include="io.h" />
-    <ClInclude Include="magic.h" />
-    <ClInclude Include="makemove.h" />
-    <ClInclude Include="misc.h" />
-    <ClInclude Include="move.h" />
-    <ClInclude Include="movegen.h" />
-    <ClInclude Include="perft.h" />
-    <ClInclude Include="PieceData.h" />
-    <ClInclude Include="polykeys.h" />
-    <ClInclude Include="random.h" />
-    <ClInclude Include="search.h" />
-    <ClInclude Include="ttable.h" />
-    <ClInclude Include="uci.h" />
+    <ClInclude Include="src\attack.h" />
+    <ClInclude Include="src\bench.h" />
+    <ClInclude Include="src\Board.h" />
+    <ClInclude Include="src\eval.h" />
+    <ClInclude Include="src\hashkey.h" />
+    <ClInclude Include="src\init.h" />
+    <ClInclude Include="src\io.h" />
+    <ClInclude Include="src\magic.h" />
+    <ClInclude Include="src\makemove.h" />
+    <ClInclude Include="src\misc.h" />
+    <ClInclude Include="src\move.h" />
+    <ClInclude Include="src\movegen.h" />
+    <ClInclude Include="src\perft.h" />
+    <ClInclude Include="src\PieceData.h" />
+    <ClInclude Include="src\polykeys.h" />
+    <ClInclude Include="src\random.h" />
+    <ClInclude Include="src\search.h" />
+    <ClInclude Include="src\ttable.h" />
+    <ClInclude Include="src\uci.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="attack.cpp" />
-    <ClCompile Include="bench.cpp" />
-    <ClCompile Include="Board.cpp" />
-    <ClCompile Include="eval.cpp" />
-    <ClCompile Include="hashkey.cpp" />
-    <ClCompile Include="init.cpp" />
-    <ClCompile Include="io.cpp" />
-    <ClCompile Include="magic.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="makemove.cpp" />
-    <ClCompile Include="misc.cpp" />
-    <ClCompile Include="movegen.cpp" />
-    <ClCompile Include="perft.cpp" />
-    <ClCompile Include="PieceData.cpp" />
-    <ClCompile Include="polybook.cpp" />
-    <ClCompile Include="polykeys.cpp" />
-    <ClCompile Include="random.cpp" />
-    <ClCompile Include="search.cpp" />
-    <ClCompile Include="ttable.cpp" />
-    <ClCompile Include="uci.cpp" />
+    <ClCompile Include="src\attack.cpp" />
+    <ClCompile Include="src\bench.cpp" />
+    <ClCompile Include="src\Board.cpp" />
+    <ClCompile Include="src\eval.cpp" />
+    <ClCompile Include="src\hashkey.cpp" />
+    <ClCompile Include="src\init.cpp" />
+    <ClCompile Include="src\io.cpp" />
+    <ClCompile Include="src\magic.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\makemove.cpp" />
+    <ClCompile Include="src\misc.cpp" />
+    <ClCompile Include="src\movegen.cpp" />
+    <ClCompile Include="src\perft.cpp" />
+    <ClCompile Include="src\PieceData.cpp" />
+    <ClCompile Include="src\polybook.cpp" />
+    <ClCompile Include="src\polykeys.cpp" />
+    <ClCompile Include="src\random.cpp" />
+    <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\ttable.cpp" />
+    <ClCompile Include="src\uci.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="makefile" />
+    <Text Include="src\makefile" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

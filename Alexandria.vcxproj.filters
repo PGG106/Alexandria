@@ -15,127 +15,127 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Board.h">
+    <ClInclude Include="src\Board.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="hashkey.h">
+    <ClInclude Include="src\hashkey.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="PieceData.h">
+    <ClInclude Include="src\PieceData.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="init.h">
+    <ClInclude Include="src\init.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="ttable.h">
+    <ClInclude Include="src\ttable.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="uci.h">
+    <ClInclude Include="src\uci.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="attack.h">
+    <ClInclude Include="src\attack.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="magic.h">
+    <ClInclude Include="src\magic.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="random.h">
+    <ClInclude Include="src\random.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="polykeys.h">
+    <ClInclude Include="src\polykeys.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="eval.h">
+    <ClInclude Include="src\eval.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="io.h">
+    <ClInclude Include="src\io.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="move.h">
+    <ClInclude Include="src\move.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="movegen.h">
+    <ClInclude Include="src\movegen.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="makemove.h">
+    <ClInclude Include="src\makemove.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="misc.h">
+    <ClInclude Include="src\misc.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="perft.h">
+    <ClInclude Include="src\perft.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="search.h">
+    <ClInclude Include="src\search.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="bench.h">
+    <ClInclude Include="src\bench.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Board.cpp">
+    <ClCompile Include="src\Board.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="hashkey.cpp">
+    <ClCompile Include="src\hashkey.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="init.cpp">
+    <ClCompile Include="src\init.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="attack.cpp">
+    <ClCompile Include="src\attack.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="magic.cpp">
+    <ClCompile Include="src\magic.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="random.cpp">
+    <ClCompile Include="src\random.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="PieceData.cpp">
+    <ClCompile Include="src\PieceData.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="eval.cpp">
+    <ClCompile Include="src\eval.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="io.cpp">
+    <ClCompile Include="src\io.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="movegen.cpp">
+    <ClCompile Include="src\movegen.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="makemove.cpp">
+    <ClCompile Include="src\makemove.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="misc.cpp">
+    <ClCompile Include="src\misc.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="perft.cpp">
+    <ClCompile Include="src\perft.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="polykeys.cpp">
+    <ClCompile Include="src\polykeys.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="search.cpp">
+    <ClCompile Include="src\search.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="ttable.cpp">
+    <ClCompile Include="src\ttable.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="polybook.cpp">
+    <ClCompile Include="src\polybook.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="uci.cpp">
+    <ClCompile Include="src\uci.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="bench.cpp">
+    <ClCompile Include="src\bench.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="makefile" />
+    <Text Include="src\makefile" />
   </ItemGroup>
 </Project>
