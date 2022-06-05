@@ -9,7 +9,7 @@
 #include "assert.h"
 #include "makemove.h"
 
-const int HashSize = 0x100000 * 80;
+const int HashSize = 0x100000 * 32;
 
 S_HASHTABLE HashTable[1];
 
