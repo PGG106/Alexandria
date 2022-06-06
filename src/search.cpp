@@ -16,7 +16,7 @@
 // follow PV & score PV move
 int follow_pv, score_pv;
 
-int CounterMoves[64][64];
+int CounterMoves[MAXDEPTH][MAXDEPTH];
 
 // enable PV move scoring
 static inline void enable_pv_scoring(S_MOVELIST* move_list, S_Board* pos)
@@ -60,13 +60,14 @@ static inline void CheckUp(S_SearchINFO* info) {
 
 static int IsRepetition(const S_Board* pos) {
 	int index = 0;
-
+	/*
 	for (index = pos->hisPly - pos->fiftyMove; index < pos->hisPly - 1; ++index) {
 		assert(index >= 0 && index < MAXGAMEMOVES);
 		if (pos->posKey == pos->history[index].posKey) {
 			return TRUE;
 		}
 	}
+	*/
 	return FALSE;
 }
 
@@ -317,7 +318,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	}
 
 
-	if ((info->nodes & 8095) == 0) {
+	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
 
