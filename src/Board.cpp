@@ -22,6 +22,7 @@ const char* square_to_coordinates[] = {
 char RankChar[] = "12345678";
 char FileChar[] = "abcdefgh";
 
+Bitboard repetition_table[1000];
 
 const int get_rank[64] =
 {
@@ -179,7 +180,7 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
     pos->checkMask = 18446744073709551615ULL;
     pos->checks = 0;
 
-
+    memset(repetition_table, 0ULL, sizeof(repetition_table));
 
 
 }

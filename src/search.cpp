@@ -60,20 +60,21 @@ static inline void CheckUp(S_SearchINFO* info) {
 
 static int IsRepetition(const S_Board* pos) {
 	int index = 0;
-	/*
-	for (index = pos->hisPly - pos->fiftyMove; index < pos->hisPly - 1; ++index) {
-		assert(index >= 0 && index < MAXGAMEMOVES);
-		if (pos->posKey == pos->history[index].posKey) {
+
+
+	for (int index = 0; index < pos->hisPly; index++)
+		// if we found the hash key same with a current
+		if (repetition_table[index] == pos->posKey)
+			// we found a repetition
 			return TRUE;
-		}
-	}
-	*/
+
+
 	return FALSE;
 }
 
 
 
-   void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
+void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
 	int index = 0;
 	int index2 = 0;
@@ -254,6 +255,8 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 		// make sure to make only legal moves
 		make_move(move_list->moves[count].move, only_captures, pos);
 
+		repetition_table[pos->hisPly] = pos->posKey;
+
 		legal++;
 		// score current move
 		int score = -Quiescence(-beta, -alpha, pos, info);
@@ -326,7 +329,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	// increment nodes count
 	info->nodes++;
 
-	if ((IsRepetition(pos))) {
+	if ((IsRepetition(pos)) && pos->ply) {
 
 		return 0;
 	}
@@ -386,8 +389,8 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	}
 
 
-	
-		
+
+
 
 
 
@@ -395,7 +398,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	// null move pruning
 	if (DoNull && depth >= 4 && !in_check && pos->ply)
 	{
-
+		repetition_table[pos->hisPly] = pos->posKey;
 
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
@@ -691,7 +694,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 		score = negamax(alpha, beta, current_depth, pos, info, TRUE);
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
-		if ((score <= alpha) ) {
+		if ((score <= alpha)) {
 
 			alpha = -MAXSCORE;
 			current_depth--;
@@ -702,7 +705,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 		// we fell outside the window, so try again with a full-width window (and the same depth)
 		else if ((score >= beta)) {
 
-			
+
 			beta = MAXSCORE;
 			current_depth--;
 			continue;

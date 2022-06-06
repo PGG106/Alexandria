@@ -84,9 +84,11 @@ enum { opening, endgame, middlegame };
 // piece types
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
+extern Bitboard repetition_table[1000];
+
 extern int reductions[256];
 
-typedef struct {
+typedef struct HASHENTRY {
 	Bitboard posKey;
 	int move;
 	int score;
@@ -94,7 +96,7 @@ typedef struct {
 	int flags;
 } S_HASHENTRY;
 
-typedef struct {
+typedef struct HASHTABLE{
 	S_HASHENTRY* pTable;
 	int numEntries;
 	int newWrite;
@@ -105,20 +107,20 @@ typedef struct {
 
 
 
-typedef struct {
-	int move;
-	int castlePerm;
-	int capture;
-	int enPas;
-	int fiftyMove;
-	Bitboard posKey;
+typedef struct Undo {
+	int move=0;
+	int castlePerm=15;
+	int capture=14;
+	int enPas=0;
+	int fiftyMove=0;
+	Bitboard posKey=0ULL;
 	Bitboard occupancies[3];
 } S_Undo; //stores a move and the state of the game before that move is made for rollback purposes 
 
 
 
 
-typedef struct {
+typedef struct Board {
 	int pieces[64]; //array that stores for every square of the board if there's a piece, or if the square is invalid
 
 	int side; //what side has to move
@@ -151,7 +153,7 @@ extern S_HASHTABLE HashTable[1];
 
 extern Bitboard SQUARES_BETWEEN_BB[64][64];
 
-typedef struct {
+typedef struct info {
 	int starttime;
 	int stoptime;
 	int depth;

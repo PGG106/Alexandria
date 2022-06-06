@@ -331,13 +331,11 @@ void TakeNullMove(S_Board* pos) {
 
 	pos->hisPly--;
 	pos->ply--;
-	if (pos->enPas != no_sq) HASH_EP;
 
 	pos->castleperm = pos->history[pos->hisPly].castlePerm;
 	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
 	pos->enPas = pos->history[pos->hisPly].enPas;
 
-	if (pos->enPas != no_sq) HASH_EP;
 	pos->side ^= 1;
-	HASH_SIDE;
+	pos->posKey = pos->history[pos->hisPly].posKey;
 }
