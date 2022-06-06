@@ -81,37 +81,40 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 	assert(pos->ply >= 0 && pos->ply < MAXDEPTH);
 
 	if (HashTable->pTable[index].posKey == pos->posKey) {
-		*move = HashTable->pTable[index].move;
-		if (HashTable->pTable[index].depth >= depth) {
-			HashTable->hit++;
+		if (MoveExists(pos, HashTable->pTable[index].move)) {
+			*move = HashTable->pTable[index].move;
+			if (HashTable->pTable[index].depth >= depth) {
+				HashTable->hit++;
 
-			assert(HashTable->pTable[index].depth >= 1 && HashTable->pTable[index].depth < MAXDEPTH);
+				assert(HashTable->pTable[index].depth >= 1 && HashTable->pTable[index].depth < MAXDEPTH);
 
-			*score = HashTable->pTable[index].score;
-			if (*score > ISMATE) *score -= pos->ply;
-			else if (*score < -ISMATE) *score += pos->ply;
+				*score = HashTable->pTable[index].score;
+				if (*score > ISMATE) *score -= pos->ply;
+				else if (*score < -ISMATE) *score += pos->ply;
 
-			switch (HashTable->pTable[index].flags) {
+				switch (HashTable->pTable[index].flags) {
 
-				assert(*score >= -MAXSCORE && *score <= MAXSCORE);
+					assert(*score >= -MAXSCORE && *score <= MAXSCORE);
 
-			case HFALPHA: if (*score <= alpha) {
-				*score = alpha;
-				return TRUE;
-			}
-						break;
-			case HFBETA: if (*score >= beta) {
-				*score = beta;
-				return TRUE;
-			}
-					   break;
-			case HFEXACT:
-				return TRUE;
-				break;
-			default: assert(FALSE); break;
+				case HFALPHA: if (*score <= alpha) {
+					*score = alpha;
+					return TRUE;
+				}
+							break;
+				case HFBETA: if (*score >= beta) {
+					*score = beta;
+					return TRUE;
+				}
+						   break;
+				case HFEXACT:
+					return TRUE;
+					break;
+				default: assert(FALSE); break;
+				}
 			}
 		}
 	}
+
 
 	return FALSE;
 }
@@ -137,7 +140,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 		HashTable->newWrite++;
 	}
 
-	else if(depth >= HashTable->pTable[index].depth) {
+	else if (depth >= HashTable->pTable[index].depth) {
 
 		if (score > ISMATE) score += pos->ply;
 		else if (score < -ISMATE) score -= pos->ply;
@@ -150,7 +153,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 		HashTable->overWrite++;
 	}
 
-	
+
 }
 
 int ProbePvMove(const S_Board* pos) {
