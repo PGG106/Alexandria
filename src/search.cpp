@@ -13,32 +13,9 @@
 #include <vector>
 #include <cassert>
 
-// follow PV & score PV move
-int follow_pv, score_pv;
+
 
 int CounterMoves[MAXDEPTH][MAXDEPTH];
-
-// enable PV move scoring
-static inline void enable_pv_scoring(S_MOVELIST* move_list, S_Board* pos)
-{
-	// disable following PV
-	follow_pv = 0;
-
-	// loop over the moves within a move list
-	for (int count = 0; count < move_list->count; count++)
-	{
-		// make sure we hit PV move
-		if (pos->pvArray[pos->ply] == move_list->moves[count].move)
-		{
-			// enable move scoring
-			score_pv = 1;
-
-			// enable following PV
-			follow_pv = 1;
-		}
-	}
-}
-
 
 
 
@@ -473,12 +450,7 @@ static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_Search
 	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
-	// if we are now following PV line
-	if (follow_pv) {
-		// enable PV move scoring
-		enable_pv_scoring(move_list, pos);
 
-	}
 
 	if (PvMove != NOMOVE) {
 		for (MoveNum = 0; MoveNum < move_list->count; ++MoveNum) {
@@ -674,7 +646,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int score = 0;
 
 	ClearForSearch(pos, info);
-	follow_pv = 1;
 
 	int alpha_window = -50;
 

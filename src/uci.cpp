@@ -174,6 +174,10 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	int time = -1, inc = 0;
 	char* ptr = NULL;
 	info->timeset = FALSE;
+	info->starttime = 0;
+	info->stoptime = 0;
+	info->depth = 0, 
+	info->timeset = 0;
 
 	if ((ptr = strstr(line, "infinite"))) {
 		;
