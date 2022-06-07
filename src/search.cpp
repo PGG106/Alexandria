@@ -77,8 +77,6 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 	info->starttime = GetTimeMs();
 	info->stopped = 0;
 	info->nodes = 0;
-	info->fh = 0;
-	info->fhf = 0;
 }
 
 
