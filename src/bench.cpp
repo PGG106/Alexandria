@@ -73,8 +73,6 @@ int start_bench() {
 	for (int positions = 0; positions < 50; positions++) {
 		parse_fen(benchmarkfens[positions], pos);
 
-		int result = 0;
-
 		printf("\nPosition: %d\n", positions);
 
 		Root_search_position(10, pos, info);

@@ -19,6 +19,6 @@ int get_time_ms();
 
 
 // perft driver
-static inline void perft_driver(int depth, S_Board* pos);
+  void perft_driver(int depth, S_Board* pos);
 // perft test
 unsigned long  long perft_test(int depth, S_Board* pos);

@@ -41,7 +41,7 @@
 
 
 
-static inline void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
+  void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 
 	ClearPiece(piece, from, pos);

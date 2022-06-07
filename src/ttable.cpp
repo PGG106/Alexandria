@@ -94,7 +94,6 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 
 				switch (HashTable->pTable[index].flags) {
 
-					assert(*score >= -MAXSCORE && *score <= MAXSCORE);
 
 				case HFALPHA: if (*score <= alpha) {
 					*score = alpha;

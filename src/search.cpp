@@ -4,7 +4,6 @@
 #include "makemove.h"
 #include "PieceData.h"
 #include "ttable.h"
-#include "polykeys.h"
 #include "io.h"
 #include "eval.h"
 #include "search.h"
@@ -22,7 +21,7 @@ int CounterMoves[MAXDEPTH][MAXDEPTH];
 
 
 
-static inline void CheckUp(S_SearchINFO* info) {
+  void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
 
 	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
@@ -36,8 +35,6 @@ static inline void CheckUp(S_SearchINFO* info) {
 }
 
 static int IsRepetition(const S_Board* pos) {
-	int index = 0;
-
 
 	for (int index = 0; index < pos->hisPly; index++)
 		// if we found the hash key same with a current
@@ -141,7 +138,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 
 
-static void  pick_move(S_MOVELIST* move_list, int moveNum)
+ void  pick_move(S_MOVELIST* move_list, int moveNum)
 {
 
 	S_MOVE temp;
@@ -166,7 +163,7 @@ static void  pick_move(S_MOVELIST* move_list, int moveNum)
 
 
 
-static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
+  int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 {
 
 	if ((info->nodes & 2047) == 0) {
@@ -213,7 +210,6 @@ static inline int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* in
 	generate_captures(move_list, pos);
 	score_moves(pos, move_list);
 	int legal = 0;
-	int OldAlpha = alpha;
 	score = -MAXSCORE;
 
 
@@ -283,10 +279,9 @@ static inline int reduction(int depth, int num_moves) {
 }
 
 // negamax alpha beta search
-static inline int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
+  int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
 {
 
-	int found_pv = 0;
 	// init PV length
 	// 
 	// recursion escape condition
@@ -606,36 +601,29 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	ClearForSearch(pos, info);
 	S_Board pos_copy = *pos;
 	int initial_depth = 1;
-	int bestmove = NOMOVE;
 	std::vector<std::thread> threads;
 	std::vector<S_Board> pos_copies;
 	for (int i = 0; i < num_threads - 1; i++) {
 		pos_copies.push_back(*pos);
 	}
-	bestmove = GetBookMove(pos);
-	if (bestmove == NOMOVE) {
 
-		for (int i = 0;i < num_threads - 1;i++) {
-			threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
-		}
 
-		search_position(1, depth, pos, info, TRUE); //root search 
-
-		for (auto& th : threads) {
-			th.join(); //stop helper threads
-		}
-
+	for (int i = 0;i < num_threads - 1;i++) {
+		threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
 	}
 
-	else {
-		// best move placeholder
-		printf("bestmove ");
-		print_move(bestmove);
-		printf("\n");
-	}
+	search_position(1, depth, pos, info, TRUE); //root search 
 
+	for (auto& th : threads) {
+		th.join(); //stop helper threads
+	}
 
 }
+
+
+
+
+
 
 
 // search position for the best move

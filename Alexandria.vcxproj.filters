@@ -42,9 +42,6 @@
     <ClInclude Include="src\random.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="src\polykeys.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
     <ClInclude Include="src\eval.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
@@ -116,16 +113,10 @@
     <ClCompile Include="src\perft.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="src\polykeys.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="src\search.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\ttable.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\polybook.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\uci.cpp">

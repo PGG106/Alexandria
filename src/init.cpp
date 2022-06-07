@@ -4,7 +4,6 @@
 #include "io.h"
 #include <cmath>
 #include "PieceData.h"
-#include "polykeys.h"
 #include "random.h"
 #include "stdint.h"
 
@@ -123,7 +122,6 @@ void InitEvalMasks() {
 
 
 void initHashKeys() {
-	int random_seed = 1804289383;
 	int Typeindex = 0;
 	int Numberindex = 0;
 	for (Typeindex = WP;Typeindex <= BK;++Typeindex)

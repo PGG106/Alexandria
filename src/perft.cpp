@@ -33,7 +33,7 @@ int get_time_ms()
 unsigned long  long nodes;
 
 // perft driver
-static inline void perft_driver(int depth, S_Board* pos)
+  void perft_driver(int depth, S_Board* pos)
 {
 
 

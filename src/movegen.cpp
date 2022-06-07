@@ -455,7 +455,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 			// init source square
 			source_square = get_ls1b_index(pawn_mask);
 
-			Bitboard moves = LegalPawnMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1] | 255 | 18374686479671623680);
+			Bitboard moves = LegalPawnMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1] | 255 | 18374686479671623680ULL);
 			while (moves) {
 				// init target square
 				target_square = get_ls1b_index(moves);
