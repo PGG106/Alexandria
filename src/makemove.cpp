@@ -11,7 +11,7 @@
 #include "uci.h"
 #include "hashkey.h"
 
- inline void ClearPiece(const int piece, const int sq, S_Board* pos) {
+  void ClearPiece(const int piece, const int sq, S_Board* pos) {
 
 
 
@@ -26,7 +26,7 @@
 }
 
 
- inline void AddPiece(const int piece, const int to, S_Board* pos) {
+  void AddPiece(const int piece, const int to, S_Board* pos) {
 
 
 	int color = Color[piece];

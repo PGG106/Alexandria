@@ -3,8 +3,9 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "Board.h"
-#ifdef _WIN32
+#ifdef _WIN64
 #include "windows.h"
+#include <io.h>
 #else
 #include "sys/time.h"
 #include "sys/select.h"
@@ -13,7 +14,7 @@
 #endif
 #include "search.h"
 #include "perft.h"
-#include <io.h>
+#include "io.h"
 
 int GetTimeMs() {
 #ifdef WIN32

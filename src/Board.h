@@ -1,4 +1,9 @@
 #pragma once
+#include <cassert>
+#include <cctype>
+#include <cstdint>
+#include <cstdlib>
+#include <algorithm>
 
 #define NAME "CE2BIT"
 #define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
@@ -20,7 +25,7 @@
 
 #define get_antidiagonal(sq)  (get_rank[sq] + get_file[sq])
 
-
+extern uint8_t PopCnt16[1 << 16];
 
 // FEN dedug positions
 #define empty_board "8/8/8/8/8/8/8/8 b - - "

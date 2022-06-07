@@ -23,9 +23,9 @@
 
 
 
- void ClearPiece(const int piece, const int sq, S_Board* pos);
+  void ClearPiece(const int piece, const int sq, S_Board* pos);
 
- void AddPiece(const int piece, const int to, S_Board* pos);
+  void AddPiece(const int piece, const int to, S_Board* pos);
 
 static inline void MovePiece(const int piece, const int from, const int to, S_Board* pos);
 

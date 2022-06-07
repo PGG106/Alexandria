@@ -8,16 +8,25 @@
 #include "perft.h"
 #include "math.h"
 #include "move.h"
+#ifdef _WIN64
 #include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
 
 
 // get time in milliseconds
 int get_time_ms()
 {
-
+ #ifdef _WIN64
     return GetTickCount64();
 
+#else
+        struct timeval time_value;
+        gettimeofday(&time_value, NULL);
+        return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
+#endif
 }
 
 // leaf nodes (number of positions reached during the test of the move generator at a given depth)
