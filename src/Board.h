@@ -173,12 +173,6 @@ typedef struct info {
 	long nodes;
 
 
-	float fh;
-	float fhf;
-
-	int GAME_MODE;
-	int POST_THINKING;
-
 } S_SearchINFO;
 
 
@@ -203,4 +197,6 @@ int  square_distance(int a, int b);
 
 // parse FEN string
 void parse_fen( char* fen, S_Board* pos);
+
+void Reset_info(S_SearchINFO* info);
 

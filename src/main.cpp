@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	init_all();
 	S_Board pos[1];
 	S_SearchINFO info[1];
-	info->quit = 0;
+	Reset_info(info);
 	HashTable->pTable = NULL;
 	InitHashTable(HashTable);
 	setvbuf(stdin, NULL, _IONBF, 0);
@@ -50,9 +50,7 @@ int main(int argc, char** argv)
 
 
 		parse_fen(start_position, pos);
-		print_board(pos);
-		Root_search_position(18, pos, info);
-
+		perft_test(7, pos);
 
 
 

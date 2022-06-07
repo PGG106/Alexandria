@@ -318,6 +318,8 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			// call parse position function
 			parse_position((char*)"position startpos", pos);
 
+			Reset_info(info);
+
 
 		}
 		// parse UCI "go" command

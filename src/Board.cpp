@@ -206,6 +206,22 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 
 }
 
+void Reset_info(S_SearchINFO* info) {
+
+	info->depth = 0;
+	info->depthset = 0;
+	info->nodes = 0;
+	info->starttime = 0;
+	info->stoptime = 0;
+	info->infinite = 0;
+	info->movestogo = -1;
+	info->quit = 0;
+	info->stopped = 0;
+	info->timeset = -1;
+
+}
+
+
 
 int  square_distance(int a, int b) {
 	return fmax(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
