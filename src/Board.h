@@ -1,4 +1,5 @@
 #pragma once
+#define NDEBUG
 #include <cassert>
 #include <cctype>
 #include <cstdint>
@@ -160,10 +161,10 @@ extern Bitboard SQUARES_BETWEEN_BB[64][64];
 
 typedef struct info {
 	int starttime;
-	int stoptime;
+	int stoptime=-1;
 	int depth;
 	int depthset;
-	int timeset;
+	int timeset=-1;
 	int movestogo;
 	int infinite;
 

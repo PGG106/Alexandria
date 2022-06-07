@@ -65,7 +65,6 @@ int start_bench() {
 	int total_nodes = 0;
 	int total_time = 0;
 	info->quit = 0;
-	HashTable->pTable = NULL;
 	InitHashTable(HashTable);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -81,6 +80,6 @@ int start_bench() {
 		total_time += GetTimeMs() - info->starttime;
 	}
 
-	std::cout << "\n" << total_nodes << " nodes " << total_nodes/(total_time/1000) << " nps " << std::endl;
+	std::cout << "\n" << total_nodes << " nodes " << total_nodes / ((total_time / 1000) + 1) << " nps " << std::endl;
 	return 0;
 }

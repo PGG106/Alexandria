@@ -15,14 +15,14 @@ S_HASHTABLE HashTable[1];
 
 int GetPvLine(const int depth, S_Board* pos) {
 
-	assert(depth < MAXDEPTH);
+	assert(depth <= MAXDEPTH);
 
 	int move = ProbePvMove(pos);
 	int count = 0;
 
 	while (move != NOMOVE && count < depth) {
 
-		assert(count < MAXDEPTH);
+		assert(count <= MAXDEPTH);
 
 		if (MoveExists(pos, move)) {
 			make_move(move, all_moves, pos);
@@ -74,7 +74,7 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 	int index = pos->posKey % HashTable->numEntries;
 
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	assert(depth >= 1 && depth < MAXDEPTH);
+	assert(depth >= 1 && depth <= MAXDEPTH);
 	assert(alpha < beta);
 	assert(alpha >= -MAXSCORE && alpha <= MAXSCORE);
 	assert(beta >= -MAXSCORE && beta <= MAXSCORE);
@@ -123,9 +123,9 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 	int index = pos->posKey % HashTable->numEntries;
 
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	assert(depth >= 1 && depth < MAXDEPTH);
+	assert(depth >= 1 && depth <= MAXDEPTH);
 	assert(score >= -MAXSCORE && score <= MAXSCORE);
-	assert(pos->ply >= 0 && pos->ply < MAXDEPTH);
+	assert(pos->ply >= 0 && pos->ply <= MAXDEPTH);
 
 	if (HashTable->pTable[index].posKey == 0) {
 		if (score > ISMATE) score += pos->ply;
@@ -155,15 +155,15 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 
 }
 
-int ProbePvMove(const S_Board* pos) {
+int ProbePvMove( S_Board* pos) {
 
 	int index = pos->posKey % HashTable->numEntries;
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
-
-	if (HashTable->pTable[index].posKey == pos->posKey) {
-		return HashTable->pTable[index].move;
+	if (MoveExists(pos, HashTable->pTable[index].move)) {
+		if (HashTable->pTable[index].posKey == pos->posKey) {
+			return HashTable->pTable[index].move;
+		}
 	}
-
 	return NOMOVE;
 }
 

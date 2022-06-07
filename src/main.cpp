@@ -23,7 +23,6 @@ int main(int argc, char** argv)
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	Reset_info(info);
-	HashTable->pTable = NULL;
 	InitHashTable(HashTable);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -42,7 +41,7 @@ int main(int argc, char** argv)
 
 
 	// debug mode variable
-	int debug =0;
+	int debug = 0;
 
 	// if debugging
 	if (debug)
@@ -60,6 +59,7 @@ int main(int argc, char** argv)
 		// connect to the GUI
 		Uci_Loop(pos, info, argv);
 
+	free(HashTable->pTable);
 	return 0;
 }
 

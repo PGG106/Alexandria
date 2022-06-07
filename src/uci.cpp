@@ -176,8 +176,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	info->timeset = FALSE;
 	info->starttime = 0;
 	info->stoptime = 0;
-	info->depth = 0, 
-	info->timeset = 0;
+	info->depth = 0,
+		info->timeset = 0;
 
 	if ((ptr = strstr(line, "infinite"))) {
 		;
@@ -339,6 +339,14 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			printf("id name CE2BIT\n");
 			printf("id author PGG106\n");
 			printf("uciok\n");
+		}
+		else if (strncmp(input, "bench", 5) == 0) {
+
+
+			start_bench();
+
+			return;
+
 		}
 
 
