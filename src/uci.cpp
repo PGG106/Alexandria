@@ -9,6 +9,7 @@
 #include "io.h"
 #include "search.h"
 #include "ttable.h"
+#include "time_manager.h"
 #include "bench.h"
 
 int parse_move(char* move_string, S_Board* pos)
@@ -170,7 +171,8 @@ void parse_position(char* command, S_Board* pos)
 // parse UCI "go" command
 void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
-	int depth = -1, movestogo = 30, movetime = -1;
+	int depth = -1, movetime = -1;
+	int movestogo;
 	int time = -1, inc = 0;
 	char* ptr = NULL;
 	info->timeset = FALSE;
@@ -201,6 +203,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 	if ((ptr = strstr(line, "movestogo"))) {
 		movestogo = atoi(ptr + 10);
+		if(movestogo>0)
+		info->movestogo = movestogo;
 	}
 
 	if ((ptr = strstr(line, "movetime"))) {
@@ -213,29 +217,14 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 	if (movetime != -1) {
 		time = movetime;
-		movestogo = 1;
+		info->movestogo = 1;
 	}
 
 	info->starttime = GetTimeMs();
 	info->depth = depth;
 
+	info->stoptime = optimum(pos, info, time, inc);
 
-	if (time != -1) {
-		info->timeset = TRUE;
-
-		if (movestogo != -1) {
-			time /= movestogo;
-			time -= 50;
-			info->stoptime = info->starttime + time + inc;
-
-		}
-		else {
-
-			info->stoptime = info->starttime + time / 20 + inc;
-
-		}
-
-	}
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;

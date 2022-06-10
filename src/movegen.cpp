@@ -360,64 +360,62 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 
 	}
 
+if (pos->checkMask == 18446744073709551615ULL) {
+	if (pos->side == WHITE) {
 
-
-	if (pos->checkMask == 18446744073709551615ULL) {
-		if (pos->side == WHITE) {
-
-			// king side castling is available
-			if (pos->castleperm & WKCA)
+		// king side castling is available
+		if (pos->castleperm & WKCA)
+		{
+			// make sure square between king and king's rook are empty
+			if (!get_bit(pos->occupancies[BOTH], f1) && !get_bit(pos->occupancies[BOTH], g1))
 			{
-				// make sure square between king and king's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], f1) && !get_bit(pos->occupancies[BOTH], g1))
-				{
-					// make sure king and the f1 squares are not under attacks
-					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, f1, BLACK) && !is_square_attacked(pos, g1, BLACK))
-						AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0, 0, 1), move_list);
-				}
+				// make sure king and the f1 squares are not under attacks
+				if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, f1, BLACK) && !is_square_attacked(pos, g1, BLACK))
+					AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0, 0, 1), move_list);
 			}
-
-			if (pos->castleperm & WQCA)
-			{
-				// make sure square between king and queen's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], d1) && !get_bit(pos->occupancies[BOTH], c1) && !get_bit(pos->occupancies[BOTH], b1))
-				{
-					// make sure king and the d1 squares are not under attacks
-					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, d1, BLACK) && !is_square_attacked(pos, c1, BLACK))
-						AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0, 0, 1), move_list);
-				}
-			}
-
 		}
 
-		else
+		if (pos->castleperm & WQCA)
 		{
-			if (pos->castleperm & BKCA)
+			// make sure square between king and queen's rook are empty
+			if (!get_bit(pos->occupancies[BOTH], d1) && !get_bit(pos->occupancies[BOTH], c1) && !get_bit(pos->occupancies[BOTH], b1))
 			{
-				// make sure square between king and king's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], f8) && !get_bit(pos->occupancies[BOTH], g8))
-				{
-					// make sure king and the f8 squares are not under attacks
-					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, f8, WHITE) && !is_square_attacked(pos, g8, WHITE))
-						AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0, 0, 1), move_list);
-
-
-				}
+				// make sure king and the d1 squares are not under attacks
+				if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, d1, BLACK) && !is_square_attacked(pos, c1, BLACK))
+					AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0, 0, 1), move_list);
 			}
+		}
 
-			if (pos->castleperm & BQCA)
+	}
+
+	else
+	{
+		if (pos->castleperm & BKCA)
+		{
+			// make sure square between king and king's rook are empty
+			if (!get_bit(pos->occupancies[BOTH], f8) && !get_bit(pos->occupancies[BOTH], g8))
 			{
-				// make sure square between king and queen's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], d8) && !get_bit(pos->occupancies[BOTH], c8) && !get_bit(pos->occupancies[BOTH], b8))
-				{
-					// make sure king and the d8 squares are not under attacks
-					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, d8, WHITE) && !is_square_attacked(pos, c8, WHITE))
-						AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0, 0, 1), move_list);
+				// make sure king and the f8 squares are not under attacks
+				if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, f8, WHITE) && !is_square_attacked(pos, g8, WHITE))
+					AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0, 0, 1), move_list);
 
-				}
+
+			}
+		}
+
+		if (pos->castleperm & BQCA)
+		{
+			// make sure square between king and queen's rook are empty
+			if (!get_bit(pos->occupancies[BOTH], d8) && !get_bit(pos->occupancies[BOTH], c8) && !get_bit(pos->occupancies[BOTH], b8))
+			{
+				// make sure king and the d8 squares are not under attacks
+				if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, d8, WHITE) && !is_square_attacked(pos, c8, WHITE))
+					AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0, 0, 1), move_list);
+
 			}
 		}
 	}
+}
 
 
 }

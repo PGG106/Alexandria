@@ -138,7 +138,7 @@
       <ConformanceMode>false</ConformanceMode>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -169,6 +169,7 @@
     <ClInclude Include="src\PieceData.h" />
     <ClInclude Include="src\random.h" />
     <ClInclude Include="src\search.h" />
+    <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\ttable.h" />
     <ClInclude Include="src\uci.h" />
   </ItemGroup>
@@ -189,6 +190,7 @@
     <ClCompile Include="src\PieceData.cpp" />
     <ClCompile Include="src\random.cpp" />
     <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ttable.cpp" />
     <ClCompile Include="src\uci.cpp" />
   </ItemGroup>

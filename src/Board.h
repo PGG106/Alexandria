@@ -165,7 +165,7 @@ typedef struct info {
 	int depth;
 	int depthset;
 	int timeset=-1;
-	int movestogo;
+	int movestogo=-1;
 	int infinite;
 
 	int quit;

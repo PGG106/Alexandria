@@ -21,7 +21,7 @@ $(TARGET): $(OBJS)
 	g++ -o Alexandria $@ $^
 
 %.o: %.cpp
-	g++ -c -flto -O3 $(TARGET) $(CFLAGS)  -std=gnu++0x  -static -Wall $<
+	g++ -c -flto -O3 $(TARGET) $(CFLAGS)  -std=gnu++2a  -static -Wall $<
 
 clean:
 	rm *.o *.exe
