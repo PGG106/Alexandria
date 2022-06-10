@@ -265,7 +265,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 
 	}
 
-
+	int MB = 64;
 
 	// reset STDIN & STDOUT buffers
 	setvbuf(stdin, NULL, _IONBF, 0);
@@ -277,6 +277,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	// print engine info
 	printf("id name CE2BIT\n");
 	printf("id author PGG\n");
+	printf("option name Hash type spin default 64 \n");
 	printf("uciok\n");
 
 	// main loop
@@ -339,6 +340,13 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			printf("id name CE2BIT\n");
 			printf("id author PGG106\n");
 			printf("uciok\n");
+		}
+
+
+		else if (!strncmp(input, "setoption name Hash value ", 26)) {
+			sscanf(input, "%*s %*s %*s %*s %d", &MB);
+			printf("Set Hash to %d MB\n", MB);
+			InitHashTable(HashTable, MB);
 		}
 		else if (strncmp(input, "bench", 5) == 0) {
 

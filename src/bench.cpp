@@ -65,7 +65,7 @@ int start_bench() {
 	int total_nodes = 0;
 	int total_time = 0;
 	info->quit = 0;
-	InitHashTable(HashTable);
+	InitHashTable(HashTable,64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 

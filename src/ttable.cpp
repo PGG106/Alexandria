@@ -9,7 +9,6 @@
 #include "assert.h"
 #include "makemove.h"
 
-const int HashSize = 0x100000 * 80;
 
 S_HASHTABLE HashTable[1];
 
@@ -58,8 +57,8 @@ void ClearHashTable(S_HASHTABLE* table) {
 	table->newWrite = 0;
 }
 
-void InitHashTable(S_HASHTABLE* table) {
-
+void InitHashTable(S_HASHTABLE* table, int MB) {
+	int HashSize = 0x100000 * MB;
 	table->numEntries = HashSize / sizeof(S_HASHENTRY);
 	table->numEntries -= 2;
 	if (table->pTable != NULL) free(table->pTable);

@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	Reset_info(info);
-	InitHashTable(HashTable);
+	InitHashTable(HashTable,64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 
