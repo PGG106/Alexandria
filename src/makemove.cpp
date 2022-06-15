@@ -16,12 +16,17 @@
 
 
 	int color = Color[piece];
-
+	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
+		nnue.deactivate(sq + piece * 64);
 	HASH_PCE(piece, sq);
 	pop_bit(pos->bitboards[piece], sq);
 	pos->pieces[sq] = EMPTY;
 	pop_bit(pos->occupancies[BOTH], sq);
 	pop_bit(pos->occupancies[color], sq);
+	
+
+
+
 
 }
 
@@ -30,14 +35,15 @@
 
 
 	int color = Color[piece];
-
+	if (piece != EMPTY && pos->pieces[to] == EMPTY)
+		nnue.activate(to + piece * 64);
 	// ♦set up promoted piece on chess board
 	set_bit(pos->bitboards[piece], to);
 	set_bit(pos->occupancies[color], to);
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
 	HASH_PCE(piece, to);
-
+	
 	
 }
 

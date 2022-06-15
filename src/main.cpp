@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
 
 	// debug mode variable
-	int debug = 1;
+	int debug = 0;
 
 	// if debugging
 	if (debug)

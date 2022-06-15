@@ -375,7 +375,7 @@ void parse_fen(char* fen, S_Board* pos)
 	pos->posKey = GeneratePosKey(pos);
 
 }
-
+/*
 void accumulate(const S_Board* pos) {
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
@@ -389,4 +389,4 @@ void accumulate(const S_Board* pos) {
 		nnue.inputValues[j] = 1;
 		nnue.activate(j);
 	}
-}
+}*/
