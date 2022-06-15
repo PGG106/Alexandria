@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include <cstdint>
 
 #define INPUT_WEIGHTS 64 * 12
 #define HIDDEN_BIAS 64 * 2

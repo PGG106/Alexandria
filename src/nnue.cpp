@@ -1,8 +1,9 @@
 #include "nnue.h"
+#include <cstdio>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
 #include "incbin/incbin.h"
 
-INCBIN(Eval, nn.nnue);
+
 
 
 int NNUE::relu(int x)
