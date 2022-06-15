@@ -207,3 +207,4 @@ void parse_fen( char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
 
+void accumulate(const S_Board* pos);

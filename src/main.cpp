@@ -42,14 +42,14 @@ int main(int argc, char** argv)
 
 
 	// debug mode variable
-	int debug = 0;
+	int debug = 1;
 
 	// if debugging
 	if (debug)
 	{
 
 
-		parse_fen("r2k4/8/1p1p1p2/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1", pos);
+		parse_fen(start_position, pos);
 		printf("%d",EvalPosition(pos));
 
 

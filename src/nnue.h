@@ -3,8 +3,8 @@
 #include <cstdint>
 
 #define INPUT_WEIGHTS 64 * 12
-#define HIDDEN_BIAS 64 * 2
-#define HIDDEN_WEIGHTS 64 * 2
+#define HIDDEN_BIAS 64*2
+#define HIDDEN_WEIGHTS 64*2
 #define OUTPUT_BIAS 1
 
 
@@ -16,6 +16,7 @@ public:
 	int relu(int x);
 	int32_t output();
 	void Clear();
+
 
 	int16_t accumulator[HIDDEN_BIAS];
 	uint8_t inputValues[INPUT_WEIGHTS];

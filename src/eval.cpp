@@ -519,6 +519,9 @@ int EvalPosition(const S_Board* pos)
 {
 
 	if (nnue_eval) {
+		accumulate(pos);
+
+
 		return (pos->side == WHITE) ? nnue.output() : -nnue.output();
 	}
 	else {
