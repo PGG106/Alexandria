@@ -5,6 +5,8 @@
 #include <cassert>
 #include "hashkey.h"
 #include "string.h"
+#include "makemove.h"
+#include "nnue.h"
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #  include <intrin.h> // Microsoft header for _BitScanForward64()
@@ -91,8 +93,6 @@ const int get_diagonal[64] =
 const char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 
-int fiftyMove = 0;
-
 // castling rights update constants
 const int castling_rights[64] = {
 	 7, 15, 15, 15,  3, 15, 15, 11,
@@ -104,6 +104,11 @@ const int castling_rights[64] = {
 	15, 15, 15, 15, 15, 15, 15, 15,
 	13, 15, 15, 15, 12, 15, 15, 14
 };
+
+
+NNUE nnue = NNUE();
+bool nnue_eval = true;
+
 
 int count_bits(Bitboard b)
 {
@@ -203,6 +208,10 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 
 	memset(repetition_table, 0ULL, sizeof(repetition_table));
 
+	//set default nnue values 
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		nnue.accumulator[i] = nnue.hiddenBias[i];
+	}
 
 }
 
@@ -257,8 +266,8 @@ void parse_fen(char* fen, S_Board* pos)
 				int piece = char_pieces[*fen];
 
 				// set piece on corresponding bitboard
-				set_bit(pos->bitboards[piece], square);
-				pos->pieces[square] = piece;
+				AddPiece(piece, square, pos);
+			
 				// increment pointer to FEN string
 				fen++;
 			}
@@ -272,7 +281,7 @@ void parse_fen(char* fen, S_Board* pos)
 				// define piece variable
 				int piece = -1;
 
-				// loop over all piece pos->pos->bitboards
+				// loop over all piece pos->bitboards
 				for (int bb_piece = WP; bb_piece <= BK; bb_piece++)
 				{
 					// if there is a piece on current square
@@ -344,19 +353,6 @@ void parse_fen(char* fen, S_Board* pos)
 	else
 		pos->enPas = no_sq;
 
-	// loop over white pieces pos->pos->bitboards
-	for (int piece = WP; piece <= WK; piece++)
-		// populate white occupancy bitboard
-		pos->occupancies[WHITE] |= pos->bitboards[piece];
-
-	// loop over black pieces pos->pos->bitboards
-	for (int piece = BP; piece <= BK; piece++)
-		// populate white occupancy bitboard
-		pos->occupancies[BLACK] |= pos->bitboards[piece];
-
-	// init all pos->occupancies
-	pos->occupancies[BOTH] |= pos->occupancies[WHITE];
-	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
 
 
 	pos->posKey = GeneratePosKey(pos);

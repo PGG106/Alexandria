@@ -22,7 +22,7 @@
 	pos->pieces[sq] = EMPTY;
 	pop_bit(pos->occupancies[BOTH], sq);
 	pop_bit(pos->occupancies[color], sq);
-
+	nnue.deactivate(sq + piece * 64);
 }
 
 
@@ -37,6 +37,8 @@
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
 	HASH_PCE(piece, to);
+	nnue.activate(to + piece * 64);
+	
 }
 
 

@@ -72,6 +72,12 @@
     <ClInclude Include="src\time_manager.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="src\incbin\incbin.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">
@@ -129,6 +135,9 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\time_manager.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nnue.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

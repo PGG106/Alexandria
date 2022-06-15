@@ -158,6 +158,8 @@
     <ClInclude Include="src\Board.h" />
     <ClInclude Include="src\eval.h" />
     <ClInclude Include="src\hashkey.h" />
+    <ClInclude Include="src\incbin\incbin.h" />
+    <ClInclude Include="src\nnue.h" />
     <ClInclude Include="src\init.h" />
     <ClInclude Include="src\io.h" />
     <ClInclude Include="src\magic.h" />
@@ -186,6 +188,7 @@
     <ClCompile Include="src\makemove.cpp" />
     <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\movegen.cpp" />
+    <ClCompile Include="src\nnue.cpp" />
     <ClCompile Include="src\perft.cpp" />
     <ClCompile Include="src\PieceData.cpp" />
     <ClCompile Include="src\random.cpp" />

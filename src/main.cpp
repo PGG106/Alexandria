@@ -13,6 +13,7 @@
 #include "perft.h"
 #include "PieceData.h"
 #include "attack.h"
+#include "nnue.h"
 
 int main(int argc, char** argv)
 {

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <algorithm>
+#include "nnue.h"
 
 #define NAME "CE2BIT"
 #define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
@@ -189,6 +190,11 @@ extern char FileChar[];
 
 // ASCII pieces
 extern const char ascii_pieces[13];
+
+
+//NNUE
+extern NNUE nnue;
+extern bool nnue_eval;
 
 int count_bits(Bitboard bitboard);
 
