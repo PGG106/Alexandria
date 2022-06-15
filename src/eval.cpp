@@ -250,12 +250,6 @@ static inline int get_game_phase_score(const S_Board* pos)
 int HCE(const S_Board* pos) {
 
 
-
-
-
-
-
-
 	if (!count_bits(pos->bitboards[WP]) && !count_bits(pos->bitboards[BP]) && MaterialDraw(pos) == TRUE) {
 		return 0;
 	}

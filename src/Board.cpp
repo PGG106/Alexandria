@@ -190,6 +190,7 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 
 	for (index = 0; index < 64; ++index) {
 		pos->pieces[index] = 14;
+	
 	}
 
 
@@ -266,8 +267,9 @@ void parse_fen(char* fen, S_Board* pos)
 				int piece = char_pieces[*fen];
 
 				// set piece on corresponding bitboard
-				AddPiece(piece, square, pos);
-			
+				set_bit(pos->bitboards[piece], square);
+				pos->pieces[square] = piece;
+				nnue.activate(square+piece*64);
 				// increment pointer to FEN string
 				fen++;
 			}
@@ -281,7 +283,7 @@ void parse_fen(char* fen, S_Board* pos)
 				// define piece variable
 				int piece = -1;
 
-				// loop over all piece pos->bitboards
+				// loop over all piece pos->pos->bitboards
 				for (int bb_piece = WP; bb_piece <= BK; bb_piece++)
 				{
 					// if there is a piece on current square
@@ -353,9 +355,21 @@ void parse_fen(char* fen, S_Board* pos)
 	else
 		pos->enPas = no_sq;
 
+	// loop over white pieces pos->pos->bitboards
+	for (int piece = WP; piece <= WK; piece++)
+		// populate white occupancy bitboard
+		pos->occupancies[WHITE] |= pos->bitboards[piece];
+
+	// loop over black pieces pos->pos->bitboards
+	for (int piece = BP; piece <= BK; piece++)
+		// populate white occupancy bitboard
+		pos->occupancies[BLACK] |= pos->bitboards[piece];
+
+	// init all pos->occupancies
+	pos->occupancies[BOTH] |= pos->occupancies[WHITE];
+	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
 
 
 	pos->posKey = GeneratePosKey(pos);
 
 }
-

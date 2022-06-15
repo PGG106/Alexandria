@@ -16,10 +16,6 @@ void NNUE::init(const char* file)
 {
 	//initialize an accumulator for every input of the second layer
 
-	for (int i = 0;i < HIDDEN_BIAS;i++) {
-
-		accumulator.push_back(0);
-	}
 
 	//open the nn file 
 	FILE* nn = fopen(file, "rb");
@@ -35,7 +31,9 @@ void NNUE::init(const char* file)
 		//after reading the config we can close the file
 		fclose(nn);
 	}
-	
+	else {
+		exit(100);
+	}
 }
 
 void NNUE::activate(int inputNum)
@@ -61,7 +59,7 @@ int32_t NNUE::output()
 		output += relu(accumulator[i]) * hiddenWeights[i];
 	}
 	output += outputBias[0];
-	return output / (32 * 256);
+	return output / (64 * 256);
 }
 
 void NNUE::Clear()
