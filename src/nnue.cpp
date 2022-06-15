@@ -59,7 +59,7 @@ int32_t NNUE::output()
 		output += relu(accumulator[i]) * hiddenWeights[i];
 	}
 	output += outputBias[0];
-	return output / (64 * 256);
+	return output / (128 * 256);
 }
 
 void NNUE::Clear()
