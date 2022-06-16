@@ -11,7 +11,7 @@
 #include "uci.h"
 #include "hashkey.h"
 
-  void ClearPiece(const int piece, const int sq, S_Board* pos) {
+void ClearPiece(const int piece, const int sq, S_Board* pos) {
 
 
 
@@ -23,7 +23,7 @@
 	pos->pieces[sq] = EMPTY;
 	pop_bit(pos->occupancies[BOTH], sq);
 	pop_bit(pos->occupancies[color], sq);
-	
+
 
 
 
@@ -31,7 +31,7 @@
 }
 
 
-  void AddPiece(const int piece, const int to, S_Board* pos) {
+void AddPiece(const int piece, const int to, S_Board* pos) {
 
 
 	int color = Color[piece];
@@ -43,13 +43,13 @@
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
 	HASH_PCE(piece, to);
-	
-	
+
+
 }
 
 
 
-  void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
+void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 
 	ClearPiece(piece, from, pos);
@@ -59,7 +59,7 @@
 
 
 // make move on chess board
-int make_move(int move, int move_flag, S_Board* pos)
+int make_move(int move, S_Board* pos)
 {
 
 
@@ -96,7 +96,7 @@ int make_move(int move, int move_flag, S_Board* pos)
 		pos->fiftyMove = 0;
 	}
 
-	if(piece== WP || piece ==BP)
+	if (piece == WP || piece == BP)
 		pos->fiftyMove = 0;
 
 	// move piece

@@ -200,6 +200,9 @@
   <ItemGroup>
     <Text Include="src\makefile" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\nn.net" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

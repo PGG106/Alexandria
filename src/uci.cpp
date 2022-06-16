@@ -148,7 +148,7 @@ void parse_position(char* command, S_Board* pos)
 				break;
 
 			// make move on the chess board
-			make_move(move, all_moves, pos);
+			make_move(move, pos);
 
 			// move current character mointer to the end of current move
 			while (*current_char && *current_char != ' ') current_char++;
@@ -204,8 +204,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 	if ((ptr = strstr(line, "movestogo"))) {
 		movestogo = atoi(ptr + 10);
-		if(movestogo>0)
-		info->movestogo = movestogo;
+		if (movestogo > 0)
+			info->movestogo = movestogo;
 	}
 
 	if ((ptr = strstr(line, "movetime"))) {
@@ -333,20 +333,20 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			printf("uciok\n");
 		}
 
-	
+
 		else if (strncmp(input, "eval", 4) == 0)
 		{
 			// print engine info
-			printf("the eval of this position according to the neural network is %d\n",nnue.output());
+			printf("the eval of this position according to the neural network is %d\n", nnue.output());
 		}
 
-	
+
 		else if (strncmp(input, "nnue", 4) == 0)
 		{
 			// print engine info
 			nnue_eval ^= 1;
 			std::cout << std::boolalpha;
-			std::cout <<"nnue is not set to "<< nnue_eval << "\n";
+			std::cout << "nnue is not set to " << nnue_eval << "\n";
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {

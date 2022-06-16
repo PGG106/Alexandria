@@ -24,7 +24,7 @@ int GetPvLine(const int depth, S_Board* pos) {
 		assert(count <= MAXDEPTH);
 
 		if (MoveExists(pos, move)) {
-			make_move(move, all_moves, pos);
+			make_move(move, pos);
 			pos->pvArray[count++] = move;
 		}
 		else {
@@ -154,7 +154,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 
 }
 
-int ProbePvMove( S_Board* pos) {
+int ProbePvMove(S_Board* pos) {
 
 	int index = pos->posKey % HashTable->numEntries;
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
