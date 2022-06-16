@@ -323,5 +323,5 @@ void init_all()
 	initHashKeys();
 	InitEvalMasks();
 	InitReductions();
-	nnue.init("nn.net");
+	nnue.init("src\\nn.net");
 }

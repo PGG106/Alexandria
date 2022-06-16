@@ -1,11 +1,13 @@
 #include "nnue.h"
 #include <cstdio>
-#define INCBIN_STYLE INCBIN_STYLE_CAMEL
-#include "incbin/incbin.h"
 #include "Board.h"
 
+#define INCBIN_STYLE INCBIN_STYLE_CAMEL
+#include "incbin/incbin.h"
+INCBIN (EmbeddedNNUE, EvalFileDefaultName);
 
 
+//Thanks to Disservin for having me look at his code and Lucex for the invaluable help and the immense patience
 
 int NNUE::relu(int x)
 {
