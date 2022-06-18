@@ -346,7 +346,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			// print engine info
 			nnue_eval ^= 1;
 			std::cout << std::boolalpha;
-			std::cout << "nnue is not set to " << nnue_eval << "\n";
+			std::cout << "nnue is now set to " << nnue_eval << "\n";
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {

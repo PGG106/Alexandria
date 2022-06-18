@@ -1,10 +1,16 @@
 #include "nnue.h"
 #include <cstdio>
 #include "Board.h"
-
+#include <cstring>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
 #include "incbin/incbin.h"
-INCBIN (EmbeddedNNUE, EvalFileDefaultName);
+#if !defined(_MSC_VER)
+INCBIN(EVAL, EVALFILE);
+#else
+const unsigned char        gEVALData[1] = { 0x0 };
+const unsigned char* const gEmbeddedNNUEEnd = &gEVALData[1];
+const unsigned int         gEmbeddedNNUESize = 1;
+#endif
 
 
 //Thanks to Disservin for having me look at his code and Lucex for the invaluable help and the immense patience
@@ -35,7 +41,16 @@ void NNUE::init(const char* file)
 		fclose(nn);
 	}
 	else {
-		exit(100);
+		int memoryIndex = 0;
+		std::memcpy(inputWeights, &gEVALData[memoryIndex], INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t));
+		memoryIndex += INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t);
+		std::memcpy(hiddenBias, &gEVALData[memoryIndex], HIDDEN_BIAS * sizeof(int16_t));
+		memoryIndex += HIDDEN_BIAS * sizeof(int16_t);
+
+		std::memcpy(hiddenWeights, &gEVALData[memoryIndex], HIDDEN_WEIGHTS * sizeof(int16_t));
+		memoryIndex += HIDDEN_WEIGHTS * sizeof(int16_t);
+		std::memcpy(outputBias, &gEVALData[memoryIndex], 1 * sizeof(int32_t));
+		memoryIndex += OUTPUT_BIAS * sizeof(int32_t);
 	}
 }
 

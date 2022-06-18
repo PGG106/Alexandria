@@ -26,11 +26,13 @@ int GetPvLine(const int depth, S_Board* pos) {
 		if (MoveExists(pos, move)) {
 			make_move(move, pos);
 			pos->pvArray[count++] = move;
+			move = ProbePvMove(pos);
 		}
+
 		else {
 			break;
 		}
-		move = ProbePvMove(pos);
+
 	}
 
 	while (pos->ply > 0) {

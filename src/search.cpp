@@ -13,12 +13,7 @@
 #include <cassert>
 
 
-
 int CounterMoves[MAXDEPTH][MAXDEPTH];
-
-
-
-
 
 
 void CheckUp(S_SearchINFO* info) {
