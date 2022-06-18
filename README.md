@@ -16,8 +16,8 @@
   * Razoring
   * Late-move reduction
 * Evaluation
-  * Material evaluation
-  * Piece square table
+  * NNUE Evaluation (Big thanks to Luecx)
+  * HCE based on material evaluation and a piece square table (legacy and not subject to ulterior development)
 
 
 
