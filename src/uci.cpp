@@ -11,6 +11,7 @@
 #include "ttable.h"
 #include "time_manager.h"
 #include "bench.h"
+#include <iostream>
 
 int parse_move(char* move_string, S_Board* pos)
 {
@@ -147,7 +148,7 @@ void parse_position(char* command, S_Board* pos)
 				break;
 
 			// make move on the chess board
-			make_move(move, all_moves, pos);
+			make_move(move, pos);
 
 			// move current character mointer to the end of current move
 			while (*current_char && *current_char != ' ') current_char++;
@@ -203,8 +204,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 	if ((ptr = strstr(line, "movestogo"))) {
 		movestogo = atoi(ptr + 10);
-		if(movestogo>0)
-		info->movestogo = movestogo;
+		if (movestogo > 0)
+			info->movestogo = movestogo;
 	}
 
 	if ((ptr = strstr(line, "movetime"))) {
@@ -264,9 +265,10 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	char input[2000];
 
 	// print engine info
-	printf("id name CE2BIT\n");
+	printf("id name Alexandria\n");
 	printf("id author PGG\n");
 	printf("option name Hash type spin default 64 \n");
+	printf("Type nnue to enable/disable nnue eval (default is enabled) \n");
 	printf("uciok\n");
 
 	// main loop
@@ -326,11 +328,26 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 		else if (strncmp(input, "uci", 3) == 0)
 		{
 			// print engine info
-			printf("id name CE2BIT\n");
+			printf("id name Alexandria\n");
 			printf("id author PGG106\n");
 			printf("uciok\n");
 		}
 
+
+		else if (strncmp(input, "eval", 4) == 0)
+		{
+			// print engine info
+			printf("the eval of this position according to the neural network is %d\n", nnue.output());
+		}
+
+
+		else if (strncmp(input, "nnue", 4) == 0)
+		{
+			// print engine info
+			nnue_eval ^= 1;
+			std::cout << std::boolalpha;
+			std::cout << "nnue is now set to " << nnue_eval << "\n";
+		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {
 			sscanf(input, "%*s %*s %*s %*s %d", &MB);

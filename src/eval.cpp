@@ -247,9 +247,8 @@ static inline int get_game_phase_score(const S_Board* pos)
 	return white_piece_scores + black_piece_scores;
 }
 
-// position evaluation
-int EvalPosition(const S_Board* pos)
-{
+int HCE(const S_Board* pos) {
+
 
 	if (!count_bits(pos->bitboards[WP]) && !count_bits(pos->bitboards[BP]) && MaterialDraw(pos) == TRUE) {
 		return 0;
@@ -271,7 +270,7 @@ int EvalPosition(const S_Board* pos)
 	// static evaluation score
 	int score = 0, score_opening = 0, score_endgame = 0;
 
-	
+
 
 	// init piece & square
 	int square;
@@ -292,7 +291,7 @@ int EvalPosition(const S_Board* pos)
 
 		clr_bit(white_pawns, square);
 
-		
+
 
 	}
 
@@ -483,7 +482,7 @@ int EvalPosition(const S_Board* pos)
 	}
 
 
-	 kingsquare = get_ls1b_index(pos->bitboards[BK]);
+	kingsquare = get_ls1b_index(pos->bitboards[BK]);
 
 	score_opening += material_score[opening][BK];
 	score_endgame += material_score[endgame][BK];
@@ -508,4 +507,23 @@ int EvalPosition(const S_Board* pos)
 
 	// return final evaluation based on side
 	return (pos->side == WHITE) ? score : -score;
+}
+
+
+
+
+
+
+// position evaluation
+int EvalPosition(const S_Board* pos)
+{
+
+	if (nnue_eval) {
+
+		return (pos->side == WHITE) ? nnue.output() : -nnue.output();
+	}
+	else {
+		HCE(pos);
+	}
+
 }

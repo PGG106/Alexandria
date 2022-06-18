@@ -5,6 +5,8 @@
 #include <cassert>
 #include "hashkey.h"
 #include "string.h"
+#include "makemove.h"
+#include "nnue.h"
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #  include <intrin.h> // Microsoft header for _BitScanForward64()
@@ -91,8 +93,6 @@ const int get_diagonal[64] =
 const char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 
-int fiftyMove = 0;
-
 // castling rights update constants
 const int castling_rights[64] = {
 	 7, 15, 15, 15,  3, 15, 15, 11,
@@ -104,6 +104,11 @@ const int castling_rights[64] = {
 	15, 15, 15, 15, 15, 15, 15, 15,
 	13, 15, 15, 15, 12, 15, 15, 14
 };
+
+
+NNUE nnue = NNUE();
+bool nnue_eval = true;
+
 
 int count_bits(Bitboard b)
 {
@@ -185,6 +190,7 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 
 	for (index = 0; index < 64; ++index) {
 		pos->pieces[index] = 14;
+	
 	}
 
 
@@ -203,6 +209,10 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 
 	memset(repetition_table, 0ULL, sizeof(repetition_table));
 
+	//set default nnue values 
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		nnue.accumulator[i] = nnue.hiddenBias[i];
+	}
 
 }
 
@@ -255,11 +265,14 @@ void parse_fen(char* fen, S_Board* pos)
 			{
 				// init piece type
 				int piece = char_pieces[*fen];
-
+				if(piece!=EMPTY){
 				// set piece on corresponding bitboard
 				set_bit(pos->bitboards[piece], square);
 				pos->pieces[square] = piece;
+
+				nnue.activate(square+piece*64);
 				// increment pointer to FEN string
+				}
 				fen++;
 			}
 
@@ -362,4 +375,18 @@ void parse_fen(char* fen, S_Board* pos)
 	pos->posKey = GeneratePosKey(pos);
 
 }
+/*
+void accumulate(const S_Board* pos) {
 
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		nnue.accumulator[i] = nnue.hiddenBias[i];
+	}
+
+	for (int i = 0; i < 64; i++) {
+		bool input = pos->pieces[i]!=EMPTY;
+		if (!input) continue;
+		int j = i + (pos->pieces[i]) * 64;
+		nnue.inputValues[j] = 1;
+		nnue.activate(j);
+	}
+}*/

@@ -1,12 +1,13 @@
 #pragma once
+#ifndef NDEBUG
 #define NDEBUG
+#endif 
 #include <cassert>
 #include <cctype>
-#include <cstdint>
-#include <cstdlib>
-#include <algorithm>
+#include "nnue.h"
 
-#define NAME "CE2BIT"
+
+#define NAME "Alexandria"
 #define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
 #define MAXPOSITIONMOVES 256
 #define MAXDEPTH 64
@@ -102,7 +103,7 @@ typedef struct HASHENTRY {
 	int flags;
 } S_HASHENTRY;
 
-typedef struct HASHTABLE{
+typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
 	int numEntries;
 	int newWrite;
@@ -114,12 +115,12 @@ typedef struct HASHTABLE{
 
 
 typedef struct Undo {
-	int move=0;
-	int castlePerm=15;
-	int capture=14;
-	int enPas=0;
-	int fiftyMove=0;
-	Bitboard posKey=0ULL;
+	int move = 0;
+	int castlePerm = 15;
+	int capture = 14;
+	int enPas = 0;
+	int fiftyMove = 0;
+	Bitboard posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; //stores a move and the state of the game before that move is made for rollback purposes 
 
@@ -137,7 +138,7 @@ typedef struct Board {
 	int castleperm; //integer that represents the castling permission in his bits (1111) = all castlings allowed (0000) no castling allowed, (0101) only WKCA and BKCA allowed... 
 	Bitboard posKey;// unique  hashkey  che codifica the  position on the board,utile per il controllo delle posizioni ripetute.
 	S_Undo history[512]; //stores every single move and the state of the board when that move was made for rollback purposes 
-	
+
 	int pvArray[MAXDEPTH];
 
 	int searchHistory[12][MAXDEPTH];
@@ -151,8 +152,8 @@ typedef struct Board {
 	Bitboard bitboards[12];
 
 	// occupancy pos->bitboards
-	 Bitboard occupancies[3];
-	
+	Bitboard occupancies[3];
+
 } S_Board;
 
 extern S_HASHTABLE HashTable[1];
@@ -161,11 +162,11 @@ extern Bitboard SQUARES_BETWEEN_BB[64][64];
 
 typedef struct info {
 	int starttime;
-	int stoptime=-1;
+	int stoptime = -1;
 	int depth;
 	int depthset;
-	int timeset=-1;
-	int movestogo=-1;
+	int timeset = -1;
+	int movestogo = -1;
 	int infinite;
 
 	int quit;
@@ -190,6 +191,11 @@ extern char FileChar[];
 // ASCII pieces
 extern const char ascii_pieces[13];
 
+
+//NNUE
+extern NNUE nnue;
+extern bool nnue_eval;
+
 int count_bits(Bitboard bitboard);
 
 // get least significant 1st bit index
@@ -197,7 +203,7 @@ int get_ls1b_index(Bitboard bitboard);
 int  square_distance(int a, int b);
 
 // parse FEN string
-void parse_fen( char* fen, S_Board* pos);
+void parse_fen(char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
 

@@ -13,15 +13,10 @@
 #include <cassert>
 
 
-
 int CounterMoves[MAXDEPTH][MAXDEPTH];
 
 
-
-
-
-
-  void CheckUp(S_SearchINFO* info) {
+void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
 
 	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
@@ -138,7 +133,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 
 
- void  pick_move(S_MOVELIST* move_list, int moveNum)
+void  pick_move(S_MOVELIST* move_list, int moveNum)
 {
 
 	S_MOVE temp;
@@ -163,7 +158,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 
 
 
-  int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 {
 
 	if ((info->nodes & 2047) == 0) {
@@ -223,8 +218,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 		pick_move(move_list, count);
 
 
-		// make sure to make only legal moves
-		make_move(move_list->moves[count].move, only_captures, pos);
+		make_move(move_list->moves[count].move, pos);
 
 		repetition_table[pos->hisPly] = pos->posKey;
 
@@ -279,7 +273,7 @@ static inline int reduction(int depth, int num_moves) {
 }
 
 // negamax alpha beta search
-  int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
+int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
 {
 
 	// init PV length
@@ -465,7 +459,7 @@ static inline int reduction(int depth, int num_moves) {
 
 
 		// make sure to make only legal moves
-		make_move(move_list->moves[count].move, all_moves, pos);
+		make_move(move_list->moves[count].move, pos);
 
 
 		// increment legal moves

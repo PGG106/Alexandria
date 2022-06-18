@@ -13,6 +13,7 @@
 #include "perft.h"
 #include "PieceData.h"
 #include "attack.h"
+#include "nnue.h"
 
 int main(int argc, char** argv)
 {
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
 
 
 		parse_fen(start_position, pos);
-		perft_test(7, pos);
+		printf("%d",EvalPosition(pos));
 
 
 

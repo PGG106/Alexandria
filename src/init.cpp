@@ -323,5 +323,5 @@ void init_all()
 	initHashKeys();
 	InitEvalMasks();
 	InitReductions();
-	//InitPolyBook();
+	nnue.init("nn.net");
 }
