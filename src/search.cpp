@@ -156,7 +156,9 @@ void  pick_move(S_MOVELIST* move_list, int moveNum)
 
 }
 
-
+int futility(int depth) {
+	return 150 * (depth - 1);
+}
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 {
@@ -268,7 +270,7 @@ const int reduction_limit = 3;
 
 static inline int reduction(int depth, int num_moves) {
 
-	return 1+reductions[depth] * reductions[num_moves];
+	return reductions[depth] * reductions[num_moves];
 
 }
 
@@ -354,7 +356,12 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 
-
+	if (!pv_node
+		&& depth < 8
+		&& static_eval - futility(depth)  >= beta
+		&& static_eval >= beta
+		) // larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+		return static_eval;
 
 
 
