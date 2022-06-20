@@ -156,7 +156,9 @@ void  pick_move(S_MOVELIST* move_list, int moveNum)
 
 }
 
-
+int futility(int depth) {
+	return 150 * (depth - 1);
+}
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 {
@@ -353,10 +355,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 
-
-
-
-
+	//Reverse futility pruning (depth 8 limit was taken from stockfish)
+	if (!pv_node && depth < 8 && static_eval - futility(depth) >= beta)
+		return static_eval;
 
 
 	// null move pruning

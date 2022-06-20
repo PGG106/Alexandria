@@ -51,76 +51,6 @@ Bitboard SQUARES_BETWEEN_BB[64][64];
 int reductions[256];
 
 
-void InitEvalMasks() {
-	int sq, tsq, r, f;
-
-	for (sq = 0;sq < 8;++sq) {
-		FileBBMask[sq] = 0ULL;
-		RankBBMask[sq] = 0ULL;
-	}
-
-
-	for (r = RANK_8;r >= RANK_1;r--) {
-		for (f = FILE_A;f <= FILE_H;f++) {
-			sq = r * 8 + f;
-			FileBBMask[f] |= (1ULL << sq);
-			RankBBMask[r] |= (1ULL << sq);
-		}
-	}
-
-	for (sq = 0;sq < 64;++sq) {
-		IsolatedMask[sq] = 0ULL;
-		WhitePassedMask[sq] = 0ULL;
-		BlackPassedMask[sq] = 0ULL;
-	}
-
-	for (sq = 0;sq < 64;++sq) {
-		tsq = sq + 8;
-
-		while (tsq < 64) {
-			WhitePassedMask[sq] |= (1ULL << tsq);
-			tsq += 8;
-		}
-		tsq = sq - 8;
-		while (tsq >= 0) {
-			BlackPassedMask[sq] |= (1ULL << tsq);
-			tsq -= 8;
-		}
-		if (get_file[sq] > FILE_A) {
-			IsolatedMask[sq] |= FileBBMask[get_file[sq] - 1];
-
-			tsq = sq + 7;
-			while (tsq < 64) {
-				WhitePassedMask[sq] |= (1ULL << tsq);
-				tsq += 8;
-			}
-			tsq = sq - 9;
-			while (tsq >= 0) {
-				BlackPassedMask[sq] |= (1ULL << tsq);
-				tsq -= 8;
-			}
-		}
-
-		if (get_file[sq] < FILE_H) {
-			IsolatedMask[sq] |= FileBBMask[get_file[sq] + 1];
-
-			tsq = sq + 9;
-			while (tsq < 64) {
-				WhitePassedMask[sq] |= (1ULL << tsq);
-				tsq += 8;
-			}
-
-			tsq = sq - 7;
-			while (tsq >= 0) {
-				BlackPassedMask[sq] |= (1ULL << tsq);
-				tsq -= 8;
-			}
-		}
-	}
-
-}
-
-
 void initHashKeys() {
 	int Typeindex = 0;
 	int Numberindex = 0;
@@ -321,7 +251,6 @@ void init_all()
 	init_sliders_attacks(rook);
 	initializeLookupTables();
 	initHashKeys();
-	InitEvalMasks();
 	InitReductions();
 	nnue.init("nn.net");
 }
