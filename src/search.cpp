@@ -355,15 +355,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 
-
-	if (!pv_node
-		&& depth < 8
-		&& static_eval - futility(depth)  >= beta
-		&& static_eval >= beta
-		) // larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+	//Reverse futility pruning (depth 8 limit was taken from stockfish)
+	if (!pv_node && depth < 8 && static_eval - futility(depth) >= beta)
 		return static_eval;
-
-
 
 
 	// null move pruning

@@ -4,8 +4,6 @@
 
 
 
-
-
 Bitboard GeneratePosKey(const S_Board* pos) {
 	int sq = 0;
 	Bitboard finalkey = 0;

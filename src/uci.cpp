@@ -12,6 +12,7 @@
 #include "time_manager.h"
 #include "bench.h"
 #include <iostream>
+#include "perft.h"
 
 int parse_move(char* move_string, S_Board* pos)
 {
@@ -355,14 +356,12 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			InitHashTable(HashTable, MB);
 		}
 		else if (strncmp(input, "bench", 5) == 0) {
-
-
 			start_bench();
-
-			return;
-
 		}
-
+		else if (strncmp(input, "perft", 5) == 0) {
+			perft_test(6,pos);
+			return;
+		}
 
 	}
 }
