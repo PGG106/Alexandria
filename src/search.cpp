@@ -268,7 +268,7 @@ const int reduction_limit = 3;
 
 static inline int reduction(int depth, int num_moves) {
 
-	return reductions[depth] * reductions[num_moves];
+	return 1+reductions[depth] * reductions[num_moves];
 
 }
 
