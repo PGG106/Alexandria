@@ -13,6 +13,7 @@
   * killer move, history, Countermove heuristic
   * MVV-LVA move ordering
   * Null-move pruning
+  * Reverse Futility pruning
   * Razoring
   * Late-move reduction
 * Evaluation
