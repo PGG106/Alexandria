@@ -13,8 +13,6 @@
 
 void ClearPiece(const int piece, const int sq, S_Board* pos) {
 
-
-
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
 		nnue.deactivate(sq + piece * 64);
@@ -23,10 +21,6 @@ void ClearPiece(const int piece, const int sq, S_Board* pos) {
 	pos->pieces[sq] = EMPTY;
 	pop_bit(pos->occupancies[BOTH], sq);
 	pop_bit(pos->occupancies[color], sq);
-
-
-
-
 
 }
 

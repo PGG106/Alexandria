@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cctype>
 #include "nnue.h"
+#include "stdint.h"
 
 
 #define NAME "Alexandria"
@@ -96,11 +97,11 @@ extern Bitboard repetition_table[1000];
 extern int reductions[256];
 
 typedef struct HASHENTRY {
-	Bitboard posKey;
+	uint16_t tt_key;
 	int move;
-	int score;
-	int depth;
-	int flags;
+	int32_t score;
+	uint8_t depth;
+	uint8_t flags;
 } S_HASHENTRY;
 
 typedef struct HASHTABLE {

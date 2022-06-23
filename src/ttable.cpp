@@ -50,7 +50,7 @@ void ClearHashTable(S_HASHTABLE* table) {
 	S_HASHENTRY* tableEntry;
 
 	for (tableEntry = table->pTable; tableEntry < table->pTable + table->numEntries; tableEntry++) {
-		tableEntry->posKey = 0ULL;
+		tableEntry->tt_key = 0ULL;
 		tableEntry->move = NOMOVE;
 		tableEntry->depth = 0;
 		tableEntry->score = 0;
@@ -81,7 +81,7 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 	assert(beta >= -MAXSCORE && beta <= MAXSCORE);
 	assert(pos->ply >= 0 && pos->ply < MAXDEPTH);
 
-	if (HashTable->pTable[index].posKey == pos->posKey) {
+	if (HashTable->pTable[index].tt_key == (pos->posKey & 0xFFFF)) {
 		if (MoveExists(pos, HashTable->pTable[index].move)) {
 			*move = HashTable->pTable[index].move;
 			if (HashTable->pTable[index].depth >= depth) {
@@ -128,12 +128,12 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 	assert(score >= -MAXSCORE && score <= MAXSCORE);
 	assert(pos->ply >= 0 && pos->ply <= MAXDEPTH);
 
-	if (HashTable->pTable[index].posKey == 0) {
+	if (HashTable->pTable[index].tt_key == 0) {
 		if (score > ISMATE) score += pos->ply;
 		else if (score < -ISMATE) score -= pos->ply;
 
 		HashTable->pTable[index].move = move;
-		HashTable->pTable[index].posKey = pos->posKey;
+		HashTable->pTable[index].tt_key = pos->posKey & 0xFFFF;
 		HashTable->pTable[index].flags = flags;
 		HashTable->pTable[index].score = score;
 		HashTable->pTable[index].depth = depth;
@@ -146,7 +146,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 		else if (score < -ISMATE) score -= pos->ply;
 
 		HashTable->pTable[index].move = move;
-		HashTable->pTable[index].posKey = pos->posKey;
+		HashTable->pTable[index].tt_key = pos->posKey & 0xFFFF;
 		HashTable->pTable[index].flags = flags;
 		HashTable->pTable[index].score = score;
 		HashTable->pTable[index].depth = depth;
@@ -161,7 +161,7 @@ int ProbePvMove(S_Board* pos) {
 	int index = pos->posKey % HashTable->numEntries;
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
 	if (MoveExists(pos, HashTable->pTable[index].move)) {
-		if (HashTable->pTable[index].posKey == pos->posKey) {
+		if (HashTable->pTable[index].tt_key == (pos->posKey & 0xFFFF)) {
 			return HashTable->pTable[index].move;
 		}
 	}
