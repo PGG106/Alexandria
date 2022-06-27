@@ -159,8 +159,6 @@ void parse_position(char* command, S_Board* pos)
 		}
 	}
 
-	// print board
-	print_board(pos);
 }
 
 /*
@@ -256,7 +254,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 
 	}
 
-	int MB = 64;
+	int MB = 16;
 
 	// reset STDIN & STDOUT buffers
 	setvbuf(stdin, NULL, _IONBF, 0);
@@ -268,7 +266,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	// print engine info
 	printf("id name Alexandria\n");
 	printf("id author PGG\n");
-	printf("option name Hash type spin default 64 \n");
+	printf("option name Hash type spin default 16 \n");
 	printf("Type nnue to enable/disable nnue eval (default is enabled) \n");
 	printf("uciok\n");
 

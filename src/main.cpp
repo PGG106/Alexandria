@@ -49,9 +49,9 @@ int main(int argc, char** argv)
 	{
 
 
-		parse_fen(start_position, pos);
+		parse_fen("r3r1k1/2p2npp/2ppbn2/p3p3/8/1P4P1/P1PBQP2/R3R1K1 w - - 1 20", pos);
 		printf("%d", EvalPosition(pos));
-
+		Root_search_position(13, pos, info);
 
 
 	}
