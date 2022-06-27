@@ -11,10 +11,13 @@
 #include <thread>
 #include <vector>
 #include <cassert>
+#include "attack.h"
 
 
 int CounterMoves[MAXDEPTH][MAXDEPTH];
 
+
+int scores[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
@@ -70,6 +73,69 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 	info->stopped = 0;
 	info->nodes = 0;
 }
+
+
+// inspired by the Weiss engine
+static inline bool SEE(const S_Board* pos, const int move, const int threshold) {
+
+
+	int to = get_move_target(move);
+	int target = pos->pieces[to];
+
+	// Making the move and not losing it must beat the threshold
+	int value = scores[target] - threshold;
+	if (value < 0) return false;
+
+	int from = get_move_source(move);
+	int attacker = pos->pieces[from];
+
+	// Trivial if we still beat the threshold after losing the piece
+	value -= scores[attacker];
+	if (value >= 0) return true;
+
+	// It doesn't matter if the to square is occupied or not
+	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
+	Bitboard attackers = AttacksTo(pos, to);
+	Bitboard bishops = pieceBB(BISHOP) | pieceBB(QUEEN);
+	Bitboard rooks = pieceBB(ROOK) | pieceBB(QUEEN);
+
+	int side = !Color[attacker];
+
+	// Make captures until one side runs out, or fail to beat threshold
+	while (true) {
+
+		// Remove used pieces from attackers
+		attackers &= occupied;
+
+		Bitboard myAttackers = attackers & pos->occupancies[side];
+		if (!myAttackers) break;
+
+		// Pick next least valuable piece to capture with
+		int  pt;
+		for (pt = PAWN; pt < KING; ++pt)
+			if (myAttackers & pieceBB(pt))
+				break;
+
+		side = !side;
+
+		// Value beats threshold, or can't beat threshold (negamaxed)
+		if ((value = -value - 1 - scores[pt]) >= 0) {
+
+			if (pt == KING && (attackers & pos->occupancies[side]))
+				side = !side;
+
+			break;
+		}
+
+		// Remove the used piece from occupied
+		occupied ^= (1ULL << (get_ls1b_index(myAttackers & pieceBB(pt))));
+		attackers |= considerXrays(pos, to);
+
+	}
+
+	return side != Color[attacker];
+}
+
 
 
 
@@ -131,34 +197,12 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
 }
 
 
-
-
-void  pick_move(S_MOVELIST* move_list, int moveNum)
-{
-
-	S_MOVE temp;
-	int index = 0;
-	int bestScore = 0;
-	int bestNum = moveNum;
-
-
-	for (index = moveNum; index < move_list->count; ++index) {
-
-		if (move_list->moves[index].score > bestScore) {
-			bestScore = move_list->moves[index].score;
-			bestNum = index;
-		}
-	}
-
-	temp = move_list->moves[moveNum];
-	move_list->moves[moveNum] = move_list->moves[bestNum];
-	move_list->moves[bestNum] = temp;
-
-}
-
 int futility(int depth) {
 	return 150 * (depth - 1);
 }
+
+
+
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 {
@@ -465,7 +509,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 		// increment legal moves
 		legal_moves++;
-
 
 
 		// full depth search

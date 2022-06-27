@@ -93,6 +93,5 @@ extern Bitboard rook_attacks[64][4096];
 
 // set occupancies
 Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask);
-
-
-int see(const S_Board* pos, int move, const int threshold);
+Bitboard AttacksTo(const S_Board* pos, int to);
+Bitboard considerXrays(const S_Board* pos, int sq);

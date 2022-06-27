@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	Reset_info(info);
-	InitHashTable(HashTable,64);
+	InitHashTable(HashTable, 64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
 
 		parse_fen(start_position, pos);
-		printf("%d",EvalPosition(pos));
+		printf("%d", EvalPosition(pos));
 
 
 

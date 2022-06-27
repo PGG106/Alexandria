@@ -78,6 +78,9 @@
     <ClInclude Include="src\nnue.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="src\movepicker.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">
@@ -140,11 +143,15 @@
     <ClCompile Include="src\nnue.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="src\movepicker.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\makefile" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\nn.net" />
+    <None Include="nn.net" />
   </ItemGroup>
 </Project>

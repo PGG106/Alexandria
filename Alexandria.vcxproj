@@ -159,6 +159,7 @@
     <ClInclude Include="src\eval.h" />
     <ClInclude Include="src\hashkey.h" />
     <ClInclude Include="src\incbin\incbin.h" />
+    <ClInclude Include="src\movepicker.h" />
     <ClInclude Include="src\nnue.h" />
     <ClInclude Include="src\init.h" />
     <ClInclude Include="src\io.h" />
@@ -189,6 +190,7 @@
     <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\movegen.cpp" />
     <ClCompile Include="src\nnue.cpp" />
+    <ClCompile Include="src\movepicker.cpp" />
     <ClCompile Include="src\perft.cpp" />
     <ClCompile Include="src\PieceData.cpp" />
     <ClCompile Include="src\random.cpp" />
@@ -201,6 +203,7 @@
     <Text Include="src\makefile" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="nn.net" />
     <None Include="src\nn.net" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

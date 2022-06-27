@@ -189,8 +189,8 @@ void ResetBoard(S_Board* pos) { // a function that resets every value stored in 
 	int index = 0;
 
 	for (index = 0; index < 64; ++index) {
-		pos->pieces[index] = 14;
-	
+		pos->pieces[index] = EMPTY;
+
 	}
 
 
@@ -265,13 +265,13 @@ void parse_fen(char* fen, S_Board* pos)
 			{
 				// init piece type
 				int piece = char_pieces[*fen];
-				if(piece!=EMPTY){
-				// set piece on corresponding bitboard
-				set_bit(pos->bitboards[piece], square);
-				pos->pieces[square] = piece;
+				if (piece != EMPTY) {
+					// set piece on corresponding bitboard
+					set_bit(pos->bitboards[piece], square);
+					pos->pieces[square] = piece;
 
-				nnue.activate(square+piece*64);
-				// increment pointer to FEN string
+					nnue.activate(square + piece * 64);
+					// increment pointer to FEN string
 				}
 				fen++;
 			}

@@ -27,6 +27,7 @@
 #define TEST
 
 #define get_antidiagonal(sq)  (get_rank[sq] + get_file[sq])
+#define pieceBB(type) (pos->bitboards[type] | pos->bitboards[type+6])
 
 extern uint8_t PopCnt16[1 << 16];
 
@@ -118,7 +119,7 @@ typedef struct HASHTABLE {
 typedef struct Undo {
 	int move = 0;
 	int castlePerm = 15;
-	int capture = 14;
+	int capture = EMPTY;
 	int enPas = 0;
 	int fiftyMove = 0;
 	Bitboard posKey = 0ULL;

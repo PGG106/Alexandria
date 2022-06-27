@@ -5,7 +5,7 @@
 #include "magic.h"
 
 
-#define pieceBB(type) (pos->bitboards[type] | pos->bitboards[type+6])
+
 
 // not A file constant
 const Bitboard not_a_file = 18374403900871474942ULL;
@@ -25,7 +25,7 @@ const Bitboard rank_7_mask = 71776119061217280ULL;
 
 
 
-int scores[12] = { 100, 325, 325, 500 ,900,-10000,100, 300, 300, 500 ,900,-10000 };
+
 
 // bishop relevant occupancy bit count for every square on board
 const int bishop_relevant_bits[64] = {
@@ -479,12 +479,12 @@ Bitboard AttacksTo(const S_Board* pos, int to) {
 	attacks |= (knight_attacks[to] & (pos->bitboards[WN] | pos->bitboards[BN]));
 
 
-	if (get_bishop_attacks(to, pos->occupancies[BOTH]) & bsliders)
+	if (get_bishop_attacks(to, occ) & bsliders)
 		attacks |= get_bishop_attacks(to, occ) & bsliders;
 
 
 
-	if (get_rook_attacks(to, pos->occupancies[BOTH]) & rsliders)
+	if (get_rook_attacks(to, occ) & rsliders)
 		attacks |= get_rook_attacks(to, occ) & rsliders;
 
 
@@ -511,68 +511,4 @@ Bitboard considerXrays(const S_Board* pos, int sq) {
 
 
 }
-
-
-
-//Inspired by Crafty , Blunder and Weiss engines
-int see(const S_Board* pos, int move,int threshold) {
-
-	int to = get_move_target(move);
-	int from = get_move_source(move);
-	int target = pos->pieces[to];
-	int attacker = pos->pieces[from];
-	int value = scores[target]-threshold;
-	if (value < 0) return false;
-
-	// Trivial if we still beat the threshold after losing the piece
-	value -= scores[attacker];
-	if (value >= 0) return true;
-
-	Bitboard occupiedBB = pos->bitboards[BOTH];
-	Bitboard attackers = AttacksTo(pos, to);
-	Bitboard bishops = pos->bitboards[WB] | pos->bitboards[BB] | pos->bitboards[WQ] | pos->bitboards[BQ];
-	Bitboard rooks = pos->bitboards[WR] | pos->bitboards[BR] | pos->bitboards[WQ] | pos->bitboards[BQ];
-
-	int side = !Color[attacker];
-
-	while (true) {
-
-		// Remove used pieces from attackers
-		attackers &= occupiedBB;
-
-		Bitboard myAttackers = attackers & pos->occupancies[side];
-		if (!myAttackers) break;
-
-		// Pick next least valuable piece to capture with
-		int pt;
-		for (pt = PAWN; pt < KING; ++pt)
-			if (myAttackers & pieceBB(pt))
-				break;
-
-		side = !side;
-
-		// Value beats threshold, or can't beat threshold (negamaxed)
-		if ((value = -value - 1 - scores[pt]) >= 0) {
-
-			if (pt == KING && (attackers & pos->occupancies[side]))
-				side = !side;
-
-			break;
-		}
-
-		// Remove the used piece from occupied
-		occupiedBB ^= (1ULL << (get_ls1b_index(myAttackers & pieceBB(pt))));
-
-		// Add possible discovered attacks from behind the used piece
-
-		attackers |= considerXrays(pos, to);
-
-	}
-
-
-	return side != Color[attacker];
-
-
-}
-
 
