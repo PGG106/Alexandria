@@ -140,12 +140,24 @@ static inline bool SEE(const S_Board* pos, const int move, const int threshold) 
 
 
 // score moves
-static inline void score_moves(S_Board* pos, S_MOVELIST* move_list)
+static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 {
 	for (int i = 0;i < move_list->count;i++) {
 		int move = move_list->moves[i].move;
 
-		if (get_move_enpassant(move)) {
+
+
+
+		if (move == PvMove) {
+			move_list->moves[i].score = 20000;
+			continue;
+		}
+
+
+
+
+
+		else if (get_move_enpassant(move)) {
 
 			move_list->moves[i].score = 105 + 10000;
 			continue;
@@ -249,7 +261,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 
 	// generate moves
 	generate_captures(move_list, pos);
-	score_moves(pos, move_list);
+	score_moves(pos, move_list, NOMOVE);
 	int legal = 0;
 	score = -MAXSCORE;
 
@@ -475,7 +487,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	generate_moves(move_list, pos);
 
 
-	score_moves(pos, move_list);
+
+	score_moves(pos, move_list, PvMove);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -483,15 +496,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
-
-	if (PvMove != NOMOVE) {
-		for (MoveNum = 0; MoveNum < move_list->count; ++MoveNum) {
-			if (move_list->moves[MoveNum].move == PvMove) {
-				move_list->moves[MoveNum].score = 2000000;
-				break;
-			}
-		}
-	}
 
 
 
