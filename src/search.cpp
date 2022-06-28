@@ -17,7 +17,7 @@
 int CounterMoves[MAXDEPTH][MAXDEPTH];
 
 
-int scores[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
+int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
@@ -36,7 +36,7 @@ static int IsRepetition(const S_Board* pos) {
 
 	for (int index = 0; index < pos->hisPly; index++)
 		// if we found the hash key same with a current
-		if (repetition_table[index] == pos->posKey)
+		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
 			return TRUE;
 
@@ -83,14 +83,14 @@ static inline bool SEE(const S_Board* pos, const int move, const int threshold) 
 	int target = pos->pieces[to];
 
 	// Making the move and not losing it must beat the threshold
-	int value = scores[target] - threshold;
+	int value = PieceValue[target] - threshold;
 	if (value < 0) return false;
 
 	int from = get_move_source(move);
 	int attacker = pos->pieces[from];
 
 	// Trivial if we still beat the threshold after losing the piece
-	value -= scores[attacker];
+	value -= PieceValue[attacker];
 	if (value >= 0) return true;
 
 	// It doesn't matter if the to square is occupied or not
@@ -119,7 +119,7 @@ static inline bool SEE(const S_Board* pos, const int move, const int threshold) 
 		side = !side;
 
 		// Value beats threshold, or can't beat threshold (negamaxed)
-		if ((value = -value - 1 - scores[pt]) >= 0) {
+		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
 
 			if (pt == KING && (attackers & pos->occupancies[side]))
 				side = !side;
@@ -146,15 +146,10 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		int move = move_list->moves[i].move;
 
 
-
-
 		if (move == PvMove) {
 			move_list->moves[i].score = 20000;
 			continue;
 		}
-
-
-
 
 
 		else if (get_move_enpassant(move)) {
@@ -204,7 +199,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 	}
 
-
 	return;
 }
 
@@ -212,8 +206,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 int futility(int depth) {
 	return 150 * (depth - 1);
 }
-
-
 
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
@@ -272,26 +264,20 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 	for (int count = 0; count < move_list->count; count++)
 	{
 
-
 		pick_move(move_list, count);
-
 
 		make_move(move_list->moves[count].move, pos);
 
-		repetition_table[pos->hisPly] = pos->posKey;
 
 		legal++;
 		// score current move
 		int score = -Quiescence(-beta, -alpha, pos, info);
 
-
 		// take move back
 		Unmake_move(pos);
 
-
 		// return latest best score  if time is up
 		if (info->stopped == 1) return 0;
-
 
 		// fail-hard beta cutoff
 		if (score >= beta)
@@ -310,8 +296,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 
 		}
 	}
-
-
 
 	// node (move) fails low
 	return alpha;
@@ -334,11 +318,8 @@ static inline int reduction(int depth, int num_moves) {
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull)
 {
 
-	// init PV length
-	// 
 	// recursion escape condition
 	if (depth <= 0) {
-
 		return Quiescence(alpha, beta, pos, info);
 	}
 
@@ -365,6 +346,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		return EvalPosition(pos);
 	}
 
+	if (pos->fiftyMove >= 100) {
+		return 0;
+	}
+
 	int mating_value = mate_value - pos->ply;
 
 	if (mating_value < beta) {
@@ -373,12 +358,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 	// is king in check
-	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[pos->side * 6 + 5]),
+	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]),
 		pos->side ^ 1);
 
 	if (in_check) depth++;
-
-
 
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
@@ -388,7 +371,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		HashTable->cut++;
 		return Score;
 	}
-
 
 
 	// legal moves counter
@@ -419,7 +401,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	// null move pruning
 	if (DoNull && depth >= 4 && !in_check && pos->ply)
 	{
-		repetition_table[pos->hisPly] = pos->posKey;
+
 
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
@@ -506,9 +488,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	{
 		pick_move(move_list, count);
 
-
+		int move = move_list->moves[count].move;
 		// make sure to make only legal moves
-		make_move(move_list->moves[count].move, pos);
+		make_move(move, pos);
 
 
 		// increment legal moves
@@ -530,8 +512,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 				moves_searched >= full_depth_moves &&
 				depth >= reduction_limit &&
 				!in_check &&
-				!get_move_capture(move_list->moves[count].move) &&
-				!get_move_promoted(move_list->moves[count].move)
+				!get_move_capture(move) &&
+				!get_move_promoted(move)
 				)
 
 			{
@@ -569,7 +551,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 		if (Score > BestScore) {
 			BestScore = Score;
-			bestmove = move_list->moves[count].move;
+			bestmove = move;
 
 			// found a better move
 			if (Score > alpha)
@@ -577,13 +559,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 				// store history moves
-				if (!get_move_capture(move_list->moves[count].move)) {
-					pos->searchHistory[pos->pieces[get_move_source(move_list->moves[count].move)]][get_move_target(move_list->moves[count].move)] += depth;
+				if (!get_move_capture(move)) {
+					pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth;
 				}
 
 				// PV node (move)
 				alpha = Score;
-				bestmove = move_list->moves[count].move;
+				bestmove = move;
 
 			}
 
@@ -596,7 +578,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 				if (!get_move_capture(move_list->moves[count].move)) {
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-					pos->searchKillers[0][pos->ply] = move_list->moves[count].move;
+					pos->searchKillers[0][pos->ply] = move;
 
 					int previousMove = pos->history[pos->hisPly].move;
 					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move_list->moves[count].move;

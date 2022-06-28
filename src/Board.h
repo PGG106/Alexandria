@@ -93,7 +93,6 @@ enum { opening, endgame, middlegame };
 // piece types
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
-extern Bitboard repetition_table[1000];
 
 extern int reductions[256];
 
