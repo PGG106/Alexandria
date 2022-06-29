@@ -26,11 +26,10 @@ typedef struct {
     (castling << 23)  
 
 #define NOMOVE 0
-#define MAXSCORE 50000
-#define MATE 29000
+#define MAXSCORE 32670
 #define ISMATE (MAXSCORE - MAXDEPTH)
-#define mate_value 49000
-#define mate_score 48000
+#define mate_value 32000
+#define mate_score 31000
 
 // extract source square
 #define get_move_source(move) (move & 0x3f)

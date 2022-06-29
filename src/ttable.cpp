@@ -123,7 +123,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 	assert(depth >= 1 && depth <= MAXDEPTH);
 	assert(score >= -MAXSCORE && score <= MAXSCORE);
 	assert(pos->ply >= 0 && pos->ply <= MAXDEPTH);
-
+	//Replacement strategy taken from Stockfish
 	// Preserve any existing move for the same position
 	if (move || (uint16_t)pos->posKey != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
@@ -137,7 +137,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 
 		HashTable->pTable[index].tt_key = (uint16_t)pos->posKey;
 		HashTable->pTable[index].flags = (uint8_t)flags;
-		HashTable->pTable[index].score = (int32_t)score;
+		HashTable->pTable[index].score = (int16_t)score;
 		HashTable->pTable[index].depth = (uint8_t)depth;
 		HashTable->newWrite++;
 	}
