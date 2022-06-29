@@ -174,6 +174,7 @@ const int mirror_score[128] =
 
 // sjeng 11.2
 int MaterialDraw(const S_Board* pos) {
+	/*
 	int white_rooks = count_bits(pos->bitboards[WR]);
 	int black_rooks = count_bits(pos->bitboards[BR]);
 	int white_bishops = count_bits(pos->bitboards[WB]);
@@ -182,7 +183,7 @@ int MaterialDraw(const S_Board* pos) {
 	int black_knights = count_bits(pos->bitboards[BN]);
 	int white_queens = count_bits(pos->bitboards[WQ]);
 	int black_queens = count_bits(pos->bitboards[BQ]);
-
+	*/
 	return FALSE;
 }
 

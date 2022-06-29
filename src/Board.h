@@ -6,7 +6,13 @@
 #include <cctype>
 #include "nnue.h"
 #include "stdint.h"
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
 
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
 
 #define NAME "Alexandria"
 #define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
@@ -96,13 +102,13 @@ enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 extern int reductions[256];
 
-typedef struct HASHENTRY {
-	uint16_t tt_key;
-	int move;
+PACK(typedef struct HASHENTRY {
+	uint32_t move;
 	int32_t score;
+	uint16_t tt_key;
 	uint8_t depth;
 	uint8_t flags;
-} S_HASHENTRY;
+}) S_HASHENTRY;
 
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;

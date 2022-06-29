@@ -570,7 +570,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 				}
 
-				StoreHashEntry(pos, bestmove, beta, HFBETA, depth);
+				StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
 				// node (move) fails high
 				return beta;
 			}
@@ -593,10 +593,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth);
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth,pv_node);
 	}
 	else {
-		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth);
+		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
 	}
 
 
