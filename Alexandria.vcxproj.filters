@@ -152,6 +152,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\nn.net" />
-    <None Include="nn.net" />
   </ItemGroup>
 </Project>

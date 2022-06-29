@@ -203,7 +203,6 @@
     <Text Include="src\makefile" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="nn.net" />
     <None Include="src\nn.net" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

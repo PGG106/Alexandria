@@ -182,39 +182,7 @@ int MaterialDraw(const S_Board* pos) {
 	int black_knights = count_bits(pos->bitboards[BN]);
 	int white_queens = count_bits(pos->bitboards[WQ]);
 	int black_queens = count_bits(pos->bitboards[BQ]);
-	if (!white_rooks && !black_rooks && !white_queens && !black_queens) {
-		if (!black_rooks && !white_bishops) {
-			if (white_knights < 3 && black_knights < 3) {
-				return TRUE;
-			}
-		}
-		else if (!white_knights && !black_knights) {
-			if (abs(white_bishops - black_bishops) < 2) {
 
-				return TRUE;
-			}
-		}
-		else if ((white_knights < 3 && !white_bishops) || (white_bishops == 1 && !white_knights)) {
-			if ((black_knights < 3 && !black_bishops) || (black_bishops == 1 && !black_knights)) {
-
-				return TRUE;
-			}
-		}
-	}
-	else if (!white_queens && !black_queens) {
-		if (white_rooks == 1 && black_rooks == 1) {
-			if ((white_knights + white_bishops) < 2 && (black_knights + black_bishops) < 2) {
-
-				return TRUE;
-			}
-		}
-		else if (white_rooks == 1 && !black_rooks) {
-			if ((white_knights + white_bishops == 0) && (((black_knights + black_bishops) == 1) || ((black_knights + black_bishops) == 2))) { return TRUE; }
-		}
-		else if (black_rooks == 1 && !white_rooks) {
-			if ((black_knights + black_bishops == 0) && (((white_knights + white_bishops) == 1) || ((white_knights + white_bishops) == 2))) { return TRUE; }
-		}
-	}
 	return FALSE;
 }
 

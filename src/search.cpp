@@ -157,9 +157,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 			move_list->moves[i].score = 105 + 10000;
 			continue;
 		}
-
-
-
 		else if (get_move_capture(move)) {
 
 			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
@@ -215,7 +212,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 		CheckUp(info);
 	}
 
-
 	info->nodes++;
 
 	if (pos->ply && IsRepetition(pos)) {
@@ -226,12 +222,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 		// evaluate position
 		return EvalPosition(pos);
 	}
-
-
+	
 	// evaluate position
 	int score = EvalPosition(pos);
-
-
 
 	// fail-hard beta cutoff
 	if (score >= beta)
@@ -256,8 +249,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 	score_moves(pos, move_list, NOMOVE);
 	int legal = 0;
 	score = -MAXSCORE;
-
-
 
 
 	// loop over moves within a movelist
@@ -332,23 +323,16 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	// increment nodes count
 	info->nodes++;
 
-	if ((IsRepetition(pos)) && pos->ply) {
+	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) || MaterialDraw(pos)) {
 
 		return 0;
 	}
 
-
-	if (pos->fiftyMove >= 100) {
-		return 0;
-	}
 
 	if (pos->ply > MAXDEPTH - 1) {
 		return EvalPosition(pos);
 	}
 
-	if (pos->fiftyMove >= 100) {
-		return 0;
-	}
 
 	int mating_value = mate_value - pos->ply;
 
@@ -623,6 +607,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	int num_threads = 1;
 	ClearForSearch(pos, info);
+
+	/*
 	S_Board pos_copy = *pos;
 	int initial_depth = 1;
 	std::vector<std::thread> threads;
@@ -630,17 +616,19 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	for (int i = 0; i < num_threads - 1; i++) {
 		pos_copies.push_back(*pos);
 	}
-
+	
 
 	for (int i = 0;i < num_threads - 1;i++) {
 		threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
 	}
-
+	*/
 	search_position(1, depth, pos, info, TRUE); //root search 
 
+
+	/*
 	for (auto& th : threads) {
 		th.join(); //stop helper threads
-	}
+	}*/
 
 }
 
@@ -656,7 +644,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int score = 0;
 
 	ClearForSearch(pos, info);
-
+	S_MOVELIST move_list[1];
 	int alpha_window = -50;
 
 	int beta_window = 50;
@@ -665,6 +653,10 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 
+
+	//store one random legal move in case we can't calculate the best one in time
+	generate_moves(move_list, pos);
+	pos->pvArray[0]= move_list->moves[0].move;
 
 	// find best move within a given position
 	  // find best move within a given position
