@@ -357,7 +357,11 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 			start_bench();
 		}
 		else if (strncmp(input, "perft", 5) == 0) {
-			perft_test(6,pos);
+			perft_test(7,pos);
+			return;
+		}
+		else if (strncmp(input, "print", 5) == 0) {
+			print_board(pos);
 			return;
 		}
 

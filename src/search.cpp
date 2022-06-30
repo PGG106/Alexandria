@@ -151,12 +151,12 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 			continue;
 		}
 
-
-		else if (get_move_enpassant(move)) {
+		else if (((get_move_piece(move) == WP || get_move_piece(move) == BP) && (get_move_target(move) == pos->enPas))) {
 
 			move_list->moves[i].score = 105 + 10000;
 			continue;
 		}
+
 		else if (pos->pieces[get_move_target(move)] != EMPTY) {
 
 			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
@@ -608,7 +608,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	int num_threads = 1;
-	ClearForSearch(pos, info);
 
 	/*
 	S_Board pos_copy = *pos;
@@ -647,6 +646,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 	ClearForSearch(pos, info);
 	S_MOVELIST move_list[1];
+
+	//store one random legal move in case we can't calculate the best one in time
+	generate_moves(move_list, pos);
+	pos->pvArray[0] = move_list->moves[0].move;
+
 	int alpha_window = -50;
 
 	int beta_window = 50;
@@ -656,9 +660,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int beta = MAXSCORE;
 
 
-	//store one random legal move in case we can't calculate the best one in time
-	generate_moves(move_list, pos);
-	pos->pvArray[0] = move_list->moves[0].move;
 
 	// find best move within a given position
 	  // find best move within a given position
