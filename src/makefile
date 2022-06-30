@@ -1,4 +1,4 @@
-EVALFILE=C:/Users/giuseppe/source/repos/PGG106/Alexandria/src/nn.net
+EVALFILE=nn.net
 
 
 ifeq ($(OS), Windows_NT)

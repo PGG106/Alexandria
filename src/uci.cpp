@@ -266,7 +266,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	// print engine info
 	printf("id name Alexandria\n");
 	printf("id author PGG\n");
-	printf("option name Hash type spin default 16 \n");
+	printf("option name Hash type spin default 16 min 1 max 8192 \n");
 	printf("Type nnue to enable/disable nnue eval (default is enabled) \n");
 	printf("uciok\n");
 

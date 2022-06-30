@@ -1,4 +1,4 @@
-#include "board.h"
+#include "Board.h"
 #include "search.h"
 #include "ttable.h"
 #include <iostream>

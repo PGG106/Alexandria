@@ -1,7 +1,7 @@
 // pvtable.c
 #include "stdlib.h"
 #include "stdio.h"
-#include "board.h"
+#include "Board.h"
 #include "movegen.h"
 #include "move.h"
 #include "io.h"
