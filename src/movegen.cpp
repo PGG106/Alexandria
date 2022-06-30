@@ -88,8 +88,6 @@ static inline void AddMove(const S_Board* pos, int move, S_MOVELIST* list) { //f
 
 static inline void AddPawnMove(const S_Board* pos, const  int from, const int to, S_MOVELIST* list) {//function that adds a capture move of a white pawn
 
-	int capture = (pos->pieces[to] != EMPTY);
-
 	int dp = !(abs(to - from) - 16);
 
 	int enpass = !(to - pos->enPas);
@@ -101,13 +99,13 @@ static inline void AddPawnMove(const S_Board* pos, const  int from, const int to
 
 		if (from >= a7 && from <= h7) { //if the piece is moving from the 7th to the 8th rank
 
-			AddMove(pos, encode_move(from, to, WP, WQ, capture, dp, enpass, 0), list);
-			AddMove(pos, encode_move(from, to, WP, WR, capture, dp, enpass, 0), list); //consider every possible piece promotion
-			AddMove(pos, encode_move(from, to, WP, WB, capture, dp, enpass, 0), list);
-			AddMove(pos, encode_move(from, to, WP, WN, capture, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, WP, WQ, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, WP, WR, dp, enpass, 0), list); //consider every possible piece promotion
+			AddMove(pos, encode_move(from, to, WP, WB, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, WP, WN, dp, enpass, 0), list);
 		}
 		else { //else do not include possible promotions
-			AddMove(pos, encode_move(from, to, WP, 0, capture, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, WP, 0, dp, enpass, 0), list);
 		}
 
 	}
@@ -116,14 +114,14 @@ static inline void AddPawnMove(const S_Board* pos, const  int from, const int to
 
 		if (from >= a2 && from <= h2) { //if the piece is moving from the 2nd to the 1st rank
 
-			AddMove(pos, encode_move(from, to, BP, BQ, capture, dp, enpass, 0), list);
-			AddMove(pos, encode_move(from, to, BP, BR, capture, dp, enpass, 0), list); //consider every possible piece promotion
-			AddMove(pos, encode_move(from, to, BP, BB, capture, dp, enpass, 0), list);
-			AddMove(pos, encode_move(from, to, BP, BN, capture, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, BP, BQ, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, BP, BR, dp, enpass, 0), list); //consider every possible piece promotion
+			AddMove(pos, encode_move(from, to, BP, BB, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, BP, BN, dp, enpass, 0), list);
 
 		}
 		else { //else do not include possible promotions
-			AddMove(pos, encode_move(from, to, BP, 0, capture, dp, enpass, 0), list);
+			AddMove(pos, encode_move(from, to, BP, 0, dp, enpass, 0), list);
 		}
 
 	}
@@ -286,7 +284,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 				target_square = get_ls1b_index(moves);
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WN : BN;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -302,9 +300,8 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WB : BB;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -320,9 +317,8 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WR : BR;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -336,9 +332,8 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WQ : BQ;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -352,70 +347,69 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos)
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square);
 	while (moves) {
 		int  target_square = get_ls1b_index(moves);
-		int capture = (pos->pieces[target_square] != EMPTY);
 
 		clr_bit(moves, target_square);
-		AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+		AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 
 
 	}
 
-if (pos->checkMask == 18446744073709551615ULL) {
-	if (pos->side == WHITE) {
+	if (pos->checkMask == 18446744073709551615ULL) {
+		if (pos->side == WHITE) {
 
-		// king side castling is available
-		if (pos->castleperm & WKCA)
-		{
-			// make sure square between king and king's rook are empty
-			if (!get_bit(pos->occupancies[BOTH], f1) && !get_bit(pos->occupancies[BOTH], g1))
+			// king side castling is available
+			if (pos->castleperm & WKCA)
 			{
-				// make sure king and the f1 squares are not under attacks
-				if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, f1, BLACK) && !is_square_attacked(pos, g1, BLACK))
-					AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0, 0, 1), move_list);
+				// make sure square between king and king's rook are empty
+				if (!get_bit(pos->occupancies[BOTH], f1) && !get_bit(pos->occupancies[BOTH], g1))
+				{
+					// make sure king and the f1 squares are not under attacks
+					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, f1, BLACK) && !is_square_attacked(pos, g1, BLACK))
+						AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0, 1), move_list);
+				}
 			}
+
+			if (pos->castleperm & WQCA)
+			{
+				// make sure square between king and queen's rook are empty
+				if (!get_bit(pos->occupancies[BOTH], d1) && !get_bit(pos->occupancies[BOTH], c1) && !get_bit(pos->occupancies[BOTH], b1))
+				{
+					// make sure king and the d1 squares are not under attacks
+					if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, d1, BLACK) && !is_square_attacked(pos, c1, BLACK))
+						AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0, 1), move_list);
+				}
+			}
+
 		}
 
-		if (pos->castleperm & WQCA)
+		else
 		{
-			// make sure square between king and queen's rook are empty
-			if (!get_bit(pos->occupancies[BOTH], d1) && !get_bit(pos->occupancies[BOTH], c1) && !get_bit(pos->occupancies[BOTH], b1))
+			if (pos->castleperm & BKCA)
 			{
-				// make sure king and the d1 squares are not under attacks
-				if (!is_square_attacked(pos, e1, BLACK) && !is_square_attacked(pos, d1, BLACK) && !is_square_attacked(pos, c1, BLACK))
-					AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0, 0, 1), move_list);
+				// make sure square between king and king's rook are empty
+				if (!get_bit(pos->occupancies[BOTH], f8) && !get_bit(pos->occupancies[BOTH], g8))
+				{
+					// make sure king and the f8 squares are not under attacks
+					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, f8, WHITE) && !is_square_attacked(pos, g8, WHITE))
+						AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0, 1), move_list);
+
+
+				}
+			}
+
+			if (pos->castleperm & BQCA)
+			{
+				// make sure square between king and queen's rook are empty
+				if (!get_bit(pos->occupancies[BOTH], d8) && !get_bit(pos->occupancies[BOTH], c8) && !get_bit(pos->occupancies[BOTH], b8))
+				{
+					// make sure king and the d8 squares are not under attacks
+					if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, d8, WHITE) && !is_square_attacked(pos, c8, WHITE))
+						AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0, 1), move_list);
+
+				}
 			}
 		}
-
 	}
-
-	else
-	{
-		if (pos->castleperm & BKCA)
-		{
-			// make sure square between king and king's rook are empty
-			if (!get_bit(pos->occupancies[BOTH], f8) && !get_bit(pos->occupancies[BOTH], g8))
-			{
-				// make sure king and the f8 squares are not under attacks
-				if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, f8, WHITE) && !is_square_attacked(pos, g8, WHITE))
-					AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0, 0, 1), move_list);
-
-
-			}
-		}
-
-		if (pos->castleperm & BQCA)
-		{
-			// make sure square between king and queen's rook are empty
-			if (!get_bit(pos->occupancies[BOTH], d8) && !get_bit(pos->occupancies[BOTH], c8) && !get_bit(pos->occupancies[BOTH], b8))
-			{
-				// make sure king and the d8 squares are not under attacks
-				if (!is_square_attacked(pos, e8, WHITE) && !is_square_attacked(pos, d8, WHITE) && !is_square_attacked(pos, c8, WHITE))
-					AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0, 0, 1), move_list);
-
-			}
-		}
-	}
-}
 
 
 }
@@ -475,9 +469,8 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WN : BN;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -490,9 +483,8 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WB : BB;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -506,9 +498,8 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WR : BR;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -522,9 +513,8 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = (pos->side == WHITE) ? WQ : BQ;
-				AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+				AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 				clr_bit(moves, target_square);
 			}
 
@@ -538,10 +528,9 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos)
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square) & (pos->occupancies[pos->side ^ 1]);
 	while (moves) {
 		int  target_square = get_ls1b_index(moves);
-		int capture = (pos->pieces[target_square] != EMPTY);
 
 		clr_bit(moves, target_square);
-		AddMove(pos, encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0), move_list);
+		AddMove(pos, encode_move(source_square, target_square, piece, 0, 0, 0, 0), move_list);
 
 
 	}

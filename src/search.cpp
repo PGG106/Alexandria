@@ -157,7 +157,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 			move_list->moves[i].score = 105 + 10000;
 			continue;
 		}
-		else if (get_move_capture(move)) {
+		else if (pos->pieces[get_move_target(move)] != EMPTY) {
 
 			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
 			continue;
@@ -222,7 +222,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 		// evaluate position
 		return EvalPosition(pos);
 	}
-	
+
 	// evaluate position
 	int score = EvalPosition(pos);
 
@@ -473,6 +473,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		bool IsCapture = pos->pieces[get_move_target(move)] != EMPTY;
 		// make sure to make only legal moves
 		make_move(move, pos);
 
@@ -491,12 +492,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		// late move reduction (LMR)
 		else
 		{
+
 			// condition to consider LMR
 			if (
 				moves_searched >= full_depth_moves &&
 				depth >= reduction_limit &&
 				!in_check &&
-				!get_move_capture(move) &&
+				!(IsCapture) &&
 				!get_move_promoted(move)
 				)
 
@@ -543,7 +545,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 				// store history moves
-				if (!get_move_capture(move)) {
+				if (!(pos->pieces[get_move_target(move)] != EMPTY)) {
 					pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth;
 				}
 
@@ -559,7 +561,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score >= beta)
 			{
 
-				if (!get_move_capture(move_list->moves[count].move)) {
+				if (!(pos->pieces[get_move_target(move)] != EMPTY)) {
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
 					pos->searchKillers[0][pos->ply] = move;
@@ -593,7 +595,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth,pv_node);
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
 	}
 	else {
 		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
@@ -616,7 +618,7 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	for (int i = 0; i < num_threads - 1; i++) {
 		pos_copies.push_back(*pos);
 	}
-	
+
 
 	for (int i = 0;i < num_threads - 1;i++) {
 		threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
@@ -656,7 +658,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 	//store one random legal move in case we can't calculate the best one in time
 	generate_moves(move_list, pos);
-	pos->pvArray[0]= move_list->moves[0].move;
+	pos->pvArray[0] = move_list->moves[0].move;
 
 	// find best move within a given position
 	  // find best move within a given position

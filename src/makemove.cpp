@@ -69,8 +69,8 @@ int make_move(int move, S_Board* pos)
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
 
-	int capture = get_move_capture(move);
-
+	int capture = pos->pieces[target_square] != EMPTY;
+	pos->history[pos->hisPly].capture = EMPTY;
 
 	int double_push = get_move_double(move);
 	int enpass = get_move_enpassant(move);
@@ -223,11 +223,10 @@ int Unmake_move(S_Board* pos)
 	int target_square = get_move_target(move);
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
-
+	int piececap = pos->history[pos->hisPly].capture;
 	int enpass = get_move_enpassant(move);
 	int castling = get_move_castling(move);
-	int piececap = pos->history[pos->hisPly].capture;
+	int capture = (pos->history[pos->hisPly].capture != EMPTY);
 
 
 

@@ -106,11 +106,6 @@ void print_board(S_Board* pos)
 }
 
 
-
-
-
-
-
 // print attacked squares
 void print_attacked_squares(S_Board* pos, int side)
 {
@@ -150,8 +145,6 @@ void print_move(const int move)
 	char promoted = get_move_promoted(move);
 
 
-
-
 	if (promoted)
 		printf("%s%s%c ", from, to, promoted_pieces[promoted]);
 	else
@@ -165,8 +158,6 @@ char* FormatMove(const int move) {
 	const char* from = square_to_coordinates[get_move_source(move)];
 	const char* to = square_to_coordinates[get_move_target(move)];
 	char promoted = get_move_promoted(move);
-
-
 
 
 	if (promoted)
