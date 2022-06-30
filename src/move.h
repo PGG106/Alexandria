@@ -15,12 +15,11 @@ typedef struct {
 } S_MOVELIST;
 
 // encode move
-#define encode_move(source, target, piece, promoted,castling) \
+#define encode_move(source, target, piece, promoted) \
     (source) |          \
     (target << 6) |     \
     (piece << 12) |     \
-    (promoted << 16) |  \
-    (castling << 20)  
+    (promoted << 16) 
 
 #define NOMOVE 0
 #define MAXSCORE 32670
@@ -36,8 +35,7 @@ typedef struct {
 #define get_move_piece(move) ((move & 0xf000) >> 12)
 // extract promoted piece
 #define get_move_promoted(move) ((move & 0xf0000) >> 16)
-// extract castling flag
-#define get_move_castling(move) (move & 0x100000)
+
 
 
 
