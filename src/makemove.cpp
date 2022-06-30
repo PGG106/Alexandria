@@ -71,7 +71,7 @@ int make_move(int move, S_Board* pos)
 
 	int capture = pos->pieces[target_square] != EMPTY;
 	pos->history[pos->hisPly].capture = EMPTY;
-	int double_push = get_move_double(move);
+	int double_push = (abs(target_square - source_square) == 16  && (piece == WP || piece == BP));
 	int enpass = ((piece == WP || piece == BP) && (target_square == pos->enPas));
 	int castling = get_move_castling(move);
 
