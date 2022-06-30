@@ -72,9 +72,9 @@ int make_move(int move, S_Board* pos)
 
 	int capture = pos->pieces[target_square] != EMPTY;
 	pos->history[pos->hisPly].capture = EMPTY;
-	int double_push = (abs(target_square - source_square) == 16  && (piece == WP || piece == BP));
-	int enpass = ((piece == WP || piece == BP) && (target_square == pos->enPas));
-	int castling = ((piece == WK || piece == BK) && (abs(target_square -source_square)==2));
+	int double_push = (abs(target_square - source_square) == 16 && (piece_type == PAWN));
+	int enpass = ((piece_type == PAWN) && (target_square == pos->enPas));
+	int castling = ((piece_type == KING) && (abs(target_square - source_square) == 2));
 
 	pos->fiftyMove++;
 
@@ -90,7 +90,7 @@ int make_move(int move, S_Board* pos)
 		pos->fiftyMove = 0;
 	}
 
-	if (piece == WP || piece == BP)
+	if (piece_type == PAWN)
 		pos->fiftyMove = 0;
 
 	// move piece
@@ -191,9 +191,6 @@ int make_move(int move, S_Board* pos)
 	// change side
 	pos->side ^= 1;
 	HASH_SIDE;
-	//
-
-
 
 	return 1;
 
@@ -222,11 +219,11 @@ int Unmake_move(S_Board* pos)
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
 	int piece_type = get_move_piecetype(move);
-	int piece = piece_type + (pos->side^1) * 6;
+	int piece = piece_type + (pos->side ^ 1) * 6;
 	int promoted_piece = get_move_promoted(move);
 	int piececap = pos->history[pos->hisPly].capture;
-	int enpass = ((piece == WP || piece == BP) && (target_square == pos->enPas));
-	int castling = ((piece == WK || piece == BK) && (abs(target_square - source_square) == 2));
+	int enpass = ((piece_type == PAWN) && (target_square == pos->enPas));
+	int castling = ((piece_type == KING) && (abs(target_square - source_square) == 2));
 	int capture = (pos->history[pos->hisPly].capture != EMPTY);
 
 

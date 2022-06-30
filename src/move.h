@@ -34,11 +34,7 @@ typedef struct {
 // extract piece
 #define get_move_piecetype(move) ((move & 0x7000) >> 12)
 // extract promoted piece
-#define get_move_promoted(move) ((move & 0xf0000) >> 15)
+#define get_move_promoted(move) ((move & 0x7800) >> 15)
 
 
-
-
-// move types
-enum { all_moves, only_captures };
 
