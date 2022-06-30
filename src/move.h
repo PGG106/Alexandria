@@ -1,17 +1,17 @@
 #pragma once
 
 typedef struct S_MOVE {
-    int move;
-    int score;
+	int move;
+	int score;
 }S_MOVE;
 
 // move list structure
 typedef struct {
-    // moves
-    S_MOVE moves[256];
+	// moves
+	S_MOVE moves[256];
 
-    // move count
-    int count;
+	// move count
+	int count;
 } S_MOVELIST;
 
 // encode move
@@ -34,7 +34,7 @@ typedef struct {
 // extract piece
 #define get_move_piecetype(move) ((move & 0x7000) >> 12)
 // extract promoted piece
-#define get_move_promoted(move) ((move & 0x7800) >> 15)
+#define get_move_promoted(move) ((move & 0x78000) >> 15)
 
 
 
