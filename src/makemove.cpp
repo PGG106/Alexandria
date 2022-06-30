@@ -66,7 +66,8 @@ int make_move(int move, S_Board* pos)
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
-	int piece = get_move_piece(move);
+	int piece_type = get_move_piecetype(move);
+	int piece = piece_type + (pos->side) * 6;
 	int promoted_piece = get_move_promoted(move);
 
 	int capture = pos->pieces[target_square] != EMPTY;
@@ -220,7 +221,8 @@ int Unmake_move(S_Board* pos)
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
-	int piece = get_move_piece(move);
+	int piece_type = get_move_piecetype(move);
+	int piece = piece_type + (pos->side^1) * 6;
 	int promoted_piece = get_move_promoted(move);
 	int piececap = pos->history[pos->hisPly].capture;
 	int enpass = ((piece == WP || piece == BP) && (target_square == pos->enPas));

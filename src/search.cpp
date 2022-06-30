@@ -151,7 +151,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 			continue;
 		}
 
-		else if (((get_move_piece(move) == WP || get_move_piece(move) == BP) && (get_move_target(move) == pos->enPas))) {
+		else if (((get_move_piecetype(move) == PAWN) && (get_move_target(move) == pos->enPas))) {
 
 			move_list->moves[i].score = 105 + 10000;
 			continue;
@@ -159,7 +159,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 		else if (pos->pieces[get_move_target(move)] != EMPTY) {
 
-			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
+			move_list->moves[i].score = mvv_lva[get_move_piecetype(move)][pos->pieces[get_move_target(move)]] + 10000;
 			continue;
 
 		}

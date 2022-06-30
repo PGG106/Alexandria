@@ -19,7 +19,7 @@ typedef struct {
     (source) |          \
     (target << 6) |     \
     (piece << 12) |     \
-    (promoted << 16) 
+    (promoted << 15) 
 
 #define NOMOVE 0
 #define MAXSCORE 32670
@@ -32,9 +32,9 @@ typedef struct {
 // extract target square
 #define get_move_target(move) ((move & 0xfc0) >> 6)
 // extract piece
-#define get_move_piece(move) ((move & 0xf000) >> 12)
+#define get_move_piecetype(move) ((move & 0x7000) >> 12)
 // extract promoted piece
-#define get_move_promoted(move) ((move & 0xf0000) >> 16)
+#define get_move_promoted(move) ((move & 0xf0000) >> 15)
 
 
 
