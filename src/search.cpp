@@ -12,6 +12,7 @@
 #include <vector>
 #include <cassert>
 #include "attack.h"
+#include "magic.h"
 
 
 int CounterMoves[MAXDEPTH][MAXDEPTH];
@@ -75,6 +76,35 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 }
 
 
+
+static inline Bitboard AttacksTo(const S_Board* pos, int to) {
+
+	Bitboard occ = pos->bitboards[BOTH];
+	Bitboard attackers = 0ULL;
+	Bitboard attackingBishops = pos->bitboards[WB] | pos->bitboards[BB];
+	Bitboard attackingRooks = pos->bitboards[WR] | pos->bitboards[BR];
+	Bitboard attackingQueens = pos->bitboards[WQ] | pos->bitboards[BQ];
+	Bitboard attackingKnights = pos->bitboards[WN] | pos->bitboards[BN];
+	Bitboard attackingKing = pos->bitboards[WK] | pos->bitboards[BK];
+	Bitboard intercardinalRays = get_bishop_attacks(to, occ);
+	Bitboard cardinalRaysRays = get_rook_attacks(to, occ);
+
+	attackers |= intercardinalRays & (attackingBishops | attackingQueens);
+	attackers |= cardinalRaysRays & (attackingRooks | attackingQueens);
+
+	attackers |=
+		(pawn_attacks[BLACK][to] & pos->bitboards[WP]) | (pawn_attacks[WHITE][to] & pos->bitboards[BP]);
+	attackers |= (knight_attacks[to] & (pos->bitboards[WN] | pos->bitboards[BN]));
+
+
+	attackers |=
+		king_attacks[to] & (pos->bitboards[WK] | pos->bitboards[BK]);
+
+	return attackers;
+}
+
+
+
 // inspired by the Weiss engine
 static inline bool SEE(const S_Board* pos, const int move, const int threshold) {
 
@@ -112,7 +142,7 @@ static inline bool SEE(const S_Board* pos, const int move, const int threshold) 
 
 		// Pick next least valuable piece to capture with
 		int  pt;
-		for (pt = PAWN; pt < KING; ++pt)
+		for (pt = PAWN; pt <= KING; ++pt)
 			if (myAttackers & pieceBB(pt))
 				break;
 
@@ -129,7 +159,10 @@ static inline bool SEE(const S_Board* pos, const int move, const int threshold) 
 
 		// Remove the used piece from occupied
 		occupied ^= (1ULL << (get_ls1b_index(myAttackers & pieceBB(pt))));
-		attackers |= considerXrays(pos, to);
+		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
+			attackers |= get_bishop_attacks(to, occupied) & bishops;
+		if (pt == ROOK || pt == QUEEN)
+			attackers |= get_rook_attacks(to, occupied) & rooks;
 
 	}
 
@@ -159,7 +192,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 		else if (get_move_capture(move)) {
 
-			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 10000;
+			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +4000+ 6000*SEE(pos,move,-100);
 			continue;
 
 		}
