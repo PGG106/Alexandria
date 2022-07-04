@@ -303,7 +303,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	// old value of alpha
 	int old_alpha = alpha;
-	int BestScore = Score;
+	int BestScore = alpha;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
@@ -534,13 +534,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	// generate moves
 	generate_moves(move_list, pos);
 
-
-
 	score_moves(pos, move_list, PvMove);
 
 	// old value of alpha
 	int old_alpha = alpha;
-	int BestScore = -MAXSCORE;
+	int BestScore = alpha;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
