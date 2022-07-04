@@ -238,7 +238,7 @@ int futility(int depth) {
 }
 
 
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node)
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node)
 {
 
 	if ((info->nodes & 2047) == 0) {
@@ -279,18 +279,17 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node
 
 	}
 
-	
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0) ) {
+
+	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
 		HashTable->cut++;
 		return Score;
 	}
-	
+
 
 	// legal moves counter
 	int legal_moves = 0;
 
-	// get static evaluation score
-	int static_eval = EvalPosition(pos);
+
 
 
 	// create move list instance
@@ -304,7 +303,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node
 
 	// old value of alpha
 	int old_alpha = alpha;
-	int BestScore = -MAXSCORE;
+	int BestScore = Score;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
@@ -334,6 +333,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node
 		moves_searched++;
 
 		if (Score > BestScore) {
+
 			BestScore = Score;
 			bestmove = move;
 
@@ -358,6 +358,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node
 
 
 		}
+
 	}
 
 
@@ -369,7 +370,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,int pv_node
 	}
 
 	// node (move) fails low
-	return Score;
+	return BestScore;
 }
 
 
@@ -392,7 +393,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	// recursion escape condition
 	if (depth <= 0) {
 		int pv_node = beta - alpha > 1;
-		return Quiescence(alpha, beta, pos, info,pv_node);
+		return Quiescence(alpha, beta, pos, info, pv_node);
 	}
 
 
@@ -430,7 +431,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int pv_node = beta - alpha > 1;
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
-	
+
 
 	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth) && !pv_node) {
 		HashTable->cut++;
@@ -515,7 +516,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score < beta && depth <= 2)
 			{
 				// get quiscence score
-				new_score = Quiescence(alpha, beta, pos, info,pv_node);
+				new_score = Quiescence(alpha, beta, pos, info, pv_node);
 
 				// quiescence score indicates fail-low node
 				if (new_score < beta)
