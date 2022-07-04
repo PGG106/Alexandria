@@ -192,7 +192,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 		else if (get_move_capture(move)) {
 
-			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +4000+ 6000*SEE(pos,move,-100);
+			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 4000 + 6000 * SEE(pos, move, -100);
 			continue;
 
 		}
@@ -255,7 +255,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 		// evaluate position
 		return EvalPosition(pos);
 	}
-	
+
 	// evaluate position
 	int score = EvalPosition(pos);
 
@@ -281,46 +281,66 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
 	generate_captures(move_list, pos);
 	score_moves(pos, move_list, NOMOVE);
 	int legal = 0;
-	score = -MAXSCORE;
+	// old value of alpha
+	int old_alpha = alpha;
+	int BestScore = -MAXSCORE;
+	int bestmove = NOMOVE;
+	int MoveNum = 0;
+	int pv_node = beta - alpha > 1;
+	int PvMove = NOMOVE;
 
-
+	if (pos->ply && ProbeHashEntry(pos, &PvMove, &score, alpha, beta, 0) && !pv_node) {
+		HashTable->cut++;
+		return score;
+	}
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++)
 	{
 
 		pick_move(move_list, count);
-
-		make_move(move_list->moves[count].move, pos);
+		int move = move_list->moves[count].move;
+		make_move(move, pos);
 
 
 		legal++;
 		// score current move
-		int score = -Quiescence(-beta, -alpha, pos, info);
+		score = -Quiescence(-beta, -alpha, pos, info);
 
 		// take move back
 		Unmake_move(pos);
 
 		// return latest best score  if time is up
 		if (info->stopped == 1) return 0;
+		if (score > BestScore) {
+			BestScore = score;
+			bestmove = move;
 
-		// fail-hard beta cutoff
-		if (score >= beta)
-		{
+			// found a better move
+			if (score > alpha)
+			{
+				// PV node (move)
+				alpha = score;
+				bestmove = move;
 
-			// node (move) fails high
-			return beta;
-		}
-
-		// found a better move
-		if (score > alpha)
-		{
-			// PV node (move)
-			alpha = score;
+			}
+			// fail-hard beta cutoff
+			if (score >= beta)
+			{
+				StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
+				// node (move) fails high
+				return beta;
+			}
 
 
 		}
 	}
 
+	if (alpha != old_alpha) {
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, 0, pv_node);
+	}
+	else {
+		StoreHashEntry(pos, bestmove, alpha, HFALPHA, 0, pv_node);
+	}
 	// node (move) fails low
 	return alpha;
 }
@@ -626,7 +646,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth,pv_node);
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
 	}
 	else {
 		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
@@ -649,7 +669,7 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	for (int i = 0; i < num_threads - 1; i++) {
 		pos_copies.push_back(*pos);
 	}
-	
+
 
 	for (int i = 0;i < num_threads - 1;i++) {
 		threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
@@ -689,7 +709,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 	//store one random legal move in case we can't calculate the best one in time
 	generate_moves(move_list, pos);
-	pos->pvArray[0]= move_list->moves[0].move;
+	pos->pvArray[0] = move_list->moves[0].move;
 
 	// find best move within a given position
 	  // find best move within a given position
