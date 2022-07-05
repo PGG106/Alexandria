@@ -303,7 +303,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	// old value of alpha
 	int old_alpha = alpha;
-	int BestScore = alpha;
+	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
@@ -370,7 +370,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	}
 
 	// node (move) fails low
-	return BestScore;
+	return alpha;
 }
 
 
@@ -538,7 +538,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// old value of alpha
 	int old_alpha = alpha;
-	int BestScore = alpha;
+	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
 	int MoveNum = 0;
 
@@ -681,7 +681,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// node (move) fails low
-	return BestScore;
+	return alpha;
 }
 
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {

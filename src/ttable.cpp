@@ -75,7 +75,7 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 	int index = pos->posKey % HashTable->numEntries;
 
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	assert(depth >= 1 && depth <= MAXDEPTH);
+	assert(depth >= 0 && depth <= MAXDEPTH);
 	assert(alpha < beta);
 	assert(alpha >= -MAXSCORE && alpha <= MAXSCORE);
 	assert(beta >= -MAXSCORE && beta <= MAXSCORE);
