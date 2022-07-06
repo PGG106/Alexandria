@@ -15,7 +15,7 @@
 #endif
 
 #define NAME "Alexandria"
-#define MAXGAMEMOVES 2048  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
+#define MAXGAMEMOVES 1024  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
 #define MAXPOSITIONMOVES 256
 #define MAXDEPTH 64
 
