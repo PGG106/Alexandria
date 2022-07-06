@@ -192,7 +192,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 		else if (get_move_capture(move)) {
 
-			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +4000+ 6000*SEE(pos,move,-100);
+			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 4000 + 6000 * SEE(pos, move, -100);
 			continue;
 
 		}
@@ -238,87 +238,135 @@ int futility(int depth) {
 }
 
 
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info)
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node)
 {
 
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
 
+
+	// increment nodes count
 	info->nodes++;
 
-	if (pos->ply && IsRepetition(pos)) {
+	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) || MaterialDraw(pos)) {
+
 		return 0;
 	}
 
+
 	if (pos->ply > MAXDEPTH - 1) {
-		// evaluate position
 		return EvalPosition(pos);
 	}
-	
-	// evaluate position
-	int score = EvalPosition(pos);
+
+
+
+	int PvMove = NOMOVE;
+	int Score = EvalPosition(pos);
 
 	// fail-hard beta cutoff
-	if (score >= beta)
+	if (Score >= beta)
 	{
 		// node (move) fails high
 		return beta;
 	}
 
 	// found a better move
-	if (score > alpha)
+	if (Score > alpha)
 	{
 		// PV node (move)
-		alpha = score;
+		alpha = Score;
 
 	}
+
+
+	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+		HashTable->cut++;
+		return Score;
+	}
+
+
+	// legal moves counter
+	int legal_moves = 0;
+
+
+
 
 	// create move list instance
 	S_MOVELIST move_list[1];
 
 	// generate moves
 	generate_captures(move_list, pos);
-	score_moves(pos, move_list, NOMOVE);
-	int legal = 0;
-	score = -MAXSCORE;
 
+
+	score_moves(pos, move_list, PvMove);
+
+	// old value of alpha
+	int old_alpha = alpha;
+	int BestScore = -MAXSCORE;
+	int bestmove = NOMOVE;
+	int MoveNum = 0;
+
+	int moves_searched = 0;
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++)
 	{
-
 		pick_move(move_list, count);
 
-		make_move(move_list->moves[count].move, pos);
+		int move = move_list->moves[count].move;
+		// make sure to make only legal moves
+		make_move(move, pos);
 
 
-		legal++;
-		// score current move
-		int score = -Quiescence(-beta, -alpha, pos, info);
+		// increment legal moves
+		legal_moves++;
+
+		Score = -Quiescence(-beta, -alpha, pos, info, pv_node);
+
 
 		// take move back
 		Unmake_move(pos);
 
-		// return latest best score  if time is up
 		if (info->stopped == 1) return 0;
 
-		// fail-hard beta cutoff
-		if (score >= beta)
-		{
+		moves_searched++;
 
-			// node (move) fails high
-			return beta;
+		if (Score > BestScore) {
+
+			BestScore = Score;
+			bestmove = move;
+
+			// found a better move
+			if (Score > alpha)
+			{
+
+				// PV node (move)
+				alpha = Score;
+				bestmove = move;
+
+			}
+
+
+			// fail-hard beta cutoff
+			if (Score >= beta)
+			{
+				StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
+				// node (move) fails high
+				return beta;
+			}
+
+
 		}
 
-		// found a better move
-		if (score > alpha)
-		{
-			// PV node (move)
-			alpha = score;
+	}
 
 
-		}
+	if (alpha != old_alpha) {
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, 0, pv_node);
+	}
+	else {
+		StoreHashEntry(pos, bestmove, alpha, HFALPHA, 0, pv_node);
 	}
 
 	// node (move) fails low
@@ -344,7 +392,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(alpha, beta, pos, info);
+		int pv_node = beta - alpha > 1;
+		return Quiescence(alpha, beta, pos, info, pv_node);
 	}
 
 
@@ -379,10 +428,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		pos->side ^ 1);
 
 	if (in_check) depth++;
-
+	int pv_node = beta - alpha > 1;
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
-	int pv_node = beta - alpha > 1;
+
 
 	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth) && !pv_node) {
 		HashTable->cut++;
@@ -454,7 +503,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (depth == 1)
 			{
 				// get quiscence score
-				new_score = Quiescence(alpha, beta, pos, info);
+				new_score = Quiescence(alpha, beta, pos, info, pv_node);
 
 				// return quiescence score if it's greater then static evaluation score
 				return (new_score > Score) ? new_score : Score;
@@ -467,7 +516,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score < beta && depth <= 2)
 			{
 				// get quiscence score
-				new_score = Quiescence(alpha, beta, pos, info);
+				new_score = Quiescence(alpha, beta, pos, info, pv_node);
 
 				// quiescence score indicates fail-low node
 				if (new_score < beta)
@@ -484,8 +533,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// generate moves
 	generate_moves(move_list, pos);
-
-
 
 	score_moves(pos, move_list, PvMove);
 
@@ -626,7 +673,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth,pv_node);
+		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
 	}
 	else {
 		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
@@ -649,7 +696,7 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 	for (int i = 0; i < num_threads - 1; i++) {
 		pos_copies.push_back(*pos);
 	}
-	
+
 
 	for (int i = 0;i < num_threads - 1;i++) {
 		threads.push_back(std::thread(search_position, initial_depth + 1, depth, &pos_copies[i], info, FALSE)); // init help threads
@@ -689,7 +736,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 	//store one random legal move in case we can't calculate the best one in time
 	generate_moves(move_list, pos);
-	pos->pvArray[0]= move_list->moves[0].move;
+	pos->pvArray[0] = move_list->moves[0].move;
 
 	// find best move within a given position
 	  // find best move within a given position
