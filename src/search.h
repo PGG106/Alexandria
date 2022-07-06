@@ -33,7 +33,7 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info);
 
 
 //int sort_moves(S_MOVELIST* move_list, S_Board* pos);
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info);
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node);
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull,Stack* ss);
