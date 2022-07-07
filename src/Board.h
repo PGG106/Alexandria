@@ -210,7 +210,7 @@ int get_ls1b_index(Bitboard bitboard);
 int  square_distance(int a, int b);
 
 // parse FEN string
-void parse_fen(char* fen, S_Board* pos);
+void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
 

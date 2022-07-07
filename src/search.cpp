@@ -87,7 +87,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 	Bitboard attackingRooks = pos->bitboards[WR] | pos->bitboards[BR];
 	Bitboard attackingQueens = pos->bitboards[WQ] | pos->bitboards[BQ];
 	Bitboard attackingKnights = pos->bitboards[WN] | pos->bitboards[BN];
-	Bitboard attackingKing = pos->bitboards[WK] | pos->bitboards[BK];
+	Bitboard attackingKings = pos->bitboards[WK] | pos->bitboards[BK];
 	Bitboard intercardinalRays = get_bishop_attacks(to, occ);
 	Bitboard cardinalRaysRays = get_rook_attacks(to, occ);
 
@@ -96,11 +96,11 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 
 	attackers |=
 		(pawn_attacks[BLACK][to] & pos->bitboards[WP]) | (pawn_attacks[WHITE][to] & pos->bitboards[BP]);
-	attackers |= (knight_attacks[to] & (pos->bitboards[WN] | pos->bitboards[BN]));
+	attackers |= (knight_attacks[to] & (attackingKnights));
 
 
 	attackers |=
-		king_attacks[to] & (pos->bitboards[WK] | pos->bitboards[BK]);
+		king_attacks[to] & (attackingKings);
 
 	return attackers;
 }
@@ -307,7 +307,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	int old_alpha = alpha;
 	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
-	int MoveNum = 0;
 
 	int moves_searched = 0;
 
@@ -420,7 +419,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	//Initialize the node
 	ss->inCheck = is_square_attacked(pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]),
 		pos->side ^ 1);
-	int moveCount = 0, captureCount = 0, quietCount = 0;
+	int quietCount = 0;
 	ss->moveCount = 0;
 
 
@@ -486,7 +485,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - 4, pos, info, FALSE,ss);
+		Score = -negamax(-beta, -beta + 1, depth - 4, pos, info, FALSE, ss);
 
 		TakeNullMove(pos);
 
@@ -554,10 +553,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int old_alpha = alpha;
 	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
-	int MoveNum = 0;
-
-
-
 
 	int moves_searched = 0;
 
@@ -567,6 +562,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		if (!get_move_capture(move))
+			quietCount++;
 		// make sure to make only legal moves
 		make_move(move, pos);
 
@@ -579,7 +576,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		if (moves_searched == 0)
 
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE,ss);
+			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
 
 
 		// late move reduction (LMR)
@@ -598,7 +595,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 				int depth_reduction = reduction(depth, moves_searched);
 
 				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE,ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE, ss);
 			}
 
 			// hack to ensure that full-depth search is done
@@ -608,12 +605,12 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score > alpha)
 			{
 
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE,ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
 
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE,ss);
+					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
 			}
 		}
 
@@ -699,7 +696,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 }
 
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
-	int num_threads = 1;
+	//int num_threads = 1;
 
 	S_MOVELIST move_list[1];
 	//store one random legal move in case we can't calculate the best one in time
@@ -748,7 +745,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int score = 0;
 
 	ClearForSearch(pos, info);
-	S_MOVELIST move_list[1];
 	int alpha_window = -50;
 
 	int beta_window = 50;

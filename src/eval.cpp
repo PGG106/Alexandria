@@ -492,7 +492,7 @@ int EvalPosition(const S_Board* pos)
 		return (pos->side == WHITE) ? nnue.output() : -nnue.output();
 	}
 	else {
-		HCE(pos);
+		return HCE(pos);
 	}
 
 }

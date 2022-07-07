@@ -236,7 +236,7 @@ int  square_distance(int a, int b) {
 }
 
 // parse FEN string
-void parse_fen(char* fen, S_Board* pos)
+void parse_fen(const char* fen, S_Board* pos)
 {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
