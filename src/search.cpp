@@ -14,6 +14,7 @@
 #include <cstring>
 #include "attack.h"
 #include "magic.h"
+#include "movepicker.h"
 
 
 int CounterMoves[MAXDEPTH][MAXDEPTH];
