@@ -182,19 +182,19 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 
 		if (move == PvMove) {
-			move_list->moves[i].score = 20000;
+			move_list->moves[i].score = 200000;
 			continue;
 		}
 
 
 		else if (get_move_enpassant(move)) {
 
-			move_list->moves[i].score = 105 + 10000;
+			move_list->moves[i].score = 105 + 100000;
 			continue;
 		}
 		else if (get_move_capture(move)) {
 
-			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 4000 + 6000 * SEE(pos, move, -100);
+			move_list->moves[i].score = mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] + 40000 + 60000 * SEE(pos, move, -100);
 			continue;
 
 		}
@@ -202,13 +202,13 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 		else if (pos->searchKillers[0][pos->ply] == move) {
 
-			move_list->moves[i].score = 9000;
+			move_list->moves[i].score = 90000;
 			continue;
 		}
 
 		else if (pos->searchKillers[1][pos->ply] == move) {
 
-			move_list->moves[i].score = 8000;
+			move_list->moves[i].score = 80000;
 			continue;
 
 		}
@@ -217,7 +217,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)]) {
 
-			move_list->moves[i].score = 7000;
+			move_list->moves[i].score = 70000;
 			continue;
 
 		}
@@ -387,6 +387,22 @@ static inline int reduction(int depth, int num_moves) {
 
 }
 
+void updateHH(S_Board* pos, int depth, int bestmove, S_MOVELIST* quiet_moves) {
+
+	for (int i = 0;i < quiet_moves->count;i++) {
+		int move = quiet_moves->moves[i].move;
+		if (move == bestmove)
+			continue;
+		else
+		{
+			pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] -= depth * depth;
+		}
+	}
+
+
+
+}
+
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, int DoNull, Stack* ss)
 {
@@ -420,6 +436,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	ss->inCheck = is_square_attacked(pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]),
 		pos->side ^ 1);
 	int quietCount = 0;
+	S_MOVELIST quiet_moves;
+	quiet_moves.count = 0;
 	ss->moveCount = 0;
 
 
@@ -563,7 +581,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 		int move = move_list->moves[count].move;
 		if (!get_move_capture(move))
-			quietCount++;
+		{
+			quiet_moves.moves[quiet_moves.count].move = move;
+			quiet_moves.count++;
+		}
 		// make sure to make only legal moves
 		make_move(move, pos);
 
@@ -635,7 +656,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 				// store history moves
 				if (!get_move_capture(move)) {
-					pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth;
+					if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth * depth;
 				}
 
 				// PV node (move)
@@ -669,6 +690,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 		}
 	}
+	if (BestScore >= beta && !get_move_capture(bestmove))
+		updateHH(pos, depth, bestmove, &quiet_moves);
+
 	// we don't have any legal moves to make in the current postion
 	if (legal_moves == 0)
 	{
