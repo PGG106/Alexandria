@@ -388,7 +388,7 @@ static inline int reduction(int depth, int num_moves) {
 }
 
 void updateHH(S_Board* pos, int depth, int bestmove, S_MOVELIST* quiet_moves) {
-
+	if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(bestmove)]][get_move_target(bestmove)] += 1 << depth;
 	for (int i = 0;i < quiet_moves->count;i++) {
 		int move = quiet_moves->moves[i].move;
 		if (move == bestmove)
@@ -475,7 +475,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// get static evaluation score
 	int static_eval = EvalPosition(pos);
-
+	// get static evaluation score
+	//int static_eval = Score = -MAXSCORE ? EvalPosition(pos) : Score;
 
 	// evaluation pruning / static null move pruning
 	if (depth < 3 && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100)
@@ -653,10 +654,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score > alpha)
 			{
 
-
 				// store history moves
 				if (!get_move_capture(move)) {
-					if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += 1<<depth;
+					updateHH(pos, depth, bestmove, &quiet_moves);
 				}
 
 				// PV node (move)
@@ -670,7 +670,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			// fail-hard beta cutoff
 			if (Score >= beta)
 			{
-
 				if (!get_move_capture(move)) {
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
@@ -678,6 +677,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 					int previousMove = pos->history[pos->hisPly].move;
 					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move;
+
 
 
 				}
