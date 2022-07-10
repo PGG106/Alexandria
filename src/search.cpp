@@ -395,7 +395,7 @@ void updateHH(S_Board* pos, int depth, int bestmove, S_MOVELIST* quiet_moves) {
 			continue;
 		else
 		{
-			pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] -= depth * depth;
+			pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] -= 1 << depth;
 		}
 	}
 
@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 				// store history moves
 				if (!get_move_capture(move)) {
-					if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth * depth;
+					if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += 1<<depth;
 				}
 
 				// PV node (move)
@@ -671,13 +671,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score >= beta)
 			{
 
-				if (!get_move_capture(move_list->moves[count].move)) {
+				if (!get_move_capture(move)) {
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
 					pos->searchKillers[0][pos->ply] = move;
 
 					int previousMove = pos->history[pos->hisPly].move;
-					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move_list->moves[count].move;
+					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move;
 
 
 				}

@@ -148,8 +148,8 @@ typedef struct Board {
 
 	int pvArray[MAXDEPTH];
 
-	int searchHistory[12][MAXDEPTH];
-	int searchKillers[2][MAXDEPTH];
+	int searchHistory[12][64];
+	int searchKillers[2][64];
 	int checks;
 	Bitboard pinHV;
 	Bitboard pinD;
