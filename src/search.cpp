@@ -187,7 +187,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 
 
-		else if (get_move_enpassant(move) || get_move_promoted(move))  {
+		else if (get_move_enpassant(move) || get_move_promoted(move)) {
 
 			move_list->moves[i].score = 105 + 100000;
 			continue;
@@ -273,19 +273,29 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 		return beta;
 	}
 
+
+	//delta pruning
+	int BIG_DELTA = 1600;
+
+	if (Score < alpha - BIG_DELTA) {
+		return alpha;
+	}
+
+
 	// found a better move
-	if (Score > alpha)
+	 if (Score > alpha)
 	{
 		// PV node (move)
 		alpha = Score;
 
 	}
 
+	
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
-		HashTable->cut++;
-		return Score;
-	}
+		if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+			HashTable->cut++;
+			return Score;
+		}
 
 
 	// legal moves counter
@@ -316,6 +326,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+
 		// make sure to make only legal moves
 		make_move(move, pos);
 
