@@ -439,7 +439,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	ss->moveCount = 0;
-
+	int root_node = pos->ply == 0;
 
 	//Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -585,6 +585,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		{
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
+		}
+		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) && (quiet_moves.count > (depth * 8))) {
+			continue;
 		}
 		// make sure to make only legal moves
 		make_move(move, pos);
