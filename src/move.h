@@ -48,7 +48,7 @@ typedef struct {
 // extract castling flag
 #define get_move_castling(move) (move & 0x800000)
 
-
+#define IsQuiet(move) (!get_move_capture(move) && !get_move_promoted(move))
 
 // move types
 enum { all_moves, only_captures };

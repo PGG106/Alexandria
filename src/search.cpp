@@ -187,7 +187,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 
 
-		else if (get_move_enpassant(move)) {
+		else if (get_move_enpassant(move) || get_move_promoted(move))  {
 
 			move_list->moves[i].score = 105 + 100000;
 			continue;
@@ -388,14 +388,14 @@ static inline int reduction(int depth, int num_moves) {
 }
 
 void updateHH(S_Board* pos, int depth, int bestmove, S_MOVELIST* quiet_moves) {
-
+	if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(bestmove)]][get_move_target(bestmove)] += 1 << depth;
 	for (int i = 0;i < quiet_moves->count;i++) {
 		int move = quiet_moves->moves[i].move;
 		if (move == bestmove)
 			continue;
 		else
 		{
-			pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] -= depth * depth;
+			pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] -= 1 << depth;
 		}
 	}
 
@@ -439,7 +439,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	ss->moveCount = 0;
-
+	int root_node = pos->ply == 0;
 
 	//Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -475,7 +475,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// get static evaluation score
 	int static_eval = EvalPosition(pos);
-
+	// get static evaluation score
+	//int static_eval = Score = -MAXSCORE ? EvalPosition(pos) : Score;
 
 	// evaluation pruning / static null move pruning
 	if (depth < 3 && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100)
@@ -585,6 +586,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
+		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) && (quiet_moves.count > (depth * 8))) {
+			continue;
+		}
 		// make sure to make only legal moves
 		make_move(move, pos);
 
@@ -653,10 +657,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			if (Score > alpha)
 			{
 
-
 				// store history moves
-				if (!get_move_capture(move)) {
-					if (depth > 1)pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)] += depth * depth;
+				if (IsQuiet(move)) {
+					updateHH(pos, depth, bestmove, &quiet_moves);
 				}
 
 				// PV node (move)
@@ -670,14 +673,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			// fail-hard beta cutoff
 			if (Score >= beta)
 			{
-
-				if (!get_move_capture(move_list->moves[count].move)) {
+				if (IsQuiet(move)) {
 					// store killer moves
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
 					pos->searchKillers[0][pos->ply] = move;
 
 					int previousMove = pos->history[pos->hisPly].move;
-					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move_list->moves[count].move;
+					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move;
+
 
 
 				}
