@@ -20,7 +20,7 @@
 int CounterMoves[MAXDEPTH][MAXDEPTH];
 
 
-int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
+int PieceValue[14] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000,0,0 };
 
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
@@ -274,28 +274,21 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	}
 
 
-	//delta pruning
-	int BIG_DELTA = 1600;
-
-	if (Score < alpha - BIG_DELTA) {
-		return alpha;
-	}
-
 
 	// found a better move
-	 if (Score > alpha)
+	if (Score > alpha)
 	{
 		// PV node (move)
 		alpha = Score;
 
 	}
 
-	
 
-		if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
-			HashTable->cut++;
-			return Score;
-		}
+
+	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+		HashTable->cut++;
+		return Score;
+	}
 
 
 	// legal moves counter
@@ -326,6 +319,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		int captured_piece = pos->pieces[get_move_target(move)];
+		//delta pruning
+		if (Score + PieceValue[captured_piece] + 200 < alpha) continue;
 
 		// make sure to make only legal moves
 		make_move(move, pos);
