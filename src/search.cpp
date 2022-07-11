@@ -321,7 +321,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 		int move = move_list->moves[count].move;
 		int captured_piece = pos->pieces[get_move_target(move)];
 		//delta pruning
-		if (Score + PieceValue[captured_piece] + 200 < alpha) continue;
+		if (Score + PieceValue[captured_piece] + 450 < alpha) continue;
 
 		// make sure to make only legal moves
 		make_move(move, pos);
