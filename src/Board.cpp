@@ -388,3 +388,8 @@ void accumulate(const S_Board* pos) {
 		nnue.activate(j);
 	}
 }*/
+
+Bitboard BigPieces(S_Board* pos) {
+
+	return pieceBB(KNIGHT) | pieceBB(BISHOP) | pieceBB(ROOK) | pieceBB(QUEEN);
+}
