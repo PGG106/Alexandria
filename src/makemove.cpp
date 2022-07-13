@@ -11,34 +11,10 @@
 #include "uci.h"
 #include "hashkey.h"
 
+
+
+
 void ClearPiece(const int piece, const int sq, S_Board* pos) {
-
-	int color = Color[piece];
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
-
-}
-
-
-void AddPiece(const int piece, const int to, S_Board* pos) {
-
-
-	int color = Color[piece];
-	// ♦set up promoted piece on chess board
-	set_bit(pos->bitboards[piece], to);
-	set_bit(pos->occupancies[color], to);
-	set_bit(pos->occupancies[BOTH], to);
-	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
-
-
-}
-
-
-void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
@@ -52,7 +28,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 }
 
 
-void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
+void AddPiece(const int piece, const int to, S_Board* pos) {
 
 
 	int color = Color[piece];
@@ -74,8 +50,8 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 
-	ClearPieceNNUE(piece, from, pos);
-	AddPieceNNUE(piece, to, pos);
+	ClearPiece(piece, from, pos);
+	AddPiece(piece, to, pos);
 
 }
 
@@ -111,7 +87,7 @@ int make_move(int move, S_Board* pos)
 	{
 		int piececap = pos->pieces[target_square];
 
-		ClearPieceNNUE(piececap, target_square, pos);
+		ClearPiece(piececap, target_square, pos);
 
 		pos->history[pos->hisPly].capture = piececap;
 
@@ -130,12 +106,12 @@ int make_move(int move, S_Board* pos)
 	// handle pawn promotions
 	if (promoted_piece)
 	{
-		if (pos->side == WHITE) ClearPieceNNUE(WP, target_square, pos);
+		if (pos->side == WHITE) ClearPiece(WP, target_square, pos);
 
-		else ClearPieceNNUE(BP, target_square, pos);
+		else ClearPiece(BP, target_square, pos);
 
 		// set up promoted piece on chess board
-		AddPieceNNUE(promoted_piece, target_square, pos);
+		AddPiece(promoted_piece, target_square, pos);
 
 	}
 
@@ -143,10 +119,10 @@ int make_move(int move, S_Board* pos)
 	if (enpass)
 	{
 		if (pos->side == WHITE) {
-			ClearPieceNNUE(BP, target_square + 8, pos);
+			ClearPiece(BP, target_square + 8, pos);
 		}
 		else {
-			ClearPieceNNUE(WP, target_square - 8, pos);
+			ClearPiece(WP, target_square - 8, pos);
 		}
 	}
 	if (pos->enPas != no_sq) HASH_EP;
@@ -262,7 +238,7 @@ int Unmake_move(S_Board* pos)
 	// handle pawn promotions
 	if (promoted_piece)
 	{
-		ClearPieceNNUE(promoted_piece, target_square, pos);
+		ClearPiece(promoted_piece, target_square, pos);
 
 	}
 
@@ -277,8 +253,8 @@ int Unmake_move(S_Board* pos)
 	{
 
 		// erase the pawn depending on side to move
-		(pos->side == BLACK) ? AddPieceNNUE(BP, target_square + 8, pos) :
-			AddPieceNNUE(WP, target_square - 8, pos);
+		(pos->side == BLACK) ? AddPiece(BP, target_square + 8, pos) :
+			AddPiece(WP, target_square - 8, pos);
 
 	}
 
@@ -322,7 +298,7 @@ int Unmake_move(S_Board* pos)
 	// handling capture moves
 	if (capture && !enpass)
 	{
-		AddPieceNNUE(piececap, target_square, pos);
+		AddPiece(piececap, target_square, pos);
 
 	}
 
