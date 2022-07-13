@@ -187,7 +187,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 		}
 
 
-		else if (get_move_enpassant(move) || get_move_promoted(move))  {
+		else if (get_move_enpassant(move) || get_move_promoted(move)) {
 
 			move_list->moves[i].score = 105 + 100000;
 			continue;
@@ -664,7 +664,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 				// PV node (move)
 				alpha = Score;
-				bestmove = move;
 
 			}
 
@@ -675,9 +674,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			{
 				if (IsQuiet(move)) {
 					// store killer moves
-					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-					pos->searchKillers[0][pos->ply] = move;
-
+					if (bestmove != pos->searchKillers[0][pos->ply]) {
+						pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+						pos->searchKillers[0][pos->ply] = bestmove;
+					}
 					int previousMove = pos->history[pos->hisPly].move;
 					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move;
 
