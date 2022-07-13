@@ -213,5 +213,5 @@ int  square_distance(int a, int b);
 void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
-
+Bitboard BigPiecesBySide(S_Board* pos);
 Bitboard BigPieces(S_Board* pos);
