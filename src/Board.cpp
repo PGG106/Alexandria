@@ -391,7 +391,7 @@ void accumulate(const S_Board* pos) {
 
 Bitboard BigPiecesBySide(S_Board* pos) {
 
-	return pos->bitboards[KNIGHT + 6 * pos->side] | pos->bitboards[BISHOP + 6 * pos->side] | pos->bitboards[ROOK + 6 * pos->side] | pos->bitboards[QUEEN + 6 * pos->side]
+	return pos->bitboards[KNIGHT + 6 * pos->side] | pos->bitboards[BISHOP + 6 * pos->side] | pos->bitboards[ROOK + 6 * pos->side] | pos->bitboards[QUEEN + 6 * pos->side];
 }
 
 
