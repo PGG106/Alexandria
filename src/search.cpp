@@ -674,10 +674,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 			{
 				if (IsQuiet(move)) {
 					// store killer moves
-					if (bestmove != pos->searchKillers[0][pos->ply]) {
-						pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-						pos->searchKillers[0][pos->ply] = bestmove;
-					}
+
+					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+					pos->searchKillers[0][pos->ply] = bestmove;
+
 					int previousMove = pos->history[pos->hisPly].move;
 					CounterMoves[get_move_source(previousMove)][get_move_target(previousMove)] = move;
 
