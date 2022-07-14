@@ -261,7 +261,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	setvbuf(stdout, NULL, _IONBF, 0);
 
 	// define user / GUI input buffer
-	char input[4000];
+	char input[40000];
 
 	// print engine info
 	printf("id name Alexandria\n");
@@ -280,7 +280,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 		fflush(stdout);
 
 		// get user / GUI input
-		if (!fgets(input, 4000, stdin))
+		if (!fgets(input, 40000, stdin))
 			// continue the loop
 			continue;
 
