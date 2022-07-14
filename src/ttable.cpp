@@ -65,7 +65,7 @@ void InitHashTable(S_HASHTABLE* table, int MB) {
 	table->numEntries -= 2;
 	if (table->pTable != NULL) free(table->pTable);
 	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
-	ClearHashTable(table);
+	std::memset(table->pTable, 0, table->numEntries * sizeof(S_HASHENTRY)); //functionally identical to clearHash but hopefully quicker
 	printf("HashTable init complete with %d entries\n", table->numEntries);
 
 }
