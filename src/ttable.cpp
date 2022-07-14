@@ -8,6 +8,7 @@
 #include "ttable.h"
 #include "assert.h"
 #include "makemove.h"
+#include <cstring>
 
 
 S_HASHTABLE HashTable[1];
