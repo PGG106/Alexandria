@@ -462,8 +462,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	// get static evaluation score
 	int static_eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
-	// get static evaluation score
-	//int static_eval = Score = -MAXSCORE ? EvalPosition(pos) : Score;
+
+	bool improving = (!in_check) && (pos->hisPly >= 2) && (static_eval > (pos->history[pos->hisPly - 2].eval));
+
+
 
 	// evaluation pruning / static null move pruning
 	if (depth < 3 && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100)
