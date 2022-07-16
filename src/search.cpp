@@ -461,6 +461,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	// get static evaluation score
 	int static_eval = EvalPosition(pos);
+	pos->history[pos->hisPly].eval = static_eval;
 	// get static evaluation score
 	//int static_eval = Score = -MAXSCORE ? EvalPosition(pos) : Score;
 
