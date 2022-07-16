@@ -428,6 +428,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int root_node = (pos->ply == 0);
 	int static_eval;
 	bool improving;
+	bool ttHit;
+
+	// legal moves counter
+	int legal_moves = 0;
 
 	//Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -442,9 +446,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
 
+	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth);
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth) && !pv_node) {
+	if (pos->ply && ttHit && !pv_node) {
 		HashTable->cut++;
+
 		return Score;
 	}
 
@@ -454,23 +460,18 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	if (in_check) {
 		depth++;
-		pos->history[pos->hisPly].eval=static_eval = value_none;
+		static_eval = value_none;
+		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
 		goto moves_loop;
 	}
-	else {
-
-		// get static evaluation score
-		static_eval = EvalPosition(pos);
-	}
 
 
+	// get static evaluation score
+	static_eval = EvalPosition(pos);
+	pos->history[pos->hisPly].eval = static_eval;
 
-	// legal moves counter
-	int legal_moves = 0;
 
-	if (!in_check)
-		pos->history[pos->hisPly].eval = static_eval;
 
 	improving = (!in_check) && (pos->hisPly >= 2) && (static_eval > (pos->history[pos->hisPly - 2].eval) || (pos->history[pos->hisPly - 2].eval) == value_none);
 
@@ -557,7 +558,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 
-	moves_loop:
+moves_loop:
 	// create move list instance
 	S_MOVELIST move_list[1];
 
