@@ -48,7 +48,7 @@ Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
-int reductions[256];
+int reductions[512];
 
 
 void initHashKeys() {
@@ -235,7 +235,7 @@ void DoPinMask(S_Board* pos, int color, int  sq) {
 
 void InitReductions() {
 
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < 512; i++) {
 		reductions[i] = log(i);
 	}
 }
