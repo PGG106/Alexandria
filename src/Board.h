@@ -17,6 +17,7 @@
 #define NAME "Alexandria"
 #define MAXGAMEMOVES 1024  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
 #define MAXDEPTH 64
+#define UNDOSIZE MAXGAMEMOVES+MAXDEPTH
 
 
 
@@ -99,7 +100,7 @@ enum { opening, endgame, middlegame };
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 
-extern int reductions[512];
+extern int reductions[64];
 
 PACK(typedef struct HASHENTRY {
 	uint32_t move;
@@ -144,7 +145,7 @@ typedef struct Board {
 	int hisPly; //total number of halfmoves
 	int castleperm; //integer that represents the castling permission in his bits (1111) = all castlings allowed (0000) no castling allowed, (0101) only WKCA and BKCA allowed... 
 	Bitboard posKey;// unique  hashkey  che codifica the  position on the board,utile per il controllo delle posizioni ripetute.
-	S_Undo history[MAXGAMEMOVES+MAXGAMEMOVES]; //stores every single move and the state of the board when that move was made for rollback purposes 
+	S_Undo history[UNDOSIZE]; //stores every single move and the state of the board when that move was made for rollback purposes 
 
 	int pvArray[MAXDEPTH];
 
