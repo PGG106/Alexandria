@@ -237,7 +237,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 
 
 int futility(int depth,bool improving) {
-	return 150 * (depth - improving);
+	return 70 * (depth - improving);
 }
 
 
