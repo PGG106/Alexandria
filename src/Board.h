@@ -144,7 +144,7 @@ typedef struct Board {
 	int hisPly; //total number of halfmoves
 	int castleperm; //integer that represents the castling permission in his bits (1111) = all castlings allowed (0000) no castling allowed, (0101) only WKCA and BKCA allowed... 
 	Bitboard posKey;// unique  hashkey  che codifica the  position on the board,utile per il controllo delle posizioni ripetute.
-	S_Undo history[1024]; //stores every single move and the state of the board when that move was made for rollback purposes 
+	S_Undo history[MAXGAMEMOVES+MAXGAMEMOVES]; //stores every single move and the state of the board when that move was made for rollback purposes 
 
 	int pvArray[MAXDEPTH];
 
