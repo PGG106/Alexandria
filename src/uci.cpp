@@ -185,6 +185,13 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		;
 	}
 
+	 if (ptr = strstr(line, "perft")) {
+		int perft_depth= atoi(ptr + 6);
+		perft_test(perft_depth, pos);
+		return;
+	}
+
+
 	if ((ptr = strstr(line, "binc")) && pos->side == BLACK) {
 		inc = atoi(ptr + 5);
 	}
@@ -356,10 +363,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
-		else if (strncmp(input, "perft", 5) == 0) {
-			perft_test(6,pos);
-			return;
-		}
+	
 
 	}
 }
