@@ -425,7 +425,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	ss->moveCount = 0;
-	int root_node = pos->ply == 0;
+	int root_node = (pos->ply == 0);
+	int static_eval;
+	bool improving;
+	bool ttHit;
+
+	// legal moves counter
+	int legal_moves = 0;
 
 	//Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -435,35 +441,41 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		if (alpha >= mating_value) return mating_value;
 	}
 
-	(ss + 1)->ttPv = false;
-	(ss + 2)->killers[0] = NOMOVE;
-	(ss + 2)->killers[1] = NOMOVE;
-	(ss + 2)->cutoffCnt = 0;
+
+	int pv_node = beta - alpha > 1;
+	int PvMove = NOMOVE;
+	int Score = -MAXSCORE;
+
+	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth);
+
+	if (pos->ply && ttHit && !pv_node) {
+		HashTable->cut++;
+
+		return Score;
+	}
 
 	// is king in check
 	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]),
 		pos->side ^ 1);
 
-	if (in_check) depth++;
-	int pv_node = beta - alpha > 1;
-	int PvMove = NOMOVE;
-	int Score = -MAXSCORE;
-
-
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth) && !pv_node) {
-		HashTable->cut++;
-		return Score;
+	if (in_check) {
+		depth++;
+		static_eval = value_none;
+		pos->history[pos->hisPly].eval = value_none;
+		improving = false;
+		goto moves_loop;
 	}
 
 
-	// legal moves counter
-	int legal_moves = 0;
-
 	// get static evaluation score
-	int static_eval = EvalPosition(pos);
+	static_eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
-	// get static evaluation score
-	//int static_eval = Score = -MAXSCORE ? EvalPosition(pos) : Score;
+
+
+
+	improving = (!in_check) && (pos->hisPly >= 2) && (static_eval > (pos->history[pos->hisPly - 2].eval) || (pos->history[pos->hisPly - 2].eval) == value_none);
+
+
 
 	// evaluation pruning / static null move pruning
 	if (depth < 3 && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100)
@@ -546,7 +558,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 
-
+moves_loop:
 	// create move list instance
 	S_MOVELIST move_list[1];
 
