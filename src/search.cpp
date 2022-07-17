@@ -236,8 +236,8 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 }
 
 
-int futility(int depth) {
-	return 150 * (depth - 1);
+int futility(int depth,bool improving) {
+	return 150 * (depth - improving);
 }
 
 
@@ -491,7 +491,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	//Reverse futility pruning (depth 8 limit was taken from stockfish)
-	if (!pv_node && depth < 8 && static_eval - futility(depth) >= beta)
+	if (!pv_node && depth < 8 && static_eval - futility(depth,improving) >= beta)
 		return static_eval;
 
 
