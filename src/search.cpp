@@ -18,7 +18,7 @@
 #include "History.h"
 
 
-int CounterMoves[MAXDEPTH+1][MAXDEPTH+1];
+int CounterMoves[MAXDEPTH + 1][MAXDEPTH + 1];
 
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
@@ -236,7 +236,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list, int PvMove)
 }
 
 
-int futility(int depth,bool improving) {
+int futility(int depth, bool improving) {
 	return 70 * (depth - improving);
 }
 
@@ -454,7 +454,15 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		return Score;
 	}
 
-	// is king in check
+	// IIR by Ed Schroder (That i find out about in Berserk source code)
+	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
+	//https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
+	if (depth >= 4 && !PvMove) depth--;
+
+
+
+
+	// is king in check	
 	int in_check = is_square_attacked(pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]),
 		pos->side ^ 1);
 
@@ -491,7 +499,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	//Reverse futility pruning (depth 8 limit was taken from stockfish)
-	if (!pv_node && depth < 8 && static_eval - futility(depth,improving) >= beta)
+	if (!pv_node && depth < 8 && static_eval - futility(depth, improving) >= beta)
 		return static_eval;
 
 
