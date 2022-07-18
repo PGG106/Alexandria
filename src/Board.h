@@ -100,7 +100,7 @@ enum { opening, endgame, middlegame };
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 
-extern int reductions[64];
+extern int reductions[MAXDEPTH+1];
 
 PACK(typedef struct HASHENTRY {
 	uint32_t move;
@@ -147,7 +147,7 @@ typedef struct Board {
 	Bitboard posKey;// unique  hashkey  che codifica the  position on the board,utile per il controllo delle posizioni ripetute.
 	S_Undo history[UNDOSIZE]; //stores every single move and the state of the board when that move was made for rollback purposes 
 
-	int pvArray[MAXDEPTH];
+	int pvArray[MAXDEPTH+1];
 
 	int searchHistory[12][64];
 	int searchKillers[2][64];
@@ -186,7 +186,7 @@ typedef struct info {
 } S_SearchINFO;
 
 
-extern int CounterMoves[MAXDEPTH][MAXDEPTH];
+extern int CounterMoves[MAXDEPTH+1][MAXDEPTH+1];
 // castling rights update constants
 extern const int castling_rights[64];
 
