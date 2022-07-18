@@ -244,6 +244,7 @@ int futility(int depth, bool improving) {
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node)
 {
 
+	bool ttHit;
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
@@ -282,8 +283,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	}
 
+	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0);
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+	if (pos->ply && ttHit) {
 		HashTable->cut++;
 		return Score;
 	}
@@ -291,8 +293,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	// legal moves counter
 	int legal_moves = 0;
-
-
 
 
 	// create move list instance
@@ -476,7 +476,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// get static evaluation score
-	static_eval = EvalPosition(pos);
+	static_eval = ttHit ? Score : EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
 
 
