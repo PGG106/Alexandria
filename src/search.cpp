@@ -596,6 +596,12 @@ moves_loop:
 		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) && (quiet_moves.count > (depth * 8))) {
 			continue;
 		}
+
+		// See pruning
+		if (depth < 6 && !SEE(pos, move, -(depth * 100)))
+			continue;
+
+
 		// make sure to make only legal moves
 		make_move(move, pos);
 
