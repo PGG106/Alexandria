@@ -18,7 +18,7 @@
 #include "History.h"
 
 
-int CounterMoves[MAXDEPTH + 1][MAXDEPTH + 1];
+int CounterMoves[Board_sq_num][Board_sq_num];
 
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };

@@ -17,6 +17,7 @@
 #define NAME "Alexandria"
 #define MAXGAMEMOVES 1024  //maximum number of moves possibile,no recorderd game has ever gone past 1000 moves so it shoukd be a good approximation
 #define MAXDEPTH 64
+#define Board_sq_num 64
 #define UNDOSIZE MAXGAMEMOVES+MAXDEPTH
 
 
@@ -57,15 +58,15 @@ enum {
 };
 
 // extract rank from a square [square]
-extern const int get_rank[64];
+extern const int get_rank[Board_sq_num];
 
 extern const int Color[12];
 
 // extract rank from a square [square]
-extern const int get_file[64];
+extern const int get_file[Board_sq_num];
 
 // extract diagonal from a square [square]
-extern const int get_diagonal[64];
+extern const int get_diagonal[Board_sq_num];
 
 
 enum { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, FILE_NONE };
@@ -136,7 +137,7 @@ typedef struct Undo {
 
 
 typedef struct Board {
-	int pieces[64]; //array that stores for every square of the board if there's a piece, or if the square is invalid
+	int pieces[Board_sq_num]; //array that stores for every square of the board if there's a piece, or if the square is invalid
 
 	int side; //what side has to move
 	int enPas; // if enpassant is possible and in which square
@@ -149,8 +150,8 @@ typedef struct Board {
 
 	int pvArray[MAXDEPTH+1];
 
-	int searchHistory[12][64];
-	int searchKillers[2][64];
+	int searchHistory[12][Board_sq_num];
+	int searchKillers[2][Board_sq_num];
 	int checks;
 	Bitboard pinHV;
 	Bitboard pinD;
@@ -166,7 +167,7 @@ typedef struct Board {
 
 extern S_HASHTABLE HashTable[1];
 
-extern Bitboard SQUARES_BETWEEN_BB[64][64];
+extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
 	int starttime;
@@ -186,9 +187,9 @@ typedef struct info {
 } S_SearchINFO;
 
 
-extern int CounterMoves[MAXDEPTH+1][MAXDEPTH+1];
+extern int CounterMoves[Board_sq_num][Board_sq_num];
 // castling rights update constants
-extern const int castling_rights[64];
+extern const int castling_rights[Board_sq_num];
 
 // convert squares to coordinates
 extern const char* square_to_coordinates[];
