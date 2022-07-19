@@ -245,10 +245,11 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 {
 
 	bool ttHit;
+	bool isPV = (beta - alpha) > 1;
+
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
-
 
 	// increment nodes count
 	info->nodes++;
@@ -266,7 +267,18 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 
 	int PvMove = NOMOVE;
-	int Score = EvalPosition(pos);
+	int Score = value_none;
+
+
+	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0);
+
+	if (pos->ply && ttHit && !isPV) {
+		HashTable->cut++;
+		return Score;
+	}
+
+
+	Score = EvalPosition(pos);
 
 	// fail-hard beta cutoff
 	if (Score >= beta)
@@ -283,12 +295,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	}
 
-	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0);
-
-	if (pos->ply && ttHit) {
-		HashTable->cut++;
-		return Score;
-	}
 
 
 	// legal moves counter
@@ -442,7 +448,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	}
 
 
-	int pv_node = beta - alpha > 1;
+	int pv_node = (beta - alpha) > 1;
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
 
@@ -476,7 +482,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// get static evaluation score
-	static_eval = ttHit ? Score : EvalPosition(pos);
+	static_eval = (ttHit && !pv_node) ? Score : EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
 
 
