@@ -48,7 +48,7 @@ Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
-int reductions[MAXDEPTH+1];
+int reductions[256];
 
 
 void initHashKeys() {
@@ -62,7 +62,7 @@ void initHashKeys() {
 		}
 	}
 	// loop over board squares
-	for (int square = 0; square < 64; square++)
+	for (int square = 0; square < Board_sq_num; square++)
 		// init random enpassant keys
 		enpassant_keys[square] = get_random_Bitboard_number();
 
@@ -81,7 +81,7 @@ void initHashKeys() {
 void init_leapers_attacks()
 {
 	// loop over 64 board squares
-	for (int square = 0; square < 64; square++)
+	for (int square = 0; square < Board_sq_num; square++)
 	{
 		// init pawn attacks
 		pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
@@ -100,7 +100,7 @@ void init_leapers_attacks()
 void init_sliders_attacks(int bishop)
 {
 	// loop over 64 board squares
-	for (int square = 0; square < 64; square++)
+	for (int square = 0; square < Board_sq_num; square++)
 	{
 		// init bishop & rook masks
 		bishop_masks[square] = mask_bishop_attacks(square);
@@ -235,7 +235,7 @@ void DoPinMask(S_Board* pos, int color, int  sq) {
 
 void InitReductions() {
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 256; i++) {
 		reductions[i] = log(i);
 	}
 }

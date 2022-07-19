@@ -101,7 +101,7 @@ enum { opening, endgame, middlegame };
 enum { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 
-extern int reductions[MAXDEPTH+1];
+extern int reductions[256];
 
 PACK(typedef struct HASHENTRY {
 	uint32_t move;
