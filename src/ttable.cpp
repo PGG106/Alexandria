@@ -132,7 +132,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags, co
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT
 		|| (uint16_t)pos->posKey != HashTable->pTable[index].tt_key
-		|| depth + 7 + 2 * pv > HashTable->pTable[index].depth * 0.6)
+		|| depth  + 2 * pv > HashTable->pTable[index].depth * 0.8)
 	{
 
 
