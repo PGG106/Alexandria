@@ -282,8 +282,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 
 	}
 
+	bool ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0);
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+	if (pos->ply && ttHit && !pv_node) {
 		HashTable->cut++;
 		return Score;
 	}
