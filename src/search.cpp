@@ -23,6 +23,8 @@ int CounterMoves[Board_sq_num][Board_sq_num];
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
+int Aspiration_Depth = 4;
+
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
 
@@ -814,7 +816,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 			continue;
 		}
 
-		if (current_depth >= 3) {
+		if (current_depth >= Aspiration_Depth) {
 			// set up the window for the next iteration
 			alpha = score + alpha_window;
 			beta = score + beta_window;
