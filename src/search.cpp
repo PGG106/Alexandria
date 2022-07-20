@@ -23,7 +23,7 @@ int CounterMoves[Board_sq_num][Board_sq_num];
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
-int Aspiration_Depth = 4;
+int Aspiration_Depth = 8;
 
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
