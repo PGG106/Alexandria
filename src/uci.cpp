@@ -185,8 +185,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		;
 	}
 
-	 if (ptr = strstr(line, "perft")) {
-		int perft_depth= atoi(ptr + 6);
+	if (ptr = strstr(line, "perft")) {
+		int perft_depth = atoi(ptr + 6);
 		perft_test(perft_depth, pos);
 		return;
 	}
@@ -262,7 +262,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 	}
 
 	int MB = 16;
-
+	bool parsed_position = false;
 	// reset STDIN & STDOUT buffers
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -304,10 +304,11 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 		}
 
 		// parse UCI "position" command
-		else if (strncmp(input, "position", 8) == 0)
+		else if (strncmp(input, "position", 8) == 0) {
 			// call parse position function
 			parse_position(input, pos);
-
+			parsed_position = true;
+		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 
@@ -321,10 +322,12 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 
 		}
 		// parse UCI "go" command
-		else if (strncmp(input, "go", 2) == 0)
+		else if (strncmp(input, "go", 2) == 0) {
+			if (!parsed_position)   // call parse position function
+				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-
+		}
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0)
 			// quit from the chess engine program execution
@@ -363,7 +366,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv)
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
-	
+
 
 	}
 }
