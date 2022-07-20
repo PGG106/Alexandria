@@ -814,9 +814,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 			continue;
 		}
 
-		// set up the window for the next iteration
-		alpha = score + alpha_window;
-		beta = score + beta_window;
+		if (current_depth >= 3) {
+			// set up the window for the next iteration
+			alpha = score + alpha_window;
+			beta = score + beta_window;
+		}
 
 		if (info->stopped == 1)
 			// stop calculating and return best move so far 
