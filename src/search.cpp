@@ -17,7 +17,7 @@
 #include "movepicker.h"
 #include "History.h"
 
-#define Aspiration_Depth 3;
+#define Aspiration_Depth 3
 
 #define Resize_limit 3
 
