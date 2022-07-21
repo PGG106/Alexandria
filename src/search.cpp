@@ -19,7 +19,7 @@
 
 #define Aspiration_Depth 3
 
-#define Resize_limit 3
+#define Resize_limit 5
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
@@ -784,9 +784,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int score = 0;
 
 	ClearForSearch(pos, info);
-	int alpha_window = -50;
+	int alpha_window = -16;
 	int resize_counter = 0;
-	int beta_window = 50;
+	int beta_window = 16;
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -808,6 +808,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 			if (resize_counter > Resize_limit) alpha = -MAXSCORE;
 			alpha_window *= 1.5;
 			alpha += alpha_window;
+			resize_counter++;
 			current_depth--;
 			continue;
 		}
