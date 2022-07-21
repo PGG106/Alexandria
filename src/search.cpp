@@ -806,6 +806,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 		// we fell outside the window, so try again with a full-width window (and the same depth)
 		if ((score <= alpha)) {
 			if (resize_counter > Resize_limit) alpha = -MAXSCORE;
+			beta = (alpha + beta) / 2;
 			alpha_window *= 1.5;
 			alpha += alpha_window;
 			resize_counter++;
