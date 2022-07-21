@@ -17,13 +17,16 @@
 #include "movepicker.h"
 #include "History.h"
 
+#define Aspiration_Depth 3;
+
+#define Resize_limit 3
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
-int Aspiration_Depth = 4;
+
 
 void CheckUp(S_SearchINFO* info) {
 	//check if time up or interrupt from GUI
@@ -781,9 +784,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	int score = 0;
 
 	ClearForSearch(pos, info);
-	int alpha_window = -35;
-
-	int beta_window = 35;
+	int alpha_window = -50;
+	int resize_counter = 0;
+	int beta_window = 50;
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -802,8 +805,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
 		if ((score <= alpha)) {
+			if (resize_counter > Resize_limit) alpha = -MAXSCORE;
 			alpha_window *= 1.5;
-			alpha -= alpha_window;
+			alpha += alpha_window;
 			current_depth--;
 			continue;
 		}
@@ -811,8 +815,10 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
 		else if ((score >= beta)) {
+			if (resize_counter > Resize_limit) beta = MAXSCORE;
 			beta_window *= 1.5;
 			beta += beta_window;
+			resize_counter++;
 			current_depth--;
 			continue;
 		}
