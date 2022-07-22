@@ -532,12 +532,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// razoring
-	if (!pv_node && !in_check && depth <= 2 && (static_eval < alpha - 125 * depth * depth))
+	if (!pv_node && !in_check && depth == 1 && (static_eval < alpha - 125))
 	{
 
-		int value = Quiescence(alpha - 1, alpha, pos, info, pv_node);
-		if (value < alpha)
-			return value;
+		return Quiescence(alpha, beta, pos, info, pv_node);
+
 	}
 
 
