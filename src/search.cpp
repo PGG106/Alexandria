@@ -23,6 +23,8 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
+int razoring_margin1 = 125;
+int razoring_margin2 = 166;
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
@@ -532,7 +534,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// razoring
-	if (!pv_node && !in_check && (depth <= 2) && (static_eval <= (alpha - 125 - 166 * (depth - 1))))
+	if (!pv_node && !in_check && (depth <= 2) && (static_eval <= (alpha - razoring_margin1 - razoring_margin2 * (depth - 1))))
 	{
 
 		return Quiescence(alpha, beta, pos, info, pv_node);
@@ -769,8 +771,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_SearchINF
 	  // find best move within a given position
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-
-
 		score = negamax(alpha, beta, current_depth, pos, info, TRUE, ss);
 
 		// we fell outside the window, so try again with a full-width window (and the same depth)
