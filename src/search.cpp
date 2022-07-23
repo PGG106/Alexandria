@@ -23,8 +23,8 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
-int razoring_margin1 = 348;
-int razoring_margin2 = 258;
+int razoring_margin1 = 100;
+int razoring_margin2 = 45;
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
