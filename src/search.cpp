@@ -23,6 +23,8 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
+int razoring_margin1 = 125;
+int razoring_margin2 = 175;
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
@@ -532,22 +534,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// razoring
-	if (!pv_node && !in_check && depth <= 3)
+	if (!pv_node && !in_check && (depth <= 3) && (static_eval <= (alpha - razoring_margin1 - razoring_margin2 * (depth - 1))))
 	{
 		// get static eval and add first bonus
 		Score = static_eval + 125;
 
-		// define new score
-		int new_score;
+		return Quiescence(alpha, beta, pos, info, pv_node);
 
-		// static evaluation indicates a fail-low node
-		if (Score < beta)
-		{
-			// on depth 1
-			if (depth == 1)
-			{
-				// get quiscence score
-				new_score = Quiescence(alpha, beta, pos, info, pv_node);
 
 				// return quiescence score if it's greater then static evaluation score
 				return (new_score > Score) ? new_score : Score;
