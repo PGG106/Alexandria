@@ -540,7 +540,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 		int value = Quiescence(alpha, beta, pos, info, pv_node);
 
 		if (value < alpha)
-			return value;
+			return alpha;
 
 	}
 
