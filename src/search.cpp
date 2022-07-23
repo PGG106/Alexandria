@@ -23,8 +23,8 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
-int razoring_margin1 = 100;
-int razoring_margin2 = 45;
+int razoring_margin1 = 150;
+int razoring_margin2 = 175;
 
 int PieceValue[12] = { 100, 325, 325, 500 ,900,-10000,100, 325, 325, 500 ,900,-10000 };
 
@@ -534,7 +534,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	// razoring
-	if (!pv_node && !in_check && (depth <= 2) && (static_eval <= (alpha - razoring_margin1 - razoring_margin2 * (depth * depth))))
+	if (!pv_node && !in_check && (depth <= 3) && (static_eval <= (alpha - razoring_margin1 - razoring_margin2 * (depth -1))))
 	{
 
 		int value = Quiescence(alpha, beta, pos, info, pv_node);
