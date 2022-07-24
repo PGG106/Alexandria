@@ -119,64 +119,90 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 static inline bool SEE(const S_Board* pos, const int move, const int threshold) {
 
 
-	int to = get_move_target(move);
-	int target = pos->pieces[to];
 
-	// Making the move and not losing it must beat the threshold
-	int value = PieceValue[target] - threshold;
-	if (value < 0) return false;
+	int from = get_move_source(move), to = get_move_target(move);
 
-	int from = get_move_source(move);
-	int attacker = pos->pieces[from];
+	int swap = PieceValue[pos->pieces[to]] - threshold;
+	if (swap < 0)
+		return false;
 
-	// Trivial if we still beat the threshold after losing the piece
-	value -= PieceValue[attacker];
-	if (value >= 0) return true;
+	swap = PieceValue[pos->pieces[from]] - swap;
+	if (swap <= 0)
+		return true;
 
-	// It doesn't matter if the to square is occupied or not
-	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
+
+	Bitboard occupied = pos->occupancies[BOTH] ^ from ^ to;
+	int stm = !Color[pos->pieces[from]];
 	Bitboard attackers = AttacksTo(pos, to);
-	Bitboard bishops = pieceBB(BISHOP) | pieceBB(QUEEN);
-	Bitboard rooks = pieceBB(ROOK) | pieceBB(QUEEN);
+	Bitboard stmAttackers, bb;
+	int res = 1;
 
-	int side = !Color[attacker];
-
-	// Make captures until one side runs out, or fail to beat threshold
-	while (true) {
-
-		// Remove used pieces from attackers
+	while (true)
+	{
+		stm = stm ^ 1;
 		attackers &= occupied;
+		// If stm has no more attackers then give up: stm loses
+		if (!(stmAttackers = attackers & pos->occupancies[stm]))
+			break;
 
-		Bitboard myAttackers = attackers & pos->occupancies[side];
-		if (!myAttackers) break;
 
-		// Pick next least valuable piece to capture with
-		int  pt;
-		for (pt = PAWN; pt <= KING; ++pt)
-			if (myAttackers & pieceBB(pt))
+
+		res ^= 1;
+
+		// Locate and remove the next least valuable attacker, and add to
+		// the bitboard 'attackers' any X-ray attackers behind it.
+		if ((bb = stmAttackers & pieceBB(PAWN)))
+		{
+			if ((swap = PieceValue[PAWN] - swap) < res)
 				break;
 
-		side = !side;
-
-		// Value beats threshold, or can't beat threshold (negamaxed)
-		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
-
-			if (pt == KING && (attackers & pos->occupancies[side]))
-				side = !side;
-
-			break;
+			occupied ^= (1ULL << get_ls1b_index(bb));
+			attackers |= get_bishop_attacks(to, occupied) & (pieceBB(BISHOP) | pieceBB(QUEEN));
 		}
 
-		// Remove the used piece from occupied
-		occupied ^= (1ULL << (get_ls1b_index(myAttackers & pieceBB(pt))));
-		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
-			attackers |= get_bishop_attacks(to, occupied) & bishops;
-		if (pt == ROOK || pt == QUEEN)
-			attackers |= get_rook_attacks(to, occupied) & rooks;
+		else if ((bb = stmAttackers & pieceBB(KNIGHT)))
+		{
+			if ((swap = PieceValue[KNIGHT] - swap) < res)
+				break;
 
+			occupied ^= (1ULL << get_ls1b_index(bb));
+		}
+
+		else if ((bb = stmAttackers & pieceBB(BISHOP)))
+		{
+			if ((swap = PieceValue[BISHOP] - swap) < res)
+				break;
+
+			occupied ^= (1ULL << get_ls1b_index(bb));
+			attackers |= get_bishop_attacks(to, occupied) & (pieceBB(BISHOP) | pieceBB(QUEEN));
+		}
+
+		else if ((bb = stmAttackers & pieceBB(ROOK)))
+		{
+			if ((swap = PieceValue[ROOK] - swap) < res)
+				break;
+
+			occupied ^= (1ULL << get_ls1b_index(bb));
+			attackers |= get_rook_attacks(to, occupied) & (pieceBB(ROOK) | pieceBB(QUEEN));
+		}
+
+		else if ((bb = stmAttackers & pieceBB(QUEEN)))
+		{
+			if ((swap = PieceValue[QUEEN] - swap) < res)
+				break;
+
+			occupied ^= (1ULL << get_ls1b_index(bb));
+			attackers |= (get_bishop_attacks(to, occupied) & (pieceBB(BISHOP) | pieceBB(QUEEN)))
+				| (get_rook_attacks(to, occupied) & (pieceBB(ROOK) | pieceBB(QUEEN)));
+		}
+
+		else // KING
+			 // If we "capture" with the king but opponent still has attackers,
+			 // reverse the result.
+			return (attackers & ~pos->occupancies[stm]) ? res ^ 1 : res;
 	}
 
-	return side != Color[attacker];
+	return bool(res);
 }
 
 
@@ -567,7 +593,7 @@ moves_loop:
 
 		int move = move_list->moves[count].move;
 		if (depth <= 4
-			&& !SEE(pos, move, -150*depth))
+			&& !SEE(pos, move, -150 * depth))
 			continue;
 
 		if (!get_move_capture(move))
