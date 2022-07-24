@@ -25,8 +25,15 @@
 ## Things i tried that didn't work
 * Search
   * SEE
-  * Promotion moves ordering
-
+  * Singular extension
+  
+## Things i might try in the future
+* Evaluation
+  * Improve the nnue using a better architecture and generating more data
+* Search
+   * Actually getting Singular extension
+   * All the histories i don't comprehend at the time of writing (mostly FUH)
+  
 ## Acknowledgements
 This project would not have been possible without the following people
 * BluefeverSoftware for his Vice chess engine from which i learnt the basic structure and functionality of a chess engine
