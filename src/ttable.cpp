@@ -85,10 +85,12 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 	if (HashTable->pTable[index].tt_key == (uint16_t)pos->posKey) {
 		if (MoveExists(pos, HashTable->pTable[index].move)) {
 			*move = HashTable->pTable[index].move;
+			tte->move= HashTable->pTable[index].move;
 			if (HashTable->pTable[index].depth >= depth) {
 				HashTable->hit++;
 
 				*score = HashTable->pTable[index].score;
+				tte->score= HashTable->pTable[index].score;
 				if (*score > ISMATE) *score -= pos->ply;
 				else if (*score < -ISMATE) *score += pos->ply;
 
@@ -96,11 +98,13 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 
 				case HFALPHA: if (*score <= alpha) {
 					*score = alpha;
+					tte->score = alpha;
 					return TRUE;
 				}
 							break;
 				case HFBETA: if (*score >= beta) {
 					*score = beta;
+					tte->score = beta;
 					return TRUE;
 				}
 						   break;
