@@ -71,7 +71,7 @@ void InitHashTable(S_HASHTABLE* table, int MB) {
 
 }
 
-int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int depth,S_HASHENTRY* tte) {
+int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth, S_HASHENTRY* tte) {
 
 	int index = pos->posKey % HashTable->numEntries;
 
@@ -84,26 +84,27 @@ int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int
 
 	if (HashTable->pTable[index].tt_key == (uint16_t)pos->posKey) {
 		if (MoveExists(pos, HashTable->pTable[index].move)) {
-			*move = HashTable->pTable[index].move;
-			tte->move= HashTable->pTable[index].move;
+
+			tte->move = HashTable->pTable[index].move;
 			if (HashTable->pTable[index].depth >= depth) {
 				HashTable->hit++;
 
-				*score = HashTable->pTable[index].score;
-				tte->score= HashTable->pTable[index].score;
-				if (*score > ISMATE) *score -= pos->ply;
-				else if (*score < -ISMATE) *score += pos->ply;
+
+				tte->score = HashTable->pTable[index].score;
+				if (tte->score > ISMATE) tte->score -= pos->ply;
+				else if (tte->score < -ISMATE) tte->score += pos->ply;
 
 				switch (HashTable->pTable[index].flags) {
 
-				case HFALPHA: if (*score <= alpha) {
-					*score = alpha;
+				case HFALPHA: if (tte->score <= alpha) {
+
 					tte->score = alpha;
 					return TRUE;
 				}
 							break;
-				case HFBETA: if (*score >= beta) {
-					*score = beta;
+				case HFBETA: if (tte->score >= beta) {
+
+
 					tte->score = beta;
 					return TRUE;
 				}

@@ -290,11 +290,11 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	}
 
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0,&tte)) {
+	if (pos->ply && ProbeHashEntry(pos, alpha, beta, 0, &tte)) {
 		HashTable->cut++;
-		return Score;
+		return tte.score;
 	}
-
+	PvMove = tte.move;
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -436,7 +436,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int static_eval;
 	bool improving;
 	bool ttHit;
+	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
+	tte.move = NOMOVE;
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -452,14 +454,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 	int pv_node = beta - alpha > 1;
 	int PvMove = NOMOVE;
-	int Score = -MAXSCORE;
 
-	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth,&tte);
 
+	ttHit = ProbeHashEntry(pos,  alpha, beta, depth, &tte);
+	PvMove = tte.move;
 	if (pos->ply && ttHit && !pv_node) {
 		HashTable->cut++;
 
-		return Score;
+		return tte.score;
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
