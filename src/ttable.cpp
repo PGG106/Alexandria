@@ -71,7 +71,7 @@ void InitHashTable(S_HASHTABLE* table, int MB) {
 
 }
 
-int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int depth) {
+int ProbeHashEntry(S_Board* pos, int* move, int* score, int alpha, int beta, int depth,S_HASHENTRY* tte) {
 
 	int index = pos->posKey % HashTable->numEntries;
 

@@ -250,7 +250,7 @@ int futility(int depth, bool improving) {
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node)
 {
-
+	S_HASHENTRY tte;
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
@@ -290,7 +290,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	}
 
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0,&tte)) {
 		HashTable->cut++;
 		return Score;
 	}
@@ -436,6 +436,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int static_eval;
 	bool improving;
 	bool ttHit;
+	S_HASHENTRY tte;
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -453,7 +454,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int PvMove = NOMOVE;
 	int Score = -MAXSCORE;
 
-	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth);
+	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth,&tte);
 
 	if (pos->ply && ttHit && !pv_node) {
 		HashTable->cut++;
