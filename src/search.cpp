@@ -574,6 +574,7 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+
 		if (move == excludedMove) continue;
 
 		if (!get_move_capture(move))
@@ -589,10 +590,12 @@ moves_loop:
 			&& depth >= 7
 			&& move == tte.move
 			&& tte.depth >= depth - 3
-			&& (tte.flags & HFALPHA))
+			&& (tte.flags & HFALPHA)
+			&& !excludedMove
+			&& abs(tte.score) < ISMATE)
 		{
-			int singularBeta = tte.score - 3 * depth / 2;
-			int singularDepth = depth / 2 - 1;
+			int singularBeta = tte.score - 3 * depth;
+			int singularDepth = (depth - 1) / 2;
 			ss->excludedMove = move;
 			Score = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false, ss);
 			ss->excludedMove = NOMOVE;
@@ -604,6 +607,11 @@ moves_loop:
 				return singularBeta;
 
 			else if (tte.score >= beta)
+				extension = -2;
+
+
+			// If the eval of ttMove is less than alpha and value, we reduce it (negative extension)
+			else if (tte.score <= alpha && tte.score <= Score)
 				extension = -1;
 		}
 
@@ -612,6 +620,7 @@ moves_loop:
 		// make sure to make only legal moves
 		make_move(move, pos);
 		int newDepth = depth + extension;
+		ss->currentMove = move;
 
 		// increment legal moves
 		legal_moves++;
