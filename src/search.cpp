@@ -250,7 +250,7 @@ int futility(int depth, bool improving) {
 
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_node)
 {
-
+	S_HASHENTRY tte;
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
@@ -290,11 +290,11 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info, int pv_nod
 	}
 
 
-	if (pos->ply && ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, 0)) {
+	if (pos->ply && ProbeHashEntry(pos, alpha, beta, 0, &tte)) {
 		HashTable->cut++;
-		return Score;
+		return tte.score;
 	}
-
+	PvMove = tte.move;
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -436,6 +436,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	int static_eval;
 	bool improving;
 	bool ttHit;
+	int Score = -MAXSCORE;
+	S_HASHENTRY tte;
+
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -450,21 +453,18 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	int pv_node = beta - alpha > 1;
-	int PvMove = NOMOVE;
-	int Score = -MAXSCORE;
 
-	ttHit = ProbeHashEntry(pos, &PvMove, &Score, alpha, beta, depth);
-
+	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	if (pos->ply && ttHit && !pv_node) {
 		HashTable->cut++;
 
-		return Score;
+		return tte.score;
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	//https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && !PvMove) depth--;
+	if (depth >= 4 && !tte.move) depth--;
 
 
 
@@ -551,7 +551,7 @@ moves_loop:
 	// generate moves
 	generate_moves(move_list, pos);
 
-	score_moves(pos, move_list, PvMove);
+	score_moves(pos, move_list, tte.move);
 
 	// old value of alpha
 	int old_alpha = alpha;
