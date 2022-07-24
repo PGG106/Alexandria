@@ -566,6 +566,10 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		if (depth <= 4
+			&& !SEE(pos, move, -150*depth))
+			continue;
+
 		if (!get_move_capture(move))
 		{
 			quiet_moves.moves[quiet_moves.count].move = move;
