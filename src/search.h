@@ -13,6 +13,7 @@ struct Stack {
 	S_MOVE* pv;
 	int ply;
 	int currentMove;
+	int excludedMove;
 	int killers[2];
 	int  staticEval;
 	int moveCount;

@@ -438,7 +438,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
-
+	int extension = 0;
+	int excludedMove = NOMOVE;
+	int bestmove = NOMOVE;
 
 	// legal moves counter
 	int legal_moves = 0;
@@ -453,18 +455,26 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	int pv_node = beta - alpha > 1;
+	(ss + 1)->excludedMove = bestmove = NOMOVE;
+	if (!excludedMove) {
+		ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
+		if (pos->ply && ttHit && !pv_node) {
+			HashTable->cut++;
 
-	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
-	if (pos->ply && ttHit && !pv_node) {
-		HashTable->cut++;
+			return tte.score;
+		}
 
-		return tte.score;
 	}
+
+
+	excludedMove = ss->excludedMove;
+
+
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	//https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && !tte.move) depth--;
+	if (depth >= 4 && !tte.move && !excludedMove) depth--;
 
 
 
@@ -506,15 +516,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 
 	//Reverse futility pruning (depth 8 limit was taken from stockfish)
-	if (!pv_node && depth < 8 && static_eval - futility(depth, improving) >= beta)
+	if (!pv_node && depth < 8 && static_eval - futility(depth, improving) >= beta && !excludedMove)
 		return static_eval;
 
 
 	// null move pruning
-	if (DoNull && depth >= 4 && !in_check && pos->ply)
+	if (DoNull && depth >= 4 && !in_check && pos->ply && !excludedMove)
 	{
-
-
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
@@ -556,7 +564,7 @@ moves_loop:
 	// old value of alpha
 	int old_alpha = alpha;
 	int BestScore = -MAXSCORE;
-	int bestmove = NOMOVE;
+
 
 	int moves_searched = 0;
 
@@ -566,6 +574,8 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		if (move == excludedMove) continue;
+
 		if (!get_move_capture(move))
 		{
 			quiet_moves.moves[quiet_moves.count].move = move;
@@ -574,9 +584,34 @@ moves_loop:
 		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) && (quiet_moves.count > (depth * 8))) {
 			continue;
 		}
+
+		if (!root_node
+			&& depth >= 7
+			&& move == tte.move
+			&& tte.depth >= depth - 3
+			&& (tte.flags & HFALPHA))
+		{
+			int singularBeta = tte.score - 3 * depth / 2;
+			int singularDepth = depth / 2 - 1;
+			ss->excludedMove = move;
+			Score = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false, ss);
+			ss->excludedMove = NOMOVE;
+			if (Score < singularBeta) {
+				extension = 1;
+			}
+
+			else if (singularBeta >= beta)
+				return singularBeta;
+
+			else if (tte.score >= beta)
+				extension = -1;
+		}
+
+
+
 		// make sure to make only legal moves
 		make_move(move, pos);
-
+		int newDepth = depth + extension;
 
 		// increment legal moves
 		legal_moves++;
@@ -586,7 +621,7 @@ moves_loop:
 		if (moves_searched == 0)
 
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+			Score = -negamax(-beta, -alpha, newDepth - 1, pos, info, TRUE, ss);
 
 
 		// late move reduction (LMR)
@@ -605,7 +640,7 @@ moves_loop:
 				int depth_reduction = reduction(depth, moves_searched);
 
 				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE, ss);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, info, TRUE, ss);
 			}
 
 			// hack to ensure that full-depth search is done
@@ -615,12 +650,12 @@ moves_loop:
 			if (Score > alpha)
 			{
 
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, info, TRUE, ss);
 
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+					Score = -negamax(-beta, -alpha, newDepth - 1, pos, info, TRUE, ss);
 			}
 		}
 
@@ -684,21 +719,14 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (legal_moves == 0)
 	{
-		// king is in check
-		if (in_check)
-			// return mating score (assuming closest distance to mating position)
-			return -mate_value + pos->ply;
+		return excludedMove ? alpha : in_check ? -mate_value + pos->ply : 0;
 
-		// king is not in check
-		else
-			// return stalemate score
-			return 0;
 	}
 
-	if (alpha != old_alpha) {
+	if (alpha != old_alpha && !excludedMove) {
 		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
 	}
-	else {
+	else if (!excludedMove) {
 		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
 	}
 
