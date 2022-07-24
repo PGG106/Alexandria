@@ -541,26 +541,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info, in
 
 		return Quiescence(alpha, beta, pos, info, pv_node);
 
-
-				// return quiescence score if it's greater then static evaluation score
-				return (new_score > Score) ? new_score : Score;
-			}
-
-			// add second bonus to static evaluation
-			Score += 175;
-
-			// static evaluation indicates a fail-low node
-			if (Score < beta && depth <= 2)
-			{
-				// get quiscence score
-				new_score = Quiescence(alpha, beta, pos, info, pv_node);
-
-				// quiescence score indicates fail-low node
-				if (new_score < beta)
-					// return quiescence score if it's greater then static evaluation score
-					return (new_score > Score) ? new_score : Score;
-			}
-		}
 	}
 
 
