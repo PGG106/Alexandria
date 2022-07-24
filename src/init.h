@@ -24,9 +24,6 @@ extern const int open_file_score;
 // king's shield bonus
 extern const int king_shield_bonus;
 
-
-
-
 void init_leapers_attacks();
 
 // init slider piece's attack tables
@@ -36,6 +33,6 @@ void InitPolyBook();
 
 void init_all();
 
-Bitboard DoCheckmask(S_Board* pos, int color, int sq);
+Bitboard DoCheckmask(S_Board *pos, int color, int sq);
 
-void DoPinMask(S_Board* pos, int color, int  sq);
+void DoPinMask(S_Board *pos, int color, int sq);

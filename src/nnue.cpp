@@ -1,92 +1,79 @@
 #include "nnue.h"
-#include <cstdio>
 #include "Board.h"
+#include <cstdio>
 #include <cstring>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
 #include "incbin/incbin.h"
 #if !defined(_MSC_VER)
 INCBIN(EVAL, EVALFILE);
 #else
-const unsigned char        gEVALData[1] = { 0x0 };
-const unsigned char* const gEmbeddedNNUEEnd = &gEVALData[1];
-const unsigned int         gEmbeddedNNUESize = 1;
+const unsigned char gEVALData[1] = {0x0};
+const unsigned char *const gEmbeddedNNUEEnd = &gEVALData[1];
+const unsigned int gEmbeddedNNUESize = 1;
 #endif
 
+// Thanks to Disservin for having me look at his code and Lucex for the
+// invaluable help and the immense patience
 
-//Thanks to Disservin for having me look at his code and Lucex for the invaluable help and the immense patience
+int NNUE::relu(int x) { return std::max(0, x); }
 
-int NNUE::relu(int x)
-{
+void NNUE::init(const char *file) {
+  // initialize an accumulator for every input of the second layer
 
-	return std::max(0, x);
+  // open the nn file
+  FILE *nn = fopen(file, "rb");
+
+  // if it's not invalid read the config values from it
+  if (nn) {
+
+    fread(inputWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_WEIGHTS, nn);
+    fread(hiddenBias, sizeof(int16_t), HIDDEN_BIAS, nn);
+    fread(hiddenWeights, sizeof(int16_t), HIDDEN_WEIGHTS, nn);
+    fread(outputBias, sizeof(int32_t), OUTPUT_BIAS, nn);
+
+    // after reading the config we can close the file
+    fclose(nn);
+  } else {
+    int memoryIndex = 0;
+    std::memcpy(inputWeights, &gEVALData[memoryIndex],
+                INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t));
+    memoryIndex += INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t);
+    std::memcpy(hiddenBias, &gEVALData[memoryIndex],
+                HIDDEN_BIAS * sizeof(int16_t));
+    memoryIndex += HIDDEN_BIAS * sizeof(int16_t);
+
+    std::memcpy(hiddenWeights, &gEVALData[memoryIndex],
+                HIDDEN_WEIGHTS * sizeof(int16_t));
+    memoryIndex += HIDDEN_WEIGHTS * sizeof(int16_t);
+    std::memcpy(outputBias, &gEVALData[memoryIndex], 1 * sizeof(int32_t));
+    memoryIndex += OUTPUT_BIAS * sizeof(int32_t);
+  }
 }
 
-void NNUE::init(const char* file)
-{
-	//initialize an accumulator for every input of the second layer
-
-
-	//open the nn file 
-	FILE* nn = fopen(file, "rb");
-
-	//if it's not invalid read the config values from it 
-	if (nn) {
-
-		fread(inputWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_WEIGHTS, nn);
-		fread(hiddenBias, sizeof(int16_t), HIDDEN_BIAS, nn);
-		fread(hiddenWeights, sizeof(int16_t), HIDDEN_WEIGHTS, nn);
-		fread(outputBias, sizeof(int32_t), OUTPUT_BIAS, nn);
-
-		//after reading the config we can close the file
-		fclose(nn);
-	}
-	else {
-		int memoryIndex = 0;
-		std::memcpy(inputWeights, &gEVALData[memoryIndex], INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t));
-		memoryIndex += INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t);
-		std::memcpy(hiddenBias, &gEVALData[memoryIndex], HIDDEN_BIAS * sizeof(int16_t));
-		memoryIndex += HIDDEN_BIAS * sizeof(int16_t);
-
-		std::memcpy(hiddenWeights, &gEVALData[memoryIndex], HIDDEN_WEIGHTS * sizeof(int16_t));
-		memoryIndex += HIDDEN_WEIGHTS * sizeof(int16_t);
-		std::memcpy(outputBias, &gEVALData[memoryIndex], 1 * sizeof(int32_t));
-		memoryIndex += OUTPUT_BIAS * sizeof(int32_t);
-	}
+void NNUE::activate(int inputNum) {
+  for (int i = 0; i < HIDDEN_BIAS; i++) {
+    accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
+  }
 }
 
-void NNUE::activate(int inputNum)
-{
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
-	}
-
-
+void NNUE::deactivate(int inputNum) {
+  for (int i = 0; i < HIDDEN_BIAS; i++) {
+    accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
+  }
 }
 
-void NNUE::deactivate(int inputNum)
-{
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
-	}
+int32_t NNUE::output() {
+  int32_t output = 0;
+  for (int i = 0; i < HIDDEN_BIAS; i++) {
+    output += relu(accumulator[i]) * hiddenWeights[i];
+  }
+  output += outputBias[0];
+  return output / (64 * 256);
 }
 
-int32_t NNUE::output()
-{
-	int32_t output = 0;
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		output += relu(accumulator[i]) * hiddenWeights[i];
-	}
-	output += outputBias[0];
-	return output / (64 * 256);
+void NNUE::Clear() {
+
+  for (int i = 0; i < HIDDEN_BIAS; i++) {
+    accumulator[i] = 0;
+  }
 }
-
-void NNUE::Clear()
-{
-
-
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] = 0;
-	}
-
-}
-

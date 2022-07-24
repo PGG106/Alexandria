@@ -6,7 +6,7 @@
 extern std::map<char, int> char_pieces;
 
 // promoted pieces
-extern std::map<int, char>  promoted_pieces;
+extern std::map<int, char> promoted_pieces;
 
 extern const int material_score[2][12];
 
@@ -18,4 +18,3 @@ extern Bitboard RankBBMask[8];
 extern Bitboard IsolatedMask[64];
 extern Bitboard WhitePassedMask[64];
 extern Bitboard BlackPassedMask[64];
-

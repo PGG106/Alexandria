@@ -1,371 +1,312 @@
-﻿#include "move.h"
+﻿#include "makemove.h"
 #include "Board.h"
-#include "makemove.h"
-#include "movegen.h"
-#include "init.h"
-#include "string.h"
-#include "stdio.h"
-#include "io.h"
-#include "init.h"
-#include "search.h"
-#include "uci.h"
 #include "hashkey.h"
+#include "init.h"
+#include "io.h"
+#include "move.h"
+#include "movegen.h"
+#include "search.h"
+#include "stdio.h"
+#include "string.h"
+#include "uci.h"
 
-void ClearPiece(const int piece, const int sq, S_Board* pos) {
+void ClearPiece(const int piece, const int sq, S_Board *pos) {
 
-	int color = Color[piece];
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
-
+  int color = Color[piece];
+  HASH_PCE(piece, sq);
+  pop_bit(pos->bitboards[piece], sq);
+  pos->pieces[sq] = EMPTY;
+  pop_bit(pos->occupancies[BOTH], sq);
+  pop_bit(pos->occupancies[color], sq);
 }
 
+void AddPiece(const int piece, const int to, S_Board *pos) {
 
-void AddPiece(const int piece, const int to, S_Board* pos) {
-
-
-	int color = Color[piece];
-	// ♦set up promoted piece on chess board
-	set_bit(pos->bitboards[piece], to);
-	set_bit(pos->occupancies[color], to);
-	set_bit(pos->occupancies[BOTH], to);
-	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
-
-
+  int color = Color[piece];
+  // ♦set up promoted piece on chess board
+  set_bit(pos->bitboards[piece], to);
+  set_bit(pos->occupancies[color], to);
+  set_bit(pos->occupancies[BOTH], to);
+  pos->pieces[to] = piece;
+  HASH_PCE(piece, to);
 }
 
+void ClearPieceNNUE(const int piece, const int sq, S_Board *pos) {
 
-void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-
-	int color = Color[piece];
-	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.deactivate(sq + piece * 64);
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
-
+  int color = Color[piece];
+  if (piece != EMPTY && pos->pieces[sq] != EMPTY)
+    nnue.deactivate(sq + piece * 64);
+  HASH_PCE(piece, sq);
+  pop_bit(pos->bitboards[piece], sq);
+  pos->pieces[sq] = EMPTY;
+  pop_bit(pos->occupancies[BOTH], sq);
+  pop_bit(pos->occupancies[color], sq);
 }
 
+void AddPieceNNUE(const int piece, const int to, S_Board *pos) {
 
-void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-
-
-	int color = Color[piece];
-	if (piece != EMPTY && pos->pieces[to] == EMPTY)
-		nnue.activate(to + piece * 64);
-	// ♦set up promoted piece on chess board
-	set_bit(pos->bitboards[piece], to);
-	set_bit(pos->occupancies[color], to);
-	set_bit(pos->occupancies[BOTH], to);
-	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
-
-
+  int color = Color[piece];
+  if (piece != EMPTY && pos->pieces[to] == EMPTY)
+    nnue.activate(to + piece * 64);
+  // ♦set up promoted piece on chess board
+  set_bit(pos->bitboards[piece], to);
+  set_bit(pos->occupancies[color], to);
+  set_bit(pos->occupancies[BOTH], to);
+  pos->pieces[to] = piece;
+  HASH_PCE(piece, to);
 }
 
+void MovePiece(const int piece, const int from, const int to, S_Board *pos) {
 
-
-
-void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
-
-
-	ClearPieceNNUE(piece, from, pos);
-	AddPieceNNUE(piece, to, pos);
-
+  ClearPieceNNUE(piece, from, pos);
+  AddPieceNNUE(piece, to, pos);
 }
-
 
 // make move on chess board
-int make_move(int move, S_Board* pos)
-{
+int make_move(int move, S_Board *pos) {
 
+  pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+  pos->history[pos->hisPly].enPas = pos->enPas;
+  pos->history[pos->hisPly].castlePerm = pos->castleperm;
+  pos->history[pos->hisPly].posKey = pos->posKey;
+  pos->history[pos->hisPly].move = move;
 
-	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-	pos->history[pos->hisPly].enPas = pos->enPas;
-	pos->history[pos->hisPly].castlePerm = pos->castleperm;
-	pos->history[pos->hisPly].posKey = pos->posKey;
-	pos->history[pos->hisPly].move = move;
+  // parse move
+  int source_square = get_move_source(move);
+  int target_square = get_move_target(move);
+  int piece = get_move_piece(move);
+  int promoted_piece = get_move_promoted(move);
 
-	// parse move
-	int source_square = get_move_source(move);
-	int target_square = get_move_target(move);
-	int piece = get_move_piece(move);
-	int promoted_piece = get_move_promoted(move);
+  int capture = get_move_capture(move);
 
-	int capture = get_move_capture(move);
+  int double_push = get_move_double(move);
+  int enpass = get_move_enpassant(move);
+  int castling = get_move_castling(move);
 
+  pos->fiftyMove++;
 
-	int double_push = get_move_double(move);
-	int enpass = get_move_enpassant(move);
-	int castling = get_move_castling(move);
+  // handling capture moves
+  if (capture) {
+    int piececap = pos->pieces[target_square];
 
-	pos->fiftyMove++;
+    ClearPieceNNUE(piececap, target_square, pos);
 
-	// handling capture moves
-	if (capture)
-	{
-		int piececap = pos->pieces[target_square];
+    pos->history[pos->hisPly].capture = piececap;
 
-		ClearPieceNNUE(piececap, target_square, pos);
+    pos->fiftyMove = 0;
+  }
 
-		pos->history[pos->hisPly].capture = piececap;
+  if (piece == WP || piece == BP)
+    pos->fiftyMove = 0;
 
-		pos->fiftyMove = 0;
-	}
+  // move piece
+  MovePiece(piece, source_square, target_square, pos);
 
-	if (piece == WP || piece == BP)
-		pos->fiftyMove = 0;
+  pos->hisPly++;
+  pos->ply++;
 
-	// move piece
-	MovePiece(piece, source_square, target_square, pos);
+  // handle pawn promotions
+  if (promoted_piece) {
+    if (pos->side == WHITE)
+      ClearPieceNNUE(WP, target_square, pos);
 
-	pos->hisPly++;
-	pos->ply++;
+    else
+      ClearPieceNNUE(BP, target_square, pos);
 
-	// handle pawn promotions
-	if (promoted_piece)
-	{
-		if (pos->side == WHITE) ClearPieceNNUE(WP, target_square, pos);
+    // set up promoted piece on chess board
+    AddPieceNNUE(promoted_piece, target_square, pos);
+  }
 
-		else ClearPieceNNUE(BP, target_square, pos);
+  // handle enpassant captures
+  if (enpass) {
+    if (pos->side == WHITE) {
+      ClearPieceNNUE(BP, target_square + 8, pos);
+    } else {
+      ClearPieceNNUE(WP, target_square - 8, pos);
+    }
+  }
+  if (pos->enPas != no_sq)
+    HASH_EP;
+  // reset enpassant square
+  pos->enPas = no_sq;
 
-		// set up promoted piece on chess board
-		AddPieceNNUE(promoted_piece, target_square, pos);
+  // handle double pawn push
+  if (double_push) {
+    if (pos->side == WHITE) {
+      // set enpassant square
+      pos->enPas = target_square + 8;
 
-	}
+      // hash enpassant
+      HASH_EP;
 
-	// handle enpassant captures
-	if (enpass)
-	{
-		if (pos->side == WHITE) {
-			ClearPieceNNUE(BP, target_square + 8, pos);
-		}
-		else {
-			ClearPieceNNUE(WP, target_square - 8, pos);
-		}
-	}
-	if (pos->enPas != no_sq) HASH_EP;
-	// reset enpassant square
-	pos->enPas = no_sq;
+    } else {
 
+      // set enpassant square
+      pos->enPas = target_square - 8;
 
-	// handle double pawn push
-	if (double_push)
-	{
-		if (pos->side == WHITE)
-		{
-			// set enpassant square
-			pos->enPas = target_square + 8;
+      // hash enpassant
+      HASH_EP;
+    }
+  }
 
-			// hash enpassant
-			HASH_EP;
+  // handle castling moves
+  if (castling) {
+    // switch target square
+    switch (target_square) {
+      // white castles king side
+    case (g1):
+      // move H rook
+      MovePiece(WR, h1, f1, pos);
+      break;
 
-		}
-		else {
+      // white castles queen side
+    case (c1):
+      // move A rook
+      MovePiece(WR, a1, d1, pos);
+      break;
 
-			// set enpassant square
-			pos->enPas = target_square - 8;
+      // black castles king side
+    case (g8):
+      // move H rook
+      MovePiece(BR, h8, f8, pos);
+      break;
 
-			// hash enpassant
-			HASH_EP;
-		}
-	}
+      // black castles queen side
+    case (c8):
+      // move A rook
+      MovePiece(BR, a8, d8, pos);
+      break;
+    }
+  }
+  HASH_CA;
+  // update castling rights
+  pos->castleperm &= castling_rights[source_square];
+  pos->castleperm &= castling_rights[target_square];
 
+  HASH_CA;
 
-	// handle castling moves
-	if (castling)
-	{
-		// switch target square
-		switch (target_square)
-		{
-			// white castles king side
-		case (g1):
-			// move H rook
-			MovePiece(WR, h1, f1, pos);
-			break;
+  // change side
+  pos->side ^= 1;
+  HASH_SIDE;
+  //
 
-			// white castles queen side
-		case (c1):
-			// move A rook
-			MovePiece(WR, a1, d1, pos);
-			break;
-
-			// black castles king side
-		case (g8):
-			// move H rook
-			MovePiece(BR, h8, f8, pos);
-			break;
-
-			// black castles queen side
-		case (c8):
-			// move A rook
-			MovePiece(BR, a8, d8, pos);
-			break;
-		}
-	}
-	HASH_CA;
-	// update castling rights
-	pos->castleperm &= castling_rights[source_square];
-	pos->castleperm &= castling_rights[target_square];
-
-	HASH_CA;
-
-
-	// change side
-	pos->side ^= 1;
-	HASH_SIDE;
-	//
-
-
-
-	return 1;
-
+  return 1;
 }
 
+int Unmake_move(S_Board *pos) {
 
+  // quiet moves
 
+  pos->hisPly--;
+  pos->ply--;
 
+  pos->enPas = pos->history[pos->hisPly].enPas;
+  pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+  pos->castleperm = pos->history[pos->hisPly].castlePerm;
 
-int Unmake_move(S_Board* pos)
-{
+  int move = pos->history[pos->hisPly].move;
 
-	// quiet moves
+  // parse move
+  int source_square = get_move_source(move);
+  int target_square = get_move_target(move);
+  int piece = get_move_piece(move);
+  int promoted_piece = get_move_promoted(move);
+  int capture = get_move_capture(move);
 
-	pos->hisPly--;
-	pos->ply--;
+  int enpass = get_move_enpassant(move);
+  int castling = get_move_castling(move);
+  int piececap = pos->history[pos->hisPly].capture;
 
-	pos->enPas = pos->history[pos->hisPly].enPas;
-	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-	pos->castleperm = pos->history[pos->hisPly].castlePerm;
+  // handle pawn promotions
+  if (promoted_piece) {
+    ClearPieceNNUE(promoted_piece, target_square, pos);
+  }
 
-	int move = pos->history[pos->hisPly].move;
+  // move piece
+  MovePiece(piece, target_square, source_square, pos);
 
+  // handle enpassant captures
+  if (enpass) {
 
-	// parse move
-	int source_square = get_move_source(move);
-	int target_square = get_move_target(move);
-	int piece = get_move_piece(move);
-	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
+    // erase the pawn depending on side to move
+    (pos->side == BLACK) ? AddPieceNNUE(BP, target_square + 8, pos)
+                         : AddPieceNNUE(WP, target_square - 8, pos);
+  }
 
-	int enpass = get_move_enpassant(move);
-	int castling = get_move_castling(move);
-	int piececap = pos->history[pos->hisPly].capture;
+  // handle castling moves
+  if (castling) {
+    // switch target square
+    switch (target_square) {
+      // white castles king side
+    case (g1):
+      // move H rook
+      MovePiece(WR, f1, h1, pos);
+      break;
 
+      // white castles queen side
+    case (c1):
+      // move A rook
+      MovePiece(WR, d1, a1, pos);
+      break;
 
+      // black castles king side
+    case (g8):
+      // move H rook
+      MovePiece(BR, f8, h8, pos);
+      break;
 
-	// handle pawn promotions
-	if (promoted_piece)
-	{
-		ClearPieceNNUE(promoted_piece, target_square, pos);
+      // black castles queen side
+    case (c8):
+      // move A rook
+      MovePiece(BR, d8, a8, pos);
+      break;
+    }
+  }
 
-	}
+  // handling capture moves
+  if (capture && !enpass) {
+    AddPieceNNUE(piececap, target_square, pos);
+  }
 
+  // change side
+  pos->side ^= 1;
+  // restore zobrist key (done at the end to avoid overwriting the value while
+  // moving pieces bacl to their place)
 
+  pos->posKey = pos->history[pos->hisPly].posKey;
 
-	// move piece
-	MovePiece(piece, target_square, source_square, pos);
-
-
-	// handle enpassant captures
-	if (enpass)
-	{
-
-		// erase the pawn depending on side to move
-		(pos->side == BLACK) ? AddPieceNNUE(BP, target_square + 8, pos) :
-			AddPieceNNUE(WP, target_square - 8, pos);
-
-	}
-
-
-
-	// handle castling moves
-	if (castling)
-	{
-		// switch target square
-		switch (target_square)
-		{
-			// white castles king side
-		case (g1):
-			// move H rook
-			MovePiece(WR, f1, h1, pos);
-			break;
-
-			// white castles queen side
-		case (c1):
-			// move A rook
-			MovePiece(WR, d1, a1, pos);
-			break;
-
-			// black castles king side
-		case (g8):
-			// move H rook
-			MovePiece(BR, f8, h8, pos);
-			break;
-
-			// black castles queen side
-		case (c8):
-			// move A rook
-			MovePiece(BR, d8, a8, pos);
-			break;
-		}
-
-
-	}
-
-
-	// handling capture moves
-	if (capture && !enpass)
-	{
-		AddPieceNNUE(piececap, target_square, pos);
-
-	}
-
-
-	// change side
-	pos->side ^= 1;
-	//restore zobrist key (done at the end to avoid overwriting the value while moving pieces bacl to their place)
-
-	pos->posKey = pos->history[pos->hisPly].posKey;
-
-	return 1;
+  return 1;
 }
 
+void MakeNullMove(S_Board *pos) {
+  pos->ply++;
+  pos->history[pos->hisPly].posKey = pos->posKey;
 
+  if (pos->enPas != no_sq)
+    HASH_EP;
 
-void MakeNullMove(S_Board* pos) {
-	pos->ply++;
-	pos->history[pos->hisPly].posKey = pos->posKey;
+  pos->history[pos->hisPly].move = NOMOVE;
+  pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+  pos->history[pos->hisPly].enPas = pos->enPas;
+  pos->history[pos->hisPly].castlePerm = pos->castleperm;
+  pos->enPas = no_sq;
 
-	if (pos->enPas != no_sq) HASH_EP;
+  pos->side ^= 1;
+  pos->hisPly++;
+  HASH_SIDE;
 
-	pos->history[pos->hisPly].move = NOMOVE;
-	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-	pos->history[pos->hisPly].enPas = pos->enPas;
-	pos->history[pos->hisPly].castlePerm = pos->castleperm;
-	pos->enPas = no_sq;
-
-	pos->side ^= 1;
-	pos->hisPly++;
-	HASH_SIDE;
-
-	return;
+  return;
 }
 
-void TakeNullMove(S_Board* pos) {
+void TakeNullMove(S_Board *pos) {
 
-	pos->hisPly--;
-	pos->ply--;
+  pos->hisPly--;
+  pos->ply--;
 
-	pos->castleperm = pos->history[pos->hisPly].castlePerm;
-	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-	pos->enPas = pos->history[pos->hisPly].enPas;
+  pos->castleperm = pos->history[pos->hisPly].castlePerm;
+  pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+  pos->enPas = pos->history[pos->hisPly].enPas;
 
-	pos->side ^= 1;
-	pos->posKey = pos->history[pos->hisPly].posKey;
+  pos->side ^= 1;
+  pos->posKey = pos->history[pos->hisPly].posKey;
 }

@@ -1,29 +1,25 @@
 #pragma once
 
 typedef struct S_MOVE {
-    int move;
-    int score;
-}S_MOVE;
+  int move;
+  int score;
+} S_MOVE;
 
 // move list structure
 typedef struct {
-    // moves
-    S_MOVE moves[256];
+  // moves
+  S_MOVE moves[256];
 
-    // move count
-    int count;
+  // move count
+  int count;
 } S_MOVELIST;
 
 // encode move
-#define encode_move(source, target, piece, promoted, capture, double_push, enpassant, castling) \
-    (source) |          \
-    (target << 6) |     \
-    (piece << 12) |     \
-    (promoted << 16) |  \
-    (capture << 20) |   \
-    (double_push << 21) |    \
-    (enpassant << 22) | \
-    (castling << 23)  
+#define encode_move(source, target, piece, promoted, capture, double_push,     \
+                    enpassant, castling)                                       \
+  (source) | (target << 6) | (piece << 12) | (promoted << 16) |                \
+      (capture << 20) | (double_push << 21) | (enpassant << 22) |              \
+      (castling << 23)
 
 #define NOMOVE 0
 #define mate_score 31000
@@ -54,4 +50,3 @@ typedef struct {
 
 // move types
 enum { all_moves, only_captures };
-
