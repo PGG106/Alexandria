@@ -24,6 +24,7 @@
 
 ## Things i tried that didn't work
 * Search
+  * Use TT score as a more accurate form of static evaluation
   * SEE
   * Singular extension
   
