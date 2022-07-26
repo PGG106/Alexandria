@@ -24,22 +24,30 @@ uint8_t PopCnt16[1 << 16];
 
 // convert squares to coordinates
 const char *square_to_coordinates[] = {
-    "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "a7", "b7", "c7",
-    "d7", "e7", "f7", "g7", "h7", "a6", "b6", "c6", "d6", "e6", "f6",
-    "g6", "h6", "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a4",
-    "b4", "c4", "d4", "e4", "f4", "g4", "h4", "a3", "b3", "c3", "d3",
-    "e3", "f3", "g3", "h3", "a2", "b2", "c2", "d2", "e2", "f2", "g2",
-    "h2", "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+    "a8", "b8", "c8", "d8", "e8", "f8","g8","h8",
+    "a7", "b7", "c7","d7", "e7", "f7","g7", "h7", 
+    "a6", "b6", "c6", "d6", "e6", "f6","g6","h6", 
+    "a5", "b5", "c5", "d5", "e5", "f5","g5","h5", 
+    "a4", "b4", "c4", "d4", "e4", "f4","g4","h4",
+    "a3", "b3", "c3", "d3","e3", "f3","g3", "h3", 
+    "a2", "b2", "c2", "d2", "e2", "f2","g2","h2",
+    "a1", "b1", "c1", "d1", "e1", "f1","g1","h1",
 };
 
 char RankChar[] = "12345678";
 char FileChar[] = "abcdefgh";
 
-const int get_rank[64] = {7, 7, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6,
-                          5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
-                          3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2,
-                          1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+//Lookup to get the rank of a square
+const int get_rank[64] = {7, 7, 7, 7, 7, 7, 7, 7,
+                          6, 6, 6, 6, 6, 6, 6, 6,
+                          5, 5, 5, 5, 5, 5, 5, 5, 
+                          4, 4, 4, 4, 4, 4, 4, 4,
+                          3, 3, 3, 3, 3, 3, 3, 3,
+                          2, 2, 2, 2, 2, 2, 2, 2,
+                          1, 1, 1, 1, 1, 1, 1, 1,
+                          0, 0, 0, 0, 0, 0, 0, 0};
 
+//Lookup to get the color from a piece
 const int Color[12] = {WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
                        BLACK, BLACK, BLACK, BLACK, BLACK, BLACK};
 
@@ -119,19 +127,17 @@ int get_ls1b_index(Bitboard b) {
 
 #endif
 
-void ResetBoard(
-    S_Board *pos) { // a function that resets every value stored in the position
-                    // and on the board and sets the pieces to illegal squares
-  int index = 0;
-
-  for (index = 0; index < 64; ++index) {
+//Reset the position to a clean state
+void ResetBoard(S_Board *pos) { 
+ 
+  for (int index = 0; index < 64; ++index) {
     pos->pieces[index] = EMPTY;
   }
 
   pos->side = BOTH;
   pos->enPas = no_sq;
   pos->fiftyMove = 0;
-  pos->ply = 0;
+  pos->ply = 0;        //number of plies in the current search instance
   pos->hisPly = 0;     // total number of halfmoves
   pos->castleperm = 0; // integer that represents the castling permission in his
                        // bits (1111) = all castlings allowed (0000) no castling

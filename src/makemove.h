@@ -16,17 +16,17 @@
 #define HASH_SIDE (pos->posKey ^= (SideKey))
 #define HASH_EP (pos->posKey ^= (enpassant_keys[(pos->enPas)]))
 
-void ClearPiece(const int piece, const int sq, S_Board *pos);
+void ClearPiece(const int piece, const int sq, S_Board* pos);
 
-void AddPiece(const int piece, const int to, S_Board *pos);
+void AddPiece(const int piece, const int to, S_Board* pos);
 
-void MovePiece(const int piece, const int from, const int to, S_Board *pos);
+void MovePiece(const int piece, const int from, const int to, S_Board* pos);
 
 // make move on chess board
-int make_move(int move, S_Board *pos);
+int make_move(int move, S_Board* pos);
 
-int Unmake_move(S_Board *pos);
+int Unmake_move(S_Board* pos);
 
-void MakeNullMove(S_Board *pos);
+void MakeNullMove(S_Board* pos);
 
-void TakeNullMove(S_Board *pos);
+void TakeNullMove(S_Board* pos);
