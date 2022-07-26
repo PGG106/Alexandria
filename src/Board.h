@@ -31,7 +31,7 @@
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
 #define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
-#define clr_bit(bitboard, square) ((bitboard) &= (bitboard - 1))
+#define clr_bit(bitboard) ((bitboard) &= (bitboard - 1))
 
 #define TEST
 
@@ -217,11 +217,12 @@ typedef struct Board {
 	int castleperm; // integer that represents the castling permission in his
 					// bits (1111) = all castlings allowed (0000) no castling
 					// allowed, (0101) only WKCA and BKCA allowed...
+
 	Bitboard posKey; // unique  hashkey  che codifica the  position on the
 					 // board,utile per il controllo delle posizioni ripetute.
-	S_Undo
-		history[UNDOSIZE]; // stores every single move and the state of the board
-						   // when that move was made for rollback purposes
+
+	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
+							  // when that move was made for rollback purposes
 
 	int pvArray[MAXDEPTH + 1];
 

@@ -102,8 +102,12 @@ const int mirror_score[128] = {
 	a5, b5, c5, d5, e5, f5, g5, h5, a6, b6, c6, d6, e6, f6, g6, h6,
 	a7, b7, c7, d7, e7, f7, g7, h7, a8, b8, c8, d8, e8, f8, g8, h8 };
 
-// sjeng 11.2
+// if we don't have enough material to mate consider the position a draw
 int MaterialDraw(const S_Board* pos) {
+	//If we only have kings on the board then it's a draw
+	if (count_bits(pos->occupancies[BOTH]) == 2)
+		return TRUE;
+
 	/*
 	int white_rooks = count_bits(pos->bitboards[WR]);
 	int black_rooks = count_bits(pos->bitboards[BR]);
@@ -187,7 +191,7 @@ int HCE(const S_Board* pos) {
 		score_opening += positional_score[opening][PAWN][square];
 		score_endgame += positional_score[endgame][PAWN][square];
 
-		clr_bit(white_pawns, square);
+		pop_bit(white_pawns, square);
 	}
 
 	Bitboard white_knights = pos->bitboards[WN];
@@ -203,7 +207,7 @@ int HCE(const S_Board* pos) {
 		score_opening += positional_score[opening][KNIGHT][square];
 		score_endgame += positional_score[endgame][KNIGHT][square];
 
-		clr_bit(white_knights, square);
+		pop_bit(white_knights, square);
 	}
 
 	Bitboard white_bishops = pos->bitboards[WB];
@@ -219,7 +223,7 @@ int HCE(const S_Board* pos) {
 		score_opening += positional_score[opening][BISHOP][square];
 		score_endgame += positional_score[endgame][BISHOP][square];
 
-		clr_bit(white_bishops, square);
+		pop_bit(white_bishops, square);
 	}
 
 	Bitboard white_rooks = pos->bitboards[WR];
@@ -235,7 +239,7 @@ int HCE(const S_Board* pos) {
 		score_opening += positional_score[opening][ROOK][square];
 		score_endgame += positional_score[endgame][ROOK][square];
 
-		clr_bit(white_rooks, square);
+		pop_bit(white_rooks, square);
 	}
 
 	Bitboard white_queens = pos->bitboards[WQ];
@@ -251,7 +255,7 @@ int HCE(const S_Board* pos) {
 		score_opening += positional_score[opening][QUEEN][square];
 		score_endgame += positional_score[endgame][QUEEN][square];
 
-		clr_bit(white_queens, square);
+		pop_bit(white_queens, square);
 	}
 
 	int kingsquare = get_ls1b_index(pos->bitboards[WK]);
@@ -275,7 +279,7 @@ int HCE(const S_Board* pos) {
 		score_opening -= positional_score[opening][PAWN][mirror_score[square]];
 		score_endgame -= positional_score[endgame][PAWN][mirror_score[square]];
 
-		clr_bit(black_pawns, square);
+		pop_bit(black_pawns, square);
 	}
 
 	Bitboard black_knights = pos->bitboards[BN];
@@ -291,7 +295,7 @@ int HCE(const S_Board* pos) {
 		score_opening -= positional_score[opening][KNIGHT][mirror_score[square]];
 		score_endgame -= positional_score[endgame][KNIGHT][mirror_score[square]];
 
-		clr_bit(black_knights, square);
+		pop_bit(black_knights, square);
 	}
 
 	Bitboard black_bishops = pos->bitboards[BB];
@@ -307,7 +311,7 @@ int HCE(const S_Board* pos) {
 		score_opening -= positional_score[opening][BISHOP][mirror_score[square]];
 		score_endgame -= positional_score[endgame][BISHOP][mirror_score[square]];
 
-		clr_bit(black_bishops, square);
+		pop_bit(black_bishops, square);
 	}
 
 	Bitboard black_rooks = pos->bitboards[BR];
@@ -323,7 +327,7 @@ int HCE(const S_Board* pos) {
 		score_opening -= positional_score[opening][ROOK][mirror_score[square]];
 		score_endgame -= positional_score[endgame][ROOK][mirror_score[square]];
 
-		clr_bit(black_rooks, square);
+		pop_bit(black_rooks, square);
 	}
 
 	Bitboard black_queens = pos->bitboards[BQ];
@@ -339,7 +343,7 @@ int HCE(const S_Board* pos) {
 		score_opening -= positional_score[opening][QUEEN][mirror_score[square]];
 		score_endgame -= positional_score[endgame][QUEEN][mirror_score[square]];
 
-		clr_bit(black_queens, square);
+		pop_bit(black_queens, square);
 	}
 
 	kingsquare = get_ls1b_index(pos->bitboards[BK]);

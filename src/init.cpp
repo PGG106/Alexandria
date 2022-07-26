@@ -215,14 +215,14 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 		Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
 		if (count_bits(possible_pin & pos->occupancies[color]) == 1)
 			rook_pin |= possible_pin;
-		clr_bit(rook_mask, index);
+		pop_bit(rook_mask, index);
 	}
 	while (bishop_mask) {
 		int index = get_ls1b_index(bishop_mask);
 		Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
 		if (count_bits(possible_pin & pos->occupancies[color]) == 1)
 			bishop_pin |= possible_pin;
-		clr_bit(bishop_mask, index);
+		pop_bit(bishop_mask, index);
 	}
 	pos->pinHV = rook_pin;
 	pos->pinD = bishop_pin;

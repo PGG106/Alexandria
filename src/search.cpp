@@ -184,7 +184,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		int move = move_list->moves[i].move;
 		//If the move is from the TT (aka it's our hashmove) give it the highest score
 		if (move == PvMove) {
-			move_list->moves[i].score = 200000;
+			move_list->moves[i].score = INT32_MAX-100;
 			continue;
 		}
 
@@ -434,9 +434,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	if (pos->ply && ttHit && !pv_node) {
-		HashTable->cut++;
 
+		HashTable->cut++;
 		return tte.score;
+
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
@@ -454,13 +455,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
-		goto moves_loop;
+		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
 	}
 
 	// get static evaluation score
 	static_eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
 
+	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
 	improving = (!in_check) && (pos->hisPly >= 2) &&
 		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
 			(pos->history[pos->hisPly - 2].eval) == value_none);
@@ -483,6 +485,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// null move pruning
 	if (DoNull && depth >= 4 && !in_check && pos->ply) {
 
+
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
@@ -490,7 +493,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 		TakeNullMove(pos);
 
-		// reutrn 0 if time is up
 		if (info->stopped == 1)
 			return 0;
 
@@ -531,15 +533,17 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		//if the move isn't a quiet move we update the quiet moves list and counter
 		if (!get_move_capture(move)) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
+		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
 		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) &&
 			(quiet_moves.count > (depth * 8))) {
 			continue;
 		}
-		// make sure to make only legal moves
+		//Play the move
 		make_move(move, pos);
 
 		// increment legal moves
@@ -606,12 +610,12 @@ moves_loop:
 
 			// fail-hard beta cutoff
 			if (Score >= beta) {
+				//If the move that caused the beta cutoff is quiet we have a killer move
 				if (IsQuiet(move)) {
 					// store killer moves
-
 					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
 					pos->searchKillers[0][pos->ply] = bestmove;
-
+					//Save CounterMoves
 					int previousMove = pos->history[pos->hisPly].move;
 					CounterMoves[get_move_source(previousMove)]
 						[get_move_target(previousMove)] = move;
@@ -631,9 +635,8 @@ moves_loop:
 		// king is in check
 		if (in_check)
 			// return mating score (assuming closest distance to mating position)
-			return -mate_value + pos->ply;
+			return  (-mate_value + pos->ply);
 
-		// king is not in check
 		else
 			// return stalemate score
 			return 0;
@@ -654,7 +657,6 @@ moves_loop:
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 
 	search_position(1, depth, pos, info, TRUE); // root search
-
 
 }
 

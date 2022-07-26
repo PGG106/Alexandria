@@ -126,7 +126,7 @@ Bitboard get_attacked_square_pawns(const S_Board *pos, int side) {
 
     attacked_squares |= pawn_attacks[side][target_square];
 
-    clr_bit(pawns, target_square);
+    clr_bit(pawns);
   }
 
   return attacked_squares;
@@ -343,7 +343,7 @@ Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     int square = get_ls1b_index(attack_mask);
 
     // pop LS1B in attack map
-    clr_bit(attack_mask, square);
+    clr_bit(attack_mask);
 
     // make sure occupancy is on board
     if (index & (1 << count))

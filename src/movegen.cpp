@@ -231,7 +231,7 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
 	ClearPiece(king, square, pos);
 	while (moves) {
 		int index = get_ls1b_index(moves);
-		clr_bit(moves, index);
+		pop_bit(moves, index);
 		if (is_square_attacked(pos, index, pos->side ^ 1)) {
 			continue;
 		}
@@ -264,11 +264,11 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				// init target square
 				target_square = get_ls1b_index(moves);
 				AddPawnMove(pos, source_square, target_square, move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
 			// pop ls1b from piece bitboard copy
-			clr_bit(pawns, source_square);
+			pop_bit(pawns, source_square);
 		}
 
 		// genarate knight moves
@@ -286,10 +286,10 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(knights, source_square);
+			pop_bit(knights, source_square);
 		}
 
 		Bitboard bishops = pos->bitboards[(pos->side) * 6 + 2];
@@ -306,10 +306,10 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(bishops, source_square);
+			pop_bit(bishops, source_square);
 		}
 
 		Bitboard rooks = pos->bitboards[(pos->side) * 6 + 3];
@@ -326,10 +326,10 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(rooks, source_square);
+			pop_bit(rooks, source_square);
 		}
 
 		Bitboard queens = pos->bitboards[(pos->side) * 6 + 4];
@@ -345,10 +345,10 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(queens, source_square);
+			pop_bit(queens, source_square);
 		}
 	}
 	source_square = KingSQ(pos, pos->side);
@@ -359,7 +359,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		int target_square = get_ls1b_index(moves);
 		int capture = (pos->pieces[target_square] != EMPTY);
 
-		clr_bit(moves, target_square);
+		pop_bit(moves, target_square);
 		AddMove(
 			pos,
 			encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0),
@@ -440,10 +440,10 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 	if (pos->checks < 2) {
 
 		Bitboard pawn_mask = pos->bitboards[(pos->side) * 6];
-		Bitboard knights_mask = pos->bitboards[(pos->side) * 6 + 1];
-		Bitboard bishops_mask = pos->bitboards[(pos->side) * 6 + 2];
-		Bitboard rooks_mask = pos->bitboards[(pos->side) * 6 + 3];
-		Bitboard queens_mask = pos->bitboards[(pos->side) * 6 + 4];
+		Bitboard knights_mask = pos->bitboards[(pos->side) * 6 + KNIGHT];
+		Bitboard bishops_mask = pos->bitboards[(pos->side) * 6 + BISHOP];
+		Bitboard rooks_mask = pos->bitboards[(pos->side) * 6 + ROOK];
+		Bitboard queens_mask = pos->bitboards[(pos->side) * 6 + QUEEN];
 
 		while (pawn_mask) {
 			// init source square
@@ -456,11 +456,11 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 				// init target square
 				target_square = get_ls1b_index(moves);
 				AddPawnMove(pos, source_square, target_square, move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
 			// pop ls1b from piece bitboard copy
-			clr_bit(pawn_mask, source_square);
+			pop_bit(pawn_mask, source_square);
 		}
 
 		// genarate knight moves
@@ -473,15 +473,15 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 			while (moves) {
 				target_square = get_ls1b_index(moves);
 				int capture = (pos->pieces[target_square] != EMPTY);
-				int piece = (pos->side == WHITE) ? WN : BN;
+				int piece = KNIGHT + 6 * pos->side;
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(knights_mask, source_square);
+			pop_bit(knights_mask, source_square);
 		}
 
 		while (bishops_mask) {
@@ -492,15 +492,15 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 			while (moves) {
 				target_square = get_ls1b_index(moves);
 				int capture = (pos->pieces[target_square] != EMPTY);
-				int piece = (pos->side == WHITE) ? WB : BB;
+				int piece = BISHOP + 6 * pos->side;
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(bishops_mask, source_square);
+			pop_bit(bishops_mask, source_square);
 		}
 
 		while (rooks_mask) {
@@ -511,15 +511,15 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 			while (moves) {
 				target_square = get_ls1b_index(moves);
 				int capture = (pos->pieces[target_square] != EMPTY);
-				int piece = (pos->side == WHITE) ? WR : BR;
+				int piece = ROOK + 6 * pos->side;
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(rooks_mask, source_square);
+			pop_bit(rooks_mask, source_square);
 		}
 
 		while (queens_mask) {
@@ -530,19 +530,19 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 			while (moves) {
 				target_square = get_ls1b_index(moves);
 				int capture = (pos->pieces[target_square] != EMPTY);
-				int piece = (pos->side == WHITE) ? WQ : BQ;
+				int piece = QUEEN + 6 * pos->side;
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture, 0,
 						0, 0),
 					move_list);
-				clr_bit(moves, target_square);
+				pop_bit(moves, target_square);
 			}
 
-			clr_bit(queens_mask, source_square);
+			pop_bit(queens_mask, source_square);
 		}
 	}
 	source_square = KingSQ(pos, pos->side);
-	int piece = (pos->side * 6 + 5);
+	int piece = (KING + pos->side * 6);
 
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square) &
 		(pos->occupancies[pos->side ^ 1]);
@@ -550,7 +550,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 		int target_square = get_ls1b_index(moves);
 		int capture = (pos->pieces[target_square] != EMPTY);
 
-		clr_bit(moves, target_square);
+		pop_bit(moves, target_square);
 		AddMove(
 			pos,
 			encode_move(source_square, target_square, piece, 0, capture, 0, 0, 0),
