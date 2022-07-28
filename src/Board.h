@@ -288,3 +288,31 @@ int square_distance(int a, int b);
 void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
+
+//Pieces info retrival
+
+//Retrieve the pawns on the board of a specific color
+Bitboard GetPawnsColor(S_Board* pos, int color);
+//Retrieve all the pawns on the board
+Bitboard GetPawns(S_Board* pos);
+//Retrieve the knights on the board of a specific color
+Bitboard GetKnightsColor(S_Board* pos, int color);
+//Retrieve all the pawns on the board
+Bitboard GetKnights(S_Board* pos);
+//Retrieve the bishops on the board of a specific color
+Bitboard GetBishopsColor(S_Board* pos, int color);
+//Retrieve all the bishops on the board
+Bitboard GetBishops(S_Board* pos);
+//Retrieve the rooks on the board of a specific color
+Bitboard GetRooksColor(S_Board* pos, int color);
+//Retrieve all the rooks on the board
+Bitboard GetRooks(S_Board* pos);
+//Retrieve the queens on the board of a specific color
+Bitboard GetQueensColor(S_Board* pos, int color);
+//Retrieve all the queens on the board
+Bitboard GetQueens(S_Board* pos);
+//Retrieve the king on the board of a specific color
+Bitboard GetKingColor(S_Board* pos, int color);
+//Retrieve the 2 kings on the board
+Bitboard GetKings(S_Board* pos);
+

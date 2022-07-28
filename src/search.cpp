@@ -184,7 +184,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		int move = move_list->moves[i].move;
 		//If the move is from the TT (aka it's our hashmove) give it the highest score
 		if (move == PvMove) {
-			move_list->moves[i].score = INT32_MAX-100;
+			move_list->moves[i].score = INT32_MAX - 100;
 			continue;
 		}
 
@@ -367,7 +367,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 const int full_depth_moves = 4;
 
 // depth limit to consider reduction
-const int reduction_limit = 3;
+const int lmr_depth = 3;
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(int depth, int num_moves) {
@@ -506,8 +506,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if (!pv_node && !in_check && (depth <= 3) &&
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
-		// get static eval and add first bonus
-		Score = static_eval + 125;
 
 		return Quiescence(alpha, beta, pos, info, pv_node);
 	}
@@ -558,8 +556,8 @@ moves_loop:
 		// late move reduction (LMR)
 		else {
 			// condition to consider LMR
-			if (moves_searched >= full_depth_moves && depth >= reduction_limit &&
-				!in_check && !get_move_capture(move) && !get_move_promoted(move))
+			if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
+				!in_check && IsQuiet(move))
 
 			{
 				int depth_reduction = reduction(depth, moves_searched);
@@ -717,7 +715,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 
 		// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
 		if (current_depth >= Aspiration_Depth) {
-
 			alpha = score + alpha_window;
 			beta = score + beta_window;
 		}
