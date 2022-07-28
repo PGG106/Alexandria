@@ -325,51 +325,51 @@ void accumulate(const S_Board* pos) {
 //Function to get the bitboard of a certain piece
 
 //Retrieve the pawns on the board of a specific color
-Bitboard GetPawnsColor(S_Board* pos, int color) {
+Bitboard GetPawnsColor(const S_Board* pos, int color) {
 	return pos->bitboards[PAWN + color * 6];
 }
 //Retrieve all the pawns on the board
-Bitboard GetPawns(S_Board* pos) {
+Bitboard GetPawns(const S_Board* pos) {
 	return GetPawnsColor(pos, WHITE) | GetPawnsColor(pos, BLACK);
 }
 //Retrieve the knights on the board of a specific color
-Bitboard GetKnightsColor(S_Board* pos, int color) {
+Bitboard GetKnightsColor(const S_Board* pos, int color) {
 	return pos->bitboards[KNIGHT + color * 6];
 }
 //Retrieve all the pawns on the board
-Bitboard GetKnights(S_Board* pos) {
+Bitboard GetKnights(const S_Board* pos) {
 	return GetKnightsColor(pos, WHITE) | GetKnightsColor(pos, BLACK);
 }
 //Retrieve the bishops on the board of a specific color
-Bitboard GetBishopsColor(S_Board* pos, int color) {
+Bitboard GetBishopsColor(const S_Board* pos, int color) {
 	return pos->bitboards[BISHOP + color * 6];
 }
 //Retrieve all the bishops on the board
-Bitboard GetBishops(S_Board* pos) {
+Bitboard GetBishops(const S_Board* pos) {
 	return GetBishopsColor(pos, WHITE) | GetBishopsColor(pos, BLACK);
 }
 //Retrieve the rooks on the board of a specific color
-Bitboard GetRooksColor(S_Board* pos, int color) {
+Bitboard GetRooksColor(const S_Board* pos, int color) {
 	return pos->bitboards[ROOK + color * 6];
 }
 //Retrieve all the rooks on the board
-Bitboard GetRooks(S_Board* pos) {
+Bitboard GetRooks(const S_Board* pos) {
 	return GetRooksColor(pos, WHITE) | GetRooksColor(pos, BLACK);
 }
 //Retrieve the queens on the board of a specific color
-Bitboard GetQueensColor(S_Board* pos, int color) {
+Bitboard GetQueensColor(const S_Board* pos, int color) {
 	return pos->bitboards[QUEEN + color * 6];
 }
 //Retrieve all the queens on the board
-Bitboard GetQueens(S_Board* pos) {
+Bitboard GetQueens(const S_Board* pos) {
 	return GetQueensColor(pos, WHITE) | GetQueensColor(pos, BLACK);
 }
 //Retrieve the king on the board of a specific color
-Bitboard GetKingColor(S_Board* pos, int color) {
+Bitboard GetKingColor(const S_Board* pos, int color) {
 	return pos->bitboards[KING + color * 6];
 }
 //Retrieve  the kings on the board
-Bitboard GetKings(S_Board* pos) {
+Bitboard GetKings(const S_Board* pos) {
 	return GetKingColor(pos, WHITE) | GetKingColor(pos, BLACK);
 }
 

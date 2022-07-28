@@ -3,7 +3,7 @@
 #include "move.h"
 
 // is square current given attacked by the current given side
-int is_square_attacked(S_Board *pos, int square, int side);
+int is_square_attacked(const S_Board *pos, int square, int side);
 int MoveExists(S_Board *pos, const int move);
 
 // generate all moves

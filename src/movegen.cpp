@@ -8,7 +8,7 @@
 #include "stdint.h"
 
 // is square current given attacked by the current given side
-int is_square_attacked(S_Board* pos, int square, int side) {
+int is_square_attacked(const S_Board* pos, int square, int side) {
 	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
 	Bitboard occ = pos->occupancies[BOTH];
 

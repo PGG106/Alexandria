@@ -107,6 +107,8 @@ int MaterialDraw(const S_Board* pos) {
 	//If we only have kings on the board then it's a draw
 	if (count_bits(pos->occupancies[BOTH]) == 2)
 		return TRUE;
+	else if (count_bits(pos->occupancies[BOTH]) == 3 && ((count_bits(GetKnights(pos)) == 1) || (count_bits(GetBishops(pos)) == 1)))
+		return TRUE;
 
 	/*
 	int white_rooks = count_bits(pos->bitboards[WR]);

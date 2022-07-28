@@ -448,7 +448,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	// is king in check
 	int in_check = is_square_attacked(
-		pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]), pos->side ^ 1);
+		pos, get_ls1b_index(GetKingColor(pos, pos->side)), pos->side ^ 1);
 
 	if (in_check) {
 		depth++;
