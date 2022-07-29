@@ -32,11 +32,9 @@ int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
 
 void CheckUp(S_SearchINFO* info) {
 	// check if time up or interrupt from GUI
-
 	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
 		info->stopped = TRUE;
 	}
-
 	ReadInput(info);
 }
 
@@ -86,15 +84,14 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 	Bitboard occ = pos->bitboards[BOTH];
 	Bitboard attackers = 0ULL;
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
-	Bitboard attackingBishops = pieceBB(BISHOP);
-	Bitboard attackingRooks = pieceBB(ROOK);
-	Bitboard attackingQueens = pieceBB(QUEEN);
-	Bitboard attackingKnights = pieceBB(KNIGHT);
-	Bitboard attackingKings = pieceBB(KING);
+	Bitboard attackingBishops = GetBishopsBB(pos);
+	Bitboard attackingRooks = GetRooksBB(pos);
+	Bitboard attackingQueens = GetQueensBB(pos);
+	Bitboard attackingKnights = GetKnightsBB(pos);
+	Bitboard attackingKings = GetKingsBB(pos);
 	//Get the possible attacks for the sliding pieces to the target square according to the current board occupancies
 	Bitboard intercardinalRays = get_bishop_attacks(to, occ);
 	Bitboard cardinalRaysRays = get_rook_attacks(to, occ);
-
 	//Set the attackers up as the pieces actually on the board that have an attack avaliable 
 	attackers |= intercardinalRays & (attackingBishops | attackingQueens);
 	attackers |= cardinalRaysRays & (attackingRooks | attackingQueens);
@@ -104,7 +101,6 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 	attackers |= (knight_attacks[to] & (attackingKnights));
 
 	attackers |= king_attacks[to] & (attackingKings);
-
 	//Return the bitboard encoding all the attackers to the square "to"
 	return attackers;
 }
@@ -115,7 +111,6 @@ static inline bool SEE(const S_Board* pos, const int move,
 
 	int to = get_move_target(move);
 	int target = pos->pieces[to];
-
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 	if (value < 0)
@@ -123,38 +118,32 @@ static inline bool SEE(const S_Board* pos, const int move,
 
 	int from = get_move_source(move);
 	int attacker = pos->pieces[from];
-
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
 	if (value >= 0)
 		return true;
-
 	// It doesn't matter if the to square is occupied or not
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to);
-	Bitboard bishops = pieceBB(BISHOP) | pieceBB(QUEEN);
-	Bitboard rooks = pieceBB(ROOK) | pieceBB(QUEEN);
+	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
+	Bitboard rooks = GetRooksBB(pos) | GetQueensBB(pos);
 
 	int side = !Color[attacker];
 
 	// Make captures until one side runs out, or fail to beat threshold
 	while (true) {
-
 		// Remove used pieces from attackers
 		attackers &= occupied;
-
 		Bitboard myAttackers = attackers & pos->occupancies[side];
 		if (!myAttackers)
 			break;
-
 		// Pick next least valuable piece to capture with
 		int pt;
 		for (pt = PAWN; pt <= KING; ++pt)
-			if (myAttackers & pieceBB(pt))
+			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
 
 		side = !side;
-
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
 
@@ -163,9 +152,8 @@ static inline bool SEE(const S_Board* pos, const int move,
 
 			break;
 		}
-
 		// Remove the used piece from occupied
-		occupied ^= (1ULL << (get_ls1b_index(myAttackers & pieceBB(pt))));
+		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetGenericPiecesBB(pos, pt))));
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
 			attackers |= get_bishop_attacks(to, occupied) & bishops;
 		if (pt == ROOK || pt == QUEEN)
@@ -187,7 +175,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 			move_list->moves[i].score = INT32_MAX - 100;
 			continue;
 		}
-
 		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
 		else if (get_move_enpassant(move) || get_move_promoted(move)) {
 
@@ -201,7 +188,6 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
 				40000 + 60000 * SEE(pos, move, -100);
 			continue;
-
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
 		else if (pos->searchKillers[0][pos->ply] == move) {
@@ -214,25 +200,17 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 
 			move_list->moves[i].score = 80000;
 			continue;
-
 		}
-
 		//After the killer moves try the Counter moves
-		else if (move ==
-			CounterMoves[get_move_source(pos->history[pos->hisPly].move)]
-			[get_move_target(pos->history[pos->hisPly].move)]) {
-
+		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)])
+		{
 			move_list->moves[i].score = 70000;
 			continue;
-
 		}
-
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score =
-				pos->searchHistory[pos->pieces[get_move_source(move)]]
-				[get_move_target(move)];
+			move_list->moves[i].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
 			continue;
 		}
 	}
@@ -337,9 +315,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 
 			// if the Score is better than alpha update alpha
 			if (Score > alpha) {
-
 				alpha = Score;
-
 			}
 
 			// if the Score is better than beta save the move in the TT and return beta
@@ -388,22 +364,17 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
-
 	// increment nodes count
 	info->nodes++;
-
-
 	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
 		MaterialDraw(pos)) {
 		return 0;
 	}
-
 	//If we reached maxdepth we return a static evaluation of the position
 	if (pos->ply > MAXDEPTH - 1) {
 		return EvalPosition(pos);
 	}
-
 	// Initialize the node
 	ss->inCheck = is_square_attacked(
 		pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]), pos->side ^ 1);
@@ -433,11 +404,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	int pv_node = beta - alpha > 1;
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	//If we found a value in the TT we can return it
 	if (pos->ply && ttHit && !pv_node) {
-
 		HashTable->cut++;
 		return tte.score;
-
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
@@ -448,7 +418,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	// is king in check
 	int in_check = is_square_attacked(
-		pos, get_ls1b_index(GetKingColor(pos, pos->side)), pos->side ^ 1);
+		pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
 
 	if (in_check) {
 		depth++;
@@ -482,14 +452,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if (!pv_node && depth < 8 && static_eval - futility(depth, improving) >= beta)
 		return static_eval;
 
-	// null move pruning
-	if (DoNull && depth >= 4 && !in_check && pos->ply) {
-
+	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta
+	if (DoNull && depth >= 3 && !in_check && pos->ply) {
 
 		MakeNullMove(pos);
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - 4, pos, info, FALSE, ss);
+		Score = -negamax(-beta, -beta + 1, depth - 3, pos, info, FALSE, ss);
 
 		TakeNullMove(pos);
 
@@ -532,7 +501,7 @@ moves_loop:
 
 		int move = move_list->moves[count].move;
 		//if the move isn't a quiet move we update the quiet moves list and counter
-		if (!get_move_capture(move)) {
+		if (IsQuiet(move)) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
@@ -553,13 +522,14 @@ moves_loop:
 			// do normal alpha beta search
 			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
 
-		// late move reduction (LMR)
+		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// condition to consider LMR
 			if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
 				!in_check && IsQuiet(move))
 
 			{
+				//calculate by how much we should reduce the search depth 
 				int depth_reduction = reduction(depth, moves_searched);
 
 				// search current move with reduced depth:
@@ -589,15 +559,16 @@ moves_loop:
 			return 0;
 
 		moves_searched++;
-
+		//If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
+			//Update the best move found and what the best score is
 			BestScore = Score;
 			bestmove = move;
 
 			// found a better move
 			if (Score > alpha) {
 
-				// store history moves
+				// update history heuristic
 				if (IsQuiet(move)) {
 					updateHH(pos, depth, bestmove, &quiet_moves);
 				}
@@ -630,16 +601,10 @@ moves_loop:
 
 	// we don't have any legal moves to make in the current postion
 	if (legal_moves == 0) {
-		// king is in check
-		if (in_check)
-			// return mating score (assuming closest distance to mating position)
-			return  (-mate_value + pos->ply);
-
-		else
-			// return stalemate score
-			return 0;
+		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
+		return in_check ? (-mate_value + pos->ply) : 0;
 	}
-
+	//If alpha changed we are in a pv node so we save the score as an exact score, otherwise we just save it as HFALPHA
 	if (alpha != old_alpha) {
 		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
 	}

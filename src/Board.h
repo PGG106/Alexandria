@@ -36,7 +36,6 @@
 #define TEST
 
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
-#define pieceBB(type) (pos->bitboards[type] | pos->bitboards[type + 6])
 
 extern uint8_t PopCnt16[1 << 16];
 
@@ -292,27 +291,32 @@ void Reset_info(S_SearchINFO* info);
 //Pieces info retrival
 
 //Retrieve the pawns on the board of a specific color
-Bitboard GetPawnsColor(const S_Board* pos, int color);
+Bitboard GetPawnsColorBB(const S_Board* pos, int color);
 //Retrieve all the pawns on the board
-Bitboard GetPawns(const S_Board* pos);
+Bitboard GetPawnsBB(const S_Board* pos);
 //Retrieve the knights on the board of a specific color
-Bitboard GetKnightsColor(const S_Board* pos, int color);
+Bitboard GetKnightsColorBB(const S_Board* pos, int color);
 //Retrieve all the pawns on the board
-Bitboard GetKnights(const S_Board* pos);
+Bitboard GetKnightsBB(const S_Board* pos);
 //Retrieve the bishops on the board of a specific color
-Bitboard GetBishopsColor(const S_Board* pos, int color);
+Bitboard GetBishopsColorBB(const S_Board* pos, int color);
 //Retrieve all the bishops on the board
-Bitboard GetBishops(const S_Board* pos);
+Bitboard GetBishopsBB(const S_Board* pos);
 //Retrieve the rooks on the board of a specific color
-Bitboard GetRooksColor(const S_Board* pos, int color);
+Bitboard GetRooksColorBB(const S_Board* pos, int color);
 //Retrieve all the rooks on the board
-Bitboard GetRooks(const S_Board* pos);
+Bitboard GetRooksBB(const S_Board* pos);
 //Retrieve the queens on the board of a specific color
-Bitboard GetQueensColor(const S_Board* pos, int color);
+Bitboard GetQueensColorBB(const S_Board* pos, int color);
 //Retrieve all the queens on the board
-Bitboard GetQueens(const S_Board* pos);
+Bitboard GetQueensBB(const S_Board* pos);
 //Retrieve the king on the board of a specific color
-Bitboard GetKingColor(const S_Board* pos, int color);
+Bitboard GetKingColorBB(const S_Board* pos, int color);
 //Retrieve the 2 kings on the board
-Bitboard GetKings(const S_Board* pos);
-
+Bitboard GetKingsBB(const S_Board* pos);
+//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color);
+//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
+//Return a piece based on the type and the color 
+int GetPiece(int piecetype, int color);
