@@ -175,10 +175,14 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 			move_list->moves[i].score = INT32_MAX - 100;
 			continue;
 		}
+		else if (get_move_promoted(move)) {
+			move_list->moves[i].score = 100000000 + get_move_promoted(move);
+			continue;
+		}
 		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
-		else if (get_move_enpassant(move) || get_move_promoted(move)) {
+		else if (get_move_enpassant(move)) {
 
-			move_list->moves[i].score = 105 + 100000;
+			move_list->moves[i].score = 105 + 90000000;
 			continue;
 		}
 		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
@@ -186,25 +190,25 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				40000 + 60000 * SEE(pos, move, -100);
+				50000000 + 40000000 * SEE(pos, move, -100);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
 		else if (pos->searchKillers[0][pos->ply] == move) {
 
-			move_list->moves[i].score = 90000;
+			move_list->moves[i].score = 80000000;
 			continue;
 		}
 		//Second killer move always comes after the first one
 		else if (pos->searchKillers[1][pos->ply] == move) {
 
-			move_list->moves[i].score = 80000;
+			move_list->moves[i].score = 70000000;
 			continue;
 		}
 		//After the killer moves try the Counter moves
 		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)])
 		{
-			move_list->moves[i].score = 70000;
+			move_list->moves[i].score = 60000000;
 			continue;
 		}
 		//if the move isn't in any of the previous categories score it according to the history heuristic

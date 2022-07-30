@@ -17,6 +17,7 @@ extern const int rook_score[64];
 extern const int king_score[64];
 // mirror positional score tables for opposite side
 extern const int mirror_score[128];
+//Returns if the position is a draw because there isn't enough mating material
 int MaterialDraw(const S_Board* pos);
 // position evaluation
 int EvalPosition(const S_Board* pos);
