@@ -214,7 +214,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score = (std::min)(599000000, pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)]);
+			move_list->moves[i].score = (std::min)(499000000, pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)]);
 			continue;
 		}
 	}
