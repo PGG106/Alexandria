@@ -84,42 +84,40 @@ int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	assert(pos->ply >= 0 && pos->ply < MAXDEPTH);
 
 	if (HashTable->pTable[index].tt_key == (uint16_t)pos->posKey) {
-		if (MoveExists(pos, HashTable->pTable[index].move)) {
 
-			tte->move = HashTable->pTable[index].move;
-			if (HashTable->pTable[index].depth >= depth) {
-				HashTable->hit++;
+		tte->move = HashTable->pTable[index].move;
+		if (HashTable->pTable[index].depth >= depth) {
+			HashTable->hit++;
 
-				tte->score = HashTable->pTable[index].score;
-				if (tte->score > ISMATE)
-					tte->score -= pos->ply;
-				else if (tte->score < -ISMATE)
-					tte->score += pos->ply;
+			tte->score = HashTable->pTable[index].score;
+			if (tte->score > ISMATE)
+				tte->score -= pos->ply;
+			else if (tte->score < -ISMATE)
+				tte->score += pos->ply;
 
-				switch (HashTable->pTable[index].flags) {
+			switch (HashTable->pTable[index].flags) {
 
-				case HFALPHA:
-					if (tte->score <= alpha) {
-						tte->flags = HFALPHA;
-						tte->score = alpha;
-						return TRUE;
-					}
-					break;
-				case HFBETA:
-					if (tte->score >= beta) {
-						tte->flags = HFBETA;
-						tte->score = beta;
-						return TRUE;
-					}
-					break;
-				case HFEXACT:
-					tte->flags = HFEXACT;
+			case HFALPHA:
+				if (tte->score <= alpha) {
+					tte->flags = HFALPHA;
+					tte->score = alpha;
 					return TRUE;
-					break;
-				default:
-					assert(FALSE);
-					break;
 				}
+				break;
+			case HFBETA:
+				if (tte->score >= beta) {
+					tte->flags = HFBETA;
+					tte->score = beta;
+					return TRUE;
+				}
+				break;
+			case HFEXACT:
+				tte->flags = HFEXACT;
+				return TRUE;
+				break;
+			default:
+				assert(FALSE);
+				break;
 			}
 		}
 	}
@@ -143,8 +141,8 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
 		(uint16_t)pos->posKey != HashTable->pTable[index].tt_key ||
-		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4) {
-
+		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
+	{
 		HashTable->pTable[index].tt_key = (uint16_t)pos->posKey;
 		HashTable->pTable[index].flags = (uint8_t)flags;
 		HashTable->pTable[index].score = (int16_t)score;
