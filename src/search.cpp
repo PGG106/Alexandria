@@ -214,7 +214,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score =  pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
+			move_list->moves[i].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
 			continue;
 		}
 	}
@@ -597,7 +597,7 @@ moves_loop:
 
 				StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
 				// node (move) fails high
-				return beta;
+				break;
 			}
 		}
 	}
@@ -618,7 +618,7 @@ moves_loop:
 	}
 
 	// node (move) fails low
-	return alpha;
+	return BestScore;
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
