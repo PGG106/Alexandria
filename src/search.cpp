@@ -618,7 +618,7 @@ moves_loop:
 	}
 
 	// node (move) fails low
-	return BestScore;
+	return BestScore >= beta ? beta : alpha;
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
