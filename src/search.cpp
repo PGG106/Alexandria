@@ -214,7 +214,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score =  pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
+			move_list->moves[i].score = pos->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
 			continue;
 		}
 	}
@@ -284,7 +284,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 	score_moves(pos, move_list, tte.move);
 
 	//set up variables needed for the search
-	int BestScore = -MAXSCORE;
+	int BestScore = standing_pat;
 	int bestmove = NOMOVE;
 	int Score = -MAXSCORE;
 
@@ -315,32 +315,27 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		if (Score > BestScore) {
 			//Update the best move found and what the best score is
 			BestScore = Score;
-			bestmove = move;
 
 			// if the Score is better than alpha update alpha
 			if (Score > alpha) {
 				alpha = Score;
-			}
-
-			// if the Score is better than beta save the move in the TT and return beta
-			if (Score >= beta) {
-				StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
-				// node (move) fails high
-				return beta;
+				bestmove = move;
+				// if the Score is better than beta save the move in the TT and return beta
+				if (Score >= beta) {
+					StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
+					// node (move) fails high
+					return BestScore;
+				}
 			}
 		}
 	}
+	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
+	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	//If alpha changed we are in a pv node so we save the score as an exact score, otherwise we just save it as HFALPHA
-	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, 0, pv_node);
-	}
-	else {
-		StoreHashEntry(pos, bestmove, alpha, HFALPHA, 0, pv_node);
-	}
+	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
 
 	// node (move) fails low
-	return alpha;
+	return BestScore;
 }
 
 // full depth moves counter
@@ -392,9 +387,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
-
-	// legal moves counter
-	int legal_moves = 0;
 
 	// Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -518,9 +510,6 @@ moves_loop:
 		//Play the move
 		make_move(move, pos);
 
-		// increment legal moves
-		legal_moves++;
-
 		// full depth search
 		if (moves_searched == 0)
 
@@ -568,57 +557,51 @@ moves_loop:
 		if (Score > BestScore) {
 			//Update the best move found and what the best score is
 			BestScore = Score;
-			bestmove = move;
 
 			// found a better move
 			if (Score > alpha) {
-
+				bestmove = move;
 				// update history heuristic
 				if (IsQuiet(move)) {
 					updateHH(pos, depth, bestmove, &quiet_moves);
 				}
-
-				// PV node (move)
 				alpha = Score;
-			}
 
-			// fail-hard beta cutoff
-			if (Score >= beta) {
-				//If the move that caused the beta cutoff is quiet we have a killer move
-				if (IsQuiet(move)) {
-					// store killer moves
-					pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-					pos->searchKillers[0][pos->ply] = bestmove;
-					//Save CounterMoves
-					int previousMove = pos->history[pos->hisPly].move;
-					CounterMoves[get_move_source(previousMove)]
-						[get_move_target(previousMove)] = move;
+				if (Score >= beta)
+				{
+					//If the move that caused the beta cutoff is quiet we have a killer move
+					if (IsQuiet(move)) {
+						// store killer moves
+						pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+						pos->searchKillers[0][pos->ply] = bestmove;
+						//Save CounterMoves
+						int previousMove = pos->history[pos->hisPly].move;
+						CounterMoves[get_move_source(previousMove)]
+							[get_move_target(previousMove)] = move;
+					}
+
+					StoreHashEntry(pos, bestmove, BestScore, HFBETA, depth, pv_node);
+					// node (move) fails high
+					return BestScore;
 				}
-
-				StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
-				// node (move) fails high
-				return beta;
 			}
 		}
 	}
+
 	if (BestScore >= beta && !get_move_capture(bestmove))
 		updateHH(pos, depth, bestmove, &quiet_moves);
 
 	// we don't have any legal moves to make in the current postion
-	if (legal_moves == 0) {
+	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		return in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
-	//If alpha changed we are in a pv node so we save the score as an exact score, otherwise we just save it as HFALPHA
-	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
-	}
-	else {
-		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
-	}
+	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
+	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
+	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
-	return alpha;
+	return BestScore;
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
