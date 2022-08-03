@@ -315,11 +315,11 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		if (Score > BestScore) {
 			//Update the best move found and what the best score is
 			BestScore = Score;
-			bestmove = move;
 
 			// if the Score is better than alpha update alpha
 			if (Score > alpha) {
 				alpha = Score;
+				bestmove = move;
 			}
 
 			// if the Score is better than beta save the move in the TT and return beta
@@ -331,16 +331,13 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		}
 	}
 
-	//If alpha changed we are in a pv node so we save the score as an exact score, otherwise we just save it as HFALPHA
-	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, 0, pv_node);
-	}
-	else {
-		StoreHashEntry(pos, bestmove, alpha, HFALPHA, 0, pv_node);
-	}
+	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
+	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+
+	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
 
 	// node (move) fails low
-	return alpha;
+	return BestScore;
 }
 
 // full depth moves counter
@@ -588,11 +585,12 @@ moves_loop:
 
 					StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
 					// node (move) fails high
-					return beta;
+					return BestScore;
 				}
 			}
 		}
 	}
+
 	if (BestScore >= beta && !get_move_capture(bestmove))
 		updateHH(pos, depth, bestmove, &quiet_moves);
 
@@ -601,7 +599,7 @@ moves_loop:
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
 		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
-	//if we updated alpha we have an exact score, otherwise we only have an upper bound
+	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
 	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
