@@ -597,7 +597,7 @@ moves_loop:
 
 				StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
 				// node (move) fails high
-				break;
+				return beta;
 			}
 		}
 	}
@@ -618,7 +618,7 @@ moves_loop:
 	}
 
 	// node (move) fails low
-	return BestScore >= beta ? beta : alpha;
+	return BestScore;
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
