@@ -607,16 +607,11 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (legal_moves == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		return in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
-	//If alpha changed we are in a pv node so we save the score as an exact score, otherwise we just save it as HFALPHA
-	if (alpha != old_alpha) {
-		StoreHashEntry(pos, bestmove, BestScore, HFEXACT, depth, pv_node);
-	}
-	else {
-		StoreHashEntry(pos, bestmove, alpha, HFALPHA, depth, pv_node);
-	}
-
+	//if we updated alpha we have an exact score, otherwise we only have a lower bound
+	int flag = (alpha != old_alpha) ? HFEXACT : HFALPHA;
+	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
