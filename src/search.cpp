@@ -284,7 +284,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 	score_moves(pos, move_list, tte.move);
 
 	//set up variables needed for the search
-	int BestScore = -MAXSCORE;
+	int BestScore = standing_pat;
 	int bestmove = NOMOVE;
 	int Score = -MAXSCORE;
 
@@ -320,17 +320,15 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 			if (Score > alpha) {
 				alpha = Score;
 				bestmove = move;
-			}
-
-			// if the Score is better than beta save the move in the TT and return beta
-			if (Score >= beta) {
-				StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
-				// node (move) fails high
-				return beta;
+				// if the Score is better than beta save the move in the TT and return beta
+				if (Score >= beta) {
+					StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
+					// node (move) fails high
+					return BestScore;
+				}
 			}
 		}
 	}
-
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
 	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
@@ -567,10 +565,9 @@ moves_loop:
 				if (IsQuiet(move)) {
 					updateHH(pos, depth, bestmove, &quiet_moves);
 				}
+				alpha = Score;
 
-				if (pv_node && (Score < beta))
-					alpha = Score;
-				else
+				if (Score >= beta)
 				{
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
@@ -583,7 +580,7 @@ moves_loop:
 							[get_move_target(previousMove)] = move;
 					}
 
-					StoreHashEntry(pos, bestmove, beta, HFBETA, depth, pv_node);
+					StoreHashEntry(pos, bestmove, BestScore, HFBETA, depth, pv_node);
 					// node (move) fails high
 					return BestScore;
 				}
