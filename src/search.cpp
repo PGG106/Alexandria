@@ -571,9 +571,11 @@ moves_loop:
 				{
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
-						// store killer moves
-						pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-						pos->searchKillers[0][pos->ply] = bestmove;
+						if (pos->searchKillers[0][pos->ply] != bestmove) {
+							// store killer moves
+							pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+							pos->searchKillers[0][pos->ply] = bestmove;
+						}
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
 						CounterMoves[get_move_source(previousMove)]
@@ -588,7 +590,7 @@ moves_loop:
 		}
 	}
 
-	if (BestScore >= beta && !get_move_capture(bestmove))
+	if (BestScore >= beta && !IsQuiet(bestmove))
 		updateHH(pos, depth, bestmove, &quiet_moves);
 
 	// we don't have any legal moves to make in the current postion
