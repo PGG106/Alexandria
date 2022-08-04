@@ -254,7 +254,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 	// If the static eval is better than beta we can return beta
 	if (standing_pat >= beta) {
 		// node (move) fails high
-		return beta;
+		return standing_pat;
 	}
 
 	// If the static eval is better than alpha we can use the eval as an improved alpha
@@ -320,17 +320,15 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 			if (Score > alpha) {
 				alpha = Score;
 				bestmove = move;
+
 				// if the Score is better than beta save the move in the TT and return beta
-				if (Score >= beta) {
-					StoreHashEntry(pos, bestmove, beta, HFBETA, 0, pv_node);
-					// node (move) fails high
-					return BestScore;
-				}
+				if (Score >= beta) break;
 			}
 		}
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
-	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+
+	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
 
@@ -571,9 +569,13 @@ moves_loop:
 				{
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
-						// store killer moves
-						pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-						pos->searchKillers[0][pos->ply] = bestmove;
+
+						if (pos->searchKillers[0][pos->ply] != bestmove) {
+							// store killer moves
+							pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
+							pos->searchKillers[0][pos->ply] = bestmove;
+						}
+
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
 						CounterMoves[get_move_source(previousMove)]
@@ -588,7 +590,9 @@ moves_loop:
 		}
 	}
 
-	if (BestScore >= beta && !get_move_capture(bestmove))
+
+	if (BestScore >= beta && !IsQuiet(bestmove))
+
 		updateHH(pos, depth, bestmove, &quiet_moves);
 
 	// we don't have any legal moves to make in the current postion
@@ -597,7 +601,8 @@ moves_loop:
 		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
-	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+
+	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
