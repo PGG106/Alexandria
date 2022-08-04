@@ -581,10 +581,8 @@ moves_loop:
 						CounterMoves[get_move_source(previousMove)]
 							[get_move_target(previousMove)] = move;
 					}
-
-					StoreHashEntry(pos, bestmove, BestScore, HFBETA, depth, pv_node);
 					// node (move) fails high
-					return BestScore;
+					break;
 				}
 			}
 		}
