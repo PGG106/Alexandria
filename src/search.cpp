@@ -561,7 +561,10 @@ moves_loop:
 			// found a better move
 			if (Score > alpha) {
 				bestmove = move;
-
+				// update history heuristic
+				if (IsQuiet(move)) {
+					updateHH(pos, depth, bestmove, &quiet_moves);
+				}
 				alpha = Score;
 
 				if (Score >= beta)
@@ -579,7 +582,9 @@ moves_loop:
 							[get_move_target(previousMove)] = move;
 					}
 
-					break;
+					StoreHashEntry(pos, bestmove, BestScore, HFBETA, depth, pv_node);
+					// node (move) fails high
+					return BestScore;
 				}
 			}
 		}
@@ -594,7 +599,7 @@ moves_loop:
 		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
-	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
