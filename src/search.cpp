@@ -599,7 +599,7 @@ moves_loop:
 		BestScore = in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
-	int flag = BestScore > beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
