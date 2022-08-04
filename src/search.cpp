@@ -424,7 +424,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	}
 
 	// get static evaluation score
-	static_eval = EvalPosition(pos);
+	static_eval = ttHit ? tte.score : EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
