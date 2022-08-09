@@ -559,10 +559,6 @@ moves_loop:
 			// found a better move
 			if (Score > alpha) {
 				bestmove = move;
-				// update history heuristic
-				if (IsQuiet(move)) {
-					updateHH(pos, depth, bestmove, &quiet_moves);
-				}
 				alpha = Score;
 
 				if (Score >= beta)
@@ -582,19 +578,17 @@ moves_loop:
 							[get_move_target(previousMove)] = move;
 					}
 
-					StoreHashEntry(pos, bestmove, BestScore, HFBETA, depth, pv_node);
 					// node (move) fails high
-					return BestScore;
+					break;
 				}
 			}
 		}
 	}
 
 
-	if (BestScore >= beta && !IsQuiet(bestmove))
-
+	if (BestScore >= beta && IsQuiet(bestmove)) {
 		updateHH(pos, depth, bestmove, &quiet_moves);
-
+	}
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
