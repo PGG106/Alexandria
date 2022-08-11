@@ -399,7 +399,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
-	if (pos->ply && ttHit && !pv_node && MoveExists(pos, tte.move)) {
+	if (pos->ply && !pv_node && ttHit && MoveExists(pos, tte.move)) {
 
 		HashTable->cut++;
 		return tte.score;
@@ -444,16 +444,24 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	}
 
 	// Reverse futility pruning (depth 8 limit was taken from stockfish)
-	if (!pv_node && depth < 8 && static_eval - futility(depth, improving) >= beta)
+	if (!pv_node
+		&& depth < 8
+		&& static_eval - futility(depth, improving) >= beta)
 		return static_eval;
 
 	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta
-	if (DoNull && depth >= 3 && !in_check && pos->ply) {
+	if (!pv_node
+		&& DoNull
+		&& static_eval >= beta
+		&& !in_check
+		&& pos->ply
+		&& depth >= 3) {
 
 		MakeNullMove(pos);
+		int R = 3 + reductions[depth];
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - 3, pos, info, FALSE, ss);
+		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
 
 		TakeNullMove(pos);
 
