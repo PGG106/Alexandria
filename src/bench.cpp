@@ -73,7 +73,7 @@ int start_bench() {
 
     printf("\nPosition: %d\n", positions);
 
-    Root_search_position(10, pos, info);
+    Root_search_position(12, pos, info);
 
     total_nodes += info->nodes;
     total_time += GetTimeMs() - info->starttime;
