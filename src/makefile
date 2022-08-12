@@ -27,4 +27,4 @@ $(TARGET): $(OBJS)
 	g++ -c -static -static-libstdc++ -static-libgcc $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
 
 clean:
-	rm *.o *.exe
+	del *.o *.exe

@@ -686,18 +686,18 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 		//This handles the basic console output, show is always true by default is we are dealing with a single thread
 		if (show) {
 			if (score > -mate_value && score < -mate_score)
-				printf("info score mate %d depth %d nodes %ld time %d pv ",
-					-(score + mate_value) / 2, current_depth, info->nodes,
+				printf("info score mate %d depth %d nodes %ld nps %ld time %d pv ",
+					-(score + mate_value) / 2, current_depth, info->nodes, info->nodes / (((GetTimeMs() - info->starttime) / 1000) + 1),
 					GetTimeMs() - info->starttime);
 
 			else if (score > mate_score && score < mate_value)
-				printf("info score mate %d depth %d nodes %ld time %d pv ",
-					(mate_value - score) / 2 + 1, current_depth, info->nodes,
+				printf("info score mate %d depth %d nodes %ld nps %ld time %d pv ",
+					(mate_value - score) / 2 + 1, current_depth, info->nodes, info->nodes / (((GetTimeMs() - info->starttime) / 1000) + 1),
 					GetTimeMs() - info->starttime);
 
 			else
-				printf("info score cp %d depth %d nodes %ld  time %d pv ", score,
-					current_depth, info->nodes, GetTimeMs() - info->starttime);
+				printf("info score cp %d depth %d nodes %ld nps %ld time %d pv ", score,
+					current_depth, info->nodes, info->nodes / (((GetTimeMs() - info->starttime) / 1000) + 1), GetTimeMs() - info->starttime);
 
 			int PvCount = GetPvLine(current_depth, pos);
 
