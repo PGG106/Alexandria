@@ -90,8 +90,7 @@ int make_move(int move, S_Board* pos) {
 	int promoted_piece = get_move_promoted(move);
 
 	int capture = get_move_capture(move);
-
-	int double_push = get_move_double(move);
+	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = get_move_enpassant(move);
 	int castling = get_move_castling(move);
 

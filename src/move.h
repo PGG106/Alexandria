@@ -1,25 +1,25 @@
 #pragma once
 
 typedef struct S_MOVE {
-  int move;
-  int score;
+	int move;
+	int score;
 } S_MOVE;
 
 // move list structure
 typedef struct {
-  // moves
-  S_MOVE moves[256];
+	// moves
+	S_MOVE moves[256];
 
-  // move count
-  int count;
+	// move count
+	int count;
 } S_MOVELIST;
 
 // encode move
-#define encode_move(source, target, piece, promoted, capture, double_push,     \
+#define encode_move(source, target, piece, promoted, capture,      \
                     enpassant, castling)                                       \
   (source) | (target << 6) | (piece << 12) | (promoted << 16) |                \
-      (capture << 20) | (double_push << 21) | (enpassant << 22) |              \
-      (castling << 23)
+      (capture << 20) |  (enpassant << 21) |              \
+      (castling << 22)
 
 #define NOMOVE 0
 #define mate_score 31000
@@ -39,12 +39,10 @@ typedef struct {
 #define get_move_promoted(move) ((move & 0xf0000) >> 16)
 // extract capture flag
 #define get_move_capture(move) (move & 0x100000)
-// extract double pawn push flag
-#define get_move_double(move) (move & 0x200000)
 // extract enpassant flag
-#define get_move_enpassant(move) (move & 0x400000)
+#define get_move_enpassant(move) (move & 0x200000)
 // extract castling flag
-#define get_move_castling(move) (move & 0x800000)
+#define get_move_castling(move) (move & 0x400000)
 
 #define IsQuiet(move) (!get_move_capture(move) && !get_move_promoted(move))
 
