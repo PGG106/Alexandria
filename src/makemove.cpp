@@ -92,7 +92,7 @@ int make_move(int move, S_Board* pos) {
 	int capture = get_move_capture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = get_move_enpassant(move);
-	int castling = get_move_castling(move);
+	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 
 	pos->fiftyMove++;
 
@@ -228,7 +228,7 @@ int Unmake_move(S_Board* pos) {
 	int capture = get_move_capture(move);
 
 	int enpass = get_move_enpassant(move);
-	int castling = get_move_castling(move);
+	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	int piececap = pos->history[pos->hisPly].capture;
 
 	// handle pawn promotions
