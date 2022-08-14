@@ -458,7 +458,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& depth >= 3) {
 
 		MakeNullMove(pos);
-		int R = 3 + reductions[depth];
+		int R = 3 + depth/3;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
 		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
