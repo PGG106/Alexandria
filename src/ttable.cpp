@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include <cstring>
+#include <iostream>
 
 S_HASHTABLE HashTable[1];
 
@@ -57,8 +58,8 @@ void ClearHashTable(S_HASHTABLE* table) {
 }
 
 void InitHashTable(S_HASHTABLE* table, int MB) {
-	int HashSize = 0x100000 * MB;
-	table->numEntries = HashSize / sizeof(S_HASHENTRY);
+	uint64_t HashSize = 0x100000 * static_cast<uint64_t>(MB);
+	table->numEntries = (HashSize / sizeof(S_HASHENTRY));
 	table->numEntries -= 2;
 	if (table->pTable != NULL)
 		free(table->pTable);
@@ -67,8 +68,9 @@ void InitHashTable(S_HASHTABLE* table, int MB) {
 	std::memset(table->pTable, 0,
 		table->numEntries *
 		sizeof(S_HASHENTRY)); // functionally identical to clearHash
-							  // but hopefully quicker
-	printf("HashTable init complete with %d entries\n", table->numEntries);
+	// but hopefully quicker
+	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
+
 }
 
 int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,

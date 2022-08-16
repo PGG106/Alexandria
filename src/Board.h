@@ -185,7 +185,7 @@ S_HASHENTRY;
 
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
-	int numEntries;
+	int64_t numEntries;
 	int newWrite;
 	int overWrite;
 	int hit;
