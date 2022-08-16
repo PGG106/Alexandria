@@ -234,9 +234,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		CheckUp(info);
 	}
 
-	// increment nodes count
-	info->nodes++;
-
 	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
 		MaterialDraw(pos)) {
@@ -299,7 +296,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		pick_move(move_list, count);
 		int move = move_list->moves[count].move;
 		make_move(move, pos);
-
+		// increment nodes count
+		info->nodes++;
 		//Call Quiescence search recursively
 		Score = -Quiescence(-beta, -alpha, pos, info, pv_node);
 
@@ -361,8 +359,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
-	// increment nodes count
-	info->nodes++;
+
 	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
 		MaterialDraw(pos)) {
@@ -458,7 +455,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& depth >= 3) {
 
 		MakeNullMove(pos);
-		int R = 3 + depth/3;
+		int R = 3 + depth / 3;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
 		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
@@ -515,7 +512,8 @@ moves_loop:
 		}
 		//Play the move
 		make_move(move, pos);
-
+		// increment nodes count
+		info->nodes++;
 		// full depth search
 		if (moves_searched == 0)
 
