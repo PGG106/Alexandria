@@ -50,6 +50,19 @@ static int IsRepetition(const S_Board* pos) {
 	return FALSE;
 }
 
+//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
+static bool IsDraw(const S_Board* pos) {
+
+	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
+		MaterialDraw(pos)) {
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
@@ -234,10 +247,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		CheckUp(info);
 	}
 
-	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
-		MaterialDraw(pos)) {
-		return 0;
+	//If position is a draw return a randomized draw score to avoid 3-fold blindness
+	if (IsDraw(pos)) {
+		return 1 - (info->nodes & 2);
 	}
 
 	//If we reached maxdepth we return a static evaluation of the position
@@ -359,11 +371,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		CheckUp(info);
 	}
 
-	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
-		MaterialDraw(pos)) {
-		return 0;
+	//If position is a draw return a randomized draw score to avoid 3-fold blindness
+	if (IsDraw(pos)) {
+		return 1 - (info->nodes & 2);
 	}
+
 	//If we reached maxdepth we return a static evaluation of the position
 	if (pos->ply > MAXDEPTH - 1) {
 		return EvalPosition(pos);
