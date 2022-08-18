@@ -226,8 +226,8 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 int futility(int depth, bool improving) { return 70 * (depth - improving); }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
-	int pv_node) {
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
+	int pv_node = (beta - alpha) != 1;
 
 	//Check if we recieved a stop command from the GUI
 	if ((info->nodes & 2047) == 0) {
@@ -266,7 +266,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 	bool TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
 
 	//If we found a value in the TT we can return it
-	if (pos->ply && TThit && MoveExists(pos, tte.move)) {
+	if (!pv_node && TThit && MoveExists(pos, tte.move)) {
 		HashTable->cut++;
 		return tte.score;
 	}
@@ -299,7 +299,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, pos, info, pv_node);
+		Score = -Quiescence(-beta, -alpha, pos, info);
 
 		// take move back
 		Unmake_move(pos);
@@ -352,7 +352,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// recursion escape condition
 	if (depth <= 0) {
 		int pv_node = beta - alpha > 1;
-		return Quiescence(alpha, beta, pos, info, pv_node);
+		return Quiescence(alpha, beta, pos, info);
 	}
 
 	//Check if we recieved a stop command from the GUI
@@ -476,7 +476,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 
-		return Quiescence(alpha, beta, pos, info, pv_node);
+		return Quiescence(alpha, beta, pos, info);
 	}
 
 moves_loop:
