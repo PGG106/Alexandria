@@ -351,7 +351,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	// recursion escape condition
 	if (depth <= 0) {
-		int pv_node = beta - alpha > 1;
 		return Quiescence(alpha, beta, pos, info);
 	}
 
