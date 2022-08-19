@@ -265,17 +265,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
 
-	// If the static eval is better than beta we can return beta
-	if (standing_pat >= beta) {
-		// node (move) fails high
-		return standing_pat;
-	}
+	alpha = (std::max)(alpha, standing_pat);
 
-	// If the static eval is better than alpha we can use the eval as an improved alpha
-	if (standing_pat > alpha) {
-		// PV node (move)
-		alpha = standing_pat;
-	}
+	if (alpha >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
