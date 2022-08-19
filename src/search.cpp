@@ -50,6 +50,19 @@ static int IsRepetition(const S_Board* pos) {
 	return FALSE;
 }
 
+//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
+static bool IsDraw(const S_Board* pos) {
+
+	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
+		MaterialDraw(pos)) {
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 
@@ -226,18 +239,22 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 int futility(int depth, bool improving) { return 70 * (depth - improving); }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
-	int pv_node) {
+int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
+	// Initialize the node
+	int pv_node = beta - alpha > 1;
+	//tte is an hashtable entry, it will store the values fetched from the TT
+	S_HASHENTRY tte;
+	bool TThit;
+	int standing_pat;
 
 	//Check if we recieved a stop command from the GUI
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
 	}
 
-	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
-		MaterialDraw(pos)) {
-		return 0;
+	//If position is a draw return a randomized draw score to avoid 3-fold blindness
+	if (IsDraw(pos)) {
+		return 1 - (info->nodes & 2);
 	}
 
 	//If we reached maxdepth we return a static evaluation of the position
@@ -246,7 +263,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 	}
 
 	//Get a static evaluation of the position
-	int standing_pat = EvalPosition(pos);
+	standing_pat = EvalPosition(pos);
 
 	// If the static eval is better than beta we can return beta
 	if (standing_pat >= beta) {
@@ -260,13 +277,11 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		alpha = standing_pat;
 	}
 
-	//tte is an hashtable entry, it will store the values fetched from the TT
-	S_HASHENTRY tte;
 	//TThit is true if and only if we find something in the TT
-	bool TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
+	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
 
 	//If we found a value in the TT we can return it
-	if (pos->ply && TThit && MoveExists(pos, tte.move)) {
+	if (!pv_node && TThit && MoveExists(pos, tte.move)) {
 		HashTable->cut++;
 		return tte.score;
 	}
@@ -299,7 +314,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info,
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, pos, info, pv_node);
+		Score = -Quiescence(-beta, -alpha, pos, info);
 
 		// take move back
 		Unmake_move(pos);
@@ -349,29 +364,8 @@ static inline int reduction(int depth, int num_moves) {
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	int DoNull, Stack* ss) {
 
-	// recursion escape condition
-	if (depth <= 0) {
-		int pv_node = beta - alpha > 1;
-		return Quiescence(alpha, beta, pos, info, pv_node);
-	}
-
-	//Check if we recieved a stop command from the GUI
-	if ((info->nodes & 2047) == 0) {
-		CheckUp(info);
-	}
-
-	//If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
-		MaterialDraw(pos)) {
-		return 0;
-	}
-	//If we reached maxdepth we return a static evaluation of the position
-	if (pos->ply > MAXDEPTH - 1) {
-		return EvalPosition(pos);
-	}
 	// Initialize the node
-	ss->inCheck = is_square_attacked(
-		pos, get_ls1b_index(pos->bitboards[KING + pos->side * 6]), pos->side ^ 1);
+	int in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
 	int quietCount = 0;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
@@ -382,6 +376,27 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
+	int pv_node = beta - alpha > 1;
+
+	// recursion escape condition
+	if (depth <= 0) {
+		return Quiescence(alpha, beta, pos, info);
+	}
+
+	//Check if we recieved a stop command from the GUI
+	if ((info->nodes & 2047) == 0) {
+		CheckUp(info);
+	}
+
+	//If position is a draw return a randomized draw score to avoid 3-fold blindness
+	if (IsDraw(pos)) {
+		return 8 - (info->nodes & 7);
+	}
+
+	//If we reached maxdepth we return a static evaluation of the position
+	if (pos->ply > MAXDEPTH - 1) {
+		return EvalPosition(pos);
+	}
 
 	// Mate distance pruning
 	int mating_value = mate_value - pos->ply;
@@ -391,8 +406,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		if (alpha >= mating_value)
 			return mating_value;
 	}
-
-	int pv_node = beta - alpha > 1;
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
@@ -407,10 +420,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
 	if (depth >= 4 && !tte.move)
 		depth--;
-
-	// is king in check
-	int in_check = is_square_attacked(
-		pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
 
 	if (in_check) {
 		depth++;
@@ -476,7 +485,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 
-		return Quiescence(alpha, beta, pos, info, pv_node);
+		return Quiescence(alpha, beta, pos, info);
 	}
 
 moves_loop:
