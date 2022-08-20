@@ -363,3 +363,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/src/perf.data
+/src/perf.data.old
+/src/WSL2-Linux-Kernel

@@ -78,49 +78,21 @@ int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 
 	int index = pos->posKey % HashTable->numEntries;
 
-	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	assert(depth >= 0 && depth <= MAXDEPTH);
-	assert(alpha < beta);
-	assert(alpha >= -MAXSCORE && alpha <= MAXSCORE);
-	assert(beta >= -MAXSCORE && beta <= MAXSCORE);
-	assert(pos->ply >= 0 && pos->ply < MAXDEPTH);
-
 	if (HashTable->pTable[index].tt_key == (uint16_t)pos->posKey) {
 
 		tte->move = HashTable->pTable[index].move;
 		if (HashTable->pTable[index].depth >= depth) {
-			HashTable->hit++;
 
+			tte->depth = HashTable->pTable[index].depth;
+			tte->flags = HashTable->pTable[index].flags;
 			tte->score = HashTable->pTable[index].score;
 			if (tte->score > ISMATE)
 				tte->score -= pos->ply;
 			else if (tte->score < -ISMATE)
 				tte->score += pos->ply;
 
-			switch (HashTable->pTable[index].flags) {
-
-			case HFALPHA:
-				if (tte->score <= alpha) {
-					tte->flags = HFALPHA;
-					tte->score = alpha;
-					return TRUE;
-				}
-				break;
-			case HFBETA:
-				if (tte->score >= beta) {
-					tte->flags = HFBETA;
-					tte->score = beta;
-					return TRUE;
-				}
-				break;
-			case HFEXACT:
-				tte->flags = HFEXACT;
+			if (tte->flags == HFALPHA && tte->score <= alpha || (tte->flags == HFBETA && tte->score >= beta) || (tte->flags == HFEXACT))
 				return TRUE;
-				break;
-			default:
-				assert(FALSE);
-				break;
-			}
 		}
 	}
 
