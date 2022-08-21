@@ -66,14 +66,13 @@ void InitHashTable(S_HASHTABLE* table, int MB) {
 	table->pTable =
 		(S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
 	std::memset(table->pTable, 0,
-		table->numEntries *
-		sizeof(S_HASHENTRY)); // functionally identical to clearHash
-	// but hopefully quicker
+		table->numEntries * sizeof(S_HASHENTRY)); // functionally identical to clearHash but hopefully quicker
+
 	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
 
 }
 
-int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
+bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	S_HASHENTRY* tte) {
 
 	int index = pos->posKey % HashTable->numEntries;
@@ -102,10 +101,6 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv) {
 
 	int index = pos->posKey % HashTable->numEntries;
-	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	assert(depth >= 1 && depth <= MAXDEPTH);
-	assert(score >= -MAXSCORE && score <= MAXSCORE);
-	assert(pos->ply >= 0 && pos->ply <= MAXDEPTH);
 
 	if (score > ISMATE)
 		score -= pos->ply;
@@ -114,7 +109,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move || (uint16_t)pos->posKey != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || (uint16_t)pos->posKey != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
