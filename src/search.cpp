@@ -274,8 +274,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 	//If we found a value in the TT we can return it
 	if (!pv_node && TThit && MoveExists(pos, tte.move)) {
-		HashTable->cut++;
-		return tte.score;
+		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
+			return tte.score;
 	}
 
 	// create move list instance
@@ -401,14 +401,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
-	if (pos->ply 
-		&& !pv_node 
-		&& ttHit 
-		&& tte.depth>=depth
+	if (pos->ply
+		&& !pv_node
+		&& ttHit
+		&& tte.depth >= depth
 		&& MoveExists(pos, tte.move)) {
 
-		HashTable->cut++;
-		return tte.score;
+		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
+			return tte.score;
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
