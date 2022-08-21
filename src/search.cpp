@@ -401,7 +401,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
-	if (pos->ply && !pv_node && ttHit && MoveExists(pos, tte.move)) {
+	if (pos->ply 
+		&& !pv_node 
+		&& ttHit 
+		&& tte.depth>=depth
+		&& MoveExists(pos, tte.move)) {
 
 		HashTable->cut++;
 		return tte.score;

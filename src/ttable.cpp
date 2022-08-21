@@ -81,20 +81,19 @@ int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	if (HashTable->pTable[index].tt_key == (uint16_t)pos->posKey) {
 
 		tte->move = HashTable->pTable[index].move;
-		if (HashTable->pTable[index].depth >= depth) {
+		tte->depth = HashTable->pTable[index].depth;
+		tte->flags = HashTable->pTable[index].flags;
+		tte->score = HashTable->pTable[index].score;
 
-			tte->depth = HashTable->pTable[index].depth;
-			tte->flags = HashTable->pTable[index].flags;
-			tte->score = HashTable->pTable[index].score;
-			if (tte->score > ISMATE)
-				tte->score -= pos->ply;
-			else if (tte->score < -ISMATE)
-				tte->score += pos->ply;
+		if (tte->score > ISMATE)
+			tte->score -= pos->ply;
+		else if (tte->score < -ISMATE)
+			tte->score += pos->ply;
 
-			if (tte->flags == HFALPHA && tte->score <= alpha || (tte->flags == HFBETA && tte->score >= beta) || (tte->flags == HFEXACT))
-				return TRUE;
-		}
+		if (tte->flags == HFALPHA && tte->score <= alpha || (tte->flags == HFBETA && tte->score >= beta) || (tte->flags == HFEXACT))
+			return TRUE;
 	}
+
 
 	return FALSE;
 }
