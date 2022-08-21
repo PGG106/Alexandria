@@ -16,7 +16,7 @@ void InitHashTable(S_HASHTABLE* table, int MB);
 /// <param name="depth"></param>
 /// <param name="tte"></param>
 /// <returns></returns>
-int ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
+bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	S_HASHENTRY* tte);
 /// <summary>
 /// Store a move in the TT
