@@ -77,10 +77,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 
 	int index = pos->posKey % HashTable->numEntries;
 
-	tte->move = HashTable->pTable[index].move;
-	tte->depth = HashTable->pTable[index].depth;
-	tte->flags = HashTable->pTable[index].flags;
-	tte->score = HashTable->pTable[index].score;
+	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
 
 	if (tte->score > ISMATE)
 		tte->score -= pos->ply;
