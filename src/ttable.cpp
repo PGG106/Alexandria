@@ -89,7 +89,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 		else if (tte->score < -ISMATE)
 			tte->score += pos->ply;
 
-		if (tte->flags == HFALPHA && tte->score <= alpha || (tte->flags == HFBETA && tte->score >= beta) || (tte->flags == HFEXACT))
+		if ((tte->flags == HFALPHA && tte->score <= alpha) || (tte->flags == HFBETA && tte->score >= beta) || (tte->flags == HFEXACT))
 			return TRUE;
 	}
 
