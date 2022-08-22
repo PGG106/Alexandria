@@ -17,14 +17,49 @@
 #include <thread>
 #include <vector>
 
-#define Aspiration_Depth 3
-
-#define Resize_limit 5
-
 int CounterMoves[Board_sq_num][Board_sq_num];
 
-int razoring_margin1 = 125;
-int razoring_margin2 = 175;
+      // SEARCH HYPERPARAMETERS //
+
+//Razoring
+int razoring_margin1 = 117;
+int razoring_margin2 = 181;
+int razoring_depth = 3;
+
+//LMR
+// full depth moves counter
+int full_depth_moves = 5;
+// depth limit to consider reduction
+int lmr_depth = 3;
+int lmr_fixed_reduction = 1;
+
+//Move ordering
+int Bad_capture_score = 110;
+
+//Rfp
+int rfp_depth = 9;
+int rfp_score = 64;
+
+//NMP
+int nmp_depth = 3;
+int nmp_fixed_reduction = 3;
+int nmp_depth_ratio = 2;
+
+//Movecount
+int movecount_depth = 4;
+// quiet_moves.count > (depth * movecount_multiplier)
+int movecount_multiplier = 8;
+
+//Asp windows
+int delta = 18;
+int Aspiration_Depth = 3;
+int Resize_limit = 5;
+int window_fixed_increment = 1;
+float window_resize_ratio = 1.45;
+
+//Evaluation pruning 
+int ep_depth = 3;
+int ep_margin = 119;
 
 //Contains the material Values of the pieces
 int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
@@ -203,7 +238,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				500000000 + 400000000 * SEE(pos, move, -100);
+				500000000 + 400000000 * SEE(pos, move, -Bad_capture_score);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
@@ -236,7 +271,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 }
 
 //Calculate a futility margin based on depth and if the search is improving or not
-int futility(int depth, bool improving) { return 70 * (depth - improving); }
+int futility(int depth, bool improving) { return rfp_score * (depth - improving); }
 
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
@@ -341,15 +376,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	return BestScore;
 }
 
-// full depth moves counter
-const int full_depth_moves = 4;
-
-// depth limit to consider reduction
-const int lmr_depth = 3;
-
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(int depth, int num_moves) {
-	return reductions[depth] * reductions[num_moves];
+	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]);
 }
 
 // negamax alpha beta search
@@ -435,7 +464,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 			(pos->history[pos->hisPly - 2].eval) == value_none);
 
 	// evaluation pruning / static null move pruning
-	if (depth < 3 && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100) {
+	if (depth < ep_depth && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100) {
 		// define evaluation margin
 		int eval_margin = 120 * depth;
 
@@ -447,7 +476,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	// Reverse futility pruning (depth 8 limit was taken from stockfish)
 	if (!pv_node
-		&& depth < 8
+		&& depth < rfp_depth
 		&& static_eval - futility(depth, improving) >= beta)
 		return static_eval;
 
@@ -457,10 +486,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& static_eval >= beta
 		&& !in_check
 		&& pos->ply
-		&& depth >= 3) {
+		&& depth >= nmp_depth) {
 
 		MakeNullMove(pos);
-		int R = 3 + depth / 3;
+		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
 		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
@@ -477,7 +506,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	}
 
 	// razoring
-	if (!pv_node && !in_check && (depth <= 3) &&
+	if (!pv_node && !in_check && (depth <= razoring_depth) &&
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 
@@ -511,8 +540,8 @@ moves_loop:
 			quiet_moves.count++;
 		}
 		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
-		if (!root_node && !pv_node && !in_check && depth < 4 && IsQuiet(move) &&
-			(quiet_moves.count > (depth * 8))) {
+		if (!root_node && !pv_node && !in_check && depth < movecount_depth && IsQuiet(move) &&
+			(quiet_moves.count > (depth * movecount_multiplier))) {
 			continue;
 		}
 		//Play the move
@@ -639,9 +668,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	ClearForSearch(pos, info);
 
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -16;
+	int alpha_window = -delta;
 	int resize_counter = 0;
-	int beta_window = 16;
+	int beta_window = delta;
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -658,8 +687,8 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 			if (resize_counter > Resize_limit)
 				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha_window *= 1.5;
-			alpha += alpha_window;
+			alpha_window *= window_resize_ratio;
+			alpha += alpha_window + window_fixed_increment;
 			resize_counter++;
 			current_depth--;
 			continue;
@@ -669,8 +698,8 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 		else if ((score >= beta)) {
 			if (resize_counter > Resize_limit)
 				beta = MAXSCORE;
-			beta_window *= 1.5;
-			beta += beta_window;
+			beta_window *= window_resize_ratio;
+			beta += beta_window + window_fixed_increment;
 			resize_counter++;
 			current_depth--;
 			continue;
