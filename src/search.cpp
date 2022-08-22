@@ -399,6 +399,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	S_HASHENTRY tte;
 	int pv_node = beta - alpha > 1;
 
+	if (in_check) depth++;
+
 	// recursion escape condition
 	if (depth <= 0) {
 		return Quiescence(alpha, beta, pos, info);
@@ -447,7 +449,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		depth--;
 
 	if (in_check) {
-		depth++;
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
