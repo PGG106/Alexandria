@@ -246,5 +246,5 @@ void init_all() {
 	initializeLookupTables();
 	initHashKeys();
 	InitReductions();
-	nnue.init("nn.net");
+	nnue.init("nn512.net");
 }
