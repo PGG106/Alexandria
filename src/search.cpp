@@ -19,11 +19,11 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
-      // SEARCH HYPERPARAMETERS //
+// SEARCH HYPERPARAMETERS //
 
 //Razoring
-int razoring_margin1 = 117;
-int razoring_margin2 = 181;
+int razoring_margin1 = 119;
+int razoring_margin2 = 182;
 int razoring_depth = 3;
 
 //LMR
@@ -32,18 +32,19 @@ int full_depth_moves = 5;
 // depth limit to consider reduction
 int lmr_depth = 3;
 int lmr_fixed_reduction = 1;
+int lmr_ratio = 101;
 
 //Move ordering
-int Bad_capture_score = 110;
+int Bad_capture_score = 107;
 
 //Rfp
 int rfp_depth = 9;
-int rfp_score = 64;
+int rfp_score = 66;
 
 //NMP
 int nmp_depth = 3;
 int nmp_fixed_reduction = 3;
-int nmp_depth_ratio = 2;
+int nmp_depth_ratio = 3;
 
 //Movecount
 int movecount_depth = 4;
@@ -51,15 +52,15 @@ int movecount_depth = 4;
 int movecount_multiplier = 8;
 
 //Asp windows
-int delta = 18;
+int delta = 17;
 int Aspiration_Depth = 3;
 int Resize_limit = 5;
 int window_fixed_increment = 1;
-float window_resize_ratio = 1.45;
+int window_resize_ratio = 144;
 
 //Evaluation pruning 
 int ep_depth = 3;
-int ep_margin = 119;
+int ep_margin = 120;
 
 //Contains the material Values of the pieces
 int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
@@ -378,7 +379,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(int depth, int num_moves) {
-	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]);
+	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100);
 }
 
 // negamax alpha beta search
@@ -467,7 +468,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// evaluation pruning / static null move pruning
 	if (depth < ep_depth && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100) {
 		// define evaluation margin
-		int eval_margin = 120 * depth;
+		int eval_margin = ep_margin * depth;
 
 		// evaluation margin substracted from static evaluation score fails high
 		if (static_eval - eval_margin >= beta)
@@ -688,7 +689,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 			if (resize_counter > Resize_limit)
 				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha_window *= window_resize_ratio;
+			alpha_window *= static_cast<float>(window_resize_ratio) / 100;
 			alpha += alpha_window + window_fixed_increment;
 			resize_counter++;
 			current_depth--;
@@ -699,7 +700,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 		else if ((score >= beta)) {
 			if (resize_counter > Resize_limit)
 				beta = MAXSCORE;
-			beta_window *= window_resize_ratio;
+			beta_window *= static_cast<float>(window_resize_ratio) / 100;
 			beta += beta_window + window_fixed_increment;
 			resize_counter++;
 			current_depth--;

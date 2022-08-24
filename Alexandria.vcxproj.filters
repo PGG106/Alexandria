@@ -84,6 +84,9 @@
     <ClInclude Include="src\History.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="plugboard.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">
