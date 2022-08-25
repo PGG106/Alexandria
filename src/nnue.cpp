@@ -15,6 +15,8 @@ const unsigned int gEmbeddedNNUESize = 1;
 // Thanks to Disservin for having me look at his code and Lucex for the
 // invaluable help and the immense patience
 
+std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+
 int NNUE::relu(int x) { return std::max(0, x); }
 
 void NNUE::init(const char* file) {

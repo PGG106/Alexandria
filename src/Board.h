@@ -139,12 +139,6 @@ enum {
 };
 
 enum {
-	UCIMODE,
-	XBOARDMODE,
-	CONSOLEMODE
-};
-
-enum {
 	HFNONE,
 	HFALPHA,
 	HFBETA,
@@ -287,6 +281,8 @@ int square_distance(int a, int b);
 void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
+
+extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
 //Pieces info retrival
 
