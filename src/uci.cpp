@@ -11,8 +11,10 @@
 #include "ttable.h"
 #include <iostream>
 #include <stdio.h>
+#include "option.h"
 #include <stdlib.h>
 #include <string.h>
+#include "..\plugboard.h"
 
 int parse_move(char *move_string, S_Board *pos) {
   // create move list instance
@@ -260,11 +262,36 @@ void Uci_Loop(S_Board *pos, S_SearchINFO *info, char **argv) {
 
   // define user / GUI input buffer
   char input[40000];
+  option_list_t OptionList;
+  init_option_list(&OptionList);
+  add_option_spin_int(&OptionList, "razoring_margin1", &razoring_margin1, 40, 200, NULL);
+  add_option_spin_int(&OptionList, "razoring_margin2", &razoring_margin2, 40, 220, NULL);
+  add_option_spin_int(&OptionList, "razoring_depth", &razoring_depth, 1, 5, NULL);
+  add_option_spin_int(&OptionList, "full_depth_moves", &full_depth_moves, 2, 8, NULL);
+  add_option_spin_int(&OptionList, "lmr_depth", &lmr_depth, 2, 6, NULL);
+  add_option_spin_int(&OptionList, "lmr_fixed_reduction", &lmr_fixed_reduction, 0, 5, NULL);
+  add_option_spin_int(&OptionList, "lmr_ratio", &lmr_ratio, 100, 400, NULL);
+  add_option_spin_int(&OptionList, "Bad_capture_score", &Bad_capture_score, 0, 325, NULL);
+  add_option_spin_int(&OptionList, "rfp_depth", &rfp_depth, 3, 12, NULL);
+  add_option_spin_int(&OptionList, "rfp_score", &rfp_score, 30, 150, NULL);
+  add_option_spin_int(&OptionList, "nmp_depth", &nmp_depth, 1, 6, NULL);
+  add_option_spin_int(&OptionList, "nmp_fixed_reduction", &nmp_fixed_reduction, 1, 5, NULL);
+  add_option_spin_int(&OptionList, "nmp_depth_ratio", &nmp_depth_ratio, 1, 5, NULL);
+  add_option_spin_int(&OptionList, "movecount_depth", &movecount_depth, 2, 8, NULL);
+  add_option_spin_int(&OptionList, "movecount_multiplier", &movecount_multiplier, 4, 10, NULL);
+  add_option_spin_int(&OptionList, "delta", &delta, 8, 50, NULL);
+  add_option_spin_int(&OptionList, "Aspiration_Depth", &Aspiration_Depth, 2, 8, NULL);
+  add_option_spin_int(&OptionList, "Resize_limit", &Resize_limit, 2, 10, NULL);
+  add_option_spin_int(&OptionList, "window_fixed_increment", &window_fixed_increment, 0, 10, NULL);
+  add_option_spin_int(&OptionList, "window_resize_ratio", &window_resize_ratio, 100, 200, NULL);
+  add_option_spin_int(&OptionList, "ep_depth", &ep_depth, 1, 5, NULL);
+  add_option_spin_int(&OptionList, "ep_margin", &ep_margin, 40, 250, NULL);
 
   // print engine info
   printf("id name Alexandria 2.4-dev\n");
   printf("id author PGG\n");
   printf("option name Hash type spin default 16 min 1 max 8192 \n");
+  show_options(&OptionList);
   printf("Type nnue to enable/disable nnue eval (default is enabled) \n");
   printf("uciok\n");
 
