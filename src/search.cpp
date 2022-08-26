@@ -399,6 +399,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
 	int pv_node = beta - alpha > 1;
+	bool SkipQuiets = false;
 
 	if (in_check) depth++;
 
@@ -536,14 +537,19 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		bool isQuiet = IsQuiet(move);
+
+		if (isQuiet && SkipQuiets) continue;
+
 		//if the move isn't a quiet move we update the quiet moves list and counter
-		if (IsQuiet(move)) {
+		if (isQuiet) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
 		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
-		if (!root_node && !pv_node && !in_check && depth < movecount_depth && IsQuiet(move) &&
+		if (!root_node && !pv_node && !in_check && depth < movecount_depth && isQuiet &&
 			(quiet_moves.count > (depth * movecount_multiplier))) {
+			SkipQuiets = true;
 			continue;
 		}
 		//Play the move
