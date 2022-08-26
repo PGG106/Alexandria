@@ -564,7 +564,7 @@ moves_loop:
 
 			{
 				//calculate by how much we should reduce the search depth 
-				int depth_reduction = reduction(depth, moves_searched);
+				int depth_reduction = reduction(depth, moves_searched) + !improving;
 
 				// search current move with reduced depth:
 				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
