@@ -374,7 +374,120 @@ void Uci_Loop(S_Board *pos, S_SearchINFO *info, char **argv) {
       sscanf(input, "%*s %*s %*s %*s %d", &MB);
       printf("Set Hash to %d MB\n", MB);
       InitHashTable(HashTable, MB);
-    } else if (strncmp(input, "bench", 5) == 0) {
+    } 
+    
+    else if (!strncmp(input, "setoption name razoring_margin1 value ", 38)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &razoring_margin1);
+        printf("Set razoring_margin1 to %d\n", razoring_margin1);
+    }
+
+    else if (!strncmp(input, "setoption name razoring_margin2 value ", 38)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &razoring_margin2);
+        printf("Set razoring_margin2 to %d\n", razoring_margin2);
+    }
+
+    else if (!strncmp(input, "setoption name razoring_depth value ", 36)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &razoring_depth);
+        printf("Set razoring_depth to %d\n", razoring_depth);
+
+    }
+
+    else if (!strncmp(input, "setoption name full_depth_moves value ", 38)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &full_depth_moves);
+        printf("Set full_depth_moves to %d\n", full_depth_moves);
+    }
+
+    else if (!strncmp(input, "setoption name lmr_depth value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &lmr_depth);
+        printf("Set lmr_depth to %d\n", lmr_depth);
+    }
+
+    else if (!strncmp(input, "setoption name lmr_fixed_reduction value ", 41)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &lmr_fixed_reduction);
+        printf("Set lmr_fixed_reduction to %d\n", lmr_fixed_reduction);
+    }
+
+    else if (!strncmp(input, "setoption name lmr_ratio value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &lmr_ratio);
+        printf("Set lmr_ratio to %d\n", lmr_ratio);
+    }
+
+    else if (!strncmp(input, "setoption name Bad_capture_score value ", 39)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &Bad_capture_score);
+        printf("Set Bad_capture_score to %d\n", Bad_capture_score);
+    }
+
+    else if (!strncmp(input, "setoption name rfp_depth value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &rfp_depth);
+        printf("Set rfp_depth to %d\n", rfp_depth);
+    }
+
+    else if (!strncmp(input, "setoption name rfp_score value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &rfp_score);
+        printf("Set rfp_score to %d\n", rfp_score);
+    }
+
+    else if (!strncmp(input, "setoption name nmp_depth value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &nmp_depth);
+        printf("Set nmp_depth to %d\n", nmp_depth);
+    }
+
+    else if (!strncmp(input, "setoption name nmp_fixed_reduction value ", 41)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &nmp_fixed_reduction);
+        printf("Set nmp_fixed_reduction to %d\n", nmp_fixed_reduction);
+    }
+
+    else if (!strncmp(input, "setoption name nmp_depth_ratio value ", 37)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &nmp_depth_ratio);
+        printf("Set nmp_depth_ratio to %d\n", nmp_depth_ratio);
+    }
+
+    else if (!strncmp(input, "setoption name movecount_depth value ", 37)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &movecount_depth);
+        printf("Set movecount_depth to %d\n", movecount_depth);
+    }
+
+    else if (!strncmp(input, "setoption name movecount_multiplier value ", 42)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &movecount_multiplier);
+        printf("Set movecount_multiplier to %d\n", movecount_multiplier);
+    }
+
+    else if (!strncmp(input, "setoption name delta value ", 27)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &delta);
+        printf("Set delta to %d\n", delta);
+    }
+
+    else if (!strncmp(input, "setoption name Aspiration_Depth value ", 38)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &Aspiration_Depth);
+        printf("Set Aspiration_Depth to %d\n", Aspiration_Depth);
+    }
+
+    else if (!strncmp(input, "setoption name Resize_limit value ", 34)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &Resize_limit);
+        printf("Set Resize_limit to %d\n", Resize_limit);
+    }
+
+    else if (!strncmp(input, "setoption name window_fixed_increment value ", 44)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &window_fixed_increment);
+        printf("Set window_fixed_increment to %d\n", window_fixed_increment);
+    }
+
+    else if (!strncmp(input, "setoption name window_resize_ratio value ", 41)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &window_resize_ratio);
+        printf("Set window_resize_ratio to %d\n", window_resize_ratio);
+    }
+
+    else if (!strncmp(input, "setoption name ep_depth value ", 30)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &ep_depth);
+        printf("Set ep_depth to %d\n", ep_depth);
+    }
+
+    else if (!strncmp(input, "setoption name ep_margin value ", 31)) {
+        sscanf(input, "%*s %*s %*s %*s %d", &ep_margin);
+        printf("Set ep_margin to %d\n", ep_margin);
+    }
+    
+    else if (strncmp(input, "bench", 5) == 0) {
       start_bench();
     }
   }
