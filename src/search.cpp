@@ -379,7 +379,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool improving, int depth, int num_moves) {
-	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100) + improving;
+	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100) + !improving;
 }
 
 // negamax alpha beta search
