@@ -378,8 +378,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 }
 
 //Calculate a reduction margin based on the search depth and the number of moves played
-static inline int reduction(bool improving, int depth, int num_moves) {
-	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100) + !improving;
+static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
+	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100) + !improving + !pv_node;
 }
 
 // negamax alpha beta search
@@ -398,7 +398,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
-	int pv_node = beta - alpha > 1;
+	bool pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
 
 	if (in_check) depth++;
@@ -570,7 +570,7 @@ moves_loop:
 
 			{
 				//calculate by how much we should reduce the search depth 
-				int depth_reduction = reduction(improving, depth, moves_searched);
+				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 
 				// search current move with reduced depth:
 				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
