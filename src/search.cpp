@@ -398,7 +398,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
-	int pv_node = beta - alpha > 1;
+	bool pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
 
 	if (in_check) depth++;
@@ -570,7 +570,7 @@ moves_loop:
 
 			{
 				//calculate by how much we should reduce the search depth 
-				int depth_reduction = reduction(improving, depth, moves_searched);
+				int depth_reduction = reduction(improving, depth, moves_searched) + !pv_node;
 
 				// search current move with reduced depth:
 				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
