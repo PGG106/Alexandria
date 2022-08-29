@@ -10,6 +10,7 @@
 #ifdef __GNUC__
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
+#include "move.h"
 
 #ifdef _MSC_VER
 #define PACK(__Declaration__) \
@@ -222,6 +223,7 @@ typedef struct Board {
 	int searchHistory[12][MAXDEPTH];
 	int searchKillers[2][MAXDEPTH];
 	int checks;
+	int excludedMove=NOMOVE;
 	Bitboard pinHV;
 	Bitboard pinD;
 	Bitboard checkMask;

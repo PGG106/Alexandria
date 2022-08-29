@@ -384,14 +384,12 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
-	int DoNull, Stack* ss) {
+	int DoNull) {
 
 	// Initialize the node
 	int in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
-	int quietCount = 0;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
-	ss->moveCount = 0;
 	int root_node = (pos->ply == 0);
 	int static_eval;
 	bool improving;
@@ -494,7 +492,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
+		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE);
 
 		TakeNullMove(pos);
 
@@ -536,7 +534,7 @@ moves_loop:
 	for (int count = 0; count < move_list->count; count++) {
 		pick_move(move_list, count);
 
-		int move = move_list->moves[count].move;
+		u_int move = move_list->moves[count].move;
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -555,21 +553,20 @@ moves_loop:
 
 		int extension = 0;
 
-		if (!root_node 
-			&& depth >= 7 
-			&& move == tte.move 
-			&& !ss->excludedMove 
+		if (!root_node
+			&& depth >= 7
+			&& move == tte.move
+			&& !pos->excludedMove
 			&& (tte.flags & HFBETA)
-			&& abs(tte.score) < ISMATE 
+			&& abs(tte.score) < ISMATE
 			&& tte.depth >= depth - 3)
 		{
-			int singularBeta = tte.score - 3*depth;
-			int singularDepth = (depth-1) / 2;
+			int singularBeta = tte.score - 3 * depth;
+			int singularDepth = (depth - 1) / 2;
 
-			ss->excludedMove = tte.move;
-			int singularScore =
-				negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false, ss);
-			ss->excludedMove = NOMOVE;
+			pos->excludedMove = tte.move;
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false);
+			pos->excludedMove = NOMOVE;
 
 			if (singularScore < singularBeta)
 				extension = 1;
@@ -586,7 +583,7 @@ moves_loop:
 		if (moves_searched == 0)
 
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE, ss);
+			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
@@ -600,7 +597,7 @@ moves_loop:
 
 				// search current move with reduced depth:
 				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
-					TRUE, ss);
+					TRUE);
 			}
 
 			// hack to ensure that full-depth search is done
@@ -610,11 +607,11 @@ moves_loop:
 			// principle variation search PVS
 			if (Score > alpha) {
 
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE);
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE, ss);
+					Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE);
 			}
 		}
 
@@ -688,11 +685,6 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 void search_position(int start_depth, int final_depth, S_Board* pos,
 	S_SearchINFO* info, int show) {
 
-	// Stack initialization taken from stockfish, it offers support for
-	// initializing continuation histories even if not needed as of now
-	Stack stack[MAXGAMEMOVES + 10], * ss = stack + 7;
-	(std::memset)(ss - 7, 0, 10 * sizeof(Stack));
-
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
@@ -713,7 +705,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	for (int current_depth = start_depth; current_depth <= final_depth;
 		current_depth++) {
 
-		score = negamax(alpha, beta, current_depth, pos, info, TRUE, ss);
+		score = negamax(alpha, beta, current_depth, pos, info, TRUE);
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
