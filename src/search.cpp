@@ -571,8 +571,16 @@ moves_loop:
 			if (singularScore < singularBeta)
 				extension = 1;
 
+			//Mullti-cut pruning
 			else if (singularBeta >= beta)
 				return (singularBeta);
+
+			else if (tte.score >= beta)
+				extension = -2;
+
+			else if (tte.score <= alpha && tte.score <= singularScore)
+				extension = -1;
+
 		}
 
 		//Play the move
