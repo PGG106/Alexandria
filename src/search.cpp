@@ -552,6 +552,32 @@ moves_loop:
 			SkipQuiets = true;
 			continue;
 		}
+
+		int extension = 0;
+
+		if (!root_node 
+			&& depth >= 7 
+			&& move == tte.move 
+			&& !ss->excludedMove 
+			&& (tte.flags & HFBETA)
+			&& abs(tte.score) < ISMATE 
+			&& tte.depth >= depth - 3)
+		{
+			int singularBeta = tte.score - 3*depth;
+			int singularDepth = (depth-1) / 2;
+
+			ss->excludedMove = tte.move;
+			int singularScore =
+				negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false, ss);
+			ss->excludedMove = NOMOVE;
+
+			if (singularScore < singularBeta)
+				extension = 1;
+
+			else if (singularBeta >= beta)
+				return (singularBeta);
+		}
+
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
@@ -560,7 +586,7 @@ moves_loop:
 		if (moves_searched == 0)
 
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE, ss);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
@@ -588,7 +614,7 @@ moves_loop:
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+					Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, TRUE, ss);
 			}
 		}
 
@@ -666,8 +692,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	// initializing continuation histories even if not needed as of now
 	Stack stack[MAXGAMEMOVES + 10], * ss = stack + 7;
 	(std::memset)(ss - 7, 0, 10 * sizeof(Stack));
-	for (int i = 0; i <= MAXGAMEMOVES + 2; ++i)
-		(ss + i)->ply = i;
+
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;

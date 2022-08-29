@@ -9,15 +9,12 @@
 #include "movegen.h"
 
 struct Stack {
-	S_MOVE* pv;
-	int ply;
 	int currentMove;
 	int killers[2];
+	int excludedMove;
 	int staticEval;
 	int moveCount;
 	bool inCheck;
-	bool ttPv;
-	int cutoffCnt;
 };
 
 void CheckUp(S_SearchINFO* info);
