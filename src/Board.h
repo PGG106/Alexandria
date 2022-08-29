@@ -20,7 +20,7 @@
 #define MAXGAMEMOVES \
     1024 // maximum number of moves possibile,no recorderd game has ever gone
 // past 1000 moves so it shoukd be a good approximation
-#define MAXDEPTH 64
+#define MAXDEPTH 128
 #define Board_sq_num 64
 #define UNDOSIZE MAXGAMEMOVES + MAXDEPTH
 
@@ -219,8 +219,8 @@ typedef struct Board {
 
 	int pvArray[MAXDEPTH + 1];
 
-	int searchHistory[12][Board_sq_num];
-	int searchKillers[2][Board_sq_num];
+	int searchHistory[12][MAXDEPTH];
+	int searchKillers[2][MAXDEPTH];
 	int checks;
 	Bitboard pinHV;
 	Bitboard pinD;
