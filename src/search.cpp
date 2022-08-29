@@ -462,12 +462,12 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	pos->history[pos->hisPly].eval = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (!in_check) && (pos->hisPly >= 2) &&
+	improving = (pos->hisPly >= 2) &&
 		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
 			(pos->history[pos->hisPly - 2].eval) == value_none);
 
 	// evaluation pruning / static null move pruning
-	if (depth < ep_depth && !pv_node && !in_check && abs(beta - 1) > -MAXSCORE + 100) {
+	if (depth < ep_depth && !pv_node && abs(beta - 1) > -MAXSCORE + 100) {
 		// define evaluation margin
 		int eval_margin = ep_margin * depth;
 
@@ -487,7 +487,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if (!pv_node
 		&& DoNull
 		&& static_eval >= beta
-		&& !in_check
 		&& pos->ply
 		&& depth >= nmp_depth) {
 
@@ -509,7 +508,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	}
 
 	// razoring
-	if (!pv_node && !in_check && (depth <= razoring_depth) &&
+	if (!pv_node
+		&& (depth <= razoring_depth) &&
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 
