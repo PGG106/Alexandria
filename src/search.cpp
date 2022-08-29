@@ -430,7 +430,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 			return mating_value;
 	}
 
-	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	ttHit = pos->excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
 	if (pos->ply
 		&& !pv_node
@@ -486,7 +486,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& DoNull
 		&& static_eval >= beta
 		&& pos->ply
-		&& depth >= nmp_depth) {
+		&& depth >= nmp_depth
+		&& !pos->excludedMove) {
 
 		MakeNullMove(pos);
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
@@ -534,7 +535,8 @@ moves_loop:
 	for (int count = 0; count < move_list->count; count++) {
 		pick_move(move_list, count);
 
-		u_int move = move_list->moves[count].move;
+		int move = move_list->moves[count].move;
+		if (move == pos->excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -571,15 +573,9 @@ moves_loop:
 			if (singularScore < singularBeta)
 				extension = 1;
 
-			//Mullti-cut pruning
 			else if (singularBeta >= beta)
 				return (singularBeta);
 
-			else if (tte.score >= beta)
-				extension = -2;
-
-			else if (tte.score <= alpha && tte.score <= singularScore)
-				extension = -1;
 
 		}
 
@@ -671,13 +667,13 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		BestScore = in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = pos->excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
+	if (!pos->excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
