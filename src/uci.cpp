@@ -288,7 +288,7 @@ void Uci_Loop(S_Board *pos, S_SearchINFO *info, char **argv) {
   add_option_spin_int(&OptionList, "ep_margin", &ep_margin, 40, 250, NULL);
 
   // print engine info
-  printf("id name Alexandria 2.4-dev\n");
+  printf("id name Alexandria 2.5-dev\n");
   printf("id author PGG\n");
   printf("option name Hash type spin default 16 min 1 max 8192 \n");
   //show_options(&OptionList);
