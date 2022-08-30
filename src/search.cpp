@@ -398,6 +398,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	S_HASHENTRY tte;
 	bool pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
+	int excludedMove = pos->excludedMoves[pos->ply];
 
 	if (in_check) depth++;
 
@@ -430,7 +431,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 			return mating_value;
 	}
 
-	ttHit = pos->excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
 	if (pos->ply
 		&& !pv_node
@@ -445,10 +446,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && !tte.move)
+	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
-	if (in_check) {
+	if (in_check || excludedMove) {
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
@@ -486,8 +487,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& DoNull
 		&& static_eval >= beta
 		&& pos->ply
-		&& depth >= nmp_depth
-		&& !pos->excludedMove) {
+		&& depth >= nmp_depth) {
 
 		MakeNullMove(pos);
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
@@ -536,7 +536,7 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
-		if (move == pos->excludedMove) continue;
+		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -558,7 +558,7 @@ moves_loop:
 		if (!root_node
 			&& depth >= 7
 			&& move == tte.move
-			&& !pos->excludedMove
+			&& !excludedMove
 			&& (tte.flags & HFBETA)
 			&& abs(tte.score) < ISMATE
 			&& tte.depth >= depth - 3)
@@ -566,9 +566,9 @@ moves_loop:
 			int singularBeta = tte.score - 3 * depth;
 			int singularDepth = (depth - 1) / 2;
 
-			pos->excludedMove = tte.move;
+			pos->excludedMoves[pos->ply] = tte.move;
 			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false);
-			pos->excludedMove = NOMOVE;
+			pos->excludedMoves[pos->ply] = NOMOVE;
 
 			if (singularScore < singularBeta)
 				extension = 1;
@@ -576,7 +576,11 @@ moves_loop:
 			else if (singularBeta >= beta)
 				return (singularBeta);
 
+			else if (tte.score >= beta)
+				extension = -2;
 
+			else if (tte.score <= alpha && tte.score <= singularScore)
+				extension = -1;
 		}
 
 		//Play the move
@@ -658,13 +662,13 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		BestScore = pos->excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	if (!pos->excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
