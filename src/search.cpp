@@ -556,40 +556,31 @@ moves_loop:
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
-		// full depth search
-		if (moves_searched == 0)
 
-			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+		// late move reduction
+		if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
+			!in_check && IsQuiet(move))
+		{
+			//calculate by how much we should reduce the search depth 
+			int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 
-		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
-		else {
-			// condition to consider LMR
-			if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
-				!in_check && IsQuiet(move))
+			// search current move with reduced depth:
+			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE, ss);
 
-			{
-				//calculate by how much we should reduce the search depth 
-				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+			// If search failed high search again with full depth
+			if (Score > alpha)
+				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, true, ss);
+		}
 
-				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
-					TRUE, ss);
-			}
+		//if LMR was skipped search at full depth
+		else if (!pv_node || moves_searched > 0) {
+			Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, true, ss);
+		}
 
-			// hack to ensure that full-depth search is done
-			else
-				Score = alpha + 1;
-
-			// principle variation search PVS
-			if (Score > alpha) {
-
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
-
-				if ((Score > alpha) && (Score < beta))
-
-					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
-			}
+		// if we are in a pv node we do a full pv search for the first move and for every move that fails high
+		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
+		{
+			Score = -negamax(-beta, -alpha, depth - 1, pos, info, true, ss);
 		}
 
 		// take move back
