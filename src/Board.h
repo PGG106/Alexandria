@@ -10,6 +10,7 @@
 #ifdef __GNUC__
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
+#include "move.h"
 
 #ifdef _MSC_VER
 #define PACK(__Declaration__) \
@@ -169,7 +170,7 @@ enum {
 extern int reductions[256];
 
 PACK(typedef struct HASHENTRY {
-	uint32_t move;
+	int32_t move;
 	int16_t score;
 	uint16_t tt_key;
 	uint8_t depth;
@@ -196,11 +197,11 @@ typedef struct Undo {
 	Bitboard posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
-		  // for rollback purposes
+// for rollback purposes
 
 typedef struct Board {
 	int pieces[Board_sq_num]; // array that stores for every square of the board
-							  // if there's a piece, or if the square is invalid
+	// if there's a piece, or if the square is invalid
 
 	int side; // what side has to move
 	int enPas; // if enpassant is possible and in which square
@@ -208,20 +209,21 @@ typedef struct Board {
 	int ply; // number of halfmoves in a search instance
 	int hisPly; // total number of halfmoves
 	int castleperm; // integer that represents the castling permission in his
-					// bits (1111) = all castlings allowed (0000) no castling
-					// allowed, (0101) only WKCA and BKCA allowed...
+	// bits (1111) = all castlings allowed (0000) no castling
+	// allowed, (0101) only WKCA and BKCA allowed...
 
 	Bitboard posKey; // unique  hashkey  che codifica the  position on the
-					 // board,utile per il controllo delle posizioni ripetute.
+	// board,utile per il controllo delle posizioni ripetute.
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
-							  // when that move was made for rollback purposes
+	// when that move was made for rollback purposes
 
 	int pvArray[MAXDEPTH + 1];
 
 	int searchHistory[12][MAXDEPTH];
 	int searchKillers[2][MAXDEPTH];
 	int checks;
+	int excludedMoves[MAXDEPTH];
 	Bitboard pinHV;
 	Bitboard pinD;
 	Bitboard checkMask;

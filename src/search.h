@@ -8,18 +8,6 @@
 #include "move.h"
 #include "movegen.h"
 
-struct Stack {
-	S_MOVE* pv;
-	int ply;
-	int currentMove;
-	int killers[2];
-	int staticEval;
-	int moveCount;
-	bool inCheck;
-	bool ttPv;
-	int cutoffCnt;
-};
-
 void CheckUp(S_SearchINFO* info);
 
 void ClearForSearch(S_Board* pos, S_SearchINFO* info);
@@ -29,7 +17,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info);
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
-	int DoNull, Stack* ss);
+	int DoNull);
 
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info);
 

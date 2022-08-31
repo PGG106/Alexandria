@@ -384,14 +384,12 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
-	int DoNull, Stack* ss) {
+	int DoNull) {
 
 	// Initialize the node
 	int in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
-	int quietCount = 0;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
-	ss->moveCount = 0;
 	int root_node = (pos->ply == 0);
 	int static_eval;
 	bool improving;
@@ -400,6 +398,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	S_HASHENTRY tte;
 	bool pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
+	int excludedMove = pos->excludedMoves[pos->ply];
 
 	if (in_check) depth++;
 
@@ -432,7 +431,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 			return mating_value;
 	}
 
-	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
 	if (pos->ply
 		&& !pv_node
@@ -447,10 +446,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && !tte.move)
+	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
-	if (in_check) {
+	if (in_check || excludedMove) {
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
@@ -494,7 +493,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE, ss);
+		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE);
 
 		TakeNullMove(pos);
 
@@ -537,6 +536,7 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -552,6 +552,37 @@ moves_loop:
 			SkipQuiets = true;
 			continue;
 		}
+
+		int extension = 0;
+
+		if (!root_node
+			&& depth >= 7
+			&& move == tte.move
+			&& !excludedMove
+			&& (tte.flags & HFBETA)
+			&& abs(tte.score) < ISMATE
+			&& tte.depth >= depth - 3)
+		{
+			int singularBeta = tte.score - 3 * depth;
+			int singularDepth = (depth - 1) / 2;
+
+			pos->excludedMoves[pos->ply] = tte.move;
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false);
+			pos->excludedMoves[pos->ply] = NOMOVE;
+
+			if (singularScore < singularBeta)
+				extension = 1;
+
+			else if (singularBeta >= beta)
+				return (singularBeta);
+
+			else if (tte.score >= beta)
+				extension = -2;
+
+			else if (tte.score <= alpha && tte.score <= singularScore)
+				extension = -1;
+		}
+
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
@@ -565,22 +596,23 @@ moves_loop:
 			int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE, ss);
+			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE);
 
 			// If search failed high search again with full depth
 			if (Score > alpha)
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, true, ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, info, true);
 		}
 
 		//if LMR was skipped search at full depth
 		else if (!pv_node || moves_searched > 0) {
-			Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, true, ss);
+			Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, info, true);
 		}
 
 		// if we are in a pv node we do a full pv search for the first move and for every move that fails high
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
 		{
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, true, ss);
+			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, true);
+
 		}
 
 		// take move back
@@ -631,13 +663,13 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		BestScore = in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
@@ -653,12 +685,6 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 void search_position(int start_depth, int final_depth, S_Board* pos,
 	S_SearchINFO* info, int show) {
 
-	// Stack initialization taken from stockfish, it offers support for
-	// initializing continuation histories even if not needed as of now
-	Stack stack[MAXGAMEMOVES + 10], * ss = stack + 7;
-	(std::memset)(ss - 7, 0, 10 * sizeof(Stack));
-	for (int i = 0; i <= MAXGAMEMOVES + 2; ++i)
-		(ss + i)->ply = i;
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
@@ -679,7 +705,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	for (int current_depth = start_depth; current_depth <= final_depth;
 		current_depth++) {
 
-		score = negamax(alpha, beta, current_depth, pos, info, TRUE, ss);
+		score = negamax(alpha, beta, current_depth, pos, info, TRUE);
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
