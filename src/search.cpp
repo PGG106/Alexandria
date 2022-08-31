@@ -612,6 +612,7 @@ moves_loop:
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
 		{
 			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, true);
+
 		}
 
 		// take move back
