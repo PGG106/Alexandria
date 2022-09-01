@@ -116,6 +116,10 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 		}
 	}
 
+	for (int index = 0; index < MAXDEPTH; ++index) {
+		pos->excludedMoves[index] = NOMOVE;
+	}
+
 	//Reset HashTable statistics (these aren't actually used as of now)
 	HashTable->overWrite = 0;
 	HashTable->hit = 0;
