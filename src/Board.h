@@ -170,21 +170,18 @@ enum {
 extern int reductions[256];
 
 PACK(typedef struct HASHENTRY {
-	int32_t move;
-	int16_t score;
-	uint16_t tt_key;
-	uint8_t depth;
-	uint8_t flags;
+	int32_t move = NOMOVE;
+	int16_t score = 0;
+	uint16_t tt_key = 0;
+	uint8_t depth = 0;
+	uint8_t flags = HFNONE;
 })
 S_HASHENTRY;
 
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
-	int64_t numEntries;
-	int newWrite;
-	int overWrite;
-	int hit;
-	int cut;
+	int64_t numEntries=0;
+
 } S_HASHTABLE;
 
 typedef struct Undo {
@@ -203,16 +200,16 @@ typedef struct Board {
 	int pieces[Board_sq_num]; // array that stores for every square of the board
 	// if there's a piece, or if the square is invalid
 
-	int side; // what side has to move
-	int enPas; // if enpassant is possible and in which square
-	int fiftyMove; // Counter for the 50 moves rule
-	int ply; // number of halfmoves in a search instance
-	int hisPly; // total number of halfmoves
-	int castleperm; // integer that represents the castling permission in his
+	int side=-1; // what side has to move
+	int enPas=-1; // if enpassant is possible and in which square
+	int fiftyMove=-1; // Counter for the 50 moves rule
+	int ply=-1; // number of halfmoves in a search instance
+	int hisPly=-1; // total number of halfmoves
+	int castleperm=-1; // integer that represents the castling permission in his
 	// bits (1111) = all castlings allowed (0000) no castling
 	// allowed, (0101) only WKCA and BKCA allowed...
 
-	Bitboard posKey; // unique  hashkey  che codifica the  position on the
+	Bitboard posKey=-1; // unique  hashkey  che codifica the  position on the
 	// board,utile per il controllo delle posizioni ripetute.
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
@@ -222,11 +219,11 @@ typedef struct Board {
 
 	int searchHistory[12][MAXDEPTH];
 	int searchKillers[2][MAXDEPTH];
-	int checks;
+	int checks=-1;
 	int excludedMoves[MAXDEPTH];
-	Bitboard pinHV;
-	Bitboard pinD;
-	Bitboard checkMask;
+	Bitboard pinHV=0ULL;
+	Bitboard pinD=0ULL;
+	Bitboard checkMask=0ULL;
 
 	// piece pos->bitboards
 	Bitboard bitboards[12];
@@ -241,18 +238,18 @@ extern S_HASHTABLE HashTable[1];
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int starttime;
+	int starttime=-1;
 	int stoptime = -1;
-	int depth;
-	int depthset;
+	int depth=-1;
+	bool depthset=false;
 	int timeset = -1;
 	int movestogo = -1;
-	int infinite;
+	bool infinite=false;
 
-	int quit;
-	int stopped;
+	bool quit=false;
+	bool stopped=false;
 
-	long nodes;
+	long nodes=0;
 
 } S_SearchINFO;
 
