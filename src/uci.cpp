@@ -14,7 +14,7 @@
 #include "option.h"
 #include <stdlib.h>
 #include <string.h>
-#include "..\plugboard.h"
+#include "../plugboard.h"
 
 int parse_move(char *move_string, S_Board *pos) {
   // create move list instance
