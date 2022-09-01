@@ -6,7 +6,7 @@ int GetPvLine(const int depth, S_Board* pos);
 
 void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
-void InitHashTable(S_HASHTABLE* table, int MB);
+void InitHashTable(S_HASHTABLE* table, uint64_t MB);
 /// <summary>
 /// 
 /// </summary>

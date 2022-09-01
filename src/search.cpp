@@ -120,11 +120,6 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 		pos->excludedMoves[index] = NOMOVE;
 	}
 
-	//Reset HashTable statistics (these aren't actually used as of now)
-	HashTable->overWrite = 0;
-	HashTable->hit = 0;
-	HashTable->cut = 0;
-
 	//Reset plies and search info
 	pos->ply = 0;
 	info->starttime = GetTimeMs();
@@ -284,8 +279,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	int pv_node = beta - alpha > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HASHENTRY tte;
-	bool TThit;
-	int standing_pat;
+	bool TThit = false;
+	int standing_pat=0;
 
 	//Check if we recieved a stop command from the GUI
 	if ((info->nodes & 2047) == 0) {

@@ -54,19 +54,17 @@ void ClearHashTable(S_HASHTABLE* table) {
 		tableEntry->score = 0;
 		tableEntry->flags = 0;
 	}
-	table->newWrite = 0;
+
 }
 
-void InitHashTable(S_HASHTABLE* table, int MB) {
-	uint64_t HashSize = 0x100000 * static_cast<uint64_t>(MB);
+void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
+	uint64_t HashSize = 0x100000 * MB;
 	table->numEntries = (HashSize / sizeof(S_HASHENTRY));
 	table->numEntries -= 2;
 	if (table->pTable != NULL)
 		free(table->pTable);
-	table->pTable =
-		(S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
-	std::memset(table->pTable, 0,
-		table->numEntries * sizeof(S_HASHENTRY)); // functionally identical to clearHash but hopefully quicker
+	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
+	ClearHashTable(table);
 
 	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
 
@@ -111,7 +109,6 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 		HashTable->pTable[index].flags = (uint8_t)flags;
 		HashTable->pTable[index].score = (int16_t)score;
 		HashTable->pTable[index].depth = (uint8_t)depth;
-		HashTable->newWrite++;
 	}
 }
 
