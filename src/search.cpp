@@ -282,6 +282,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	bool TThit = false;
 	int standing_pat = 0;
 
+	if (pos->ply > info->seldepth)
+		info->seldepth = pos->ply;
+
 	//Check if we recieved a stop command from the GUI
 	if ((info->nodes & 2047) == 0) {
 		CheckUp(info);
