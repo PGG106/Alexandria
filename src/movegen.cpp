@@ -79,21 +79,20 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
 
 	int capture = (pos->pieces[to] != EMPTY);
 
-	int enpass = !(to - pos->enPas);
 
 	if (pos->side == WHITE) {
 
 		if (from >= a7 &&
 			from <= h7) { // if the piece is moving from the 7th to the 8th rank
 
-			AddMove(pos, encode_move(from, to, WP, WQ, capture, enpass), list);
-			AddMove(pos, encode_move(from, to, WP, WR, capture, enpass),
+			AddMove(pos, encode_move(from, to, WP, WQ, capture), list);
+			AddMove(pos, encode_move(from, to, WP, WR, capture),
 				list); // consider every possible piece promotion
-			AddMove(pos, encode_move(from, to, WP, WB, capture, enpass), list);
-			AddMove(pos, encode_move(from, to, WP, WN, capture, enpass), list);
+			AddMove(pos, encode_move(from, to, WP, WB, capture), list);
+			AddMove(pos, encode_move(from, to, WP, WN, capture), list);
 		}
 		else { // else do not include possible promotions
-			AddMove(pos, encode_move(from, to, WP, 0, capture, enpass), list);
+			AddMove(pos, encode_move(from, to, WP, 0, capture), list);
 		}
 
 	}
@@ -103,15 +102,15 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
 		if (from >= a2 &&
 			from <= h2) { // if the piece is moving from the 2nd to the 1st rank
 
-			AddMove(pos, encode_move(from, to, BP, BQ, capture, enpass), list);
-			AddMove(pos, encode_move(from, to, BP, BR, capture, enpass),
+			AddMove(pos, encode_move(from, to, BP, BQ, capture), list);
+			AddMove(pos, encode_move(from, to, BP, BR, capture),
 				list); // consider every possible piece promotion
-			AddMove(pos, encode_move(from, to, BP, BB, capture, enpass), list);
-			AddMove(pos, encode_move(from, to, BP, BN, capture, enpass), list);
+			AddMove(pos, encode_move(from, to, BP, BB, capture), list);
+			AddMove(pos, encode_move(from, to, BP, BN, capture), list);
 
 		}
 		else { // else do not include possible promotions
-			AddMove(pos, encode_move(from, to, BP, 0, capture, enpass), list);
+			AddMove(pos, encode_move(from, to, BP, 0, capture), list);
 		}
 	}
 }
@@ -268,7 +267,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -287,7 +286,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -306,7 +305,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -324,7 +323,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -343,7 +342,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		pop_bit(moves, target_square);
 		AddMove(
 			pos,
-			encode_move(source_square, target_square, piece, 0, capture, 0),
+			encode_move(source_square, target_square, piece, 0, capture),
 			move_list);
 	}
 
@@ -359,7 +358,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					if (!is_square_attacked(pos, e1, BLACK) &&
 						!is_square_attacked(pos, f1, BLACK) &&
 						!is_square_attacked(pos, g1, BLACK))
-						AddMove(pos, encode_move(e1, g1, WK, 0, 0, 0), move_list);
+						AddMove(pos, encode_move(e1, g1, WK, 0, 0), move_list);
 				}
 			}
 
@@ -372,7 +371,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					if (!is_square_attacked(pos, e1, BLACK) &&
 						!is_square_attacked(pos, d1, BLACK) &&
 						!is_square_attacked(pos, c1, BLACK))
-						AddMove(pos, encode_move(e1, c1, WK, 0, 0, 0), move_list);
+						AddMove(pos, encode_move(e1, c1, WK, 0, 0), move_list);
 				}
 			}
 
@@ -387,7 +386,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					if (!is_square_attacked(pos, e8, WHITE) &&
 						!is_square_attacked(pos, f8, WHITE) &&
 						!is_square_attacked(pos, g8, WHITE))
-						AddMove(pos, encode_move(e8, g8, BK, 0, 0, 0), move_list);
+						AddMove(pos, encode_move(e8, g8, BK, 0, 0), move_list);
 				}
 			}
 
@@ -400,7 +399,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 					if (!is_square_attacked(pos, e8, WHITE) &&
 						!is_square_attacked(pos, d8, WHITE) &&
 						!is_square_attacked(pos, c8, WHITE))
-						AddMove(pos, encode_move(e8, c8, BK, 0, 0, 0), move_list);
+						AddMove(pos, encode_move(e8, c8, BK, 0, 0), move_list);
 				}
 			}
 		}
@@ -454,7 +453,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -472,7 +471,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -490,7 +489,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -508,7 +507,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 				int capture = (pos->pieces[target_square] != EMPTY);
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(pos,
-					encode_move(source_square, target_square, piece, 0, capture, 0),
+					encode_move(source_square, target_square, piece, 0, capture),
 					move_list);
 				pop_bit(moves, target_square);
 			}
@@ -528,7 +527,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 		pop_bit(moves, target_square);
 		AddMove(
 			pos,
-			encode_move(source_square, target_square, piece, 0, capture, 0),
+			encode_move(source_square, target_square, piece, 0, capture),
 			move_list);
 	}
 }

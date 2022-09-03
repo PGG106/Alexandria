@@ -315,3 +315,5 @@ Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color);
 Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color);
+
+
