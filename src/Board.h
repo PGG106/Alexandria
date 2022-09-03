@@ -240,6 +240,7 @@ typedef struct info {
 	int starttime=-1;
 	int stoptime = -1;
 	int depth=-1;
+	int seldepth = -1;
 	bool depthset=false;
 	int timeset = -1;
 	int movestogo = -1;

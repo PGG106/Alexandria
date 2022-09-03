@@ -402,6 +402,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	if (in_check) depth++;
 
+	if (pos->ply > info->seldepth)
+		info->seldepth = pos->ply;
+
 	// recursion escape condition
 	if (depth <= 0) {
 		return Quiescence(alpha, beta, pos, info);
@@ -718,18 +721,18 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 			unsigned long  time = GetTimeMs() - info->starttime;
 			uint64_t nps = info->nodes / (time + !time) * 1000;
 			if (score > -mate_value && score < -mate_score)
-				printf("info score mate %d depth %d nodes %lu nps %lld time %d pv ",
-					-(score + mate_value) / 2, current_depth, info->nodes, nps,
+				printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+					-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
 					GetTimeMs() - info->starttime);
 
 			else if (score > mate_score && score < mate_value)
-				printf("info score mate %d depth %d nodes %lu nps %lld time %d pv ",
-					(mate_value - score) / 2 + 1, current_depth, info->nodes, nps,
+				printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+					(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
 					GetTimeMs() - info->starttime);
 
 			else
-				printf("info score cp %d depth %d nodes %lu nps %lld time %d pv ", score,
-					current_depth, info->nodes, nps, GetTimeMs() - info->starttime);
+				printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
+					current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
 
 			int PvCount = GetPvLine(current_depth, pos);
 
