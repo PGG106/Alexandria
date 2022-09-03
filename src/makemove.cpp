@@ -74,6 +74,7 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 	AddPieceNNUE(piece, to, pos);
 }
 
+
 // make move on chess board
 int make_move(int move, S_Board* pos) {
 
@@ -91,7 +92,7 @@ int make_move(int move, S_Board* pos) {
 
 	int capture = get_move_capture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-	int enpass = get_move_enpassant(move);
+	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 
 	pos->fiftyMove++;
@@ -227,7 +228,7 @@ int Unmake_move(S_Board* pos) {
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);
 
-	int enpass = get_move_enpassant(move);
+	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	int piececap = pos->history[pos->hisPly].capture;
 

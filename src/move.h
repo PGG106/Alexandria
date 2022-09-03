@@ -15,9 +15,9 @@ typedef struct {
 } S_MOVELIST;
 
 // encode move
-#define encode_move(source, target, piece, promoted, capture,enpassant)      \
+#define encode_move(source, target, piece, promoted, capture)      \
   (source) | (target << 6) | (piece << 12) | (promoted << 16) |                \
-      (capture << 20) |  (enpassant << 21)          
+      (capture << 20)         
 
 #define NOMOVE 0
 #define mate_score 31000
@@ -37,10 +37,12 @@ typedef struct {
 #define get_move_promoted(move) ((move & 0xf0000) >> 16)
 // extract capture flag
 #define get_move_capture(move) (move & 0x100000)
-// extract enpassant flag
-#define get_move_enpassant(move) (move & 0x200000)
+
 
 #define IsQuiet(move) (!get_move_capture(move) && !get_move_promoted(move))
 
+#define isEnpassant(pos,move) ((get_move_piece(move) == WP || get_move_piece(move) == BP) && (get_move_target(move) == pos->enPas))
+
 // move types
 enum { all_moves, only_captures };
+

@@ -228,7 +228,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 			continue;
 		}
 		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
-		else if (get_move_enpassant(move)) {
+		else if (isEnpassant(pos, move)) {
 
 			move_list->moves[i].score = 105 + 1000000000;
 			continue;
@@ -280,7 +280,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HASHENTRY tte;
 	bool TThit = false;
-	int standing_pat=0;
+	int standing_pat = 0;
 
 	//Check if we recieved a stop command from the GUI
 	if ((info->nodes & 2047) == 0) {
