@@ -21,10 +21,10 @@ OBJS := $(patsubst %.cpp,%.o,$(SRCS))
 
 Alexandria: $(TARGET)
 $(TARGET): $(OBJS)
-	g++ -static -static-libstdc++ -static-libgcc -o Alexandria $@ $^
+	g++ -static -static-libstdc++ -static-libgcc -pthread -o Alexandria $@ $^
 
 %.o: %.cpp
-	g++ -c -static -static-libstdc++ -static-libgcc $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
+	g++ -c -static -static-libstdc++ -static-libgcc  -pthread  $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
 
 clean:
 	del *.o *.exe
