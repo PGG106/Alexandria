@@ -6,16 +6,21 @@
   * Negamax framework
   * Aspiration Window
   * Alpha-Beta pruning
+  * Reverse Futility pruning
+  * Late-move reduction
+  * Late-move pruning
+  * Null-move pruning
+  * Razoring
+  * IIR
+  * SE
+  * Check extension
   * PVS
   * Quiescence search
   * Transposition Table
   * Repetition detection
   * killer move, history, Countermove heuristic
-  * MVV-LVA move ordering
-  * Null-move pruning
-  * Reverse Futility pruning
-  * Razoring
-  * Late-move reduction
+  * MVV-LVA capture ordering
+  
 * Evaluation
   * NNUE Evaluation (Big thanks to Luecx)
   * HCE based on material evaluation and a piece square table (legacy and not subject to ulterior development)
@@ -24,13 +29,12 @@
 ## Things i tried that didn't work
 * Search
   * SEE
-  * Singular extension
   
 ## Things i might try in the future
 * Evaluation
   * Improve the nnue using a better architecture and generating more data
 * Search
-   * Actually getting Singular extension
+   * Actually getting SEE to work
    * All the histories i don't comprehend at the time of writing (mostly FUH)
   
 ## Acknowledgements
