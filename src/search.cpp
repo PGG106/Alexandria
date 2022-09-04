@@ -282,13 +282,13 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	bool TThit = false;
 	int standing_pat = 0;
 
+	// check if time up or interrupt from GUI
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+		info->stopped = TRUE;
+	}
+
 	if (pos->ply > info->seldepth)
 		info->seldepth = pos->ply;
-
-	//Check if we recieved a stop command from the GUI
-	if ((info->nodes & 2047) == 0) {
-		CheckUp(info);
-	}
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
@@ -413,10 +413,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		return Quiescence(alpha, beta, pos, info);
 	}
 
-	//Check if we recieved a stop command from the GUI
-	if ((info->nodes & 2047) == 0) {
-		CheckUp(info);
+	// check if time up or interrupt from GUI
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+		info->stopped = TRUE;
 	}
+
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
@@ -650,7 +651,9 @@ moves_loop:
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 
-	search_position(1, depth, pos, info, TRUE); // root search
+
+	search_position(1, depth, pos, info, TRUE);
+
 
 }
 
