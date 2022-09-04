@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../plugboard.h"
+#include <thread>
 
 int parse_move(char* move_string, S_Board* pos) {
 	// create move list instance
@@ -237,7 +238,6 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time,
 		info->starttime, info->stoptime, info->depth, info->timeset);
 
-	Root_search_position(info->depth, pos, info);
 }
 
 /*
@@ -256,13 +256,10 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 	uint64_t MB = 16;
 	bool parsed_position = false;
-	// reset STDIN & STDOUT buffers
-	setvbuf(stdin, NULL, _IONBF, 0);
-	setvbuf(stdout, NULL, _IONBF, 0);
 
 	// define user / GUI input buffer
 	char input[40000];
-
+	std::thread search_thread;
 	// print engine info
 	printf("id name Alexandria 2.5-dev\n");
 	printf("id author PGG\n");
@@ -278,20 +275,27 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 		// make sure output reaches the GUI
 		fflush(stdout);
-
+	
 		// get user / GUI input
-		if (!fgets(input, 40000, stdin))
+		if (!fgets(input, 40000, stdin)) {
+		
 			// continue the loop
 			continue;
+		}
+		
 
 		// make sure input is available
-		if (input[0] == '\n')
+		if (input[0] == '\n') {
+		
 			// continue the loop
 			continue;
+		}
+	
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
 			printf("readyok\n");
+	
 			continue;
 		}
 
@@ -300,10 +304,12 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
+	
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
-
+			if (search_thread.joinable())
+			search_thread.join();
 			ClearHashTable(HashTable);
 
 			// call parse position function
@@ -314,15 +320,31 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
+			if(search_thread.joinable())
+			search_thread.join();
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
+			search_thread = std::thread(Root_search_position,info->depth, pos, info);
+
 		}
+		// parse UCI "stop" command
+		else if (strncmp(input, "stop", 4) == 0) {
+			//stop searching
+			info->stopped = true;
+
+			search_thread.join();
+		}
+
 		// parse UCI "quit" command
-		else if (strncmp(input, "quit", 4) == 0)
+		else if (strncmp(input, "quit", 4) == 0) {
+			//stop searching
+			info->stopped = true;
+
 			// quit from the chess engine program execution
 			break;
+		}
 
 		// parse UCI "uci" command
 		else if (strncmp(input, "uci", 3) == 0) {
@@ -466,5 +488,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
+
 	}
+
 }
