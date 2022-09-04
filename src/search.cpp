@@ -66,14 +66,6 @@ int ep_margin = 120;
 int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
 					  100, 325, 325, 500, 900, -10000 };
 
-void CheckUp(S_SearchINFO* info) {
-	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
-		info->stopped = TRUE;
-	}
-	ReadInput(info);
-}
-
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 
@@ -125,6 +117,7 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 	info->starttime = GetTimeMs();
 	info->stopped = 0;
 	info->nodes = 0;
+	info->seldepth = 0;
 }
 
 static inline Bitboard AttacksTo(const S_Board* pos, int to) {
