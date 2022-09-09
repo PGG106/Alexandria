@@ -322,7 +322,7 @@ void accumulate(const S_Board* pos) {
 		}
 }*/
 
-//Function to get the bitboard of a certain piece
+//Functions to get the bitboard of a certain piece
 
 //Retrieve the pawns on the board of a specific color
 Bitboard GetPawnsColorBB(const S_Board* pos, int color) {
@@ -383,4 +383,11 @@ Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype) {
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color) {
 	return piecetype + 6 * color;
+}
+
+//Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
+bool BoardHasNonPawns(S_Board* pos, int side) {
+
+	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
+
 }
