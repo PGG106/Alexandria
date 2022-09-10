@@ -37,6 +37,22 @@
    * Actually getting SEE to work
    * All the histories i don't comprehend at the time of writing (mostly FUH)
   
+ ## Building
+
+```bash
+$ git clone https://github.com/PGG106/Alexandria
+$ cd alexandria/src
+$ make 
+$ ./Alexandria
+```
+ ## How to use the engine
+
+The Universal Chess Interface (UCI) is a standard protocol used to communicate with
+a chess engine, and is the recommended way to do so for typical graphical user interfaces
+(GUI) or chess tools. Alexandria implements the majority of its options as described
+in [the UCI protocol](https://www.shredderchess.com/download/div/uci.zip).
+
+  
 ## Acknowledgements
 This project would not have been possible without the following people
 * BluefeverSoftware for his Vice chess engine from which i learnt the basic structure and functionality of a chess engine
