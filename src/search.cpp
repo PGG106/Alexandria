@@ -16,6 +16,7 @@
 #include <cstring>
 #include <thread>
 #include <vector>
+#include <algorithm>
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
@@ -487,7 +488,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& static_eval >= beta
 		&& pos->ply
 		&& depth >= nmp_depth
-		&& BoardHasNonPawns(pos,pos->side)) {
+		&& BoardHasNonPawns(pos, pos->side)) {
 
 		MakeNullMove(pos);
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
@@ -594,6 +595,8 @@ moves_loop:
 		{
 			//calculate by how much we should reduce the search depth 
 			int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+
+			depth_reduction = std::clamp(depth_reduction, 0, depth - 1);
 
 			// search current move with reduced depth:
 			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE);
