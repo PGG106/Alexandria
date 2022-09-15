@@ -334,6 +334,13 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 		pick_move(move_list, count);
 		int move = move_list->moves[count].move;
+		int move_Score = move_list->moves[count].score;
+		if (moves_searched > 0
+			&& BestScore > -ISMATE
+			&& get_move_capture(move)
+			&& move_Score < 600000000)
+			continue;
+
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
