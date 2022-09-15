@@ -338,7 +338,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		if (moves_searched > 0
 			&& BestScore > -ISMATE
 			&& get_move_capture(move)
-			&& move_Score == 500000000)
+			&& move_Score < 600000000)
 			continue;
 
 		make_move(move, pos);
