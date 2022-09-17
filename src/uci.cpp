@@ -475,16 +475,6 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			printf("Set window_resize_ratio to %d\n", window_resize_ratio);
 		}
 
-		else if (!strncmp(input, "setoption name ep_depth value ", 30)) {
-			sscanf(input, "%*s %*s %*s %*s %d", &ep_depth);
-			printf("Set ep_depth to %d\n", ep_depth);
-		}
-
-		else if (!strncmp(input, "setoption name ep_margin value ", 31)) {
-			sscanf(input, "%*s %*s %*s %*s %d", &ep_margin);
-			printf("Set ep_margin to %d\n", ep_margin);
-		}
-
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}

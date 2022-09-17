@@ -59,10 +59,6 @@ int Resize_limit = 5;
 int window_fixed_increment = 1;
 int window_resize_ratio = 144;
 
-//Evaluation pruning 
-int ep_depth = 3;
-int ep_margin = 120;
-
 //Contains the material Values of the pieces
 int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
 					  100, 325, 325, 500, 900, -10000 };
