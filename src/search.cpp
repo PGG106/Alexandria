@@ -59,10 +59,6 @@ int Resize_limit = 5;
 int window_fixed_increment = 1;
 int window_resize_ratio = 144;
 
-//Evaluation pruning 
-int ep_depth = 3;
-int ep_margin = 120;
-
 //Contains the material Values of the pieces
 int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
 					  100, 325, 325, 500, 900, -10000 };
@@ -472,16 +468,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
 			(pos->history[pos->hisPly - 2].eval) == value_none);
 
-	// evaluation pruning / static null move pruning
-	if (depth < ep_depth && !pv_node && abs(beta - 1) > -MAXSCORE + 100) {
-		// define evaluation margin
-		int eval_margin = ep_margin * depth;
-
-		// evaluation margin substracted from static evaluation score fails high
-		if (static_eval - eval_margin >= beta)
-			// evaluation margin substracted from static evaluation score
-			return static_eval - eval_margin;
-	}
 
 	// Reverse futility pruning (depth 8 limit was taken from stockfish)
 	if (!pv_node
