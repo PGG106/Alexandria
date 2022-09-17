@@ -12,8 +12,14 @@ else
 	TARGET = -march=native
 endif
 
+ifeq ($(OS), Windows_NT)
+    CFLAGS =  -static -static-libstdc++ -static-libgcc -pthread 
+else
+	CFLAGS =  -pthread 
+endif
+
 ifeq ($(build), release)
-	CFLAGS =  -static -static-libgcc -static-libstdc++ 
+	
 endif
 
 SRCS := $(wildcard *.cpp)
@@ -21,10 +27,10 @@ OBJS := $(patsubst %.cpp,%.o,$(SRCS))
 
 Alexandria: $(TARGET)
 $(TARGET): $(OBJS)
-	g++ -static -static-libstdc++ -static-libgcc -pthread -o Alexandria $@ $^
+	g++ $(CFLAGS) -o Alexandria $@ $^
 
 %.o: %.cpp
-	g++ -c -static -static-libstdc++ -static-libgcc  -pthread  $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
+	g++ -c $(CFLAGS)  $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
 
 clean:
 	del *.o *.exe
