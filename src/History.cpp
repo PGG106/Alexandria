@@ -1,6 +1,8 @@
 #include "Board.h"
 #include "move.h"
 #include "History.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 //Update the history heuristics of all the quiet moves passed to the function
 void updateHH(S_Board* pos, int depth, int bestmove, S_MOVELIST* quiet_moves) {
