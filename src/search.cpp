@@ -553,7 +553,7 @@ moves_loop:
 			&& !in_check
 			&& depth <= 4
 			&& isQuiet
-			&& history < 0)
+			&& history < 150 * depth)
 		{
 			continue;
 		}
