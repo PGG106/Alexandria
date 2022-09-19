@@ -252,7 +252,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score = getHHScore(pos,move);
+			move_list->moves[i].score = getHHScore(pos, move);
 			continue;
 		}
 	}
@@ -544,6 +544,17 @@ moves_loop:
 		if (!root_node && !pv_node && !in_check && depth < movecount_depth && isQuiet &&
 			(quiet_moves.count > (depth * movecount_multiplier))) {
 			SkipQuiets = true;
+			continue;
+		}
+
+		int history = getHHScore(pos, move);
+
+		if (!pv_node
+			&& !in_check
+			&& depth <= 4
+			&& isQuiet
+			&& history < 0)
+		{
 			continue;
 		}
 
