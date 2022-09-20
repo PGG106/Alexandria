@@ -476,8 +476,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// Reverse futility pruning (depth 8 limit was taken from stockfish)
 	if (!pv_node
 		&& depth < rfp_depth
-		&& static_eval - futility(depth, improving) >= beta)
-		return static_eval;
+		&& eval - futility(depth, improving) >= beta)
+		return eval;
 
 	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta
 	if (!pv_node
