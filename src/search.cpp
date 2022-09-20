@@ -390,7 +390,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (pos->ply == 0);
-	int static_eval;
+	int eval, static_eval;
 	bool improving;
 	bool ttHit;
 	int Score = -MAXSCORE;
@@ -458,10 +458,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		improving = false;
 		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
 	}
-
 	// get static evaluation score
-	static_eval = ttHit ? tte.score : EvalPosition(pos);
+	static_eval = eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
+
+	//if we have a TThit we can use the search score as a more accurate form of eval
+	if (ttHit) {
+		eval = tte.score;
+	}
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
 	improving = (pos->hisPly >= 2) &&
@@ -472,13 +476,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// Reverse futility pruning (depth 8 limit was taken from stockfish)
 	if (!pv_node
 		&& depth < rfp_depth
-		&& static_eval - futility(depth, improving) >= beta)
-		return static_eval;
+		&& eval - futility(depth, improving) >= beta)
+		return eval;
 
 	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta
 	if (!pv_node
 		&& DoNull
 		&& static_eval >= beta
+		&& eval >= beta
 		&& pos->ply
 		&& depth >= nmp_depth
 		&& BoardHasNonPawns(pos, pos->side)) {
@@ -503,7 +508,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// razoring
 	if (!pv_node
 		&& (depth <= razoring_depth) &&
-		(static_eval <=
+		(eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 
 		return Quiescence(alpha, beta, pos, info);
