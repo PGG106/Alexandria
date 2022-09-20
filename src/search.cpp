@@ -548,12 +548,12 @@ moves_loop:
 		}
 
 		int history = getHHScore(pos, move);
-
+		//if the move is quiet and its history score is low enough we can skip it
 		if (!pv_node
 			&& !in_check
 			&& depth <= 4
 			&& isQuiet
-			&& history < -250 * depth)
+			&& history < -150 * depth)
 		{
 			continue;
 		}
