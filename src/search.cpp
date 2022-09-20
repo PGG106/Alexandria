@@ -301,7 +301,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
 
 	//If we found a value in the TT we can return it
-	if (!pv_node && TThit && MoveExists(pos, tte.move)) {
+	if (!pv_node && TThit) {
 		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
 			return tte.score;
 	}
@@ -439,8 +439,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	if (pos->ply
 		&& !pv_node
 		&& ttHit
-		&& tte.depth >= depth
-		&& MoveExists(pos, tte.move)) {
+		&& tte.depth >= depth) {
 
 		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
 			return tte.score;
