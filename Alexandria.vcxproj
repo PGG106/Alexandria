@@ -177,6 +177,7 @@
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\ttable.h" />
     <ClInclude Include="src\uci.h" />
+    <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\History.cpp" />

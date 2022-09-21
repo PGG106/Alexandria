@@ -4,6 +4,7 @@
 #include "makemove.h"
 #include "misc.h"
 #include "move.h"
+#include "types.h"
 #include "movegen.h"
 #include "perft.h"
 #include "search.h"
