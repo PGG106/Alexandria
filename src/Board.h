@@ -65,7 +65,7 @@ extern int reductions[256];
 PACK(typedef struct HASHENTRY {
 	int32_t move = NOMOVE;
 	int16_t score = 0;
-	PosKey tt_key = 0;
+	TTKey tt_key = 0;
 	uint8_t depth = 0;
 	uint8_t flags = HFNONE;
 })
