@@ -2,20 +2,13 @@
 #include "Board.h"
 #include "stdlib.h"
 
+
 int GetPvLine(const int depth, S_Board* pos);
 
 void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
 void InitHashTable(S_HASHTABLE* table, uint64_t MB);
-/// <summary>
-/// 
-/// </summary>
-/// <param name="pos"></param>
-/// <param name="alpha"></param>
-/// <param name="beta"></param>
-/// <param name="depth"></param>
-/// <param name="tte"></param>
-/// <returns></returns>
+
 bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	S_HASHENTRY* tte);
 /// <summary>

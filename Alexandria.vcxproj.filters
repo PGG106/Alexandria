@@ -87,6 +87,9 @@
     <ClInclude Include="plugboard.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">
