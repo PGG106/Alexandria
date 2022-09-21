@@ -1,6 +1,6 @@
 
 #include "PieceData.h"
-#include "Board.h"
+#include "types.h"
 #include "eval.h"
 #include <map>
 #include <string>

@@ -7,6 +7,8 @@
 
 #include "nnue.h"
 #include "stdint.h"
+#include "move.h"
+#include "types.h"
 #ifdef __GNUC__
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
@@ -23,9 +25,6 @@
 #define MAXDEPTH 128
 #define Board_sq_num 64
 #define UNDOSIZE MAXGAMEMOVES + MAXDEPTH
-
-// define bitboard data type
-#define Bitboard unsigned long long
 
 // set/get/pop bit macros
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
@@ -50,18 +49,6 @@ extern uint8_t PopCnt16[1 << 16];
 #define cmk_position \
     "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
 
-// board squares
-enum {
-	a8, b8, c8, d8, e8, f8, g8, h8,
-	a7, b7, c7, d7, e7, f7, g7, h7,
-	a6, b6, c6, d6, e6, f6, g6, h6,
-	a5, b5, c5, d5, e5, f5, g5, h5,
-	a4, b4, c4, d4, e4, f4, g4, h4,
-	a3, b3, c3, d3, e3, f3, g3, h3,
-	a2, b2, c2, d2, e2, f2, g2, h2,
-	a1, b1, c1, d1, e1, f1, g1, h1, no_sq
-};
-
 // extract rank from a square [square]
 extern const int get_rank[Board_sq_num];
 
@@ -73,105 +60,12 @@ extern const int get_file[Board_sq_num];
 // extract diagonal from a square [square]
 extern const int get_diagonal[Board_sq_num];
 
-enum {
-	FILE_A,
-	FILE_B,
-	FILE_C,
-	FILE_D,
-	FILE_E,
-	FILE_F,
-	FILE_G,
-	FILE_H,
-	FILE_NONE
-};
-enum {
-	RANK_1,
-	RANK_2,
-	RANK_3,
-	RANK_4,
-	RANK_5,
-	RANK_6,
-	RANK_7,
-	RANK_8,
-	RANK_NONE
-};
-
-// encode pieces
-enum {
-	WP,
-	WN,
-	WB,
-	WR,
-	WQ,
-	WK,
-	BP,
-	BN,
-	BB,
-	BR,
-	BQ,
-	BK,
-	EMPTY = 14
-};
-
-// sides to move (colors)
-enum {
-	WHITE,
-	BLACK,
-	BOTH
-};
-
-// bishop and rook
-enum {
-	rook,
-	bishop
-};
-
-enum {
-	WKCA = 1,
-	WQCA = 2,
-	BKCA = 4,
-	BQCA = 8
-};
-
-enum {
-	FALSE,
-	TRUE
-};
-
-enum {
-	HFNONE,
-	HFALPHA,
-	HFBETA,
-	HFEXACT
-};
-
-// game phase scores
-const int opening_phase_score = 6192;
-const int endgame_phase_score = 518;
-
-// game phases
-enum {
-	opening,
-	endgame,
-	middlegame
-};
-
-// piece types
-enum {
-	PAWN,
-	KNIGHT,
-	BISHOP,
-	ROOK,
-	QUEEN,
-	KING
-};
-
 extern int reductions[256];
 
 PACK(typedef struct HASHENTRY {
 	int32_t move = NOMOVE;
 	int16_t score = 0;
-	uint16_t tt_key = 0;
+	PosKey tt_key = 0;
 	uint8_t depth = 0;
 	uint8_t flags = HFNONE;
 })
