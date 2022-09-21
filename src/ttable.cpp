@@ -82,7 +82,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	else if (tte->score < -ISMATE)
 		tte->score += pos->ply;
 
-	return (HashTable->pTable[index].tt_key == (PosKey)pos->posKey);
+	return (HashTable->pTable[index].tt_key == (TTKey)pos->posKey);
 }
 
 void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
@@ -102,10 +102,10 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
-		(PosKey)pos->posKey != HashTable->pTable[index].tt_key ||
+		(TTKey)pos->posKey != HashTable->pTable[index].tt_key ||
 		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
 	{
-		HashTable->pTable[index].tt_key = (PosKey)pos->posKey;
+		HashTable->pTable[index].tt_key = (TTKey)pos->posKey;
 		HashTable->pTable[index].flags = (uint8_t)flags;
 		HashTable->pTable[index].score = (int16_t)score;
 		HashTable->pTable[index].depth = (uint8_t)depth;
@@ -116,7 +116,7 @@ int ProbePvMove(S_Board* pos) {
 
 	int index = pos->posKey % HashTable->numEntries;
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	if (HashTable->pTable[index].tt_key == (PosKey)pos->posKey) {
+	if (HashTable->pTable[index].tt_key == (TTKey)pos->posKey) {
 		return HashTable->pTable[index].move;
 	}
 	return NOMOVE;
