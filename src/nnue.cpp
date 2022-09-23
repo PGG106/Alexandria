@@ -20,7 +20,7 @@ std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 int NNUE::relu(int x) { return std::max(0, x); }
 
 void NNUE::init(const char* file) {
-	// initialize an accumulator for every input of the second layer
+	// initialize an Accumulator for every input of the second layer
 
 	// open the nn file
 	FILE* nn = fopen(file, "rb");
@@ -53,15 +53,15 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activate(int inputNum) {
+void NNUE::activateWhite(int inputNum) {
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::deactivate(int inputNum) {
+void NNUE::deactivateWhite(int inputNum) {
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
@@ -69,7 +69,7 @@ int32_t NNUE::output() {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		output += relu(accumulator[i]) * hiddenWeights[i];
+		output += relu(whiteAccumulator[i]) * hiddenWeights[i];
 	}
 	output += outputBias[0];
 	return output / (64 * 256);
@@ -78,6 +78,6 @@ int32_t NNUE::output() {
 void NNUE::Clear() {
 	//Reset the accumulators of the nnue
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] = 0;
+		whiteAccumulator[i] = 0;
 	}
 }

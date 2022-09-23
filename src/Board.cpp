@@ -151,7 +151,7 @@ void ResetBoard(S_Board* pos) {
 
 	// set default nnue values
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		nnue.accumulator[i] = nnue.hiddenBias[i];
+		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
 	}
 }
 
@@ -195,11 +195,12 @@ void parse_fen(const char* fen, S_Board* pos) {
 				// init piece type
 				int piece = char_pieces[*fen];
 				if (piece != EMPTY) {
+
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
 
-					nnue.activate(square + piece * 64);
+					nnue.activateWhite(square + piece * 64);
 					// increment pointer to FEN string
 				}
 				fen++;
@@ -310,7 +311,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 void accumulate(const S_Board* pos) {
 
 		for (int i = 0; i < HIDDEN_BIAS; i++) {
-				nnue.accumulator[i] = nnue.hiddenBias[i];
+				nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
 		}
 
 		for (int i = 0; i < 64; i++) {

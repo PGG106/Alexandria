@@ -38,7 +38,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.deactivate(sq + piece * 64);
+		nnue.deactivateWhite(sq + piece * 64);
 	HASH_PCE(piece, sq);
 	pop_bit(pos->bitboards[piece], sq);
 	pos->pieces[sq] = EMPTY;
@@ -51,7 +51,7 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[to] == EMPTY)
-		nnue.activate(to + piece * 64);
+		nnue.activateWhite(to + piece * 64);
 	// ♦set up promoted piece on chess board
 	set_bit(pos->bitboards[piece], to);
 	set_bit(pos->occupancies[color], to);
@@ -83,7 +83,7 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].posKey = pos->posKey;
 	pos->history[pos->hisPly].move = move;
-	accumulatorStack.emplace_back(nnue.accumulator);
+	accumulatorStack.emplace_back(nnue.whiteAccumulator);
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
@@ -232,7 +232,7 @@ int Unmake_move(S_Board* pos) {
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	int piececap = pos->history[pos->hisPly].capture;
 
-	nnue.accumulator = accumulatorStack.back();
+	nnue.whiteAccumulator = accumulatorStack.back();
 	accumulatorStack.pop_back();
 
 	// handle pawn promotions
