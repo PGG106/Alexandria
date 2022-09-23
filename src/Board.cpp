@@ -308,21 +308,22 @@ void parse_fen(const char* fen, S_Board* pos) {
 
 	pos->posKey = GeneratePosKey(pos);
 }
-/*
+
 void accumulate(const S_Board* pos) {
 
-		for (int i = 0; i < HIDDEN_BIAS; i++) {
-				nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
-		}
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
+		nnue.blackAccumulator[i] = nnue.hiddenBias[i];
+	}
 
-		for (int i = 0; i < 64; i++) {
-				bool input = pos->pieces[i]!=EMPTY;
-				if (!input) continue;
-				int j = i + (pos->pieces[i]) * 64;
-				nnue.inputValues[j] = 1;
-				nnue.activate(j);
-		}
-}*/
+	for (int i = 0; i < 64; i++) {
+		bool input = pos->pieces[i] != EMPTY;
+		if (!input) continue;
+		int j = i + (pos->pieces[i]) * 64;
+		nnue.inputValues[j] = 1;
+		nnue.activate(pos->pieces[i],i,pos->side);
+	}
+}
 
 //Functions to get the bitboard of a certain piece
 

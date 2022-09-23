@@ -80,6 +80,7 @@ void NNUE::deactivate(int piece, int to, int stm) {
 int32_t NNUE::output(int stm) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
+
 	if (stm == WHITE) {
 		for (int i = 0; i < HIDDEN_BIAS; i++) {
 			output += relu(whiteAccumulator[i]) * hiddenWeights[i];
@@ -99,5 +100,6 @@ void NNUE::Clear() {
 	//Reset the accumulators of the nnue
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		whiteAccumulator[i] = 0;
+		blackAccumulator[i] = 0;
 	}
 }
