@@ -56,8 +56,8 @@ void NNUE::init(const char* file) {
 
 void NNUE::activate(int piece, int to, int stm) {
 	int piecetype = piece % 6;
-	int whiteIndex = to + piecetype * 64 + (WHITE!= stm)*64*6;
-	int blackIndex = (to ^ 56) + piecetype * 64 + (BLACK != stm) * 64 * 6;
+	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		whiteAccumulator[i] += inputWeights[whiteIndex * HIDDEN_BIAS + i];
@@ -68,8 +68,8 @@ void NNUE::activate(int piece, int to, int stm) {
 
 void NNUE::deactivate(int piece, int to, int stm) {
 	int piecetype = piece % 6;
-	int whiteIndex = to + piecetype * 64 + (WHITE != stm) * 64 * 6;
-	int blackIndex = (to ^ 56) + piecetype * 64 + (BLACK != stm) * 64 * 6;
+	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		whiteAccumulator[i] -= inputWeights[whiteIndex * HIDDEN_BIAS + i];

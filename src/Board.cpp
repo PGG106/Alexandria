@@ -152,6 +152,7 @@ void ResetBoard(S_Board* pos) {
 	// set default nnue values
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
+		nnue.blackAccumulator[i] = nnue.hiddenBias[i];
 	}
 }
 

@@ -479,7 +479,19 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
+		else if (strncmp(input, "acc", 3) == 0) {
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			printf("%d ",nnue.whiteAccumulator[i]);
 
+		}
+		printf("---------------------------------------------\n ");
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			printf("%d ", nnue.blackAccumulator[i]);
+
+		}
+		
+		}
+	
 	}
 
 }

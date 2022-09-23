@@ -22,9 +22,11 @@ int main(int argc, char** argv) {
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	Reset_info(info);
+	ResetBoard(pos);
 	InitHashTable(HashTable, 16);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
+	
 
 	// connect to the GUI
 	Uci_Loop(pos, info, argv);
