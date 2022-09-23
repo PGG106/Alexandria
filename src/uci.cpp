@@ -222,6 +222,11 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		depth = atoi(ptr + 6);
 	}
 
+	if ((ptr = strstr(line, "nodes"))) {
+		info->nodeset = true;
+		info->nodeslimit = atoi(ptr + 6);
+	}
+
 	if (movetime != -1) {
 		time = movetime;
 		info->movestogo = 1;
@@ -236,8 +241,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time,
-		info->starttime, info->stoptime, info->depth, info->timeset);
+	printf("time:%d start:%d stop:%d depth:%d timeset:%d nodeset:%d\n", time,
+		info->starttime, info->stoptime, info->depth, info->timeset, info->nodeset);
 
 }
 
@@ -480,18 +485,18 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			start_bench();
 		}
 		else if (strncmp(input, "acc", 3) == 0) {
-		for (int i = 0; i < HIDDEN_BIAS; i++) {
-			printf("%d ",nnue.whiteAccumulator[i]);
+			for (int i = 0; i < HIDDEN_BIAS; i++) {
+				printf("%d ", nnue.whiteAccumulator[i]);
+
+			}
+			printf("---------------------------------------------\n ");
+			for (int i = 0; i < HIDDEN_BIAS; i++) {
+				printf("%d ", nnue.blackAccumulator[i]);
+
+			}
 
 		}
-		printf("---------------------------------------------\n ");
-		for (int i = 0; i < HIDDEN_BIAS; i++) {
-			printf("%d ", nnue.blackAccumulator[i]);
 
-		}
-		
-		}
-	
 	}
 
 }

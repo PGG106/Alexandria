@@ -137,7 +137,9 @@ typedef struct info {
 	int seldepth = -1;
 	bool depthset=false;
 	int timeset = -1;
+	bool nodeset = false;
 	int movestogo = -1;
+	int nodeslimit = -1;
 	bool infinite=false;
 
 	bool quit=false;
