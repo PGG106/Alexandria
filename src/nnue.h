@@ -11,10 +11,10 @@
 class NNUE {
 public:
 	void init(const char* nn);
-	void activateWhite(int inputNum);
-	void deactivateWhite(int inputNum);
+	void activate(int piece, int to, int stm);
+	void deactivate(int piece, int to, int stm);
 	int relu(int x);
-	int32_t output();
+	int32_t output(int stm);
 	void Clear();
 
 	std::array<int16_t, HIDDEN_BIAS> whiteAccumulator;

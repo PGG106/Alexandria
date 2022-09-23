@@ -38,7 +38,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.deactivateWhite(sq + piece * 64);
+		nnue.deactivate(piece, sq, pos->side);
 	HASH_PCE(piece, sq);
 	pop_bit(pos->bitboards[piece], sq);
 	pos->pieces[sq] = EMPTY;
@@ -50,8 +50,15 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 
 	int color = Color[piece];
-	if (piece != EMPTY && pos->pieces[to] == EMPTY)
-		nnue.activateWhite(to + piece * 64);
+	int piecetype = piece % 6;
+	if (piece != EMPTY && pos->pieces[to] == EMPTY) {
+		int whiteIndex = to + piece * 64;
+		int blackIndex = (to ^ 56) + piece * 64;
+
+		nnue.activate(piece, to, pos->side);
+
+	}
+
 	// ♦set up promoted piece on chess board
 	set_bit(pos->bitboards[piece], to);
 	set_bit(pos->occupancies[color], to);

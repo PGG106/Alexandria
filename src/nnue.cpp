@@ -53,25 +53,43 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activateWhite(int inputNum) {
+void NNUE::activate(int piece, int to, int stm) {
+	int piecetype = piece % 6;
+	int whiteIndex = to + piecetype * 64 + (WHITE!= stm)*64*6;
+	int blackIndex = (to ^ 56) + piecetype * 64 + (BLACK != stm) * 64 * 6;
+
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		whiteAccumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] += inputWeights[whiteIndex * HIDDEN_BIAS + i];
+		blackAccumulator[i] += inputWeights[blackIndex * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::deactivateWhite(int inputNum) {
+
+void NNUE::deactivate(int piece, int to, int stm) {
+	int whiteIndex = to + piece * 64;
+	int blackIndex = (to ^ 56) + piece * 64;
+
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		whiteAccumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] -= inputWeights[whiteIndex * HIDDEN_BIAS + i];
+		blackAccumulator[i] -= inputWeights[blackIndex * HIDDEN_BIAS + i];
 	}
 }
 
-int32_t NNUE::output() {
+int32_t NNUE::output(int stm) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		output += relu(whiteAccumulator[i]) * hiddenWeights[i];
+	if (stm == WHITE) {
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			output += relu(whiteAccumulator[i]) * hiddenWeights[i];
+		}
+		output += outputBias[0];
 	}
-	output += outputBias[0];
+	else {
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			output += relu(blackAccumulator[i]) * hiddenWeights[i];
+		}
+		output += outputBias[0];
+	}
 	return output / (64 * 256);
 }
 

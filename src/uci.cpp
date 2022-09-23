@@ -276,27 +276,27 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 		// make sure output reaches the GUI
 		fflush(stdout);
-	
+
 		// get user / GUI input
 		if (!fgets(input, 40000, stdin)) {
-		
+
 			// continue the loop
 			continue;
 		}
-		
+
 
 		// make sure input is available
 		if (input[0] == '\n') {
-		
+
 			// continue the loop
 			continue;
 		}
-	
+
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
 			printf("readyok\n");
-	
+
 			continue;
 		}
 
@@ -305,12 +305,12 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
-	
+
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 			if (search_thread.joinable())
-			search_thread.join();
+				search_thread.join();
 			ClearHashTable(HashTable);
 
 			// call parse position function
@@ -321,13 +321,13 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if(search_thread.joinable())
-			search_thread.join();
+			if (search_thread.joinable())
+				search_thread.join();
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position,info->depth, pos, info);
+			search_thread = std::thread(Root_search_position, info->depth, pos, info);
 
 		}
 		// parse UCI "stop" command
@@ -359,7 +359,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(pos->side));
 		}
 
 		else if (strncmp(input, "nnue", 4) == 0) {
