@@ -52,8 +52,6 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 	int color = Color[piece];
 	int piecetype = piece % 6;
 	if (piece != EMPTY && pos->pieces[to] == EMPTY) {
-		int whiteIndex = to + piece * 64;
-		int blackIndex = (to ^ 56) + piece * 64;
 
 		nnue.activate(piece, to, pos->side);
 
@@ -91,6 +89,7 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].posKey = pos->posKey;
 	pos->history[pos->hisPly].move = move;
 	accumulatorStack.emplace_back(nnue.whiteAccumulator);
+	accumulatorStackBlack.emplace_back(nnue.blackAccumulator);
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
@@ -240,7 +239,9 @@ int Unmake_move(S_Board* pos) {
 	int piececap = pos->history[pos->hisPly].capture;
 
 	nnue.whiteAccumulator = accumulatorStack.back();
+	nnue.blackAccumulator = accumulatorStackBlack.back();
 	accumulatorStack.pop_back();
+	accumulatorStackBlack.pop_back();
 
 	// handle pawn promotions
 	if (promoted_piece) {

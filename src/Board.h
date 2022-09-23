@@ -176,6 +176,7 @@ void parse_fen(const char* fen, S_Board* pos);
 void Reset_info(S_SearchINFO* info);
 
 extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStackBlack;
 
 //Pieces info retrival
 
