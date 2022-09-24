@@ -54,7 +54,7 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activate(int piece, int to, int stm) {
+void NNUE::activate(int piece, int to) {
 	int piecetype = piece % 6;
 	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
 	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
@@ -66,7 +66,7 @@ void NNUE::activate(int piece, int to, int stm) {
 }
 
 
-void NNUE::deactivate(int piece, int to, int stm) {
+void NNUE::deactivate(int piece, int to) {
 	int piecetype = piece % 6;
 	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
 	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
