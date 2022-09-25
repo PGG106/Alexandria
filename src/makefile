@@ -30,7 +30,7 @@ $(TARGET): $(OBJS)
 	g++ $(CFLAGS) -o Alexandria $@ $^
 
 %.o: %.cpp
-	g++ -c $(CFLAGS)  $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
+	g++ -c $(CFLAGS) -funroll-loops $(TARGET) -DEVALFILE="\"$(EVALFILE)\"" -flto -O3 -std=gnu++2a  -Wall $<
 
 clean:
 	del *.o *.exe
