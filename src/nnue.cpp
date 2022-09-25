@@ -54,7 +54,7 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activate(int piece, int to) {
+void NNUE::add(int piece, int to) {
 	int piecetype = getPieceType(piece);
 	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
 	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
@@ -66,10 +66,10 @@ void NNUE::activate(int piece, int to) {
 }
 
 
-void NNUE::deactivate(int piece, int to) {
+void NNUE::clear(int piece, int from) {
 	int piecetype = getPieceType(piece);
-	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
-	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
+	int whiteIndex = from + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndex = (from ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		whiteAccumulator[i] -= inputWeights[whiteIndex * HIDDEN_BIAS + i];
@@ -85,10 +85,8 @@ void NNUE::move(int piece, int from, int to) {
 	int blackIndexTo = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		whiteAccumulator[i] -= inputWeights[whiteIndexFrom * HIDDEN_BIAS + i];
-		whiteAccumulator[i] += inputWeights[whiteIndexTo * HIDDEN_BIAS + i];
-		blackAccumulator[i] -= inputWeights[blackIndexFrom * HIDDEN_BIAS + i];
-		blackAccumulator[i] += inputWeights[blackIndexTo * HIDDEN_BIAS + i];
+		whiteAccumulator[i] = whiteAccumulator[i] - inputWeights[whiteIndexFrom * HIDDEN_BIAS + i] + inputWeights[whiteIndexTo * HIDDEN_BIAS + i];
+		blackAccumulator[i] = blackAccumulator[i] - inputWeights[blackIndexFrom * HIDDEN_BIAS + i] + inputWeights[blackIndexTo * HIDDEN_BIAS + i];
 	}
 }
 
