@@ -73,9 +73,8 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 //Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-
-	ClearPieceNNUE(piece, from, pos);
-	AddPieceNNUE(piece, to, pos);
+	nnue.move(piece, from, to);
+	MovePiece(piece, from, to, pos);
 }
 
 

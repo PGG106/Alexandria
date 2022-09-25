@@ -77,6 +77,21 @@ void NNUE::deactivate(int piece, int to) {
 	}
 }
 
+void NNUE::move(int piece, int from, int to) {
+	int piecetype = getPieceType(piece);
+	int whiteIndexFrom = from + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndexFrom = (from ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
+	int whiteIndexTo = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndexTo = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
+
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		whiteAccumulator[i] -= inputWeights[whiteIndexFrom * HIDDEN_BIAS + i];
+		whiteAccumulator[i] += inputWeights[whiteIndexTo * HIDDEN_BIAS + i];
+		blackAccumulator[i] -= inputWeights[blackIndexFrom * HIDDEN_BIAS + i];
+		blackAccumulator[i] += inputWeights[blackIndexTo * HIDDEN_BIAS + i];
+	}
+}
+
 int32_t NNUE::output(int stm) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
