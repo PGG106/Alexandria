@@ -80,6 +80,7 @@ expectednodes, actualnodes); return;
 */
 
 void GetNNUEPieceValues(S_Board* pos) {
+	/*
 	parse_fen(start_position,pos);
 	int base_Score = nnue.output();
 	parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPP1PP/RNBQKBNR w KQkq - 0 1", pos);
@@ -100,5 +101,6 @@ void GetNNUEPieceValues(S_Board* pos) {
 	printf("bishop score %d\n", bishop_score);
 	printf("rook score %d\n", rook_score);
 	printf("queen score %d\n", queen_score);
+	*/
 	return;
 }

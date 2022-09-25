@@ -137,7 +137,9 @@ typedef struct info {
 	int seldepth = -1;
 	bool depthset=false;
 	int timeset = -1;
+	bool nodeset = false;
 	int movestogo = -1;
+	int nodeslimit = -1;
 	bool infinite=false;
 
 	bool quit=false;
@@ -174,8 +176,10 @@ int square_distance(int a, int b);
 void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
+void ResetBoard(S_Board* pos);
 
 extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStackBlack;
 
 //Pieces info retrival
 
@@ -209,5 +213,10 @@ Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color);
 Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color);
+//Returns the piece type of a piece
+int getPieceType(int piece);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side);
+
+
+void accumulate(const S_Board* pos);

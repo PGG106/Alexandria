@@ -16,11 +16,12 @@ const unsigned int gEmbeddedNNUESize = 1;
 // invaluable help and the immense patience
 
 std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStackBlack;
 
 int NNUE::relu(int x) { return std::max(0, x); }
 
 void NNUE::init(const char* file) {
-	// initialize an accumulator for every input of the second layer
+	// initialize an Accumulator for every input of the second layer
 
 	// open the nn file
 	FILE* nn = fopen(file, "rb");
@@ -53,31 +54,52 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activate(int inputNum) {
+void NNUE::activate(int piece, int to) {
+	int piecetype = getPieceType(piece);
+	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
+
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] += inputWeights[whiteIndex * HIDDEN_BIAS + i];
+		blackAccumulator[i] += inputWeights[blackIndex * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::deactivate(int inputNum) {
+
+void NNUE::deactivate(int piece, int to) {
+	int piecetype = getPieceType(piece);
+	int whiteIndex = to + piecetype * 64 + (Color[piece] != WHITE) * 64 * 6;
+	int blackIndex = (to ^ 56) + piecetype * 64 + (Color[piece] != BLACK) * 64 * 6;
+
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
+		whiteAccumulator[i] -= inputWeights[whiteIndex * HIDDEN_BIAS + i];
+		blackAccumulator[i] -= inputWeights[blackIndex * HIDDEN_BIAS + i];
 	}
 }
 
-int32_t NNUE::output() {
+int32_t NNUE::output(int stm) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		output += relu(accumulator[i]) * hiddenWeights[i];
+
+	if (stm == WHITE) {
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			output += relu(whiteAccumulator[i]) * hiddenWeights[i];
+		}
+		output += outputBias[0];
 	}
-	output += outputBias[0];
+	else {
+		for (int i = 0; i < HIDDEN_BIAS; i++) {
+			output += relu(blackAccumulator[i]) * hiddenWeights[i];
+		}
+		output += outputBias[0];
+	}
 	return output / (64 * 256);
 }
 
 void NNUE::Clear() {
 	//Reset the accumulators of the nnue
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] = 0;
+		whiteAccumulator[i] = 0;
+		blackAccumulator[i] = 0;
 	}
 }

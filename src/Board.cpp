@@ -151,7 +151,8 @@ void ResetBoard(S_Board* pos) {
 
 	// set default nnue values
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		nnue.accumulator[i] = nnue.hiddenBias[i];
+		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
+		nnue.blackAccumulator[i] = nnue.hiddenBias[i];
 	}
 }
 
@@ -195,11 +196,12 @@ void parse_fen(const char* fen, S_Board* pos) {
 				// init piece type
 				int piece = char_pieces[*fen];
 				if (piece != EMPTY) {
+
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
 
-					nnue.activate(square + piece * 64);
+					nnue.activate(piece, square);
 					// increment pointer to FEN string
 				}
 				fen++;
@@ -306,21 +308,22 @@ void parse_fen(const char* fen, S_Board* pos) {
 
 	pos->posKey = GeneratePosKey(pos);
 }
-/*
+
 void accumulate(const S_Board* pos) {
 
-		for (int i = 0; i < HIDDEN_BIAS; i++) {
-				nnue.accumulator[i] = nnue.hiddenBias[i];
-		}
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
+		nnue.blackAccumulator[i] = nnue.hiddenBias[i];
+	}
 
-		for (int i = 0; i < 64; i++) {
-				bool input = pos->pieces[i]!=EMPTY;
-				if (!input) continue;
-				int j = i + (pos->pieces[i]) * 64;
-				nnue.inputValues[j] = 1;
-				nnue.activate(j);
-		}
-}*/
+	for (int i = 0; i < 64; i++) {
+		bool input = pos->pieces[i] != EMPTY;
+		if (!input) continue;
+		int j = i + (pos->pieces[i]) * 64;
+		nnue.inputValues[j] = 1;
+		nnue.activate(pos->pieces[i], i);
+	}
+}
 
 //Functions to get the bitboard of a certain piece
 
@@ -383,6 +386,10 @@ Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype) {
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color) {
 	return piecetype + 6 * color;
+}
+
+int getPieceType(int piece) {
+	return piece % 6;
 }
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise

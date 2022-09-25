@@ -222,6 +222,11 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		depth = atoi(ptr + 6);
 	}
 
+	if ((ptr = strstr(line, "nodes"))) {
+		info->nodeset = true;
+		info->nodeslimit = atoi(ptr + 6);
+	}
+
 	if (movetime != -1) {
 		time = movetime;
 		info->movestogo = 1;
@@ -236,8 +241,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time,
-		info->starttime, info->stoptime, info->depth, info->timeset);
+	printf("time:%d start:%d stop:%d depth:%d timeset:%d nodeset:%d\n", time,
+		info->starttime, info->stoptime, info->depth, info->timeset, info->nodeset);
 
 }
 
@@ -276,27 +281,27 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 		// make sure output reaches the GUI
 		fflush(stdout);
-	
+
 		// get user / GUI input
 		if (!fgets(input, 40000, stdin)) {
-		
+
 			// continue the loop
 			continue;
 		}
-		
+
 
 		// make sure input is available
 		if (input[0] == '\n') {
-		
+
 			// continue the loop
 			continue;
 		}
-	
+
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
 			printf("readyok\n");
-	
+
 			continue;
 		}
 
@@ -305,12 +310,12 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
-	
+
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 			if (search_thread.joinable())
-			search_thread.join();
+				search_thread.join();
 			ClearHashTable(HashTable);
 
 			// call parse position function
@@ -321,13 +326,13 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if(search_thread.joinable())
-			search_thread.join();
+			if (search_thread.joinable())
+				search_thread.join();
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position,info->depth, pos, info);
+			search_thread = std::thread(Root_search_position, info->depth, pos, info);
 
 		}
 		// parse UCI "stop" command
@@ -359,7 +364,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(pos->side));
 		}
 
 		else if (strncmp(input, "nnue", 4) == 0) {
@@ -478,6 +483,18 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
+		}
+		else if (strncmp(input, "acc", 3) == 0) {
+			for (int i = 0; i < HIDDEN_BIAS; i++) {
+				printf("%d ", nnue.whiteAccumulator[i]);
+
+			}
+			printf("---------------------------------------------\n ");
+			for (int i = 0; i < HIDDEN_BIAS; i++) {
+				printf("%d ", nnue.blackAccumulator[i]);
+
+			}
+
 		}
 
 	}
