@@ -38,7 +38,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.deactivate(piece, sq, pos->side);
+		nnue.deactivate(piece, sq);
 	HASH_PCE(piece, sq);
 	pop_bit(pos->bitboards[piece], sq);
 	pos->pieces[sq] = EMPTY;
@@ -53,7 +53,7 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 	int piecetype = piece % 6;
 	if (piece != EMPTY && pos->pieces[to] == EMPTY) {
 
-		nnue.activate(piece, to, pos->side);
+		nnue.activate(piece, to);
 
 	}
 

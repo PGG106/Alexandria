@@ -201,7 +201,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
 
-					nnue.activate(piece, square, pos->side);
+					nnue.activate(piece, square);
 					// increment pointer to FEN string
 				}
 				fen++;
@@ -321,7 +321,7 @@ void accumulate(const S_Board* pos) {
 		if (!input) continue;
 		int j = i + (pos->pieces[i]) * 64;
 		nnue.inputValues[j] = 1;
-		nnue.activate(pos->pieces[i],i,pos->side);
+		nnue.activate(pos->pieces[i], i);
 	}
 }
 
@@ -386,6 +386,10 @@ Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype) {
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color) {
 	return piecetype + 6 * color;
+}
+
+int getPieceType(int piece) {
+	return piece % 6;
 }
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise

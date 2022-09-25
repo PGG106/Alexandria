@@ -213,6 +213,8 @@ Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color);
 Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color);
+//Returns the piece type of a piece
+int getPieceType(int piece);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side);
 
