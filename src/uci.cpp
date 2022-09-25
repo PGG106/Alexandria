@@ -186,7 +186,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		;
 	}
 
-	if (ptr = strstr(line, "perft")) {
+	if ((ptr = strstr(line, "perft"))) {
 		int perft_depth = atoi(ptr + 6);
 		perft_test(perft_depth, pos);
 		return;
