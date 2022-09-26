@@ -243,12 +243,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 			move_list->moves[i].score = 700000000;
 			continue;
 		}
-		//After the killer moves try the Counter moves
-		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)])
-		{
-			move_list->moves[i].score = 600000000;
-			continue;
-		}
+
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
@@ -655,10 +650,6 @@ moves_loop:
 							pos->searchKillers[0][pos->ply] = bestmove;
 						}
 
-						//Save CounterMoves
-						int previousMove = pos->history[pos->hisPly].move;
-						CounterMoves[get_move_source(previousMove)]
-							[get_move_target(previousMove)] = move;
 					}
 
 					// node (move) fails high
