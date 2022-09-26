@@ -149,7 +149,6 @@ typedef struct info {
 
 } S_SearchINFO;
 
-extern int CounterMoves[Board_sq_num][Board_sq_num];
 // castling rights update constants
 extern const int castling_rights[Board_sq_num];
 

@@ -18,8 +18,6 @@
 #include <vector>
 #include <algorithm>
 
-int CounterMoves[Board_sq_num][Board_sq_num];
-
 // SEARCH HYPERPARAMETERS //
 
 //Razoring
