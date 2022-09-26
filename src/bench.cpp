@@ -91,8 +91,6 @@ int eval_bench() {
 	init_all();
 	S_Board pos[1];
 	S_SearchINFO info[1];
-	int total_nodes = 0;
-	int total_time = 0;
 	info->quit = 0;
 	InitHashTable(HashTable, 64);
 	setvbuf(stdin, NULL, _IONBF, 0);
@@ -109,7 +107,6 @@ int eval_bench() {
 		printf("%d\n", nnue.output(pos->side));
 
 	}
-
 
 	return 0;
 }
