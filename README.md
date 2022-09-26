@@ -24,7 +24,7 @@
 * Evaluation
   * NNUE Evaluation (Big thanks to Luecx)
   * HCE based on material evaluation and a piece square table (legacy and not subject to ulterior development)
-
+  
 
 ## Things i tried that didn't work
 * Search
@@ -62,3 +62,4 @@ This project would not have been possible without the following people
 * Lucex (again) and Jay Honnold for the wonderlud CudAD trainer that was used to train the NNUE https://github.com/Luecx/CudAD
 * Andrew Grant for the OpenBench platform https://github.com/AndyGrant/OpenBench
 * Morgan Houppin, author of Stash for his "option" code https://github.com/mhouppin/stash-bot
+* Jay Honnold for providing the data used to train the current alexandria net https://github.com/jhonnold/berserk 
