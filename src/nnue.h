@@ -11,8 +11,9 @@
 class NNUE {
 public:
 	void init(const char* nn);
-	void activate(int piece, int to);
-	void deactivate(int piece, int to);
+	void add(int piece, int to);
+	void clear(int piece, int from);
+	void move(int piece, int from, int to);
 	int relu(int x);
 	int32_t output(int stm);
 	void Clear();

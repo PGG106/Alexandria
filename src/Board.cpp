@@ -201,7 +201,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
 
-					nnue.activate(piece, square);
+					nnue.add(piece, square);
 					// increment pointer to FEN string
 				}
 				fen++;
@@ -321,7 +321,7 @@ void accumulate(const S_Board* pos) {
 		if (!input) continue;
 		int j = i + (pos->pieces[i]) * 64;
 		nnue.inputValues[j] = 1;
-		nnue.activate(pos->pieces[i], i);
+		nnue.add(pos->pieces[i], i);
 	}
 }
 
