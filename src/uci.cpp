@@ -308,6 +308,8 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 
 		// parse UCI "position" command
 		else if (strncmp(input, "position", 8) == 0) {
+			if (search_thread.joinable())
+				search_thread.join();
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
