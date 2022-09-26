@@ -131,7 +131,6 @@ void set_option(option_list_t* list, const char* name, const char* value)
 			option_t* cur = &list->options[i];
 			long l;
 			double d;
-			int s;
 
 			switch (cur->type)
 			{

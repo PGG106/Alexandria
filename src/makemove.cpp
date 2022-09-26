@@ -36,7 +36,6 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
-	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
 		nnue.deactivate(sq + piece * 64);
 	HASH_PCE(piece, sq);
@@ -49,7 +48,6 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 //Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 
-	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[to] == EMPTY)
 		nnue.activate(to + piece * 64);
 	// ♦set up promoted piece on chess board
