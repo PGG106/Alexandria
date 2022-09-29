@@ -264,7 +264,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	S_HASHENTRY tte;
 	bool TThit = false;
 	int standing_pat = 0;
-	bool in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
 
 	// check if time up or interrupt from GUI
 	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
@@ -284,19 +283,12 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		return EvalPosition(pos);
 	}
 
-	if (in_check)
-	{
-		standing_pat = -MAXSCORE;
-	}
-	else
-	{
-		//Get a static evaluation of the position
-		standing_pat = EvalPosition(pos);
+	//Get a static evaluation of the position
+	standing_pat = EvalPosition(pos);
 
-		alpha = (std::max)(alpha, standing_pat);
+	alpha = (std::max)(alpha, standing_pat);
 
-		if (alpha >= beta) return standing_pat;
-	}
+	if (alpha >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
