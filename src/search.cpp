@@ -270,7 +270,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
-
+	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
 		info->seldepth = pos->ply;
 
@@ -395,6 +395,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	if (in_check) depth++;
 
+	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
 		info->seldepth = pos->ply;
 
@@ -444,7 +445,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
 	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
-
+	//If we are in check or searching for a singular move we do not rely on the static eval and the pruning techniques and go straight to the moves loop 
 	if (in_check || excludedMove) {
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
@@ -466,13 +467,13 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 			(pos->history[pos->hisPly - 2].eval) == value_none);
 
 
-	// Reverse futility pruning (depth 8 limit was taken from stockfish)
+	// Reverse futility pruning 
 	if (!pv_node
 		&& depth < rfp_depth
 		&& eval - futility(depth, improving) >= beta)
 		return eval;
 
-	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta
+	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
 	if (!pv_node
 		&& DoNull
 		&& static_eval >= beta
@@ -557,7 +558,7 @@ moves_loop:
 		}
 
 		int extension = 0;
-
+		//Singular extension
 		if (!root_node
 			&& depth >= 7
 			&& move == tte.move
@@ -657,7 +658,6 @@ moves_loop:
 		}
 	}
 
-
 	if (BestScore >= beta && IsQuiet(bestmove)) {
 		updateHH(pos, depth, bestmove, &quiet_moves);
 	}
@@ -684,7 +684,6 @@ void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
 void search_position(int start_depth, int final_depth, S_Board* pos,
 	S_SearchINFO* info, int show) {
-
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
