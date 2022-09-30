@@ -269,14 +269,15 @@ int futility(int depth, bool improving) { return rfp_score * (depth - improving)
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	// Initialize the node
-	int pv_node = beta - alpha > 1;
+	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HASHENTRY tte;
 	bool TThit = false;
 	int standing_pat = 0;
 
 	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptime
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
 
@@ -285,7 +286,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
-		return 1 - (info->nodes & 2);
+		return 8 - (info->nodes & 7);
 	}
 
 	//If we reached maxdepth we return a static evaluation of the position
@@ -296,9 +297,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
 
-	alpha = (std::max)(alpha, standing_pat);
-
 	if (alpha >= beta) return standing_pat;
+
+	alpha = (std::max)(alpha, standing_pat);
 
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
@@ -382,8 +383,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	int DoNull, Stack* ss) {
 
 	// Initialize the node
-	int in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
-	int quietCount = 0;
+	bool in_check = is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	ss->moveCount = 0;
@@ -644,10 +644,7 @@ moves_loop:
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
 
-
 	search_position(1, depth, pos, info, TRUE);
-
-
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
