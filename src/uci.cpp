@@ -338,14 +338,16 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			//stop searching
 			info->stopped = true;
 
-			search_thread.join();
+			if (search_thread.joinable())
+				search_thread.join();
 		}
 
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0) {
 			//stop searching
 			info->stopped = true;
-
+			if (search_thread.joinable())
+				search_thread.join();
 			// quit from the chess engine program execution
 			break;
 		}
