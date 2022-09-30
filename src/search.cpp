@@ -266,7 +266,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	int standing_pat = 0;
 
 	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptime
+	if ((info->timeset == TRUE && GetTimeMs() > info->stoptime)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
@@ -408,7 +408,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
-
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
