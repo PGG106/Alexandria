@@ -529,7 +529,6 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
-		prefetch(&HashTable->pTable[KeyAfterMove(pos, pos->posKey, move) % HashTable->numEntries]);
 		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
@@ -587,7 +586,8 @@ moves_loop:
 			else if (tte.score <= alpha && tte.score <= singularScore)
 				extension = -1;
 		}
-
+		//Speculative prefetch of the TT entry
+		prefetch(&HashTable->pTable[KeyAfterMove(pos, pos->posKey, move) % HashTable->numEntries]);
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
