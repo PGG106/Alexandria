@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 	InitHashTable(HashTable, 16);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
-
+	
 	// connect to the GUI
 	Uci_Loop(pos, info, argv);
 

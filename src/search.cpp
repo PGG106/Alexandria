@@ -586,7 +586,8 @@ moves_loop:
 			else if (tte.score <= alpha && tte.score <= singularScore)
 				extension = -1;
 		}
-
+		//Speculative prefetch of the TT entry
+		prefetch(&HashTable->pTable[KeyAfterMove(pos, pos->posKey, move) % HashTable->numEntries]);
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count

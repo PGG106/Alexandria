@@ -41,3 +41,5 @@ int Unmake_move(S_Board* pos);
 void MakeNullMove(S_Board* pos);
 //Reverts the previously played null move
 void TakeNullMove(S_Board* pos);
+
+PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move);
