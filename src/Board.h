@@ -84,7 +84,7 @@ typedef struct Undo {
 	int enPas = 0;
 	int fiftyMove = 0;
 	int eval = 0;
-	Bitboard posKey = 0ULL;
+	PosKey posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes

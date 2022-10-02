@@ -5,6 +5,8 @@
 typedef uint64_t Bitboard;
 // define poskey data type
 typedef uint16_t TTKey;
+// define poskey data type
+typedef uint64_t PosKey;
 
 // board squares
 enum {
