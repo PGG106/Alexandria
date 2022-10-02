@@ -121,3 +121,13 @@ int ProbePvMove(S_Board* pos) {
 	}
 	return NOMOVE;
 }
+
+//prefetches the data in the given address in l1/2 cache in a non blocking way.
+void prefetch(void* addr) {
+
+#  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+	_mm_prefetch((char*)addr, _MM_HINT_T0);
+#  else
+	__builtin_prefetch(addr);
+#  endif
+}
