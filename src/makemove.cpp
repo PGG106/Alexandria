@@ -25,7 +25,6 @@ void ClearPiece(const int piece, const int sq, S_Board* pos) {
 void AddPiece(const int piece, const int to, S_Board* pos) {
 
 	int color = Color[piece];
-	// ♦set up promoted piece on chess board
 	set_bit(pos->bitboards[piece], to);
 	set_bit(pos->occupancies[color], to);
 	set_bit(pos->occupancies[BOTH], to);
@@ -65,7 +64,7 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 
 // make move on chess board
 int make_move(int move, S_Board* pos) {
-
+	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
@@ -83,7 +82,7 @@ int make_move(int move, S_Board* pos) {
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
-
+	// increment fifty move rule counter
 	pos->fiftyMove++;
 
 	// handling capture moves
@@ -93,7 +92,7 @@ int make_move(int move, S_Board* pos) {
 		ClearPieceNNUE(piececap, target_square, pos);
 
 		pos->history[pos->hisPly].capture = piececap;
-
+		//a capture was played so reset 50 move rule counter
 		pos->fiftyMove = 0;
 	}
 
@@ -101,26 +100,17 @@ int make_move(int move, S_Board* pos) {
 	if (piece == WP || piece == BP)
 		pos->fiftyMove = 0;
 
-	// move piece
-	MovePieceNNUE(piece, source_square, target_square, pos);
-
+	//increment ply counters
 	pos->hisPly++;
 	pos->ply++;
-
-	// handle pawn promotions
-	if (promoted_piece) {
-		if (pos->side == WHITE)
-			ClearPieceNNUE(WP, target_square, pos);
-
-		else
-			ClearPieceNNUE(BP, target_square, pos);
-
-		// set up promoted piece on chess board
-		AddPieceNNUE(promoted_piece, target_square, pos);
-	}
+	//Remove the piece fom the square it moved from
+	ClearPieceNNUE(piece, source_square, pos);
+	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
 
 	// handle enpassant captures
 	if (enpass) {
+		//If it's an enpass we remove the pawn corresponding to the opponent square 
 		if (pos->side == WHITE) {
 			ClearPieceNNUE(BP, target_square + 8, pos);
 		}
@@ -128,6 +118,7 @@ int make_move(int move, S_Board* pos) {
 			ClearPieceNNUE(WP, target_square - 8, pos);
 		}
 	}
+	//Reset EP square
 	if (pos->enPas != no_sq)
 		HASH_EP;
 	// reset enpassant square
