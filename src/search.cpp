@@ -92,19 +92,20 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			pos->searchHistory[index][index2] = 0;
+			pos->searchHistory[index][index2] = NOMOVE;
 		}
 	}
 
 	//Reset the 2 killer moves that are stored for any searched depth
 	for (int index = 0; index < 2; ++index) {
 		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			pos->searchKillers[index][index2] = 0;
+			pos->searchKillers[index][index2] = NOMOVE;
 		}
 	}
 
 	for (int index = 0; index < MAXDEPTH; ++index) {
 		pos->excludedMoves[index] = NOMOVE;
+		pos->pvArray[index] = NOMOVE;
 	}
 
 	//Reset plies and search info
