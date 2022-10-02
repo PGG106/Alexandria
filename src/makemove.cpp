@@ -70,6 +70,7 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].posKey = pos->posKey;
 	pos->history[pos->hisPly].move = move;
+	//Store White and black accumulators for rollback purposes
 	accumulatorStack.emplace_back(nnue.whiteAccumulator);
 	accumulatorStackBlack.emplace_back(nnue.blackAccumulator);
 	// parse move
