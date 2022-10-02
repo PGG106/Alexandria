@@ -321,3 +321,41 @@ void TakeNullMove(S_Board* pos) {
 	pos->side ^= 1;
 	pos->posKey = pos->history[pos->hisPly].posKey;
 }
+
+PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move) {
+
+	// parse move
+	int source_square = get_move_source(move);
+	int target_square = get_move_target(move);
+	int piece = get_move_piece(move);
+	int promoted_piece = get_move_promoted(move);
+	int capture = get_move_capture(move);
+
+	// handling capture moves
+	if (capture) {
+		int piececap = pos->pieces[target_square];
+		(OldKey ^= (PieceKeys[(piececap)][(target_square)]));
+	}
+
+	// move piece
+	(OldKey ^= (PieceKeys[(piece)][(source_square)]));
+	(OldKey ^= (PieceKeys[(piece)][(target_square)]));
+
+	// handle pawn promotions
+	if (promoted_piece) {
+		if (pos->side == WHITE)
+			(OldKey ^= (PieceKeys[(WP)][(target_square)]));
+
+		else
+			(OldKey ^= (PieceKeys[(BP)][(target_square)]));
+
+		// set up promoted piece on chess board
+		(OldKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
+
+	}
+
+	// change side
+	(OldKey ^= (SideKey));
+
+	return OldKey;
+}

@@ -529,6 +529,7 @@ moves_loop:
 		pick_move(move_list, count);
 
 		int move = move_list->moves[count].move;
+		prefetch(&HashTable->pTable[KeyAfterMove(pos, pos->posKey, move) % HashTable->numEntries]);
 		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
@@ -589,7 +590,6 @@ moves_loop:
 
 		//Play the move
 		make_move(move, pos);
-		prefetch(&HashTable->pTable[pos->posKey % HashTable->numEntries]);
 		// increment nodes count
 		info->nodes++;
 
