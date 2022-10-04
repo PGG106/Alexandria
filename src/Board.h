@@ -217,5 +217,7 @@ int getPieceType(int piece);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side);
 
+bool IsInCheck(S_Board* pos);
 
 void accumulate(const S_Board* pos);
+
