@@ -391,3 +391,7 @@ bool BoardHasNonPawns(S_Board* pos, int side) {
 	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
 
 }
+
+bool IsInCheck(S_Board* pos) {
+	return is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
+}
