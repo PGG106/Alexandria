@@ -384,3 +384,14 @@ Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype) {
 int GetPiece(int piecetype, int color) {
 	return piecetype + 6 * color;
 }
+
+//Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
+bool BoardHasNonPawns(S_Board* pos, int side) {
+
+	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
+
+}
+
+bool IsInCheck(S_Board* pos) {
+	return is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
+}
