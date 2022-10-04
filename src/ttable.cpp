@@ -15,14 +15,10 @@ S_HASHTABLE HashTable[1];
 
 int GetPvLine(const int depth, S_Board* pos) {
 
-	assert(depth <= MAXDEPTH);
-
 	int move = ProbePvMove(pos);
 	int count = 0;
 
 	while (move != NOMOVE && count < depth) {
-
-		assert(count <= MAXDEPTH);
 
 		if (MoveExists(pos, move)) {
 			make_move(move, pos);
