@@ -412,23 +412,25 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		info->stopped = TRUE;
 	}
 
-	//If position is a draw return a randomized draw score to avoid 3-fold blindness
-	if (IsDraw(pos)) {
-		return 8 - (info->nodes & 7);
-	}
+	if (!root_node) {
+		//If position is a draw return a randomized draw score to avoid 3-fold blindness
+		if (IsDraw(pos)) {
+			return 8 - (info->nodes & 7);
+		}
 
-	//If we reached maxdepth we return a static evaluation of the position
-	if (pos->ply > MAXDEPTH - 1) {
-		return EvalPosition(pos);
-	}
+		//If we reached maxdepth we return a static evaluation of the position
+		if (pos->ply > MAXDEPTH - 1) {
+			return EvalPosition(pos);
+		}
 
-	// Mate distance pruning
-	int mating_value = mate_value - pos->ply;
+		// Mate distance pruning
+		int mating_value = mate_value - pos->ply;
 
-	if (mating_value < beta) {
-		beta = mating_value;
-		if (alpha >= mating_value)
-			return mating_value;
+		if (mating_value < beta) {
+			beta = mating_value;
+			if (alpha >= mating_value)
+				return mating_value;
+		}
 	}
 
 	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
