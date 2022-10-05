@@ -411,23 +411,25 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		info->stopped = TRUE;
 	}
 
-	//If position is a draw return a randomized draw score to avoid 3-fold blindness
-	if (IsDraw(pos)) {
-		return 8 - (info->nodes & 7);
-	}
+	if (!root_node) {
+		//If position is a draw return a randomized draw score to avoid 3-fold blindness
+		if (IsDraw(pos)) {
+			return 8 - (info->nodes & 7);
+		}
 
-	//If we reached maxdepth we return a static evaluation of the position
-	if (pos->ply > MAXDEPTH - 1) {
-		return EvalPosition(pos);
-	}
+		//If we reached maxdepth we return a static evaluation of the position
+		if (pos->ply > MAXDEPTH - 1) {
+			return EvalPosition(pos);
+		}
 
-	// Mate distance pruning
-	int mating_value = mate_value - pos->ply;
+		// Mate distance pruning
+		int mating_value = mate_value - pos->ply;
 
-	if (mating_value < beta) {
-		beta = mating_value;
-		if (alpha >= mating_value)
-			return mating_value;
+		if (mating_value < beta) {
+			beta = mating_value;
+			if (alpha >= mating_value)
+				return mating_value;
+		}
 	}
 
 	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
@@ -446,6 +448,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
 	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
+
 	//If we are in check or searching for a singular move we do not rely on the static eval and the pruning techniques and go straight to the moves loop 
 	if (in_check || excludedMove) {
 		static_eval = value_none;
@@ -453,6 +456,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		improving = false;
 		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
 	}
+
 	// get static evaluation score
 	static_eval = eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
@@ -479,7 +483,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& DoNull
 		&& static_eval >= beta
 		&& eval >= beta
-		&& pos->ply
 		&& depth >= nmp_depth
 		&& BoardHasNonPawns(pos, pos->side)) {
 
@@ -503,8 +506,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// razoring
 	if (!pv_node
 		&& (depth <= razoring_depth) &&
-		(eval <=
-			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
+		(eval <= alpha - razoring_margin1 - razoring_margin2 * (depth - 1))) {
 
 		return Quiescence(alpha, beta, pos, info);
 	}
