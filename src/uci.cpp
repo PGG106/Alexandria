@@ -360,7 +360,7 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 		// parse UCI "uci" command
 		else if (strncmp(input, "uci", 3) == 0) {
 			// print engine info
-			printf("id name Alexandria 3.0\n");
+			printf("id name Alexandria 3.1-dev\n");
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
