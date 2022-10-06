@@ -508,7 +508,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	// razoring
 	if (!pv_node
 		&& (depth <= razoring_depth) &&
-		(eval <= alpha - razoring_margin1 - razoring_margin2 * (depth - 1))) {
+		(eval <= alpha - razoring_margin1 - razoring_margin2 * depth)) {
 
 		return Quiescence(alpha, beta, pos, info);
 	}
