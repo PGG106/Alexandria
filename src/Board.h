@@ -110,7 +110,7 @@ typedef struct Board {
 
 	int pvArray[MAXDEPTH + 1];
 
-	int searchHistory[12][MAXDEPTH];
+	int searchHistory[12][Board_sq_num];
 	int searchKillers[2][MAXDEPTH];
 	int checks=-1;
 	int excludedMoves[MAXDEPTH];
