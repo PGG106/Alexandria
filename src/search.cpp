@@ -75,7 +75,7 @@ static int IsRepetition(const S_Board* pos) {
 
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 static bool IsDraw(const S_Board* pos) {
-
+	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
 	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
 		MaterialDraw(pos)) {
 		return true;
@@ -102,7 +102,7 @@ void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
 			pos->searchKillers[index][index2] = 0;
 		}
 	}
-
+	//Clean the pv array to avoid returning old values from a previous search
 	for (int index = 0; index < MAXDEPTH; ++index) {
 		pos->excludedMoves[index] = NOMOVE;
 		pos->pvArray[index] = NOMOVE;
@@ -326,6 +326,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		pick_move(move_list, count);
 		int move = move_list->moves[count].move;
 		int move_Score = move_list->moves[count].score;
+
+		//Skip captures with a bad SEE score
 		if (moves_searched > 0
 			&& BestScore > -ISMATE
 			&& get_move_capture(move)
@@ -361,7 +363,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 			}
 		}
 	}
-	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
+	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
@@ -530,9 +532,12 @@ moves_loop:
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
 		pick_move(move_list, count);
-
+		//get the move with the highest score in the move ordering
 		int move = move_list->moves[count].move;
+
+		//If we are in a Singular extension and this is the move we are extending we don't search it
 		if (move == excludedMove) continue;
+
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -542,6 +547,7 @@ moves_loop:
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
+
 		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
 		if (!root_node && !pv_node && !in_check && depth < movecount_depth && isQuiet &&
 			(quiet_moves.count > (depth * movecount_multiplier))) {
@@ -549,13 +555,14 @@ moves_loop:
 			continue;
 		}
 
-		int history = getHHScore(pos, move);
+		//Get the move history score
+		int history_score = getHHScore(pos, move);
 		//if the move is quiet and its history score is low enough we can skip it
 		if (!pv_node
 			&& !in_check
 			&& depth <= 4
 			&& isQuiet
-			&& history < -150 * depth)
+			&& history_score < -150 * depth)
 		{
 			continue;
 		}
@@ -646,7 +653,7 @@ moves_loop:
 				{
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
-
+						//Don't update killer moves if it would result in having 2 identical killer moves
 						if (pos->searchKillers[0][pos->ply] != bestmove) {
 							// store killer moves
 							pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
@@ -670,7 +677,7 @@ moves_loop:
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
 		BestScore = excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
-	//if we updated alpha we have an exact score, otherwise we only have an upper bound (for now the beta flag isn't actually ever used)
+	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
