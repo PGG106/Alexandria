@@ -549,7 +549,8 @@ moves_loop:
 		}
 
 		if (!root_node
-			&& BestScore > -MAXSCORE) {
+			&& BestScore > -MAXSCORE
+			&& BoardHasNonPawns(pos, pos->side)) {
 			//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
 			if (!pv_node
 				&& !in_check
