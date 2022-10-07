@@ -548,23 +548,29 @@ moves_loop:
 			quiet_moves.count++;
 		}
 
-		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
-		if (!root_node && !pv_node && !in_check && depth < movecount_depth && isQuiet &&
-			(quiet_moves.count > (depth * movecount_multiplier))) {
-			SkipQuiets = true;
-			continue;
-		}
+		if (!root_node
+			&& BestScore > -MAXSCORE) {
+			//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
+			if (!pv_node
+				&& !in_check
+				&& depth < movecount_depth
+				&& isQuiet
+				&& (quiet_moves.count > (depth * movecount_multiplier))) {
+				SkipQuiets = true;
+				continue;
+			}
 
-		//Get the move history score
-		int history_score = getHHScore(pos, move);
-		//if the move is quiet and its history score is low enough we can skip it
-		if (!pv_node
-			&& !in_check
-			&& depth <= 4
-			&& isQuiet
-			&& history_score < -150 * depth)
-		{
-			continue;
+			//Get the move history score
+			int history_score = getHHScore(pos, move);
+			//if the move is quiet and its history score is low enough we can skip it
+			if (!pv_node
+				&& !in_check
+				&& depth <= 4
+				&& isQuiet
+				&& history_score < -150 * depth)
+			{
+				continue;
+			}
 		}
 
 		int extension = 0;
