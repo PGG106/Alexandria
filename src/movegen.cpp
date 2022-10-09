@@ -149,8 +149,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 	// that could take in theory and check if that would give check
 	if (pos->enPas != no_sq && square_distance(square, pos->enPas) == 1 &&
 		(1ULL << pos->enPas) & attacks) {
-		int ourPawn = color * 6;
-		int theirPawn = (color ^ 1) * 6;
+		int ourPawn = GetPiece(PAWN, color);
+		int theirPawn = GetPiece(PAWN, color ^ 1);
 		int kSQ = KingSQ(pos, color);
 		ClearPiece(ourPawn, square, pos);
 		ClearPiece(theirPawn, (pos->enPas + offset), pos);
@@ -206,7 +206,7 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
 
 	Bitboard moves = king_attacks[square] & ~pos->occupancies[color];
 	Bitboard final_moves = NOMOVE;
-	int king = color * 6 + 5;
+	int king = GetPiece(KING,color);
 	ClearPiece(king, square, pos);
 	while (moves) {
 		int index = get_ls1b_index(moves);
