@@ -18,7 +18,7 @@
   * Quiescence search
   * Transposition Table
   * Repetition detection
-  * killer move, history, Countermove heuristic
+  * killer move, history
   * MVV-LVA capture ordering
   
 * Evaluation
@@ -33,10 +33,13 @@
 ## Things i might try in the future
 * Evaluation
   * Improve the nnue using a better architecture and generating more data
+  * Batch update the net
 * Search
    * Actually getting SEE to work
    * All the histories i don't comprehend at the time of writing (mostly FUH)
-  
+* TT
+   * Get Buckets working
+   
  ## Building
 
 ```bash
