@@ -392,6 +392,12 @@ bool BoardHasNonPawns(S_Board* pos, int side) {
 
 }
 
+//Get on what square of the board the king of color c resides
+int KingSQ(S_Board* pos, int c) {
+
+	return (get_ls1b_index(GetKingColorBB(pos, pos->side)));
+}
+
 bool IsInCheck(S_Board* pos) {
-	return is_square_attacked(pos, get_ls1b_index(GetKingColorBB(pos, pos->side)), pos->side ^ 1);
+	return is_square_attacked(pos, KingSQ(pos, pos->side), pos->side ^ 1);
 }
