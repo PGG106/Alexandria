@@ -210,6 +210,8 @@ Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
 int GetPiece(int piecetype, int color);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side);
+//Get on what square of the board the king of color c resides
+int KingSQ(S_Board* pos, int c);
 
 bool IsInCheck(S_Board* pos);
 

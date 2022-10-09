@@ -42,11 +42,6 @@ static inline Bitboard PawnPush(int color, int sq) {
 		return (1ULL << (sq - 8));
 	return (1ULL << (sq + 8));
 }
-//Get on what square of the board the king of color c resides
-static inline int KingSQ(S_Board* pos, int c) {
-
-	return (get_ls1b_index(GetKingColorBB(pos, pos->side)));
-}
 
 static inline void init(S_Board* pos, int color, int sq) {
 
