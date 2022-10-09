@@ -18,7 +18,7 @@
   * Quiescence search
   * Transposition Table
   * Repetition detection
-  * killer move, history, Countermove heuristic
+  * killer move, history
   * MVV-LVA capture ordering
   
 * Evaluation
@@ -33,9 +33,28 @@
 ## Things i might try in the future
 * Evaluation
   * Improve the nnue using a better architecture and generating more data
+  * Batch update the net
 * Search
    * Actually getting SEE to work
    * All the histories i don't comprehend at the time of writing (mostly FUH)
+* TT
+   * Get Buckets working
+   
+ ## Building
+
+```bash
+$ git clone https://github.com/PGG106/Alexandria
+$ cd alexandria/src
+$ make 
+$ ./Alexandria
+```
+ ## How to use the engine
+
+The Universal Chess Interface (UCI) is a standard protocol used to communicate with
+a chess engine, and is the recommended way to do so for typical graphical user interfaces
+(GUI) or chess tools. Alexandria implements the majority of its options as described
+in [the UCI protocol](https://www.shredderchess.com/download/div/uci.zip).
+
   
 ## Acknowledgements
 This project would not have been possible without the following people
