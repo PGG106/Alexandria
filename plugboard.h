@@ -9,7 +9,6 @@ extern int razoring_depth ;
 extern int full_depth_moves;
 // depth limit to consider reduction
 extern int lmr_depth ;
-extern int lmr_fixed_reduction ;
 
 //Move ordering
 extern int Bad_capture_score;
