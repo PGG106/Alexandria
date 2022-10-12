@@ -79,8 +79,8 @@ int start_bench() {
     total_time += GetTimeMs() - info->starttime;
   }
 
-  std::cout << "\n"
-            << total_nodes << " nodes "
-            << total_nodes / ((total_time / 1000) + 1) << " nps " << std::endl;
-  return 0;
+	std::cout << "\n"
+		<< total_nodes << " nodes "
+		<< total_nodes / ((total_time / 1000) + 1) << " nps " << std::endl;
+	return 0;
 }

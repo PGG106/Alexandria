@@ -38,11 +38,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
 		nnue.deactivate(sq + piece * 64);
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
+	ClearPiece(piece, sq, pos);
 }
 
 //Add a piece to a square while also activating the nnue weights tied to the piece
@@ -51,12 +47,7 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[to] == EMPTY)
 		nnue.activate(to + piece * 64);
-	// ♦set up promoted piece on chess board
-	set_bit(pos->bitboards[piece], to);
-	set_bit(pos->occupancies[color], to);
-	set_bit(pos->occupancies[BOTH], to);
-	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
+	AddPiece(piece, to, pos);
 }
 
 //Move a piece from square to to square from without updating the NNUE weights
