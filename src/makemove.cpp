@@ -37,7 +37,7 @@ void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.deactivate(sq + piece * 64);
+		nnue.clear(piece , sq);
 	ClearPiece(piece, sq, pos);
 }
 
@@ -46,7 +46,7 @@ void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 
 	int color = Color[piece];
 	if (piece != EMPTY && pos->pieces[to] == EMPTY)
-		nnue.activate(to + piece * 64);
+		nnue.add(piece ,to);
 	AddPiece(piece, to, pos);
 }
 
