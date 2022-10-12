@@ -53,13 +53,15 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::activate(int inputNum) {
+void NNUE::add(int piece, int to) {
+	int inputNum = to + piece * 64;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::deactivate(int inputNum) {
+void NNUE::clear(int piece, int from) {
+	int inputNum = from + piece * 64;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
