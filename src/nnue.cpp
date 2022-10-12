@@ -67,6 +67,14 @@ void NNUE::clear(int piece, int from) {
 	}
 }
 
+void NNUE::move(int piece, int from, int to) {
+	int inputNumFrom = from + piece * 64;
+	int inputNumTo = to + piece * 64;
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		accumulator[i] = accumulator[i] - inputWeights[inputNumFrom * HIDDEN_BIAS + i] + inputWeights[inputNumTo * HIDDEN_BIAS + i];
+	}
+}
+
 int32_t NNUE::output() {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;

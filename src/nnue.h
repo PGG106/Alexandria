@@ -13,6 +13,7 @@ public:
 	void init(const char* nn);
 	void add(int piece, int to);
 	void clear(int piece, int from);
+	void move(int piece, int from, int to);
 	int relu(int x);
 	int32_t output();
 	void Clear();
