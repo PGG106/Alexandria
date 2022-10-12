@@ -31,7 +31,6 @@ int full_depth_moves = 5;
 // depth limit to consider reduction
 int lmr_depth = 3;
 int lmr_fixed_reduction = 1;
-int lmr_ratio = 101;
 
 //Move ordering
 int Bad_capture_score = 107;
@@ -374,7 +373,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
-	return (lmr_fixed_reduction + reductions[depth] * reductions[num_moves]) / (static_cast<float>(lmr_ratio) / 100) + !improving + !pv_node;
+	return lmr_fixed_reduction + reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
 // negamax alpha beta search

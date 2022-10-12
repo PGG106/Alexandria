@@ -408,11 +408,6 @@ void Uci_Loop(S_Board* pos, S_SearchINFO* info, char** argv) {
 			printf("Set lmr_fixed_reduction to %d\n", lmr_fixed_reduction);
 		}
 
-		else if (!strncmp(input, "setoption name lmr_ratio value ", 31)) {
-			sscanf(input, "%*s %*s %*s %*s %d", &lmr_ratio);
-			printf("Set lmr_ratio to %d\n", lmr_ratio);
-		}
-
 		else if (!strncmp(input, "setoption name Bad_capture_score value ", 39)) {
 			sscanf(input, "%*s %*s %*s %*s %d", &Bad_capture_score);
 			printf("Set Bad_capture_score to %d\n", Bad_capture_score);
