@@ -35,16 +35,14 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
 
-	if (piece != EMPTY && pos->pieces[sq] != EMPTY)
-		nnue.clear(piece , sq);
+	nnue.clear(piece, sq);
 	ClearPiece(piece, sq, pos);
 }
 
 //Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
 
-	if (piece != EMPTY && pos->pieces[to] == EMPTY)
-		nnue.add(piece ,to);
+	nnue.add(piece, to);
 	AddPiece(piece, to, pos);
 }
 
@@ -57,9 +55,8 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 //Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-
-	ClearPieceNNUE(piece, from, pos);
-	AddPieceNNUE(piece, to, pos);
+	nnue.move(piece, from, to);
+	MovePiece(piece, from, to, pos);
 }
 
 
@@ -85,8 +82,21 @@ int make_move(int move, S_Board* pos) {
 	// increment fifty move rule counter
 	pos->fiftyMove++;
 
+	// handle enpassant captures
+	if (enpass) {
+		//If it's an enpass we remove the pawn corresponding to the opponent square 
+		if (pos->side == WHITE) {
+			ClearPieceNNUE(BP, target_square + 8, pos);
+			pos->fiftyMove = 0;
+		}
+		else {
+			ClearPieceNNUE(WP, target_square - 8, pos);
+			pos->fiftyMove = 0;
+		}
+	}
+
 	// handling capture moves
-	if (capture) {
+	else if (capture) {
 		int piececap = pos->pieces[target_square];
 
 		ClearPieceNNUE(piececap, target_square, pos);
@@ -108,16 +118,7 @@ int make_move(int move, S_Board* pos) {
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
 	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-	// handle enpassant captures
-	if (enpass) {
-		//If it's an enpass we remove the pawn corresponding to the opponent square 
-		if (pos->side == WHITE) {
-			ClearPieceNNUE(BP, target_square + 8, pos);
-		}
-		else {
-			ClearPieceNNUE(WP, target_square - 8, pos);
-		}
-	}
+
 	//Reset EP square
 	if (pos->enPas != no_sq)
 		HASH_EP;
