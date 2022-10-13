@@ -13,7 +13,7 @@
 
 S_HASHTABLE HashTable[1];
 
-int GetPvLine(const int depth, S_Board* pos) {
+int GetPvLine(const int depth, S_Board* pos, S_Stack* ss) {
 
 	int move = ProbePvMove(pos);
 	int count = 0;
@@ -22,7 +22,7 @@ int GetPvLine(const int depth, S_Board* pos) {
 
 		if (MoveExists(pos, move)) {
 			make_move(move, pos);
-			pos->pvArray[count++] = move;
+			ss->pvArray[count++] = move;
 			move = ProbePvMove(pos);
 		}
 

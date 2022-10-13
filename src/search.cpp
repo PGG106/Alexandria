@@ -85,25 +85,25 @@ static bool IsDraw(const S_Board* pos) {
 }
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
-void ClearForSearch(S_Board* pos, S_SearchINFO* info) {
+void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			pos->searchHistory[index][index2] = 0;
+			ss->searchHistory[index][index2] = 0;
 		}
 	}
 
 	//Reset the 2 killer moves that are stored for any searched depth
 	for (int index = 0; index < 2; ++index) {
 		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			pos->searchKillers[index][index2] = 0;
+			ss->searchKillers[index][index2] = 0;
 		}
 	}
 	//Clean the pv array to avoid returning old values from a previous search
 	for (int index = 0; index < MAXDEPTH; ++index) {
-		pos->excludedMoves[index] = NOMOVE;
-		pos->pvArray[index] = NOMOVE;
+		ss->excludedMoves[index] = NOMOVE;
+		ss->pvArray[index] = NOMOVE;
 	}
 
 	//Reset plies and search info
@@ -199,7 +199,7 @@ static inline bool SEE(const S_Board* pos, const int move,
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
+static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 	int PvMove) {
 
 	//Loop through all the move in the movelist
@@ -229,13 +229,13 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
-		else if (pos->searchKillers[0][pos->ply] == move) {
+		else if (ss->searchKillers[0][pos->ply] == move) {
 
 			move_list->moves[i].score = 800000000;
 			continue;
 		}
 		//Second killer move always comes after the first one
-		else if (pos->searchKillers[1][pos->ply] == move) {
+		else if (ss->searchKillers[1][pos->ply] == move) {
 
 			move_list->moves[i].score = 700000000;
 			continue;
@@ -244,7 +244,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
 
-			move_list->moves[i].score = getHHScore(pos, move);
+			move_list->moves[i].score = getHHScore(pos, ss, move);
 			continue;
 		}
 	}
@@ -256,7 +256,7 @@ static inline void score_moves(S_Board* pos, S_MOVELIST* move_list,
 int futility(int depth, bool improving) { return rfp_score * (depth - improving); }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
+int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	// Initialize the node
 	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
@@ -305,7 +305,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 	generate_captures(move_list, pos);
 
 	//score the generated moves
-	score_moves(pos, move_list, tte.move);
+	score_moves(pos, ss, move_list, tte.move);
 
 	//set up variables needed for the search
 	int BestScore = standing_pat;
@@ -335,7 +335,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_SearchINFO* info) {
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, pos, info);
+		Score = -Quiescence(-beta, -alpha, pos, ss, info);
 
 		// take move back
 		Unmake_move(pos);
@@ -376,7 +376,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
+int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info,
 	int DoNull) {
 
 	// Initialize the node
@@ -391,7 +391,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 	S_HASHENTRY tte;
 	bool pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
-	int excludedMove = pos->excludedMoves[pos->ply];
+	int excludedMove = ss->excludedMoves[pos->ply];
 
 	if (in_check) depth++;
 
@@ -401,7 +401,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(alpha, beta, pos, info);
+		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
 	// check if time up or interrupt from GUI
@@ -489,7 +489,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - R, pos, info, FALSE);
+		Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info, FALSE);
 
 		TakeNullMove(pos);
 
@@ -507,7 +507,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_SearchINFO* info,
 		&& (depth <= razoring_depth) &&
 		(eval <= alpha - razoring_margin1 - razoring_margin2 * depth)) {
 
-		return Quiescence(alpha, beta, pos, info);
+		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
 moves_loop:
@@ -517,7 +517,7 @@ moves_loop:
 	// generate moves
 	generate_moves(move_list, pos);
 
-	score_moves(pos, move_list, tte.move);
+	score_moves(pos, ss, move_list, tte.move);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -559,7 +559,7 @@ moves_loop:
 			}
 
 			//Get the move history score
-			int history_score = getHHScore(pos, move);
+			int history_score = getHHScore(pos, ss, move);
 			//if the move is quiet and its history score is low enough we can skip it
 			if (!pv_node
 				&& !in_check
@@ -584,9 +584,9 @@ moves_loop:
 			int singularBeta = tte.score - 3 * depth;
 			int singularDepth = (depth - 1) / 2;
 
-			pos->excludedMoves[pos->ply] = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, info, false);
-			pos->excludedMoves[pos->ply] = NOMOVE;
+			ss->excludedMoves[pos->ply] = tte.move;
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info, false);
+			ss->excludedMoves[pos->ply] = NOMOVE;
 
 			if (singularScore < singularBeta)
 				extension = 1;
@@ -617,22 +617,22 @@ moves_loop:
 			depth_reduction = std::clamp(depth_reduction, 0, depth - 1);
 
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info, TRUE);
+			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, ss, info, TRUE);
 
 			// If search failed high search again with full depth
 			if (Score > alpha)
-				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, info, true);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, true);
 		}
 
 		//if LMR was skipped search at full depth
 		else if (!pv_node || moves_searched > 0) {
-			Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, info, true);
+			Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, true);
 		}
 
 		// if we are in a pv node we do a full pv search for the first move and for every move that fails high
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
 		{
-			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, info, true);
+			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, true);
 
 		}
 
@@ -658,10 +658,10 @@ moves_loop:
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
 						//Don't update killer moves if it would result in having 2 identical killer moves
-						if (pos->searchKillers[0][pos->ply] != bestmove) {
+						if (ss->searchKillers[0][pos->ply] != bestmove) {
 							// store killer moves
-							pos->searchKillers[1][pos->ply] = pos->searchKillers[0][pos->ply];
-							pos->searchKillers[0][pos->ply] = bestmove;
+							ss->searchKillers[1][pos->ply] = ss->searchKillers[0][pos->ply];
+							ss->searchKillers[0][pos->ply] = bestmove;
 						}
 
 					}
@@ -674,7 +674,7 @@ moves_loop:
 	}
 
 	if (BestScore >= beta && IsQuiet(bestmove)) {
-		updateHH(pos, depth, bestmove, &quiet_moves);
+		updateHH(pos, ss, depth, bestmove, &quiet_moves);
 	}
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
@@ -691,20 +691,20 @@ moves_loop:
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_SearchINFO* info) {
+void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 
-	search_position(1, depth, pos, info, TRUE);
+	search_position(1, depth, pos, ss, info, TRUE);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_Board* pos,
+void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
 	S_SearchINFO* info, int show) {
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
 	//Clean the position and the search info to start search from a clean state 
-	ClearForSearch(pos, info);
+	ClearForSearch(pos, ss, info);
 
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
 	int alpha_window = -delta;
@@ -719,7 +719,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	for (int current_depth = start_depth; current_depth <= final_depth;
 		current_depth++) {
 
-		score = negamax(alpha, beta, current_depth, pos, info, TRUE);
+		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
@@ -750,7 +750,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 			beta = score + beta_window;
 		}
 
-		int PvCount = GetPvLine(current_depth, pos);
+		int PvCount = GetPvLine(current_depth, pos, ss);
 
 		if (info->stopped == 1)
 			// stop calculating and return best move so far
@@ -775,7 +775,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 		// loop over the moves within a PV line
 		for (int count = 0; count < PvCount; count++) {
 			// print PV move
-			print_move(pos->pvArray[count]);
+			print_move(ss->pvArray[count]);
 			printf(" ");
 		}
 
@@ -787,7 +787,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos,
 	//Print the best move we've found
 	if (show) {
 		printf("bestmove ");
-		print_move(pos->pvArray[0]);
+		print_move(ss->pvArray[0]);
 		printf("\n");
 	}
 }
