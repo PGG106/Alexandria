@@ -3,7 +3,7 @@
 #include "stdlib.h"
 
 
-int GetPvLine(const int depth, S_Board* pos);
+int GetPvLine(const int depth, S_Board* pos, S_Stack* ss);
 
 void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
