@@ -44,7 +44,7 @@ void ClearHashTable(S_HASHTABLE* table) {
 
 	for (tableEntry = table->pTable;
 		tableEntry < table->pTable + table->numEntries; tableEntry++) {
-		tableEntry->tt_key = 0ULL;
+		tableEntry->tt_key = 0;
 		tableEntry->move = NOMOVE;
 		tableEntry->depth = 0;
 		tableEntry->score = 0;
@@ -93,7 +93,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move != NOMOVE || (uint16_t)pos->posKey != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || (TTKey)pos->posKey != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
