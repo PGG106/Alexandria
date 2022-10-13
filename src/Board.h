@@ -73,7 +73,7 @@ S_HASHENTRY;
 
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
-	int64_t numEntries=0;
+	int64_t numEntries = 0;
 
 } S_HASHTABLE;
 
@@ -93,30 +93,24 @@ typedef struct Board {
 	int pieces[Board_sq_num]; // array that stores for every square of the board
 							  // if there's a piece, or if the square is invalid
 
-	int side=-1; // what side has to move
-	int enPas=-1; // if enpassant is possible and in which square
-	int fiftyMove=-1; // Counter for the 50 moves rule
-	int ply=-1; // number of halfmoves in a search instance
-	int hisPly=-1; // total number of halfmoves
-	int castleperm=-1; // integer that represents the castling permission in his
+	int side = -1; // what side has to move
+	int enPas = -1; // if enpassant is possible and in which square
+	int fiftyMove = -1; // Counter for the 50 moves rule
+	int ply = -1; // number of halfmoves in a search instance
+	int hisPly = -1; // total number of halfmoves
+	int castleperm = -1; // integer that represents the castling permission in his
 	// bits (1111) = all castlings allowed (0000) no castling
 	// allowed, (0101) only WKCA and BKCA allowed...
 
-	Bitboard posKey=-1; // unique  hashkey  che codifica the  position on the
+	Bitboard posKey = -1; // unique  hashkey  che codifica the  position on the
 	// board,utile per il controllo delle posizioni ripetute.
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
 							  // when that move was made for rollback purposes
 
-	int pvArray[MAXDEPTH + 1];
-
-	int searchHistory[12][Board_sq_num];
-	int searchKillers[2][MAXDEPTH];
-	int checks=-1;
-	int excludedMoves[MAXDEPTH];
-	Bitboard pinHV=0ULL;
-	Bitboard pinD=0ULL;
-	Bitboard checkMask=0ULL;
+	Bitboard pinHV = 0ULL;
+	Bitboard pinD = 0ULL;
+	Bitboard checkMask = 0ULL;
 
 	// piece pos->bitboards
 	Bitboard bitboards[12];
@@ -124,26 +118,38 @@ typedef struct Board {
 	// occupancy pos->bitboards
 	Bitboard occupancies[3];
 
+	int checks = -1;
 } S_Board;
+
+
+typedef struct Stack {
+
+	int pvArray[MAXDEPTH + 1];
+	int searchHistory[12][Board_sq_num];
+	int searchKillers[2][MAXDEPTH];
+	int excludedMoves[MAXDEPTH];
+
+} S_Stack;
+
 
 extern S_HASHTABLE HashTable[1];
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int starttime=-1;
+	int starttime = -1;
 	int stoptime = -1;
-	int depth=-1;
+	int depth = -1;
 	int seldepth = -1;
-	bool depthset=false;
+	bool depthset = false;
 	int timeset = -1;
 	int movestogo = -1;
-	bool infinite=false;
+	bool infinite = false;
 
-	bool quit=false;
-	bool stopped=false;
+	bool quit = false;
+	bool stopped = false;
 
-	long nodes=0;
+	long nodes = 0;
 
 } S_SearchINFO;
 
