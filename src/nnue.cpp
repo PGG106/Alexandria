@@ -27,7 +27,6 @@ void NNUE::init(const char* file) {
 
 	// if it's not invalid read the config values from it
 	if (nn) {
-
 		fread(inputWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_WEIGHTS, nn);
 		fread(hiddenBias, sizeof(int16_t), HIDDEN_BIAS, nn);
 		fread(hiddenWeights, sizeof(int16_t), HIDDEN_WEIGHTS, nn);

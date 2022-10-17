@@ -112,7 +112,6 @@ Bitboard mask_pawn_attacks(int side, int square) {
 }
 
 Bitboard get_attacked_square_pawns(const S_Board* pos, int side) {
-
 	Bitboard pawns = pos->occupancies[side * 6];
 	Bitboard attacked_squares = 0ULL;
 

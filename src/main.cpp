@@ -16,7 +16,6 @@
 #include <string.h>
 
 int main(int argc, char** argv) {
-
 	// init all
 	init_all();
 	S_Board pos[1];

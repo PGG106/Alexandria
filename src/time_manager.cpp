@@ -23,7 +23,6 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			int maxtime = (((time) < (basetime * 2.5)) ? (time) : (basetime * 2.5));
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
-
 		}
 		//if not we just use the time remaining/20
 		else {

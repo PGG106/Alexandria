@@ -16,7 +16,6 @@ Bitboard GeneratePosKey(const S_Board* pos) {
 	  // if the piece is valid, use the piece as part of the finalkey
 	if (pos->side == BLACK) {
 		finalkey ^= SideKey;
-
 	} // if the player is white add a random value
 	if (pos->enPas != no_sq) {
 		assert(pos->enPas >= 0 && pos->enPas < 64);

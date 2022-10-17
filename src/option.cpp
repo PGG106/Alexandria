@@ -16,7 +16,6 @@ void init_option_list(option_list_t* list)
 
 void quit_option_list(option_list_t* list)
 {
-
 	for (size_t i = 0; i < list->size; ++i)
 	{
 		option_t* cur = &list->options[i];
@@ -144,7 +143,6 @@ void set_option(option_list_t* list, const char* name, const char* value)
 				if (d >= *(double*)cur->min && d <= *(double*)cur->max)
 					*(double*)cur->data = d;
 				break;
-
 			}
 
 			if (cur->callback) cur->callback(cur->data);
@@ -175,7 +173,6 @@ void show_options( option_list_t* list)
 		case OptionSpinFlt:
 			printf("option name %s type string default %lf\n", cur->name, *(double*)cur->def);
 			break;
-
 		}
 	}
 	fflush(stdout);
