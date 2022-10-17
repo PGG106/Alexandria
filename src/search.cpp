@@ -66,7 +66,6 @@ int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
-
 	for (int index = 0; index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
@@ -91,7 +90,6 @@ static bool IsDraw(const S_Board* pos) {
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
@@ -148,7 +146,6 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 // inspired by the Weiss engine
 static inline bool SEE(const S_Board* pos, const int move,
 	const int threshold) {
-
 	int to = get_move_target(move);
 	int target = pos->pieces[to];
 	// Making the move and not losing it must beat the threshold
@@ -186,7 +183,6 @@ static inline bool SEE(const S_Board* pos, const int move,
 		side = !side;
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
-
 			if (pt == KING && (attackers & pos->occupancies[side]))
 				side = !side;
 
@@ -206,7 +202,6 @@ static inline bool SEE(const S_Board* pos, const int move,
 // score_moves takes a list of move as an argument and assigns a score to each move
 static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 	int PvMove) {
-
 	//Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
 		int move = move_list->moves[i].move;
@@ -221,13 +216,11 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		}
 		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
 		else if (isEnpassant(pos, move)) {
-
 			move_list->moves[i].score = 105 + 1000000000;
 			continue;
 		}
 		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
-
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
 				500000000 + 400000000 * SEE(pos, move, -Bad_capture_score);
@@ -235,13 +228,11 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
 		else if (ss->searchKillers[0][pos->ply] == move) {
-
 			move_list->moves[i].score = 800000000;
 			continue;
 		}
 		//Second killer move always comes after the first one
 		else if (ss->searchKillers[1][pos->ply] == move) {
-
 			move_list->moves[i].score = 700000000;
 			continue;
 		}
@@ -253,7 +244,6 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		}
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
-
 			move_list->moves[i].score = getHHScore(pos, ss, move);
 			continue;
 		}
@@ -329,7 +319,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
-
 		pick_move(move_list, count);
 		int move = move_list->moves[count].move;
 		make_move(move, pos);
@@ -379,7 +368,6 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info,
 	int DoNull) {
-
 	// Initialize the node
 	bool in_check = IsInCheck(pos);
 	S_MOVELIST quiet_moves;
@@ -438,7 +426,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		&& ttHit
 		&& tte.depth >= depth
 		&& MoveExists(pos, tte.move)) {
-
 		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
 			return tte.score;
 	}
@@ -581,7 +568,6 @@ moves_loop:
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
 		{
 			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, true);
-
 		}
 
 		// take move back
@@ -644,14 +630,12 @@ moves_loop:
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-
 	search_position(1, depth, pos, ss, info, TRUE);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
 void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
 	S_SearchINFO* info, int show) {
-
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
@@ -670,7 +654,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth;
 		current_depth++) {
-
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
@@ -735,6 +718,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			// print new line
 			printf("\n");
 		}
+
+		// print new line
+		printf("\n");
 	}
 
 	//Print the best move we've found

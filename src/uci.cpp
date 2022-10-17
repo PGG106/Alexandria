@@ -172,7 +172,6 @@ void parse_position(char* command, S_Board* pos) {
 
 // parse UCI "go" command
 void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
-
 	int depth = -1, movetime = -1;
 	int movestogo;
 	int time = -1, inc = 0;
@@ -249,7 +248,6 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 // main UCI loop
 void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
-
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
 		start_bench();
 		return;
@@ -274,7 +272,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 	
 		// get user / GUI input
 		if (!fgets(input, 40000, stdin)) {
-		
 			// continue the loop
 			continue;
 		}
@@ -282,7 +279,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 
 		// make sure input is available
 		if (input[0] == '\n') {
-		
 			// continue the loop
 			continue;
 		}
@@ -302,7 +298,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
-	
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
@@ -314,7 +309,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			parse_position((char*)"position startpos", pos);
 
 			Reset_info(info);
-
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
@@ -324,8 +318,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position,info->depth, pos,ss, info);
-
+			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info);
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
@@ -390,7 +383,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		else if (!strncmp(input, "setoption name razoring_depth value ", 36)) {
 			sscanf(input, "%*s %*s %*s %*s %d", &razoring_depth);
 			printf("Set razoring_depth to %d\n", razoring_depth);
-
 		}
 
 		else if (!strncmp(input, "setoption name full_depth_moves value ", 38)) {
@@ -481,7 +473,5 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
-
 	}
-
 }

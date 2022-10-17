@@ -74,7 +74,6 @@ S_HASHENTRY;
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
 	int64_t numEntries = 0;
-
 } S_HASHTABLE;
 
 typedef struct Undo {
@@ -123,12 +122,10 @@ typedef struct Board {
 
 
 typedef struct Stack {
-
 	int pvArray[MAXDEPTH + 1];
 	int searchHistory[12][Board_sq_num];
 	int searchKillers[2][MAXDEPTH];
 	int excludedMoves[MAXDEPTH];
-
 } S_Stack;
 
 
@@ -150,7 +147,6 @@ typedef struct info {
 	bool stopped = false;
 
 	long nodes = 0;
-
 } S_SearchINFO;
 
 extern int CounterMoves[Board_sq_num][Board_sq_num];

@@ -12,7 +12,6 @@
 
 //Remove a piece from a square
 void ClearPiece(const int piece, const int sq, S_Board* pos) {
-
 	int color = Color[piece];
 	HASH_PCE(piece, sq);
 	pop_bit(pos->bitboards[piece], sq);
@@ -23,7 +22,6 @@ void ClearPiece(const int piece, const int sq, S_Board* pos) {
 
 //Add a piece to a square
 void AddPiece(const int piece, const int to, S_Board* pos) {
-
 	int color = Color[piece];
 	set_bit(pos->bitboards[piece], to);
 	set_bit(pos->occupancies[color], to);
@@ -34,21 +32,18 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-
 	nnue.clear(piece, sq);
 	ClearPiece(piece, sq, pos);
 }
 
 //Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-
 	nnue.add(piece, to);
 	AddPiece(piece, to, pos);
 }
 
 //Move a piece from square to to square from without updating the NNUE weights
 void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
-
 	ClearPiece(piece, from, pos);
 	AddPiece(piece, to, pos);
 }
@@ -133,10 +128,8 @@ int make_move(int move, S_Board* pos) {
 
 			// hash enpassant
 			HASH_EP;
-
 		}
 		else {
-
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
@@ -190,7 +183,6 @@ int make_move(int move, S_Board* pos) {
 }
 
 int Unmake_move(S_Board* pos) {
-
 	// quiet moves
 
 	pos->hisPly--;
@@ -226,7 +218,6 @@ int Unmake_move(S_Board* pos) {
 
 	// handle enpassant captures
 	if (enpass) {
-
 		// erase the pawn depending on side to move
 		(pos->side == BLACK) ? AddPiece(BP, target_square + 8, pos)
 			: AddPiece(WP, target_square - 8, pos);
@@ -300,7 +291,6 @@ void MakeNullMove(S_Board* pos) {
 
 //Take back a null move
 void TakeNullMove(S_Board* pos) {
-
 	pos->hisPly--;
 	pos->ply--;
 
@@ -313,7 +303,6 @@ void TakeNullMove(S_Board* pos) {
 }
 
 PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move) {
-
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
@@ -341,7 +330,6 @@ PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move) {
 
 		// set up promoted piece on chess board
 		(OldKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
-
 	}
 
 	// change side

@@ -154,7 +154,6 @@ static inline int get_game_phase_score(const S_Board* pos) {
 }
 
 int HCE(const S_Board* pos) {
-
 	if (!count_bits(pos->bitboards[WP]) && !count_bits(pos->bitboards[BP]) &&
 		MaterialDraw(pos) == TRUE) {
 		return 0;
@@ -183,7 +182,6 @@ int HCE(const S_Board* pos) {
 	Bitboard white_pawns = pos->bitboards[WP];
 
 	while (white_pawns) {
-
 		// init square
 		square = get_ls1b_index(white_pawns);
 
@@ -199,7 +197,6 @@ int HCE(const S_Board* pos) {
 	Bitboard white_knights = pos->bitboards[WN];
 
 	while (white_knights) {
-
 		// init square
 		square = get_ls1b_index(white_knights);
 
@@ -215,7 +212,6 @@ int HCE(const S_Board* pos) {
 	Bitboard white_bishops = pos->bitboards[WB];
 
 	while (white_bishops) {
-
 		// init square
 		square = get_ls1b_index(white_bishops);
 
@@ -231,7 +227,6 @@ int HCE(const S_Board* pos) {
 	Bitboard white_rooks = pos->bitboards[WR];
 
 	while (white_rooks) {
-
 		// init square
 		square = get_ls1b_index(white_rooks);
 
@@ -247,7 +242,6 @@ int HCE(const S_Board* pos) {
 	Bitboard white_queens = pos->bitboards[WQ];
 
 	while (white_queens) {
-
 		// init square
 		square = get_ls1b_index(white_queens);
 
@@ -271,7 +265,6 @@ int HCE(const S_Board* pos) {
 	Bitboard black_pawns = pos->bitboards[BP];
 
 	while (black_pawns) {
-
 		// init square
 		square = get_ls1b_index(black_pawns);
 
@@ -287,7 +280,6 @@ int HCE(const S_Board* pos) {
 	Bitboard black_knights = pos->bitboards[BN];
 
 	while (black_knights) {
-
 		// init square
 		square = get_ls1b_index(black_knights);
 
@@ -303,7 +295,6 @@ int HCE(const S_Board* pos) {
 	Bitboard black_bishops = pos->bitboards[BB];
 
 	while (black_bishops) {
-
 		// init square
 		square = get_ls1b_index(black_bishops);
 
@@ -319,7 +310,6 @@ int HCE(const S_Board* pos) {
 	Bitboard black_rooks = pos->bitboards[BR];
 
 	while (black_rooks) {
-
 		// init square
 		square = get_ls1b_index(black_rooks);
 
@@ -335,7 +325,6 @@ int HCE(const S_Board* pos) {
 	Bitboard black_queens = pos->bitboards[BQ];
 
 	while (black_queens) {
-
 		// init square
 		square = get_ls1b_index(black_queens);
 
@@ -375,7 +364,6 @@ int HCE(const S_Board* pos) {
 
 // position evaluation
 int EvalPosition(const S_Board* pos) {
-
 	if (nnue_eval) {
 		return (pos->side == WHITE) ? nnue.output() : -nnue.output();
 	}

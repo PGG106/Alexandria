@@ -131,7 +131,6 @@ void print_move(const int move) {
 }
 
 char *FormatMove(const int move) {
-
   static char Move[6];
   const char *from = square_to_coordinates[get_move_source(move)];
   const char *to = square_to_coordinates[get_move_target(move)];

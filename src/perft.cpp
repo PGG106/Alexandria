@@ -31,7 +31,6 @@ unsigned long long nodes;
 
 // perft driver
 void perft_driver(int depth, S_Board *pos) {
-
   // create move list instance
   S_MOVELIST move_list[1];
 
@@ -47,7 +46,6 @@ void perft_driver(int depth, S_Board *pos) {
 
   // loop over generated moves
   for (int move_count = 0; move_count < move_list->count; move_count++) {
-
     // make move
     make_move(move_list->moves[move_count].move, pos);
 
@@ -76,7 +74,6 @@ unsigned long long perft_test(int depth, S_Board *pos) {
 
   // loop over generated moves
   for (int move_count = 0; move_count < move_list->count; move_count++) { // e3h3
-
     // make move
     make_move(move_list->moves[move_count].move, pos);
 

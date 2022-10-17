@@ -130,7 +130,6 @@ int get_ls1b_index(Bitboard b) {
 
 //Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
-
 	for (int index = 0; index < 64; ++index) {
 		pos->pieces[index] = EMPTY;
 	}
@@ -156,7 +155,6 @@ void ResetBoard(S_Board* pos) {
 }
 
 void Reset_info(S_SearchINFO* info) {
-
 	info->depth = 0;
 	info->depthset = 0;
 	info->nodes = 0;
@@ -387,14 +385,11 @@ int GetPiece(int piecetype, int color) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side) {
-
 	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
-
 }
 
 //Get on what square of the board the king of color c resides
 int KingSQ(S_Board* pos, int c) {
-
 	return (get_ls1b_index(GetKingColorBB(pos, pos->side)));
 }
 

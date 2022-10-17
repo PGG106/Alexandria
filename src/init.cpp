@@ -197,7 +197,6 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 }
 
 void DoPinMask(S_Board* pos, int color, int sq) {
-
 	Bitboard them = pos->occupancies[color ^ 1];
 	Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
 		pos->bitboards[(color ^ 1) * 6 + 4]) &
@@ -230,7 +229,6 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 
 //PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
-
 	for (int i = 0; i < 256; i++) {
 		reductions[i] = log(i);
 	}
