@@ -179,7 +179,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	char* ptr = NULL;
 	info->timeset = FALSE;
 	info->starttime = 0;
-	info->stoptime = 0;
+	info->stoptimeMax = 0;
+	info->stoptimeOpt = 0;
 	info->depth = 0, info->timeset = 0;
 
 	if ((ptr = strstr(line, "infinite"))) {
@@ -230,14 +231,14 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	info->starttime = GetTimeMs();
 	info->depth = depth;
 
-	info->stoptime = optimum(pos, info, time, inc);
+	optimum(pos, info, time, inc);
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time,
-		info->starttime, info->stoptime, info->depth, info->timeset);
+	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d\n", time,
+		info->starttime, info->stoptimeOpt,info->stoptimeMax, info->depth, info->timeset);
 
 }
 
@@ -271,27 +272,27 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 
 		// make sure output reaches the GUI
 		fflush(stdout);
-	
+
 		// get user / GUI input
 		if (!fgets(input, 40000, stdin)) {
-		
+
 			// continue the loop
 			continue;
 		}
-		
+
 
 		// make sure input is available
 		if (input[0] == '\n') {
-		
+
 			// continue the loop
 			continue;
 		}
-	
+
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
 			printf("readyok\n");
-	
+
 			continue;
 		}
 
@@ -302,12 +303,12 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			// call parse position function
 			parse_position(input, pos);
 			parsed_position = true;
-	
+
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 			if (search_thread.joinable())
-			search_thread.join();
+				search_thread.join();
 			ClearHashTable(HashTable);
 
 			// call parse position function
@@ -318,13 +319,13 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if(search_thread.joinable())
-			search_thread.join();
+			if (search_thread.joinable())
+				search_thread.join();
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position,info->depth, pos,ss, info);
+			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info);
 
 		}
 		// parse UCI "stop" command

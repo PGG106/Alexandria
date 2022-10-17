@@ -264,8 +264,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	bool TThit = false;
 	int standing_pat = 0;
 
-	// check if time up or interrupt from GUI
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptime)) {
+	// check if we used than the maximum amount of time possible
+	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)) {
 		info->stopped = TRUE;
 	}
 	//Check for the highest depth reached in search to report it to the cli
@@ -405,7 +405,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax) {
 		info->stopped = TRUE;
 	}
 
@@ -720,6 +720,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 		current_depth++) {
 
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
+
+		// after we finished searching a depth, check if we used more than the optimum amount of time 
+		if (info->timeset == TRUE && GetTimeMs() > info->stoptimeOpt) {
+			info->stopped = TRUE;
+		}
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
