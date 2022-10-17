@@ -8,10 +8,8 @@
 
 //Calculate how much time to spend on searching a move
 void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
-
 	//if we recieved a time parameter from the gui
 	if (time != -1) {
-
 		info->timeset = TRUE;
 		//If we recieved a movestogo parameter
 		if (info->movestogo != -1) {
@@ -26,7 +24,6 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
 
-
 		}
 		//if not we just use the time remaining/20
 		else {
@@ -39,8 +36,6 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			int maxtime = (((time) < (basetime * 2.5)) ? (time) : (basetime * 2.5));
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
-
 		}
 	}
-
 }
