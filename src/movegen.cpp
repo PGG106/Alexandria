@@ -44,7 +44,6 @@ static inline Bitboard PawnPush(int color, int sq) {
 }
 
 static inline void init(S_Board* pos, int color, int sq) {
-
 	Bitboard newMask = DoCheckmask(pos, color, sq);
 	pos->checkMask = newMask ? newMask : 18446744073709551615ULL;
 	DoPinMask(pos, color, sq);
@@ -71,38 +70,29 @@ static inline void AddMove(const S_Board* pos, int move,
 }
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
-
 	int capture = (pos->pieces[to] != EMPTY);
 
 
 	if (pos->side == WHITE) {
-
 		if (from >= a7 &&
 			from <= h7) { // if the piece is moving from the 7th to the 8th rank
-
 			AddMove(pos, encode_move(from, to, WP, WQ, capture), list);
-			AddMove(pos, encode_move(from, to, WP, WR, capture),
-				list); // consider every possible piece promotion
+			AddMove(pos, encode_move(from, to, WP, WR, capture), list); // consider every possible piece promotion
 			AddMove(pos, encode_move(from, to, WP, WB, capture), list);
 			AddMove(pos, encode_move(from, to, WP, WN, capture), list);
 		}
 		else { // else do not include possible promotions
 			AddMove(pos, encode_move(from, to, WP, 0, capture), list);
 		}
-
 	}
 
 	else {
-
 		if (from >= a2 &&
 			from <= h2) { // if the piece is moving from the 2nd to the 1st rank
-
 			AddMove(pos, encode_move(from, to, BP, BQ, capture), list);
-			AddMove(pos, encode_move(from, to, BP, BR, capture),
-				list); // consider every possible piece promotion
+			AddMove(pos, encode_move(from, to, BP, BR, capture), list); // consider every possible piece promotion
 			AddMove(pos, encode_move(from, to, BP, BB, capture), list);
 			AddMove(pos, encode_move(from, to, BP, BN, capture), list);
-
 		}
 		else { // else do not include possible promotions
 			AddMove(pos, encode_move(from, to, BP, 0, capture), list);
@@ -167,7 +157,6 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
-
 	if (pos->pinD & (1ULL << square) || pos->pinHV & (1ULL << square))
 		return NOMOVE;
 	return knight_attacks[square] & ~(pos->occupancies[pos->side]) &
@@ -175,7 +164,6 @@ static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
-
 	if (pos->pinHV & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinD & (1ULL << square))
@@ -186,7 +174,6 @@ static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
-
 	if (pos->pinD & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinHV & (1ULL << square))
@@ -197,16 +184,14 @@ static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalQueenMoves(S_Board* pos, int color, int square) {
-
 	return LegalRookMoves(pos, color, square) |
 		LegalBishopMoves(pos, color, square);
 }
 
 static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
-
 	Bitboard moves = king_attacks[square] & ~pos->occupancies[color];
 	Bitboard final_moves = NOMOVE;
-	int king = GetPiece(KING,color);
+	int king = GetPiece(KING, color);
 	ClearPiece(king, square, pos);
 	while (moves) {
 		int index = get_ls1b_index(moves);
@@ -231,7 +216,6 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
-
 		Bitboard pawns = GetPawnsColorBB(pos, pos->side);
 
 		while (pawns) {
@@ -343,7 +327,6 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 	if (pos->checkMask == 18446744073709551615ULL) {
 		if (pos->side == WHITE) {
-
 			// king side castling is available
 			if (pos->castleperm & WKCA) {
 				// make sure square between king and king's rook are empty
@@ -369,7 +352,6 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 						AddMove(pos, encode_move(e1, c1, WK, 0, 0), move_list);
 				}
 			}
-
 		}
 
 		else {
@@ -403,7 +385,6 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 // generate all moves
 void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
-
 	// init move count
 	move_list->count = 0;
 
@@ -413,7 +394,6 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
-
 		Bitboard pawn_mask = GetPawnsColorBB(pos, pos->side);
 		Bitboard knights_mask = GetKnightsColorBB(pos, pos->side);
 		Bitboard bishops_mask = GetBishopsColorBB(pos, pos->side);
