@@ -14,12 +14,10 @@
 S_HASHTABLE HashTable[1];
 
 int GetPvLine(const int depth, S_Board* pos, S_Stack* ss) {
-
 	int move = ProbePvMove(pos);
 	int count = 0;
 
 	while (move != NOMOVE && count < depth) {
-
 		if (MoveExists(pos, move)) {
 			make_move(move, pos);
 			ss->pvArray[count++] = move;
@@ -39,7 +37,6 @@ int GetPvLine(const int depth, S_Board* pos, S_Stack* ss) {
 }
 
 void ClearHashTable(S_HASHTABLE* table) {
-
 	S_HASHENTRY* tableEntry;
 
 	for (tableEntry = table->pTable;
@@ -50,7 +47,6 @@ void ClearHashTable(S_HASHTABLE* table) {
 		tableEntry->score = 0;
 		tableEntry->flags = 0;
 	}
-
 }
 
 void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
@@ -63,12 +59,10 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	ClearHashTable(table);
 
 	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
-
 }
 
 bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	S_HASHENTRY* tte) {
-
 	int index = pos->posKey % HashTable->numEntries;
 
 	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
@@ -83,7 +77,6 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 
 void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv) {
-
 	int index = pos->posKey % HashTable->numEntries;
 
 	if (score > ISMATE)
@@ -109,7 +102,6 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 }
 
 int ProbePvMove(S_Board* pos) {
-
 	int index = pos->posKey % HashTable->numEntries;
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
 	if (HashTable->pTable[index].tt_key == (TTKey)pos->posKey) {
@@ -120,7 +112,6 @@ int ProbePvMove(S_Board* pos) {
 
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
 void prefetch(void* addr) {
-
 #  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 	_mm_prefetch((char*)addr, _MM_HINT_T0);
 #  else
