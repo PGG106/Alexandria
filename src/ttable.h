@@ -23,4 +23,5 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv);
 int ProbePvMove(S_Board* pos);
+uint64_t Index(PosKey posKey);
 void prefetch(void* addr);

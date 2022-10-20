@@ -63,7 +63,7 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 
 bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	S_HASHENTRY* tte) {
-	int index = pos->posKey % HashTable->numEntries;
+	uint64_t index = Index(pos->posKey);
 
 	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
 
@@ -77,7 +77,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 
 void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv) {
-	int index = pos->posKey % HashTable->numEntries;
+	uint64_t index = Index(pos->posKey);
 
 	if (score > ISMATE)
 		score -= pos->ply;
@@ -102,12 +102,16 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 }
 
 int ProbePvMove(S_Board* pos) {
-	int index = pos->posKey % HashTable->numEntries;
+	uint64_t index = Index(pos->posKey);
 	assert(index >= 0 && index <= HashTable->numEntries - 1);
 	if (HashTable->pTable[index].tt_key == (TTKey)pos->posKey) {
 		return HashTable->pTable[index].move;
 	}
 	return NOMOVE;
+}
+
+uint64_t Index(PosKey posKey) {
+	return  posKey % HashTable->numEntries;
 }
 
 //prefetches the data in the given address in l1/2 cache in a non blocking way.

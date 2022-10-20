@@ -73,7 +73,7 @@ S_HASHENTRY;
 
 typedef struct HASHTABLE {
 	S_HASHENTRY* pTable;
-	int64_t numEntries = 0;
+	uint64_t numEntries = 0;
 } S_HASHTABLE;
 
 typedef struct Undo {
@@ -101,7 +101,7 @@ typedef struct Board {
 	// bits (1111) = all castlings allowed (0000) no castling
 	// allowed, (0101) only WKCA and BKCA allowed...
 
-	Bitboard posKey = -1; // unique  hashkey  che codifica the  position on the
+	PosKey posKey = -1; // unique  hashkey  che codifica the  position on the
 	// board,utile per il controllo delle posizioni ripetute.
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
