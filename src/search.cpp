@@ -369,7 +369,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info,
 	int DoNull) {
 	// Initialize the node
-	bool in_check = IsInCheck(pos);
+	bool in_check = IsInCheck(pos, pos->side);
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	ss->moveCount = 0;

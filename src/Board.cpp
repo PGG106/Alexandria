@@ -393,6 +393,6 @@ int KingSQ(S_Board* pos, int c) {
 	return (get_ls1b_index(GetKingColorBB(pos, pos->side)));
 }
 
-bool IsInCheck(S_Board* pos) {
+bool IsInCheck(S_Board* pos, int side) {
 	return is_square_attacked(pos, KingSQ(pos, pos->side), pos->side ^ 1);
 }

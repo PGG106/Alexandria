@@ -216,6 +216,6 @@ bool BoardHasNonPawns(S_Board* pos, int side);
 //Get on what square of the board the king of color c resides
 int KingSQ(S_Board* pos, int c);
 // returns if the current side is in check
-bool IsInCheck(S_Board* pos);
+bool IsInCheck(S_Board* pos, int side);
 
 
