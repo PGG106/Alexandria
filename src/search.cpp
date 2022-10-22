@@ -474,7 +474,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		&& static_eval >= beta
 		&& pos->ply
 		&& depth >= nmp_depth) {
-
 		MakeNullMove(pos);
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
@@ -497,7 +496,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		&& (depth <= razoring_depth) &&
 		(static_eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
-
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
@@ -569,7 +567,6 @@ moves_loop:
 
 			// principle variation search PVS
 			if (Score > alpha) {
-
 				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, ss, info, TRUE);
 
 				if ((Score > alpha) && (Score < beta))
