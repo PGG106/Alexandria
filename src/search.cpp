@@ -546,7 +546,7 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+			Score = -negamax(-beta, -alpha, depth - 1, pos, ss, info, TRUE);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
@@ -556,11 +556,11 @@ moves_loop:
 
 			{
 				//calculate by how much we should reduce the search depth 
-				int depth_reduction = reduction(improving, depth, moves_searched);
+				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 
 				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
-					TRUE, ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, ss, info,
+					TRUE);
 			}
 
 			// hack to ensure that full-depth search is done
@@ -570,11 +570,11 @@ moves_loop:
 			// principle variation search PVS
 			if (Score > alpha) {
 
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, ss, info, TRUE);
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+					Score = -negamax(-beta, -alpha, depth - 1, pos, ss, info, TRUE);
 			}
 		}
 
