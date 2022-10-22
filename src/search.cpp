@@ -274,7 +274,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
-		return 8 - (info->nodes & 7);
+		return 1 - (info->nodes & 2);
 	}
 
 	//If we reached maxdepth we return a static evaluation of the position
@@ -285,9 +285,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
 
-	if (standing_pat >= beta) return standing_pat;
-
 	alpha = (std::max)(alpha, standing_pat);
+
+	if (standing_pat >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
@@ -362,7 +362,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
-	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
+	return  reductions[depth] * reductions[num_moves] + !improving;
 }
 
 // negamax alpha beta search
@@ -372,7 +372,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	bool in_check = IsInCheck(pos, pos->side);
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
-	ss->moveCount = 0;
 	int root_node = (pos->ply == 0);
 	int static_eval;
 	bool improving;
@@ -544,30 +543,39 @@ moves_loop:
 		// increment nodes count
 		info->nodes++;
 
-		// late move reduction
-		if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
-			!in_check && IsQuiet(move))
-		{
-			//calculate by how much we should reduce the search depth 
-			int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+		// full depth search
+		if (moves_searched == 0)
+			// do normal alpha beta search
+			Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
 
-			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, ss, info, TRUE);
+		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
+		else {
+			// condition to consider LMR
+			if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
+				!in_check && IsQuiet(move))
 
-			// If search failed high search again with full depth
-			if (Score > alpha)
-				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, true);
-		}
+			{
+				//calculate by how much we should reduce the search depth 
+				int depth_reduction = reduction(improving, depth, moves_searched);
 
-		//if LMR was skipped search at full depth
-		else if (!pv_node || moves_searched > 0) {
-			Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, true);
-		}
+				// search current move with reduced depth:
+				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, info,
+					TRUE, ss);
+			}
 
-		// if we are in a pv node we do a full pv search for the first move and for every move that fails high
-		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-		{
-			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, true);
+			// hack to ensure that full-depth search is done
+			else
+				Score = alpha + 1;
+
+			// principle variation search PVS
+			if (Score > alpha) {
+
+				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, info, TRUE, ss);
+
+				if ((Score > alpha) && (Score < beta))
+
+					Score = -negamax(-beta, -alpha, depth - 1, pos, info, TRUE, ss);
+			}
 		}
 
 		// take move back
@@ -707,12 +715,12 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 				printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
 					current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
 
-			int PvCount = GetPvLine(current_depth, pos);
+			int PvCount = GetPvLine(current_depth, pos,ss);
 
 			// loop over the moves within a PV line
 			for (int count = 0; count < PvCount; count++) {
 				// print PV move
-				print_move(pos->pvArray[count]);
+				print_move(ss->pvArray[count]);
 				printf(" ");
 			}
 			// print new line
