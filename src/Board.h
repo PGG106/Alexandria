@@ -86,11 +86,11 @@ typedef struct Undo {
 	PosKey posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
-		  // for rollback purposes
+// for rollback purposes
 
 typedef struct Board {
 	int pieces[Board_sq_num]; // array that stores for every square of the board
-							  // if there's a piece, or if the square is invalid
+	// if there's a piece, or if the square is invalid
 
 	int side = -1; // what side has to move
 	int enPas = -1; // if enpassant is possible and in which square
@@ -105,7 +105,7 @@ typedef struct Board {
 	// board,utile per il controllo delle posizioni ripetute.
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
-							  // when that move was made for rollback purposes
+	// when that move was made for rollback purposes
 
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
@@ -122,7 +122,8 @@ typedef struct Board {
 
 
 typedef struct Stack {
-	int pvArray[MAXDEPTH + 1];
+	int pvLength[MAXDEPTH + 1];
+	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 	int searchHistory[12][Board_sq_num];
 	int searchKillers[2][MAXDEPTH];
 	int excludedMoves[MAXDEPTH];

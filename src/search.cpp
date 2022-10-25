@@ -103,11 +103,6 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 			ss->searchKillers[index][index2] = 0;
 		}
 	}
-	//Clean the pv array to avoid returning old values from a previous search
-	for (int index = 0; index < MAXDEPTH; ++index) {
-		ss->excludedMoves[index] = NOMOVE;
-		ss->pvArray[index] = NOMOVE;
-	}
 
 	//Reset plies and search info
 	pos->ply = 0;
@@ -381,6 +376,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	int pv_node = beta - alpha > 1;
 	bool SkipQuiets = false;
 
+	ss->pvLength[pos->ply] = pos->ply;
+
 	if (in_check) depth++;
 
 	//Check for the highest depth reached in search to report it to the cli
@@ -591,6 +588,13 @@ moves_loop:
 			if (Score > alpha) {
 				bestmove = move;
 				alpha = Score;
+				//Update the pv table
+				ss->pvArray[pos->ply][pos->ply] = move;
+				for (int next_ply = pos->ply + 1;next_ply < ss->pvLength[pos->ply + 1];next_ply++)
+				{
+					ss->pvArray[pos->ply][next_ply] = ss->pvArray[pos->ply + 1][next_ply];
+				}
+				ss->pvLength[pos->ply] = ss->pvLength[pos->ply + 1];
 
 				if (Score >= beta)
 				{
@@ -712,16 +716,12 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 				printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
 					current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
 
-			int PvCount = GetPvLine(current_depth, pos,ss);
-
 			// loop over the moves within a PV line
-			for (int count = 0; count < PvCount; count++) {
+			for (int count = 0; count < ss->pvLength[0]; count++) {
 				// print PV move
-				print_move(ss->pvArray[count]);
+				print_move(ss->pvArray[0][count]);
 				printf(" ");
 			}
-			// print new line
-			printf("\n");
 		}
 
 		// print new line
@@ -731,7 +731,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	//Print the best move we've found
 	if (show) {
 		printf("bestmove ");
-		print_move(ss->pvArray[0]);
+		print_move(ss->pvArray[0][0]);
 		printf("\n");
 	}
 }
