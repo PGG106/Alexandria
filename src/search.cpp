@@ -357,7 +357,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
-	return  reductions[depth] * reductions[num_moves] + !improving;
+	return  reductions[depth] * reductions[num_moves] + !improving +!pv_node;
 }
 
 // negamax alpha beta search
@@ -661,8 +661,8 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	int beta = MAXSCORE;
 
 	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = start_depth; current_depth <= final_depth;
-		current_depth++) {
+	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
+	{
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
@@ -694,44 +694,39 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			beta = score + beta_window;
 		}
 
-		if (info->stopped == 1)
+		if (info->stopped)
 			// stop calculating and return best move so far
 			break;
 
-		//This handles the basic console output, show is always true by default is we are dealing with a single thread
-		if (show) {
-			unsigned long  time = GetTimeMs() - info->starttime;
-			uint64_t nps = info->nodes / (time + !time) * 1000;
-			if (score > -mate_value && score < -mate_score)
-				printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
-					-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
-					GetTimeMs() - info->starttime);
+		//This handles the basic console output
+		unsigned long  time = GetTimeMs() - info->starttime;
+		uint64_t nps = info->nodes / (time + !time) * 1000;
+		if (score > -mate_value && score < -mate_score)
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
+				GetTimeMs() - info->starttime);
 
-			else if (score > mate_score && score < mate_value)
-				printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
-					(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
-					GetTimeMs() - info->starttime);
+		else if (score > mate_score && score < mate_value)
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
+				GetTimeMs() - info->starttime);
 
-			else
-				printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
-					current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
+		else
+			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
+				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
 
-			// loop over the moves within a PV line
-			for (int count = 0; count < ss->pvLength[0]; count++) {
-				// print PV move
-				print_move(ss->pvArray[0][count]);
-				printf(" ");
-			}
+		// loop over the moves within a PV line
+		for (int count = 0; count < ss->pvLength[0]; count++) {
+			// print PV move
+			print_move(ss->pvArray[0][count]);
+			printf(" ");
 		}
 
 		// print new line
 		printf("\n");
 	}
 
-	//Print the best move we've found
-	if (show) {
-		printf("bestmove ");
-		print_move(ss->pvArray[0][0]);
-		printf("\n");
-	}
+	printf("bestmove ");
+	print_move(ss->pvArray[0][0]);
+	printf("\n");
 }
