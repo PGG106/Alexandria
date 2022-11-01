@@ -61,8 +61,8 @@ int ep_depth = 3;
 int ep_margin = 120;
 
 //Contains the material Values of the pieces
-int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
-					  100, 325, 325, 500, 900, -10000 };
+int PieceValue[12] = { 100, 450, 450, 650, 1250, 0,
+					  100, 450, 450, 650, 1250, 0 };
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
