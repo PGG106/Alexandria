@@ -533,6 +533,14 @@ moves_loop:
 			SkipQuiets = true;
 			continue;
 		}
+
+		// See pruning
+		if (depth <= 8
+			&& IsQuiet(move)
+			&& !SEE(pos, move, -50 * depth))
+		{
+			continue;
+		}
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
