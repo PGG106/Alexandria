@@ -61,8 +61,8 @@ int ep_depth = 3;
 int ep_margin = 120;
 
 //Contains the material Values of the pieces
-int PieceValue[12] = { 100, 450, 450, 650, 1250, 0,
-					  100, 450, 450, 650, 1250, 0 };
+int PieceValue[12] = { 100, 300, 300, 450, 900, 0,
+					  100, 300, 300, 450, 900, 0 };
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -112,9 +112,7 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	info->seldepth = 0;
 }
 
-static inline Bitboard AttacksTo(const S_Board* pos, int to) {
-	//Take the occupancies of both positions, encoding where all the pieces on the board reside
-	Bitboard occ = pos->bitboards[BOTH];
+static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
 	Bitboard attackingBishops = GetBishopsBB(pos) | GetQueensBB(pos);
@@ -130,7 +128,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 }
 
 // inspired by the Weiss engine
-static inline bool SEE(const S_Board* pos, const int move,
+bool SEE(const S_Board* pos, const int move,
 	const int threshold) {
 	int to = get_move_target(move);
 	int from = get_move_source(move);
@@ -138,6 +136,7 @@ static inline bool SEE(const S_Board* pos, const int move,
 	int target = pos->pieces[to];
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
+
 	if (value < 0)
 		return false;
 
@@ -145,13 +144,14 @@ static inline bool SEE(const S_Board* pos, const int move,
 	int attacker = pos->pieces[from];
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
+
 	if (value >= 0)
 		return true;
 
 
 	// It doesn't matter if the to square is occupied or not
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
-	Bitboard attackers = AttacksTo(pos, to);
+	Bitboard attackers = AttacksTo(pos, to, occupied);
 
 
 	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
@@ -166,18 +166,25 @@ static inline bool SEE(const S_Board* pos, const int move,
 		attackers &= occupied;
 
 		Bitboard myAttackers = attackers & pos->occupancies[side];
-		if (!myAttackers)
+		if (!myAttackers) {
+		
 			break;
+		}
+
 
 		// Pick next least valuable piece to capture with
 		int pt;
-		for (pt = PAWN; pt < KING; ++pt)
+		for (pt = PAWN; pt < KING; ++pt) {
 			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
-
+		}
+	
 		side = !side;
+
+		value = -value - 1 - PieceValue[pt];
+	
 		// Value beats threshold, or can't beat threshold (negamaxed)
-		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
+		if (value >= 0) {
 
 			if (pt == KING && (attackers & pos->occupancies[side]))
 				side = !side;

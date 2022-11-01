@@ -268,25 +268,25 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 
 		// make sure output reaches the GUI
 		fflush(stdout);
-	
+
 		// get user / GUI input
 		if (!fgets(input, 40000, stdin)) {
 			// continue the loop
 			continue;
 		}
-		
+
 
 		// make sure input is available
 		if (input[0] == '\n') {
 			// continue the loop
 			continue;
 		}
-	
+
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
 			printf("readyok\n");
-	
+
 			continue;
 		}
 
@@ -301,7 +301,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 			if (search_thread.joinable())
-			search_thread.join();
+				search_thread.join();
 			ClearHashTable(HashTable);
 
 			// call parse position function
@@ -311,8 +311,8 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if(search_thread.joinable())
-			search_thread.join();
+			if (search_thread.joinable())
+				search_thread.join();
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
@@ -472,5 +472,24 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		else if (strncmp(input, "bench", 5) == 0) {
 			start_bench();
 		}
+
+		else if (strncmp(input, "see", 3) == 0) {
+			// create move list instance
+			S_MOVELIST move_list[1];
+
+			// generate moves
+			generate_moves(move_list, pos);
+			printf("SEE thresholds\n");
+			for (int i = 0; i < move_list->count;i++) {
+				int move = move_list->moves[i].move;
+				for (int j = 1200;j > -1200;j--) {
+					if (SEE(pos, move, j)) {
+						printf(" move number %d  %s SEE result: %d \n", i + 1, FormatMove(move), j);
+						break;
+					}
+				}
+			}
+		}
+
 	}
 }
