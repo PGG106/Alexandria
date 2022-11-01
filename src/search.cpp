@@ -148,11 +148,9 @@ bool SEE(const S_Board* pos, const int move,
 	if (value >= 0)
 		return true;
 
-
 	// It doesn't matter if the to square is occupied or not
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
-
 
 	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
 	Bitboard rooks = GetRooksBB(pos) | GetQueensBB(pos);
@@ -544,15 +542,6 @@ moves_loop:
 			continue;
 		}
 
-		// See pruning
-		if (!root_node
-			&& depth <= 8
-			&& moves_searched > 1
-			&& IsQuiet(move)
-			&& !SEE(pos, move, -50 * depth))
-		{
-			continue;
-		}
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
