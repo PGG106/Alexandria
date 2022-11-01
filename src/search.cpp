@@ -546,9 +546,10 @@ moves_loop:
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// condition to consider LMR
-			if (moves_searched >= full_depth_moves && depth >= lmr_depth &&
-				!in_check && IsQuiet(move))
-
+			if (moves_searched >= full_depth_moves 
+				&& depth >= lmr_depth 
+				&&!in_check 
+				&& IsQuiet(move))
 			{
 				//calculate by how much we should reduce the search depth 
 				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
