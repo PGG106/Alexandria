@@ -535,7 +535,9 @@ moves_loop:
 		}
 
 		// See pruning
-		if (depth <= 8
+		if (!root_node
+			&& depth <= 8
+			&& moves_searched > 1
 			&& IsQuiet(move)
 			&& !SEE(pos, move, -50 * depth))
 		{
