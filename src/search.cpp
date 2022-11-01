@@ -113,29 +113,20 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 }
 
 static inline Bitboard AttacksTo(const S_Board* pos, int to) {
-	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
+	//Take the occupancies of both positions, encoding where all the pieces on the board reside
 	Bitboard occ = pos->bitboards[BOTH];
-	Bitboard attackers = 0ULL;
+
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
-	Bitboard attackingBishops = GetBishopsBB(pos);
-	Bitboard attackingRooks = GetRooksBB(pos);
-	Bitboard attackingQueens = GetQueensBB(pos);
-	Bitboard attackingKnights = GetKnightsBB(pos);
-	Bitboard attackingKings = GetKingsBB(pos);
-	//Get the possible attacks for the sliding pieces to the target square according to the current board occupancies
-	Bitboard intercardinalRays = get_bishop_attacks(to, occ);
-	Bitboard cardinalRaysRays = get_rook_attacks(to, occ);
-	//Set the attackers up as the pieces actually on the board that have an attack avaliable 
-	attackers |= intercardinalRays & (attackingBishops | attackingQueens);
-	attackers |= cardinalRaysRays & (attackingRooks | attackingQueens);
+	Bitboard attackingBishops = GetBishopsBB(pos) | GetQueensBB(pos);
+	Bitboard attackingRooks = GetRooksBB(pos) | GetQueensBB(pos);
 
-	attackers |= (pawn_attacks[BLACK][to] & pos->bitboards[WP]) |
-		(pawn_attacks[WHITE][to] & pos->bitboards[BP]);
-	attackers |= (knight_attacks[to] & (attackingKnights));
+	return (pawn_attacks[WHITE][to] & GetPawnsColorBB(pos, BLACK))
+		| (pawn_attacks[BLACK][to] & GetPawnsColorBB(pos, WHITE))
+		| (knight_attacks[to] & GetKnightsBB(pos))
+		| (king_attacks[to] & GetKingsBB(pos))
+		| (get_bishop_attacks(to, occ) & attackingBishops)
+		| (get_rook_attacks(to, occ) & attackingRooks);
 
-	attackers |= king_attacks[to] & (attackingKings);
-	//Return the bitboard encoding all the attackers to the square "to"
-	return attackers;
 }
 
 // inspired by the Weiss engine
