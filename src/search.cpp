@@ -165,7 +165,7 @@ bool SEE(const S_Board* pos, const int move,
 
 		Bitboard myAttackers = attackers & pos->occupancies[side];
 		if (!myAttackers) {
-
+		
 			break;
 		}
 
@@ -176,11 +176,11 @@ bool SEE(const S_Board* pos, const int move,
 			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
 		}
-
+	
 		side = !side;
 
 		value = -value - 1 - PieceValue[pt];
-
+	
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
@@ -226,7 +226,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				900000000 * SEE(pos, move, -Bad_capture_score);
+				500000000 + 400000000 * SEE(pos, move, -Bad_capture_score);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
@@ -365,7 +365,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
-	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
+	return  reductions[depth] * reductions[num_moves] + !improving +!pv_node;
 }
 
 // negamax alpha beta search
@@ -555,9 +555,9 @@ moves_loop:
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// condition to consider LMR
-			if (moves_searched >= full_depth_moves
-				&& depth >= lmr_depth
-				&& !in_check
+			if (moves_searched >= full_depth_moves 
+				&& depth >= lmr_depth 
+				&&!in_check 
 				&& IsQuiet(move))
 			{
 				//calculate by how much we should reduce the search depth 
