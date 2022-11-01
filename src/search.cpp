@@ -142,21 +142,27 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to) {
 static inline bool SEE(const S_Board* pos, const int move,
 	const int threshold) {
 	int to = get_move_target(move);
+	int from = get_move_source(move);
+
 	int target = pos->pieces[to];
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 	if (value < 0)
 		return false;
 
-	int from = get_move_source(move);
+
 	int attacker = pos->pieces[from];
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
 	if (value >= 0)
 		return true;
+
+
 	// It doesn't matter if the to square is occupied or not
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to);
+
+
 	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
 	Bitboard rooks = GetRooksBB(pos) | GetQueensBB(pos);
 
@@ -164,20 +170,24 @@ static inline bool SEE(const S_Board* pos, const int move,
 
 	// Make captures until one side runs out, or fail to beat threshold
 	while (true) {
+
 		// Remove used pieces from attackers
 		attackers &= occupied;
+
 		Bitboard myAttackers = attackers & pos->occupancies[side];
 		if (!myAttackers)
 			break;
+
 		// Pick next least valuable piece to capture with
 		int pt;
-		for (pt = PAWN; pt <= KING; ++pt)
+		for (pt = PAWN; pt < KING; ++pt)
 			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
 
 		side = !side;
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
+
 			if (pt == KING && (attackers & pos->occupancies[side]))
 				side = !side;
 
@@ -185,6 +195,8 @@ static inline bool SEE(const S_Board* pos, const int move,
 		}
 		// Remove the used piece from occupied
 		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetGenericPiecesBB(pos, pt))));
+
+
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
 			attackers |= get_bishop_attacks(to, occupied) & bishops;
 		if (pt == ROOK || pt == QUEEN)
