@@ -165,7 +165,7 @@ bool SEE(const S_Board* pos, const int move,
 
 		Bitboard myAttackers = attackers & pos->occupancies[side];
 		if (!myAttackers) {
-		
+
 			break;
 		}
 
@@ -176,11 +176,11 @@ bool SEE(const S_Board* pos, const int move,
 			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
 		}
-	
+
 		side = !side;
 
 		value = -value - 1 - PieceValue[pt];
-	
+
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
@@ -365,7 +365,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
-	return  reductions[depth] * reductions[num_moves] + !improving +!pv_node;
+	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
 // negamax alpha beta search
@@ -376,7 +376,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (pos->ply == 0);
-	int static_eval;
+	int eval, static_eval;
 	bool improving;
 	bool ttHit;
 	int Score = -MAXSCORE;
@@ -448,13 +448,18 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// get static evaluation score
-	static_eval = ttHit ? tte.score : EvalPosition(pos);
+	static_eval = eval = EvalPosition(pos);
 	pos->history[pos->hisPly].eval = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
 	improving = (pos->hisPly >= 2) &&
 		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
 			(pos->history[pos->hisPly - 2].eval) == value_none);
+
+	//if we have a TThit we can use the search score as a more accurate form of eval
+	if (ttHit) {
+		eval = tte.score;
+	}
 
 	// evaluation pruning / static null move pruning
 	if (depth < ep_depth && !pv_node && abs(beta - 1) > -MAXSCORE + 100) {
@@ -470,13 +475,14 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	// Reverse futility pruning 
 	if (!pv_node
 		&& depth < rfp_depth
-		&& static_eval - futility(depth, improving) >= beta)
-		return static_eval;
+		&& eval - futility(depth, improving) >= beta)
+		return eval;
 
 	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
 	if (!pv_node
 		&& DoNull
 		&& static_eval >= beta
+		&& eval >= beta
 		&& pos->ply
 		&& depth >= nmp_depth) {
 		MakeNullMove(pos);
@@ -499,7 +505,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	// razoring
 	if (!pv_node
 		&& (depth <= razoring_depth) &&
-		(static_eval <=
+		(eval <=
 			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
@@ -555,9 +561,9 @@ moves_loop:
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// condition to consider LMR
-			if (moves_searched >= full_depth_moves 
-				&& depth >= lmr_depth 
-				&&!in_check 
+			if (moves_searched >= full_depth_moves
+				&& depth >= lmr_depth
+				&& !in_check
 				&& IsQuiet(move))
 			{
 				//calculate by how much we should reduce the search depth 
