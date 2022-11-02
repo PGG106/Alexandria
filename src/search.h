@@ -22,3 +22,6 @@ void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* in
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
 void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, int show);
+
+// inspired by the Weiss engine
+bool SEE(const S_Board* pos, const int move, const int threshold);

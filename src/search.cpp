@@ -61,8 +61,8 @@ int ep_depth = 3;
 int ep_margin = 120;
 
 //Contains the material Values of the pieces
-int PieceValue[12] = { 100, 325, 325, 500, 900, -10000,
-					  100, 325, 325, 500, 900, -10000 };
+int PieceValue[12] = { 100, 300, 300, 450, 900, 0,
+					  100, 300, 300, 450, 900, 0 };
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -112,51 +112,46 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	info->seldepth = 0;
 }
 
-static inline Bitboard AttacksTo(const S_Board* pos, int to) {
-	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
-	Bitboard occ = pos->bitboards[BOTH];
-	Bitboard attackers = 0ULL;
+static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
+
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
-	Bitboard attackingBishops = GetBishopsBB(pos);
-	Bitboard attackingRooks = GetRooksBB(pos);
-	Bitboard attackingQueens = GetQueensBB(pos);
-	Bitboard attackingKnights = GetKnightsBB(pos);
-	Bitboard attackingKings = GetKingsBB(pos);
-	//Get the possible attacks for the sliding pieces to the target square according to the current board occupancies
-	Bitboard intercardinalRays = get_bishop_attacks(to, occ);
-	Bitboard cardinalRaysRays = get_rook_attacks(to, occ);
-	//Set the attackers up as the pieces actually on the board that have an attack avaliable 
-	attackers |= intercardinalRays & (attackingBishops | attackingQueens);
-	attackers |= cardinalRaysRays & (attackingRooks | attackingQueens);
+	Bitboard attackingBishops = GetBishopsBB(pos) | GetQueensBB(pos);
+	Bitboard attackingRooks = GetRooksBB(pos) | GetQueensBB(pos);
 
-	attackers |= (pawn_attacks[BLACK][to] & pos->bitboards[WP]) |
-		(pawn_attacks[WHITE][to] & pos->bitboards[BP]);
-	attackers |= (knight_attacks[to] & (attackingKnights));
+	return (pawn_attacks[WHITE][to] & GetPawnsColorBB(pos, BLACK))
+		| (pawn_attacks[BLACK][to] & GetPawnsColorBB(pos, WHITE))
+		| (knight_attacks[to] & GetKnightsBB(pos))
+		| (king_attacks[to] & GetKingsBB(pos))
+		| (get_bishop_attacks(to, occ) & attackingBishops)
+		| (get_rook_attacks(to, occ) & attackingRooks);
 
-	attackers |= king_attacks[to] & (attackingKings);
-	//Return the bitboard encoding all the attackers to the square "to"
-	return attackers;
 }
 
 // inspired by the Weiss engine
-static inline bool SEE(const S_Board* pos, const int move,
+bool SEE(const S_Board* pos, const int move,
 	const int threshold) {
 	int to = get_move_target(move);
+	int from = get_move_source(move);
+
 	int target = pos->pieces[to];
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
+
 	if (value < 0)
 		return false;
 
-	int from = get_move_source(move);
+
 	int attacker = pos->pieces[from];
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
+
 	if (value >= 0)
 		return true;
+
 	// It doesn't matter if the to square is occupied or not
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
-	Bitboard attackers = AttacksTo(pos, to);
+	Bitboard attackers = AttacksTo(pos, to, occupied);
+
 	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
 	Bitboard rooks = GetRooksBB(pos) | GetQueensBB(pos);
 
@@ -164,20 +159,31 @@ static inline bool SEE(const S_Board* pos, const int move,
 
 	// Make captures until one side runs out, or fail to beat threshold
 	while (true) {
+
 		// Remove used pieces from attackers
 		attackers &= occupied;
+
 		Bitboard myAttackers = attackers & pos->occupancies[side];
-		if (!myAttackers)
+		if (!myAttackers) {
+		
 			break;
+		}
+
+
 		// Pick next least valuable piece to capture with
 		int pt;
-		for (pt = PAWN; pt <= KING; ++pt)
+		for (pt = PAWN; pt < KING; ++pt) {
 			if (myAttackers & GetGenericPiecesBB(pos, pt))
 				break;
-
+		}
+	
 		side = !side;
+
+		value = -value - 1 - PieceValue[pt];
+	
 		// Value beats threshold, or can't beat threshold (negamaxed)
-		if ((value = -value - 1 - PieceValue[pt]) >= 0) {
+		if (value >= 0) {
+
 			if (pt == KING && (attackers & pos->occupancies[side]))
 				side = !side;
 
@@ -185,6 +191,8 @@ static inline bool SEE(const S_Board* pos, const int move,
 		}
 		// Remove the used piece from occupied
 		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetGenericPiecesBB(pos, pt))));
+
+
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
 			attackers |= get_bishop_attacks(to, occupied) & bishops;
 		if (pt == ROOK || pt == QUEEN)
@@ -533,6 +541,7 @@ moves_loop:
 			SkipQuiets = true;
 			continue;
 		}
+
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
