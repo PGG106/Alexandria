@@ -124,9 +124,8 @@ typedef struct Board {
 typedef struct Stack {
 	int pvLength[MAXDEPTH + 1];
 	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
-	int searchHistory[12][Board_sq_num];
-	int searchKillers[2][MAXDEPTH];
-	int excludedMoves[MAXDEPTH];
+	int searchHistory[12][Board_sq_num] = { 0 };
+	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 } S_Stack;
 
 
