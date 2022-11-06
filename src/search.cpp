@@ -579,7 +579,8 @@ moves_loop:
 			else if (tte.score <= alpha && tte.score <= singularScore)
 				extension = -1;
 		}
-
+		//we adjust the search depth based on potential extensions
+		int newDepth = depth + extension;
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
@@ -588,7 +589,7 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
+			Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info, TRUE);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
@@ -602,7 +603,7 @@ moves_loop:
 				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 
 				// search current move with reduced depth:
-				Score = -negamax(-alpha - 1, -alpha, depth - depth_reduction, pos, ss, info,
+				Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info,
 					TRUE);
 			}
 
@@ -612,11 +613,11 @@ moves_loop:
 
 			// principle variation search PVS
 			if (Score > alpha) {
-				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info, TRUE);
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
+					Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info, TRUE);
 			}
 		}
 
