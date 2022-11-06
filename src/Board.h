@@ -126,6 +126,7 @@ typedef struct Stack {
 	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 	int searchHistory[12][Board_sq_num] = { 0 };
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
+	int excludedMoves[MAXDEPTH] = { NOMOVE };
 } S_Stack;
 
 

@@ -383,6 +383,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	S_HASHENTRY tte;
 	int pv_node = beta - alpha > 1;
 	bool SkipQuiets = false;
+	int excludedMove = ss->excludedMoves[pos->ply];
 
 	ss->pvLength[pos->ply] = pos->ply;
 
@@ -423,7 +424,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		}
 	}
 
-	ttHit = ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
 	if (pos->ply
 		&& !pv_node
@@ -436,10 +437,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && !tte.move)
+	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
-	if (in_check) {
+	if (in_check || excludedMove) {
 		static_eval = value_none;
 		pos->history[pos->hisPly].eval = value_none;
 		improving = false;
@@ -531,6 +532,7 @@ moves_loop:
 		pick_move(move_list, count);
 		//get the move with the highest score in the move ordering
 		int move = move_list->moves[count].move;
+		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
 
 		if (isQuiet && SkipQuiets) continue;
@@ -548,6 +550,36 @@ moves_loop:
 			continue;
 		}
 
+		int extension = 0;
+
+		if (!root_node
+			&& depth >= 7
+			&& move == tte.move
+			&& !excludedMove
+			&& (tte.flags & HFBETA)
+			&& abs(tte.score) < ISMATE
+			&& tte.depth >= depth - 3)
+		{
+			int singularBeta = tte.score - 3 * depth;
+			int singularDepth = (depth - 1) / 2;
+
+			ss->excludedMoves[pos->ply] = tte.move;
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info, false);
+			ss->excludedMoves[pos->ply] = NOMOVE;
+
+			if (singularScore < singularBeta)
+				extension = 1;
+
+			else if (singularBeta >= beta)
+				return (singularBeta);
+
+			else if (tte.score >= beta)
+				extension = -2;
+
+			else if (tte.score <= alpha && tte.score <= singularScore)
+				extension = -1;
+		}
+
 		//Play the move
 		make_move(move, pos);
 		// increment nodes count
@@ -556,7 +588,7 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, depth - 1, pos, ss, info, TRUE);
+			Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
@@ -580,11 +612,11 @@ moves_loop:
 
 			// principle variation search PVS
 			if (Score > alpha) {
-				Score = -negamax(-alpha - 1, -alpha, depth - 1, pos, ss, info, TRUE);
+				Score = -negamax(-alpha - 1, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
 
 				if ((Score > alpha) && (Score < beta))
 
-					Score = -negamax(-beta, -alpha, depth - 1, pos, ss, info, TRUE);
+					Score = -negamax(-beta, -alpha, depth - 1 + extension, pos, ss, info, TRUE);
 			}
 		}
 
@@ -642,13 +674,13 @@ moves_loop:
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		BestScore = in_check ? (-mate_value + pos->ply) : 0;
+		BestScore = excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
 	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
