@@ -483,7 +483,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		&& static_eval >= beta
 		&& eval >= beta
 		&& pos->ply
-		&& depth >= nmp_depth) {
+		&& depth >= nmp_depth
+		&& BoardHasNonPawns(pos, pos->side)) {
 		MakeNullMove(pos);
 		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
 		/* search moves with reduced depth to find beta cutoffs
