@@ -226,7 +226,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				500000000 + 400000000 * SEE(pos, move, -Bad_capture_score);
+				900000000 * SEE(pos, move, -Bad_capture_score);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
