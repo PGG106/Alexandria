@@ -1,5 +1,6 @@
 #include "Board.h"
 #include "move.h"
+#include "History.h"
 
 //Update the history heuristics of all the quiet moves passed to the function
 void updateHH(S_Board* pos, S_Stack* ss, int depth, int bestmove, S_MOVELIST* quiet_moves) {
@@ -7,6 +8,7 @@ void updateHH(S_Board* pos, S_Stack* ss, int depth, int bestmove, S_MOVELIST* qu
 	//Loop through all the quiet moves
 	for (int i = 0; i < quiet_moves->count; i++) {
 		int move = quiet_moves->moves[i].move;
+		bonus = bonus - getHHScore(pos, ss, move) * abs(bonus) / 32768;
 		if (move == bestmove)
 			//if we are at a depth >1 increment the history score of the best move
 			ss->searchHistory[pos->pieces[get_move_source(bestmove)]]
