@@ -15,7 +15,6 @@
 #include "option.h"
 #include <stdlib.h>
 #include <string.h>
-#include "../plugboard.h"
 #include <thread>
 
 int parse_move(char* move_string, S_Board* pos) {
