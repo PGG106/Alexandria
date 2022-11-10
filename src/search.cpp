@@ -19,47 +19,6 @@
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
-// SEARCH HYPERPARAMETERS //
-
-//Razoring
-int razoring_margin1 = 119;
-int razoring_margin2 = 182;
-int razoring_depth = 3;
-
-//LMR
-// full depth moves counter
-int full_depth_moves = 5;
-// depth limit to consider reduction
-int lmr_depth = 3;
-
-//Move ordering
-int Bad_capture_score = 107;
-
-//Rfp
-int rfp_depth = 9;
-int rfp_score = 66;
-
-//NMP
-int nmp_depth = 3;
-int nmp_fixed_reduction = 3;
-int nmp_depth_ratio = 3;
-
-//Movecount
-int movecount_depth = 4;
-// quiet_moves.count > (depth * movecount_multiplier)
-int movecount_multiplier = 8;
-
-//Asp windows
-int delta = 17;
-int Aspiration_Depth = 3;
-int Resize_limit = 5;
-int window_fixed_increment = 1;
-int window_resize_ratio = 144;
-
-//Evaluation pruning 
-int ep_depth = 3;
-int ep_margin = 120;
-
 //Contains the material Values of the pieces
 int PieceValue[12] = { 100, 300, 300, 450, 900, 0,
 					  100, 300, 300, 450, 900, 0 };
@@ -226,7 +185,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				900000000 * SEE(pos, move, -Bad_capture_score);
+				900000000 * SEE(pos, move, -107);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
@@ -256,7 +215,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 }
 
 //Calculate a futility margin based on depth and if the search is improving or not
-int futility(int depth, bool improving) { return rfp_score * (depth - improving); }
+int futility(int depth, bool improving) { return 66 * (depth - improving); }
 
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
@@ -462,11 +421,11 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// evaluation pruning / static null move pruning
-	if (depth < ep_depth
+	if (depth < 3
 		&& !pv_node
 		&& abs(beta - 1) > -MAXSCORE + 100) {
 		// define evaluation margin
-		int eval_margin = ep_margin * depth;
+		int eval_margin = 120 * depth;
 
 		// evaluation margin substracted from static evaluation score fails high
 		if (static_eval - eval_margin >= beta)
@@ -476,7 +435,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 	// Reverse futility pruning 
 	if (!pv_node
-		&& depth < rfp_depth
+		&& depth < 9
 		&& eval - futility(depth, improving) >= beta)
 		return eval;
 
@@ -486,10 +445,10 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		&& static_eval >= beta
 		&& eval >= beta
 		&& pos->ply
-		&& depth >= nmp_depth
+		&& depth >= 3
 		&& BoardHasNonPawns(pos, pos->side)) {
 		MakeNullMove(pos);
-		int R = nmp_fixed_reduction + depth / nmp_depth_ratio;
+		int R = 3 + depth / 3;
 		/* search moves with reduced depth to find beta cutoffs
 		   depth - 1 - R where R is a reduction limit */
 		Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info, FALSE);
@@ -507,9 +466,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 	// razoring
 	if (!pv_node
-		&& (depth <= razoring_depth) &&
+		&& (depth <= 3) &&
 		(eval <=
-			(alpha - razoring_margin1 - razoring_margin2 * (depth - 1)))) {
+			(alpha - 119 - 182 * (depth - 1)))) {
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
@@ -546,8 +505,8 @@ moves_loop:
 		}
 
 		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
-		if (!root_node && !pv_node && !in_check && depth < movecount_depth && isQuiet &&
-			(quiet_moves.count > (depth * movecount_multiplier))) {
+		if (!root_node && !pv_node && !in_check && depth < 4 && isQuiet &&
+			(quiet_moves.count > (depth * 8))) {
 			SkipQuiets = true;
 			continue;
 		}
@@ -598,8 +557,8 @@ moves_loop:
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// condition to consider LMR
-			if (moves_searched >= full_depth_moves
-				&& depth >= lmr_depth
+			if (moves_searched >= 5
+				&& depth >= 3
 				&& !in_check
 				&& IsQuiet(move))
 			{
@@ -705,9 +664,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	ClearForSearch(pos, ss, info);
 
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -delta;
+	int alpha_window = -17;
 	int resize_counter = 0;
-	int beta_window = delta;
+	int beta_window = 17;
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -720,11 +679,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
-			if (resize_counter > Resize_limit)
+			if (resize_counter > 5)
 				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha_window *= static_cast<float>(window_resize_ratio) / 100;
-			alpha += alpha_window + window_fixed_increment;
+			alpha_window *= 1.44;
+			alpha += alpha_window + 1;
 			resize_counter++;
 			current_depth--;
 			continue;
@@ -732,17 +691,17 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		else if ((score >= beta)) {
-			if (resize_counter > Resize_limit)
+			if (resize_counter > 5)
 				beta = MAXSCORE;
-			beta_window *= static_cast<float>(window_resize_ratio) / 100;
-			beta += beta_window + window_fixed_increment;
+			beta_window *= 1.44;
+			beta += beta_window + 1;
 			resize_counter++;
 			current_depth--;
 			continue;
 		}
 
 		// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-		if (current_depth >= Aspiration_Depth) {
+		if (current_depth >= 3) {
 			alpha = score + alpha_window;
 			beta = score + beta_window;
 		}
