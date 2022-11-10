@@ -462,7 +462,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// evaluation pruning / static null move pruning
-	if (depth < ep_depth && !pv_node && abs(beta - 1) > -MAXSCORE + 100) {
+	if (depth < ep_depth
+		&& !pv_node
+		&& abs(beta - 1) > -MAXSCORE + 100) {
 		// define evaluation margin
 		int eval_margin = ep_margin * depth;
 
@@ -583,6 +585,8 @@ moves_loop:
 		int newDepth = depth + extension;
 		//Play the move
 		make_move(move, pos);
+		//Speculative prefetch of the TT entry
+		prefetch(&HashTable->pTable[(pos->posKey) % HashTable->numEntries]);
 		// increment nodes count
 		info->nodes++;
 
