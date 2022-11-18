@@ -352,7 +352,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(pos->side));
 		}
 
 		else if (strncmp(input, "nnue", 4) == 0) {

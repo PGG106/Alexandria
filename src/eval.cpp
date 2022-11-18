@@ -365,7 +365,7 @@ int HCE(const S_Board* pos) {
 // position evaluation
 int EvalPosition(const S_Board* pos) {
 	if (nnue_eval) {
-		return (pos->side == WHITE) ? nnue.output() : -nnue.output();
+		return nnue.output(pos->side);
 	}
 	else {
 		return HCE(pos);

@@ -244,5 +244,5 @@ void init_all() {
 	initializeLookupTables();
 	initHashKeys();
 	InitReductions();
-	nnue.init("nn.net");
+	nnue.init("relative.net");
 }
