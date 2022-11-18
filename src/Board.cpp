@@ -51,6 +51,9 @@ const int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
 const int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 					   BLACK, BLACK, BLACK, BLACK, BLACK, BLACK };
 
+const int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
+PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
+
 // extract rank from a square [square]
 const int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
 						  0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
@@ -336,7 +339,7 @@ int GetPiece(int piecetype, int color) {
 
 //Return a piece based on the type and the color 
 int GetPieceType(int piece) {
-	return piece % 6;
+	return PieceType[piece];
 }
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
