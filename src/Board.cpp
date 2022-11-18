@@ -162,8 +162,8 @@ void Reset_info(S_SearchINFO* info) {
 	info->infinite = 0;
 	info->movestogo = -1;
 	info->quit = 0;
-	info->stopped = 0;
-	info->timeset = -1;
+	info->stopped = false;
+	info->timeset = false;
 }
 
 int square_distance(int a, int b) {
@@ -321,61 +321,13 @@ void accumulate(const S_Board* pos) {
 
 //Function to get the bitboard of a certain piece
 
-//Retrieve the pawns on the board of a specific color
-Bitboard GetPawnsColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[PAWN + color * 6];
-}
-//Retrieve all the pawns on the board
-Bitboard GetPawnsBB(const S_Board* pos) {
-	return GetPawnsColorBB(pos, WHITE) | GetPawnsColorBB(pos, BLACK);
-}
-//Retrieve the knights on the board of a specific color
-Bitboard GetKnightsColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[KNIGHT + color * 6];
-}
-//Retrieve all the pawns on the board
-Bitboard GetKnightsBB(const S_Board* pos) {
-	return GetKnightsColorBB(pos, WHITE) | GetKnightsColorBB(pos, BLACK);
-}
-//Retrieve the bishops on the board of a specific color
-Bitboard GetBishopsColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[BISHOP + color * 6];
-}
-//Retrieve all the bishops on the board
-Bitboard GetBishopsBB(const S_Board* pos) {
-	return GetBishopsColorBB(pos, WHITE) | GetBishopsColorBB(pos, BLACK);
-}
-//Retrieve the rooks on the board of a specific color
-Bitboard GetRooksColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[ROOK + color * 6];
-}
-//Retrieve all the rooks on the board
-Bitboard GetRooksBB(const S_Board* pos) {
-	return GetRooksColorBB(pos, WHITE) | GetRooksColorBB(pos, BLACK);
-}
-//Retrieve the queens on the board of a specific color
-Bitboard GetQueensColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[QUEEN + color * 6];
-}
-//Retrieve all the queens on the board
-Bitboard GetQueensBB(const S_Board* pos) {
-	return GetQueensColorBB(pos, WHITE) | GetQueensColorBB(pos, BLACK);
-}
-//Retrieve the king on the board of a specific color
-Bitboard GetKingColorBB(const S_Board* pos, int color) {
-	return pos->bitboards[KING + color * 6];
-}
-//Retrieve  the kings on the board
-Bitboard GetKingsBB(const S_Board* pos) {
-	return GetKingColorBB(pos, WHITE) | GetKingColorBB(pos, BLACK);
-}
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color) {
+Bitboard GetPieceColorBB(const S_Board* pos, int piecetype, int color) {
 	return pos->bitboards[piecetype + color * 6];
 }
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype) {
-	return GetGenericPiecesColorBB(pos, piecetype, WHITE) | GetGenericPiecesColorBB(pos, piecetype, BLACK);
+Bitboard GetPieceBB(const S_Board* pos, int piecetype) {
+	return GetPieceColorBB(pos, piecetype, WHITE) | GetPieceColorBB(pos, piecetype, BLACK);
 }
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color) {
@@ -389,12 +341,12 @@ int GetPieceType(int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side) {
-	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
+	return (pos->occupancies[side] ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
 }
 
 //Get on what square of the board the king of color c resides
 int KingSQ(S_Board* pos, int c) {
-	return (get_ls1b_index(GetKingColorBB(pos, pos->side)));
+	return (get_ls1b_index(GetPieceColorBB(pos, KING, c)));
 }
 
 bool IsInCheck(S_Board* pos, int side) {

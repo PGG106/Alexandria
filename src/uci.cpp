@@ -171,14 +171,11 @@ void parse_position(char* command, S_Board* pos) {
 
 // parse UCI "go" command
 void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
+	Reset_info(info);
 	int depth = -1, movetime = -1;
 	int movestogo;
 	int time = -1, inc = 0;
 	char* ptr = NULL;
-	info->timeset = FALSE;
-	info->starttime = 0;
-	info->stoptime = 0;
-	info->depth = 0, info->timeset = 0;
 
 	if ((ptr = strstr(line, "infinite"))) {
 		;

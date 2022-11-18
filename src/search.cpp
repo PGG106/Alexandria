@@ -74,13 +74,13 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
-	Bitboard attackingBishops = GetBishopsBB(pos) | GetQueensBB(pos);
-	Bitboard attackingRooks = GetRooksBB(pos) | GetQueensBB(pos);
+	Bitboard attackingBishops = GetPieceBB(pos,BISHOP) | GetPieceBB(pos,QUEEN);
+	Bitboard attackingRooks = GetPieceBB(pos,ROOK) | GetPieceBB(pos,QUEEN);
 
-	return (pawn_attacks[WHITE][to] & GetPawnsColorBB(pos, BLACK))
-		| (pawn_attacks[BLACK][to] & GetPawnsColorBB(pos, WHITE))
-		| (knight_attacks[to] & GetKnightsBB(pos))
-		| (king_attacks[to] & GetKingsBB(pos))
+	return (pawn_attacks[WHITE][to] & GetPieceColorBB(pos, PAWN,BLACK))
+		| (pawn_attacks[BLACK][to] & GetPieceColorBB(pos, PAWN, WHITE))
+		| (knight_attacks[to] & GetPieceBB(pos,KNIGHT))
+		| (king_attacks[to] & GetPieceBB(pos,KING))
 		| (get_bishop_attacks(to, occ) & attackingBishops)
 		| (get_rook_attacks(to, occ) & attackingRooks);
 
@@ -111,8 +111,8 @@ bool SEE(const S_Board* pos, const int move,
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
-	Bitboard bishops = GetBishopsBB(pos) | GetQueensBB(pos);
-	Bitboard rooks = GetRooksBB(pos) | GetQueensBB(pos);
+	Bitboard bishops = GetPieceBB(pos,BISHOP) | GetPieceBB(pos,QUEEN);
+	Bitboard rooks = GetPieceBB(pos,ROOK) | GetPieceBB(pos, QUEEN);
 
 	int side = !Color[attacker];
 
@@ -132,7 +132,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Pick next least valuable piece to capture with
 		int pt;
 		for (pt = PAWN; pt < KING; ++pt) {
-			if (myAttackers & GetGenericPiecesBB(pos, pt))
+			if (myAttackers & GetPieceBB(pos, pt))
 				break;
 		}
 
@@ -149,7 +149,7 @@ bool SEE(const S_Board* pos, const int move,
 			break;
 		}
 		// Remove the used piece from occupied
-		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetGenericPiecesBB(pos, pt))));
+		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetPieceBB(pos, pt))));
 
 
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)

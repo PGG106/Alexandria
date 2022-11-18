@@ -184,34 +184,10 @@ extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
 //Pieces info retrival
 
-//Retrieve the pawns on the board of a specific color
-Bitboard GetPawnsColorBB(const S_Board* pos, int color);
-//Retrieve all the pawns on the board
-Bitboard GetPawnsBB(const S_Board* pos);
-//Retrieve the knights on the board of a specific color
-Bitboard GetKnightsColorBB(const S_Board* pos, int color);
-//Retrieve all the pawns on the board
-Bitboard GetKnightsBB(const S_Board* pos);
-//Retrieve the bishops on the board of a specific color
-Bitboard GetBishopsColorBB(const S_Board* pos, int color);
-//Retrieve all the bishops on the board
-Bitboard GetBishopsBB(const S_Board* pos);
-//Retrieve the rooks on the board of a specific color
-Bitboard GetRooksColorBB(const S_Board* pos, int color);
-//Retrieve all the rooks on the board
-Bitboard GetRooksBB(const S_Board* pos);
-//Retrieve the queens on the board of a specific color
-Bitboard GetQueensColorBB(const S_Board* pos, int color);
-//Retrieve all the queens on the board
-Bitboard GetQueensBB(const S_Board* pos);
-//Retrieve the king on the board of a specific color
-Bitboard GetKingColorBB(const S_Board* pos, int color);
-//Retrieve the 2 kings on the board
-Bitboard GetKingsBB(const S_Board* pos);
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetGenericPiecesColorBB(const S_Board* pos, int piecetype, int color);
+Bitboard GetPieceColorBB(const S_Board* pos, int piecetype, int color);
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetGenericPiecesBB(const S_Board* pos, int piecetype);
+Bitboard GetPieceBB(const S_Board* pos, int piecetype);
 //Return a piece based on the type and the color 
 int GetPiece(int piecetype, int color);
 int GetPieceType(int piece);
