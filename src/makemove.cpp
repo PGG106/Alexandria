@@ -63,7 +63,8 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].posKey = pos->posKey;
 	pos->history[pos->hisPly].move = move;
-	accumulatorStack.emplace_back(nnue.accumulator);
+	accumulatorStackWhite.emplace_back(nnue.whiteAccumulator);
+	accumulatorStackBlack.emplace_back(nnue.blackAccumulator);
 	// parse move
 	int source_square = get_move_source(move);
 	int target_square = get_move_target(move);
@@ -205,8 +206,10 @@ int Unmake_move(S_Board* pos) {
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	int piececap = pos->history[pos->hisPly].capture;
 
-	nnue.accumulator = accumulatorStack.back();
-	accumulatorStack.pop_back();
+	nnue.whiteAccumulator = accumulatorStackWhite.back();
+	nnue.blackAccumulator = accumulatorStackBlack.back();
+	accumulatorStackWhite.pop_back();
+	accumulatorStackBlack.pop_back();
 
 	// handle pawn promotions
 	if (promoted_piece) {

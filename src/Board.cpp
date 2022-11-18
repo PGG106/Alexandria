@@ -149,7 +149,8 @@ void ResetBoard(S_Board* pos) {
 
 	// set default nnue values
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		nnue.accumulator[i] = nnue.hiddenBias[i];
+		nnue.whiteAccumulator[i] = nnue.hiddenBias[i];
+		nnue.blackAccumulator[i] = nnue.hiddenBias[i];
 	}
 }
 
@@ -383,7 +384,7 @@ int GetPiece(int piecetype, int color) {
 }
 
 //Return a piece based on the type and the color 
-int GetPieceType(int piece) {
+int getPieceType(int piece) {
 	return piece % 6;
 }
 

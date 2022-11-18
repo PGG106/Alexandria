@@ -343,7 +343,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		// parse UCI "uci" command
 		else if (strncmp(input, "uci", 3) == 0) {
 			// print engine info
-			printf("id name Alexandria 3.0.1\n");
+			printf("id name Alexandria 4.0.0\n");
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
@@ -354,7 +354,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(pos->side));
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {

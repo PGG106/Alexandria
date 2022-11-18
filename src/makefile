@@ -1,4 +1,4 @@
-EVALFILE=nn.net
+EVALFILE=relative.net
 
 
 ifeq ($(OS), Windows_NT)
