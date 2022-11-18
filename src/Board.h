@@ -140,8 +140,10 @@ typedef struct info {
 	int depth = -1;
 	int seldepth = -1;
 	bool depthset = false;
-	int timeset = -1;
+	bool timeset = false;
+	bool nodeset = false;
 	int movestogo = -1;
+	int nodeslimit = -1;
 	bool infinite = false;
 
 	bool quit = false;

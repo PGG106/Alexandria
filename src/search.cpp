@@ -227,7 +227,8 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	int standing_pat = 0;
 
 	// check if time up or interrupt from GUI
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptime)) {
+	if ((info->timeset == TRUE && GetTimeMs() > info->stoptime)
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
 	//Check for the highest depth reached in search to report it to the cli

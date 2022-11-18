@@ -220,6 +220,11 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		depth = atoi(ptr + 6);
 	}
 
+	if ((ptr = strstr(line, "nodes"))) {
+		info->nodeset = true;
+		info->nodeslimit = atoi(ptr + 6);
+	}
+
 	if (movetime != -1) {
 		time = movetime;
 		info->movestogo = 1;
@@ -234,8 +239,8 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stop:%d depth:%d timeset:%d\n", time,
-		info->starttime, info->stoptime, info->depth, info->timeset);
+	printf("time:%d start:%d stop:%d depth:%d timeset:%d nodeset:%d\n", time,
+		info->starttime, info->stoptime, info->depth, info->timeset, info->nodeset);
 }
 
 /*
