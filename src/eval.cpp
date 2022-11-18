@@ -30,5 +30,5 @@ int MaterialDraw(const S_Board* pos) {
 
 // position evaluation
 int EvalPosition(const S_Board* pos) {
-	return (pos->side == WHITE) ? nnue.output() : -nnue.output();
+		return nnue.output(pos->side);
 }

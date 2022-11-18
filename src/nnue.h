@@ -15,10 +15,11 @@ public:
 	void clear(int piece, int from);
 	void move(int piece, int from, int to);
 	int relu(int x);
-	int32_t output();
+	int32_t output(int stm);
 	void Clear();
 
-	std::array<int16_t, HIDDEN_BIAS> accumulator;
+	std::array<int16_t, HIDDEN_BIAS> whiteAccumulator;
+	std::array<int16_t, HIDDEN_BIAS> blackAccumulator;
 	uint8_t inputValues[INPUT_WEIGHTS];
 	int16_t inputWeights[INPUT_WEIGHTS * HIDDEN_WEIGHTS];
 	int16_t hiddenBias[HIDDEN_BIAS];
