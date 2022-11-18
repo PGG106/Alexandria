@@ -3,9 +3,9 @@
 #include <vector>
 #include <array>
 
-#define INPUT_WEIGHTS 64 * 12
-#define HIDDEN_BIAS 64 * 8
-#define HIDDEN_WEIGHTS 64 * 8
+#define INPUT_WEIGHTS 768
+#define HIDDEN_BIAS 512
+#define HIDDEN_WEIGHTS 512
 #define OUTPUT_BIAS 1
 
 class NNUE {

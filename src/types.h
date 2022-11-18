@@ -45,18 +45,8 @@ enum {
 
 // encode pieces
 enum {
-	WP,
-	WN,
-	WB,
-	WR,
-	WQ,
-	WK,
-	BP,
-	BN,
-	BB,
-	BR,
-	BQ,
-	BK,
+	WP, WN, WB, WR, WQ, WK, 
+	BP, BN, BB, BR, BQ, BK,
 	EMPTY = 14
 };
 
@@ -92,23 +82,7 @@ enum {
 	HFEXACT
 };
 
-// game phase scores
-const int opening_phase_score = 6192;
-const int endgame_phase_score = 518;
-
-// game phases
-enum {
-	opening,
-	endgame,
-	middlegame
-};
-
 // piece types
 enum {
-	PAWN,
-	KNIGHT,
-	BISHOP,
-	ROOK,
-	QUEEN,
-	KING
+	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };

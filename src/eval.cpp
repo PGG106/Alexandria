@@ -15,16 +15,6 @@ int MaterialDraw(const S_Board* pos) {
 	else if (count_bits(pos->occupancies[BOTH]) == 3 && ((count_bits(GetPieceBB(pos, KNIGHT)) == 1) || (count_bits(GetPieceBB(pos, BISHOP)) == 1)))
 		return TRUE;
 
-	/*
-	int white_rooks = count_bits(pos->bitboards[WR]);
-	int black_rooks = count_bits(pos->bitboards[BR]);
-	int white_bishops = count_bits(pos->bitboards[WB]);
-	int black_bishops = count_bits(pos->bitboards[BB]);
-	int white_knights = count_bits(pos->bitboards[WN]);
-	int black_knights = count_bits(pos->bitboards[BN]);
-	int white_queens = count_bits(pos->bitboards[WQ]);
-	int black_queens = count_bits(pos->bitboards[BQ]);
-	*/
 	return FALSE;
 }
 
