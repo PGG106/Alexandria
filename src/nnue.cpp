@@ -53,22 +53,25 @@ void NNUE::init(const char* file) {
 }
 
 void NNUE::add(int piece, int to) {
-	int inputNum = to + piece * 64;
+	int piecetype = GetPieceType(piece);
+	int inputNum = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
 void NNUE::clear(int piece, int from) {
-	int inputNum = from + piece * 64;
+	int piecetype = GetPieceType(piece);
+	int inputNum = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
 void NNUE::move(int piece, int from, int to) {
-	int inputNumFrom = from + piece * 64;
-	int inputNumTo = to + piece * 64;
+	int piecetype = GetPieceType(piece);
+	int inputNumFrom = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
+	int inputNumTo = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] = accumulator[i] - inputWeights[inputNumFrom * HIDDEN_BIAS + i] + inputWeights[inputNumTo * HIDDEN_BIAS + i];
 	}

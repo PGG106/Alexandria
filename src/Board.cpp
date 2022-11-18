@@ -383,6 +383,11 @@ int GetPiece(int piecetype, int color) {
 	return piecetype + 6 * color;
 }
 
+//Return a piece based on the type and the color 
+int GetPieceType(int piece) {
+	return piece % 6;
+}
+
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side) {
 	return (pos->occupancies[side] ^ GetPawnsColorBB(pos, side)) ^ GetKingColorBB(pos, side);
