@@ -274,13 +274,11 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			continue;
 		}
 
-
 		// make sure input is available
 		if (input[0] == '\n') {
 			// continue the loop
 			continue;
 		}
-
 
 		// parse UCI "isready" command
 		if (strncmp(input, "isready", 7) == 0) {
@@ -344,7 +342,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
-			printf("Type nnue to enable/disable nnue eval (default is enabled) \n");
 			printf("uciok\n");
 		}
 
@@ -353,13 +350,6 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf(
 				"the eval of this position according to the neural network is %d\n",
 				nnue.output());
-		}
-
-		else if (strncmp(input, "nnue", 4) == 0) {
-			// print engine info
-			nnue_eval ^= 1;
-			std::cout << std::boolalpha;
-			std::cout << "nnue is now set to " << nnue_eval << "\n";
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {
