@@ -15,10 +15,6 @@ Bitboard CastleKeys[16];
 Bitboard FileBBMask[8];
 Bitboard RankBBMask[8];
 
-Bitboard IsolatedMask[64];
-Bitboard WhitePassedMask[64];
-Bitboard BlackPassedMask[64];
-
 // pawn attacks table [side][square]
 Bitboard pawn_attacks[2][64];
 
@@ -44,7 +40,7 @@ Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
-int reductions[256];
+int reductions[MAXDEPTH];
 
 //Initialize the Zobrist keys
 void initHashKeys() {
@@ -229,7 +225,7 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 
 //PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < MAXDEPTH; i++) {
 		reductions[i] = log(i);
 	}
 }

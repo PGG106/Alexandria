@@ -60,7 +60,7 @@ extern const int get_file[Board_sq_num];
 // extract diagonal from a square [square]
 extern const int get_diagonal[Board_sq_num];
 
-extern int reductions[256];
+extern int reductions[MAXDEPTH];
 
 PACK(typedef struct HASHENTRY {
 	int32_t move = NOMOVE;

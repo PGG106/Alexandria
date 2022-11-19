@@ -293,7 +293,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 		// take move back
 		Unmake_move(pos);
 
-		if (info->stopped == 1)
+		if (info->stopped)
 			return 0;
 
 		moves_searched++;
@@ -341,7 +341,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
-	int pv_node = beta - alpha > 1;
+	int pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
 	int excludedMove = ss->excludedMoves[pos->ply];
 
@@ -456,7 +456,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 		TakeNullMove(pos);
 
-		if (info->stopped == 1)
+		if (info->stopped)
 			return 0;
 
 		// fail-hard beta cutoff
@@ -588,7 +588,7 @@ moves_loop:
 		// take move back
 		Unmake_move(pos);
 
-		if (info->stopped == 1)
+		if (info->stopped)
 			return 0;
 
 		moves_searched++;

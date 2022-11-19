@@ -15,6 +15,3 @@ extern const int mvv_lva[12][12];
 extern Bitboard FileBBMask[8];
 extern Bitboard RankBBMask[8];
 
-extern Bitboard IsolatedMask[64];
-extern Bitboard WhitePassedMask[64];
-extern Bitboard BlackPassedMask[64];
