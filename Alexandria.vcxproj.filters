@@ -84,7 +84,7 @@
     <ClInclude Include="src\History.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
+    <ClInclude Include="src\types.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
