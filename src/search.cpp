@@ -74,13 +74,13 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
-	Bitboard attackingBishops = GetPieceBB(pos,BISHOP) | GetPieceBB(pos,QUEEN);
-	Bitboard attackingRooks = GetPieceBB(pos,ROOK) | GetPieceBB(pos,QUEEN);
+	Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
+	Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-	return (pawn_attacks[WHITE][to] & GetPieceColorBB(pos, PAWN,BLACK))
+	return (pawn_attacks[WHITE][to] & GetPieceColorBB(pos, PAWN, BLACK))
 		| (pawn_attacks[BLACK][to] & GetPieceColorBB(pos, PAWN, WHITE))
-		| (knight_attacks[to] & GetPieceBB(pos,KNIGHT))
-		| (king_attacks[to] & GetPieceBB(pos,KING))
+		| (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
+		| (king_attacks[to] & GetPieceBB(pos, KING))
 		| (get_bishop_attacks(to, occ) & attackingBishops)
 		| (get_rook_attacks(to, occ) & attackingRooks);
 
@@ -111,8 +111,8 @@ bool SEE(const S_Board* pos, const int move,
 	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
-	Bitboard bishops = GetPieceBB(pos,BISHOP) | GetPieceBB(pos,QUEEN);
-	Bitboard rooks = GetPieceBB(pos,ROOK) | GetPieceBB(pos, QUEEN);
+	Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
+	Bitboard rooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
 	int side = !Color[attacker];
 
@@ -468,8 +468,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	// razoring
 	if (!pv_node
 		&& (depth <= 3) &&
-		(eval <=
-			(alpha - 119 - 182 * (depth - 1)))) {
+		(eval + 119 + 182 * (depth - 1) <= alpha))
+	{
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
