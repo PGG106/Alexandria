@@ -535,11 +535,6 @@ moves_loop:
 			else if (singularBeta >= beta)
 				return (singularBeta);
 
-			else if (tte.score >= beta)
-				extension = -2;
-
-			else if (tte.score <= alpha && tte.score <= singularScore)
-				extension = -1;
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
