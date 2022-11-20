@@ -13,18 +13,27 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 		info->timeset = TRUE;
 		//If we recieved a movestogo parameter
 		if (info->movestogo != -1) {
-			//time is equal to (total time)/ number of moves we have to play - a safety overhead
-			time /= info->movestogo;
 			time -= 50;
-			int stoptimeBase = (info->starttime + (time + inc / 2));
-			info->stoptimeOpt = stoptimeBase * 0.6;
-			info->stoptimeMax = stoptimeBase * 2;
+			int time_slot = time / info->movestogo;
+			int basetime = (time_slot);
+			//optime is the time we check anytime we clear a depth
+			int optime = basetime * 0.6;
+			//maxtime is the absolute maximum time we can spend on the current depth
+			int maxtime = (((time) < (basetime * 2.0)) ? (time) : (basetime * 2.0));
+			info->stoptimeMax = info->starttime + maxtime;
+			info->stoptimeOpt = info->starttime + optime;
 		}
 		else
 		{
-		int  stoptimeBase = (info->starttime + (time / 20 + inc / 2));
-		info->stoptimeOpt = stoptimeBase * 0.6;
-		info->stoptimeMax = stoptimeBase * 2;
+			time -= 50;
+			int time_slot = time / 20 + inc / 2;
+			int basetime = (time_slot);
+			//optime is the time we check anytime we clear a depth
+			int optime = basetime * 0.6;
+			//maxtime is the absolute maximum time we can spend on the current depth
+			int maxtime = (((time) < (basetime * 2.0)) ? (time) : (basetime * 2.0));
+			info->stoptimeMax = info->starttime + maxtime;
+			info->stoptimeOpt = info->starttime + optime;
 		}
 	}
 
