@@ -226,7 +226,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	bool TThit = false;
 	int standing_pat = 0;
 
-	// check if time up or interrupt from GUI
+	// check if time is up or we searched the maximum number of nodes we could search
 	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
@@ -358,7 +358,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
-	// check if time up or interrupt from GUI
+	// check if time is up or we searched the maximum number of nodes we could search
 	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
@@ -702,7 +702,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			alpha = score + alpha_window;
 			beta = score + beta_window;
 		}
-
+		// check if we just cleared a depth and more than OptTime passed
 		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
 			info->stopped = true;
 
