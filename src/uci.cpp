@@ -229,15 +229,15 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 
 	info->starttime = GetTimeMs();
 	info->depth = depth;
-
-	info->stoptime = optimum(pos, info, time, inc);
+	//calculate time allocation for the move
+	optimum(pos, info, time, inc);
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stop:%d depth:%d timeset:%d nodeset:%d\n", time,
-		info->starttime, info->stoptime, info->depth, info->timeset, info->nodeset);
+	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d nodeset:%d\n", time,
+		info->starttime, info->stoptimeOpt, info->stoptimeMax, info->depth, info->timeset, info->nodeset);
 }
 
 /*

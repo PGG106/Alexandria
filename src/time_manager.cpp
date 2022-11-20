@@ -7,7 +7,7 @@
 #include <cmath>
 
 //Calculate how much time to spend on searching a move
-int optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
+void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 	//if we recieved a time parameter from the gui
 	if (time != -1) {
 		info->timeset = TRUE;
@@ -16,11 +16,17 @@ int optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			//time is equal to (total time)/ number of moves we have to play - a safety overhead
 			time /= info->movestogo;
 			time -= 50;
-			return (info->starttime + (time + inc / 2));
+			int stoptimeBase = (info->starttime + (time + inc / 2));
+			info->stoptimeOpt = stoptimeBase * 0.6;
+			info->stoptimeMax = stoptimeBase * 2;
 		}
-		//if not we just use the time remaining/20
-		else return (info->starttime + (time / 20 + inc / 2));
+		else
+		{
+		int  stoptimeBase = (info->starttime + (time / 20 + inc / 2));
+		info->stoptimeOpt = stoptimeBase * 0.6;
+		info->stoptimeMax = stoptimeBase * 2;
+		}
 	}
 
-	return (info->starttime + (time + inc / 2));
+	return;
 }
