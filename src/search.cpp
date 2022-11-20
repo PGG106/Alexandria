@@ -235,9 +235,9 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	int standing_pat = 0;
 
 	// check if time is up or we searched the maximum number of nodes we could search
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
-		info->stopped = TRUE;
+	if ((info->timeset == true && GetTimeMs() > info->stoptimeMax)
+		|| (info->nodeset == true && info->nodes > info->nodeslimit)) {
+		info->stopped = true;
 	}
 	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
@@ -367,9 +367,9 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// check if time is up or we searched the maximum number of nodes we could search
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax
+	if ( (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
-		info->stopped = TRUE;
+		info->stopped = true;
 	}
 
 	if (!root_node) {
