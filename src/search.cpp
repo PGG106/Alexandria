@@ -668,6 +668,11 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(pos, ss, info);
 
+	//Set a safety Bestmove in case we can't finish search on time
+	S_MOVELIST move_list[1];
+	generate_moves(move_list, pos);
+	ss->pvArray[0][0] = move_list->moves[0].move;
+
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
 	int alpha_window = -17;
 	int resize_counter = 0;
