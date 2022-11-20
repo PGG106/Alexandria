@@ -63,6 +63,14 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 		}
 	}
 
+	//Clean the Pv array
+	for (int index = 0; index < MAXDEPTH + 1; ++index) {
+		ss->pvLength[index] = 0;
+		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
+			ss->pvArray[index][index2] = NOMOVE;
+		}
+	}
+
 	//Reset plies and search info
 	pos->ply = 0;
 	info->starttime = GetTimeMs();
