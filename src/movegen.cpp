@@ -101,13 +101,13 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
 }
 
 static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
-	Bitboard enemy = pos->occupancies[color ^ 1] | 1ULL << pos->enPas;
+	Bitboard enemy = pos->occupancies[color ^ 1];
 
 	// If we are pinned diagonally we can only do captures which are on the pin_dg
 	// and on the checkmask
 
 	if (pos->pinD & (1ULL << square))
-		return pawn_attacks[color][square] & pos->pinD & pos->checkMask & enemy;
+		return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << pos->enPas));
 	// Calculate pawn pushs
 	Bitboard push = PawnPush(color, square) & ~pos->occupancies[2];
 
