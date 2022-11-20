@@ -227,7 +227,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	int standing_pat = 0;
 
 	// check if time up or interrupt from GUI
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptime)
+	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
@@ -359,7 +359,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptime) {
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
 
@@ -701,6 +702,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			alpha = score + alpha_window;
 			beta = score + beta_window;
 		}
+
+		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
+			info->stopped = true;
 
 		if (info->stopped)
 			// stop calculating and return best move so far

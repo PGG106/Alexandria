@@ -136,7 +136,8 @@ extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
 	int starttime = -1;
-	int stoptime = -1;
+	int stoptimeOpt = -1;
+	int stoptimeMax = -1;
 	int depth = -1;
 	int seldepth = -1;
 	bool depthset = false;
