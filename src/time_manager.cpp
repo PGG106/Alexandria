@@ -13,7 +13,8 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 		info->timeset = TRUE;
 		//If we recieved a movestogo parameter
 		if (info->movestogo != -1) {
-			time -= 50;
+			int safety_overhead = (std::min)(time / 3, 50);
+			time -= safety_overhead;
 			int time_slot = time / info->movestogo;
 			int basetime = (time_slot);
 			//optime is the time we check anytime we clear a depth
@@ -25,7 +26,8 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 		}
 		else
 		{
-			time -= 50;
+			int safety_overhead = (std::min)(time / 3, 50);
+			time -= safety_overhead;
 			int time_slot = time / 20 + inc / 2;
 			int basetime = (time_slot);
 			//optime is the time we use to stop if we just cleared a depth
