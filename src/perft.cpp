@@ -91,7 +91,7 @@ unsigned long long perft_test(int depth, S_Board *pos) {
     long old_nodes = nodes - cummulative_nodes;
 
     // print move
-    printf("     move: %s%s%c  nodes: %ld\n",
+    printf(" %s%s%c: %ld\n",
            square_to_coordinates[get_move_source(
                move_list->moves[move_count].move)],
            square_to_coordinates[get_move_target(

@@ -101,10 +101,11 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
 }
 
 static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
-	Bitboard enemy = pos->occupancies[color ^ 1];
+	Bitboard enemy = pos->occupancies[color ^ 1] | 1ULL << pos->enPas;
 
 	// If we are pinned diagonally we can only do captures which are on the pin_dg
 	// and on the checkmask
+
 	if (pos->pinD & (1ULL << square))
 		return pawn_attacks[color][square] & pos->pinD & pos->checkMask & enemy;
 	// Calculate pawn pushs
@@ -146,8 +147,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 		ClearPiece(theirPawn, (pos->enPas + offset), pos);
 		AddPiece(ourPawn, pos->enPas, pos);
 		if (!((get_rook_attacks(kSQ, pos->occupancies[2]) &
-			(GetPieceColorBB(pos, ROOK,color ^ 1) |
-				GetPieceColorBB(pos,QUEEN, color ^ 1)))))
+			(GetPieceColorBB(pos, ROOK, color ^ 1) |
+				GetPieceColorBB(pos, QUEEN, color ^ 1)))))
 			moves |= (1ULL << pos->enPas);
 		AddPiece(ourPawn, square, pos);
 		AddPiece(theirPawn, pos->enPas + offset, pos);
@@ -394,11 +395,11 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
-		Bitboard pawn_mask = GetPieceColorBB(pos,PAWN ,pos->side);
-		Bitboard knights_mask = GetPieceColorBB(pos, KNIGHT,pos->side);
-		Bitboard bishops_mask = GetPieceColorBB(pos, BISHOP,pos->side);
-		Bitboard rooks_mask = GetPieceColorBB(pos, ROOK,pos->side);
-		Bitboard queens_mask = GetPieceColorBB(pos, QUEEN,pos->side);
+		Bitboard pawn_mask = GetPieceColorBB(pos, PAWN, pos->side);
+		Bitboard knights_mask = GetPieceColorBB(pos, KNIGHT, pos->side);
+		Bitboard bishops_mask = GetPieceColorBB(pos, BISHOP, pos->side);
+		Bitboard rooks_mask = GetPieceColorBB(pos, ROOK, pos->side);
+		Bitboard queens_mask = GetPieceColorBB(pos, QUEEN, pos->side);
 
 		while (pawn_mask) {
 			// init source square
