@@ -359,7 +359,8 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// check if time up or interrupt from GUI
-	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax) {
+	if (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = TRUE;
 	}
 

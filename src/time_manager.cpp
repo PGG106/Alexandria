@@ -19,7 +19,7 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			//optime is the time we check anytime we clear a depth
 			int optime = basetime * 0.6;
 			//maxtime is the absolute maximum time we can spend on the current depth
-			int maxtime = (((time) < (basetime * 2.0)) ? (time) : (basetime * 2.0));
+			int maxtime = (std::min)(time,basetime*2);
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
 		}
@@ -31,7 +31,7 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			//optime is the time we check anytime we clear a depth
 			int optime = basetime * 0.6;
 			//maxtime is the absolute maximum time we can spend on the current depth
-			int maxtime = (((time) < (basetime * 2.0)) ? (time) : (basetime * 2.0));
+			int maxtime = (std::min)(time, basetime * 2);
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
 		}
