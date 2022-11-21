@@ -41,7 +41,7 @@ extern uint8_t PopCnt16[1 << 16];
 // FEN dedug positions
 #define empty_board "8/8/8/8/8/8/8/8 b - - "
 #define start_position \
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 17 1 "
 #define tricky_position \
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 #define killer_position \
