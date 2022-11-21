@@ -10,7 +10,7 @@
 // is the square given in input attacked by the current given side
 bool is_square_attacked(const S_Board* pos, int square, int side) {
 	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
-	Bitboard occ = pos->occupancies[BOTH];
+	Bitboard occ = Occupancy(pos,BOTH);
 	// is the square attacked by white pawns
 	if ((side == WHITE) && (pawn_attacks[BLACK][square] & GetPieceColorBB(pos, PAWN, WHITE)))
 		return TRUE;
@@ -70,8 +70,7 @@ static inline void AddMove(const S_Board* pos, int move,
 }
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
-	int capture = (pos->pieces[to] != EMPTY);
-
+	int capture = PieceOn(pos, to) != EMPTY;
 
 	if (pos->side == WHITE) {
 		if (from >= a7 &&
@@ -113,8 +112,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 
 	push |=
 		(color == WHITE)
-		? (get_rank[square] == 1 ? (push >> 8) & ~pos->occupancies[2] : 0ULL)
-		: (get_rank[square] == 6 ? (push << 8) & ~pos->occupancies[2] : 0ULL);
+		? (get_rank[square] == 1 ? (push >> 8) & ~Occupancy(pos, BOTH) : 0ULL)
+		: (get_rank[square] == 6 ? (push << 8) & ~Occupancy(pos, BOTH) : 0ULL);
 
 	// If we are pinned horizontally we can do no moves but if we are pinned
 	// vertically we can only do pawn pushs
@@ -190,7 +189,7 @@ static inline Bitboard LegalQueenMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
-	Bitboard moves = king_attacks[square] & ~pos->occupancies[color];
+	Bitboard moves = king_attacks[square] & ~Occupancy(pos, color);
 	Bitboard final_moves = NOMOVE;
 	int king = GetPiece(KING, color);
 	ClearPiece(king, square, pos);
@@ -244,7 +243,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -263,7 +262,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -282,7 +281,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -300,7 +299,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -317,7 +316,7 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square);
 	while (moves) {
 		int target_square = get_ls1b_index(moves);
-		int capture = (pos->pieces[target_square] != EMPTY);
+		int capture = PieceOn(pos, target_square) != EMPTY;
 
 		pop_bit(moves, target_square);
 		AddMove(
@@ -407,7 +406,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 
 			Bitboard moves =
 				LegalPawnMoves(pos, pos->side, source_square) &
-				(pos->occupancies[pos->side ^ 1] | 255 | 18374686479671623680ULL);
+				(Enemy(pos) | 255 | 18374686479671623680ULL);
 			while (moves) {
 				// init target square
 				target_square = get_ls1b_index(moves);
@@ -426,7 +425,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 			//while we have moves that the knight can play we add them to the list
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -444,7 +443,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -462,7 +461,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -480,7 +479,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
-				int capture = (pos->pieces[target_square] != EMPTY);
+				int capture = PieceOn(pos, target_square) != EMPTY;
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(pos,
 					encode_move(source_square, target_square, piece, 0, capture),

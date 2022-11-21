@@ -377,6 +377,11 @@ bool IsInCheck(S_Board* pos, int side) {
 	return is_square_attacked(pos, KingSQ(pos, pos->side), pos->side ^ 1);
 }
 
+int PieceOn(const S_Board* pos, int square)
+{
+	return pos->pieces[square];
+}
+
 Bitboard Us(const S_Board* pos) {
 	return pos->occupancies[pos->side];
 }
