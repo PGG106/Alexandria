@@ -259,7 +259,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 
 	alpha = (std::max)(alpha, standing_pat);
 
-	if (standing_pat >= beta) return standing_pat;
+	if (alpha >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
