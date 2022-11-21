@@ -627,20 +627,17 @@ moves_loop:
 
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
-						CounterMoves[From(previousMove)]
-							[To(previousMove)] = move;
+						CounterMoves[From(previousMove)][To(previousMove)] = move;
+						//Update the history heuristic based on the new best move
+						updateHH(pos, ss, depth, bestmove, &quiet_moves);
 					}
-
 					// node (move) fails high
 					break;
 				}
 			}
 		}
 	}
-		
-	if (BestScore >= beta && IsQuiet(bestmove)) {
-		updateHH(pos, ss, depth, bestmove, &quiet_moves);
-	}
+	
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
