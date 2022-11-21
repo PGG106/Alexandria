@@ -290,6 +290,26 @@ void parse_fen(const char* fen, S_Board* pos) {
 	// no enpassant square
 	else
 		pos->enPas = no_sq;
+	// read plies
+	fen += 2;
+	if (isdigit(*fen)) {
+		while (isdigit(*fen)) {
+			int increment(fen[0] - '0');
+			if (isdigit(fen[1])) increment *= 10;
+			pos->ply += increment;
+			fen++;
+		}
+	}
+	//read Hisply
+	fen++;
+	if (isdigit(*fen)) {
+		while (isdigit(*fen)) {
+			int increment(fen[0] - '0');
+			if (isdigit(fen[1])) increment *= 10;
+			pos->hisPly += increment;
+			fen++;
+		}
+	}
 
 	// loop over white pieces pos->pos->bitboards
 	for (int piece = WP; piece <= WK; piece++)

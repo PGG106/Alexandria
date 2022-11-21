@@ -88,7 +88,12 @@ void print_board(S_Board *pos) {
          (pos->castleperm & BKCA) ? 'k' : '-',
          (pos->castleperm & BQCA) ? 'q' : '-');
 
-  printf("     position key:%llx\n\n", pos->posKey);
+  printf("     position ply: %d\n", pos->ply);
+
+  printf("     position hisPly: %d\n", pos->hisPly);
+
+  printf("     position key: %llx\n\n", pos->posKey);
+
 }
 
 // print attacked squares
