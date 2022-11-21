@@ -100,7 +100,7 @@ bool SEE(const S_Board* pos, const int move,
 	int to = To(move);
 	int from = From(move);
 
-	int target = pos->pieces[to];
+	int target = PieceOn(pos,to);
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
@@ -108,7 +108,7 @@ bool SEE(const S_Board* pos, const int move,
 		return false;
 
 
-	int attacker = pos->pieces[from];
+	int attacker = PieceOn(pos, from);
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
 
@@ -116,7 +116,7 @@ bool SEE(const S_Board* pos, const int move,
 		return true;
 
 	// It doesn't matter if the to square is occupied or not
-	Bitboard occupied = pos->occupancies[BOTH] ^ (1ULL << from);
+	Bitboard occupied = Occupancy(pos, BOTH) ^ (1ULL << from);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
 	Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
@@ -130,7 +130,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Remove used pieces from attackers
 		attackers &= occupied;
 
-		Bitboard myAttackers = attackers & pos->occupancies[side];
+		Bitboard myAttackers = attackers & Occupancy(pos, side);
 		if (!myAttackers) {
 
 			break;
@@ -151,7 +151,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
-			if (pt == KING && (attackers & pos->occupancies[side]))
+			if (pt == KING && (attackers & Occupancy(pos,side)))
 				side = !side;
 
 			break;
@@ -192,7 +192,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
-				mvv_lva[get_move_piece(move)][pos->pieces[To(move)]] +
+				mvv_lva[get_move_piece(move)][PieceOn(pos,To(move))] +
 				goodCaptureScore * SEE(pos, move, -107);
 			continue;
 		}
@@ -637,7 +637,7 @@ moves_loop:
 			}
 		}
 	}
-
+		
 	if (BestScore >= beta && IsQuiet(bestmove)) {
 		updateHH(pos, ss, depth, bestmove, &quiet_moves);
 	}
