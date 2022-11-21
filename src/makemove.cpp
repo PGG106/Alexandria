@@ -65,8 +65,8 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].move = move;
 	accumulatorStack.emplace_back(nnue.accumulator);
 	// parse move
-	int source_square = get_move_source(move);
-	int target_square = get_move_target(move);
+	int source_square = From(move);
+	int target_square = To(move);
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
 
@@ -195,8 +195,8 @@ int Unmake_move(S_Board* pos) {
 	int move = pos->history[pos->hisPly].move;
 
 	// parse move
-	int source_square = get_move_source(move);
-	int target_square = get_move_target(move);
+	int source_square = From(move);
+	int target_square = To(move);
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);
@@ -304,8 +304,8 @@ void TakeNullMove(S_Board* pos) {
 
 PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move) {
 	// parse move
-	int source_square = get_move_source(move);
-	int target_square = get_move_target(move);
+	int source_square = From(move);
+	int target_square = To(move);
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);

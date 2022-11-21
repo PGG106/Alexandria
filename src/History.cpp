@@ -11,16 +11,16 @@ void updateHH(S_Board* pos, S_Stack* ss, int depth, int bestmove, S_MOVELIST* qu
 		bonus = bonus - getHHScore(pos, ss, move) * abs(bonus) / 32768;
 		if (move == bestmove)
 			//if we are at a depth >1 increment the history score of the best move
-			ss->searchHistory[pos->pieces[get_move_source(bestmove)]]
-			[get_move_target(bestmove)] += bonus;
+			ss->searchHistory[pos->pieces[From(bestmove)]]
+			[To(bestmove)] += bonus;
 		else { // if the move isn't the best move decrease its history score
-			ss->searchHistory[pos->pieces[get_move_source(move)]]
-				[get_move_target(move)] -= bonus;
+			ss->searchHistory[pos->pieces[From(move)]]
+				[To(move)] -= bonus;
 		}
 	}
 }
 
 //Returns the history score of a move
 int getHHScore(S_Board* pos, S_Stack* ss, int  move) {
-	return ss->searchHistory[pos->pieces[get_move_source(move)]][get_move_target(move)];
+	return ss->searchHistory[pos->pieces[From(move)]][To(move)];
 }

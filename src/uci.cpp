@@ -36,8 +36,8 @@ int parse_move(char* move_string, S_Board* pos) {
 		int move = move_list->moves[move_count].move;
 
 		// make sure source & target squares are available within the generated move
-		if (source_square == get_move_source(move) &&
-			target_square == get_move_target(move)) {
+		if (source_square == From(move) &&
+			target_square == To(move)) {
 			// init promoted piece
 			int promoted_piece = get_move_promoted(move);
 

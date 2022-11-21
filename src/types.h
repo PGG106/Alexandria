@@ -45,7 +45,7 @@ enum {
 
 // encode pieces
 enum {
-	WP, WN, WB, WR, WQ, WK, 
+	WP, WN, WB, WR, WQ, WK,
 	BP, BN, BB, BR, BQ, BK,
 	EMPTY = 14
 };
@@ -85,4 +85,10 @@ enum {
 // piece types
 enum {
 	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
+};
+
+enum {
+	goodCaptureScore= 900000000,
+	killerMoveScore0 = 800000000,
+	killerMoveScore1 = 700000000
 };

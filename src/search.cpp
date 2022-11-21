@@ -97,8 +97,8 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move,
 	const int threshold) {
-	int to = get_move_target(move);
-	int from = get_move_source(move);
+	int to = To(move);
+	int from = From(move);
 
 	int target = pos->pieces[to];
 	// Making the move and not losing it must beat the threshold
@@ -186,28 +186,28 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		}
 		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
 		else if (isEnpassant(pos, move)) {
-			move_list->moves[i].score = 105 + 1000000000;
+			move_list->moves[i].score = 105 + goodCaptureScore;
 			continue;
 		}
 		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
-				mvv_lva[get_move_piece(move)][pos->pieces[get_move_target(move)]] +
-				900000000 * SEE(pos, move, -107);
+				mvv_lva[get_move_piece(move)][pos->pieces[To(move)]] +
+				goodCaptureScore * SEE(pos, move, -107);
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
 		else if (ss->searchKillers[0][pos->ply] == move) {
-			move_list->moves[i].score = 800000000;
+			move_list->moves[i].score = killerMoveScore0;
 			continue;
 		}
 		//Second killer move always comes after the first one
 		else if (ss->searchKillers[1][pos->ply] == move) {
-			move_list->moves[i].score = 700000000;
+			move_list->moves[i].score = killerMoveScore1;
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == CounterMoves[get_move_source(pos->history[pos->hisPly].move)][get_move_target(pos->history[pos->hisPly].move)])
+		else if (move == CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
@@ -252,6 +252,7 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	if (pos->ply > MAXDEPTH - 1) {
 		return EvalPosition(pos);
 	}
+
 
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
@@ -626,8 +627,8 @@ moves_loop:
 
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
-						CounterMoves[get_move_source(previousMove)]
-							[get_move_target(previousMove)] = move;
+						CounterMoves[From(previousMove)]
+							[To(previousMove)] = move;
 					}
 
 					// node (move) fails high

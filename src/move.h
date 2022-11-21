@@ -28,9 +28,9 @@ typedef struct {
 #define ISMATE (mate_value - MAXDEPTH)
 
 // extract source square
-#define get_move_source(move) (move & 0x3f)
+#define From(move) (move & 0x3f)
 // extract target square
-#define get_move_target(move) ((move & 0xfc0) >> 6)
+#define To(move) ((move & 0xfc0) >> 6)
 // extract piece
 #define get_move_piece(move) ((move & 0xf000) >> 12)
 // extract promoted piece
@@ -41,7 +41,7 @@ typedef struct {
 
 #define IsQuiet(move) (!get_move_capture(move) && !get_move_promoted(move))
 
-#define isEnpassant(pos,move) ((get_move_piece(move) == WP || get_move_piece(move) == BP) && (get_move_target(move) == pos->enPas))
+#define isEnpassant(pos,move) ((get_move_piece(move) == WP || get_move_piece(move) == BP) && (To(move) == pos->enPas))
 
 // move types
 enum { all_moves, only_captures };
