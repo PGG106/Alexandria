@@ -160,7 +160,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
 	if (pos->pinD & (1ULL << square) || pos->pinHV & (1ULL << square))
 		return NOMOVE;
-	return knight_attacks[square] & ~(pos->occupancies[pos->side]) &
+	return knight_attacks[square] & ~(Us(pos)) &
 		pos->checkMask;
 }
 
@@ -168,20 +168,20 @@ static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
 	if (pos->pinHV & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinD & (1ULL << square))
-		return get_bishop_attacks(square, pos->occupancies[BOTH]) &
-		~(pos->occupancies[pos->side]) & pos->pinD & pos->checkMask;
-	return get_bishop_attacks(square, pos->occupancies[BOTH]) &
-		~(pos->occupancies[pos->side]) & pos->checkMask;
+		return get_bishop_attacks(square, Occupancy(pos, BOTH)) &
+		~(Us(pos)) & pos->pinD & pos->checkMask;
+	return get_bishop_attacks(square, Occupancy(pos, BOTH)) &
+		~(Us(pos)) & pos->checkMask;
 }
 
 static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
 	if (pos->pinD & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinHV & (1ULL << square))
-		return get_rook_attacks(square, pos->occupancies[BOTH]) &
-		~(pos->occupancies[pos->side]) & pos->pinHV & pos->checkMask;
-	return get_rook_attacks(square, pos->occupancies[BOTH]) &
-		~(pos->occupancies[pos->side]) & pos->checkMask;
+		return get_rook_attacks(square, Occupancy(pos, BOTH)) &
+		~(Us(pos)) & pos->pinHV & pos->checkMask;
+	return get_rook_attacks(square, Occupancy(pos, BOTH)) &
+		~(Us(pos)) & pos->checkMask;
 }
 
 static inline Bitboard LegalQueenMoves(S_Board* pos, int color, int square) {
@@ -331,8 +331,8 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 			// king side castling is available
 			if (pos->castleperm & WKCA) {
 				// make sure square between king and king's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], f1) &&
-					!get_bit(pos->occupancies[BOTH], g1)) {
+				if (!get_bit(Occupancy(pos, BOTH), f1) &&
+					!get_bit(Occupancy(pos, BOTH), g1)) {
 					// make sure king and the f1 squares are not under attacks
 					if (!is_square_attacked(pos, e1, BLACK) &&
 						!is_square_attacked(pos, f1, BLACK) &&
@@ -343,9 +343,9 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			if (pos->castleperm & WQCA) {
 				// make sure square between king and queen's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], d1) &&
-					!get_bit(pos->occupancies[BOTH], c1) &&
-					!get_bit(pos->occupancies[BOTH], b1)) {
+				if (!get_bit(Occupancy(pos, BOTH), d1) &&
+					!get_bit(Occupancy(pos, BOTH), c1) &&
+					!get_bit(Occupancy(pos, BOTH), b1)) {
 					// make sure king and the d1 squares are not under attacks
 					if (!is_square_attacked(pos, e1, BLACK) &&
 						!is_square_attacked(pos, d1, BLACK) &&
@@ -358,8 +358,8 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		else {
 			if (pos->castleperm & BKCA) {
 				// make sure square between king and king's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], f8) &&
-					!get_bit(pos->occupancies[BOTH], g8)) {
+				if (!get_bit(Occupancy(pos, BOTH), f8) &&
+					!get_bit(Occupancy(pos, BOTH), g8)) {
 					// make sure king and the f8 squares are not under attacks
 					if (!is_square_attacked(pos, e8, WHITE) &&
 						!is_square_attacked(pos, f8, WHITE) &&
@@ -370,9 +370,9 @@ void generate_moves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			if (pos->castleperm & BQCA) {
 				// make sure square between king and queen's rook are empty
-				if (!get_bit(pos->occupancies[BOTH], d8) &&
-					!get_bit(pos->occupancies[BOTH], c8) &&
-					!get_bit(pos->occupancies[BOTH], b8)) {
+				if (!get_bit(Occupancy(pos, BOTH), d8) &&
+					!get_bit(Occupancy(pos, BOTH), c8) &&
+					!get_bit(Occupancy(pos, BOTH), b8)) {
 					// make sure king and the d8 squares are not under attacks
 					if (!is_square_attacked(pos, e8, WHITE) &&
 						!is_square_attacked(pos, d8, WHITE) &&
@@ -422,7 +422,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 		while (knights_mask) {
 			source_square = get_ls1b_index(knights_mask);
 			Bitboard moves = LegalKnightMoves(pos, pos->side, source_square) &
-				(pos->occupancies[pos->side ^ 1]);
+				(Enemy(pos));
 			//while we have moves that the knight can play we add them to the list
 			while (moves) {
 				target_square = get_ls1b_index(moves);
@@ -440,7 +440,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 		while (bishops_mask) {
 			source_square = get_ls1b_index(bishops_mask);
 			Bitboard moves = LegalBishopMoves(pos, pos->side, source_square) &
-				(pos->occupancies[pos->side ^ 1]);
+				(Enemy(pos));
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
@@ -476,7 +476,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 		while (queens_mask) {
 			source_square = get_ls1b_index(queens_mask);
 			Bitboard moves = LegalQueenMoves(pos, pos->side, source_square) &
-				(pos->occupancies[pos->side ^ 1]);
+				(Enemy(pos));
 
 			while (moves) {
 				target_square = get_ls1b_index(moves);
@@ -495,7 +495,7 @@ void generate_captures(S_MOVELIST* move_list, S_Board* pos) {
 	int piece = GetPiece(KING, pos->side);
 
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square) &
-		(pos->occupancies[pos->side ^ 1]);
+		(Enemy(pos));
 	while (moves) {
 		int target_square = get_ls1b_index(moves);
 		int capture = (pos->pieces[target_square] != EMPTY);

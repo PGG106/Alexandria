@@ -199,5 +199,8 @@ bool BoardHasNonPawns(S_Board* pos, int side);
 int KingSQ(S_Board* pos, int c);
 // returns if the current side is in check
 bool IsInCheck(S_Board* pos, int side);
+Bitboard Us(const S_Board* pos);
+Bitboard Enemy(const S_Board* pos);
+Bitboard Occupancy(const S_Board* pos, int side);
 
 

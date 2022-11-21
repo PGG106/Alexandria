@@ -637,7 +637,7 @@ moves_loop:
 			}
 		}
 	}
-
+		
 	if (BestScore >= beta && IsQuiet(bestmove)) {
 		updateHH(pos, ss, depth, bestmove, &quiet_moves);
 	}
