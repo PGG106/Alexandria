@@ -643,7 +643,7 @@ moves_loop:
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
 		BestScore = excludedMove ? alpha : in_check ? (-mate_value + pos->ply) : 0;
 	}
-	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
+	//Set the TT flag based on whether the BestScore is better than beta and if not based on if we changed alpha or not
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
