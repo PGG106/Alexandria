@@ -290,13 +290,13 @@ void parse_fen(const char* fen, S_Board* pos) {
 	// no enpassant square
 	else
 		pos->enPas = no_sq;
-	// read plies
+	// read plies for fifty move rule
 	fen += 2;
 	if (isdigit(*fen)) {
 		while (isdigit(*fen)) {
 			int increment(fen[0] - '0');
 			if (isdigit(fen[1])) increment *= 10;
-			pos->ply += increment;
+			pos->fiftyMove += increment;
 			fen++;
 		}
 	}
