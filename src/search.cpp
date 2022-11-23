@@ -104,9 +104,10 @@ bool SEE(const S_Board* pos, const int move,
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
+	if (get_move_promoted(move)) return true;
+
 	if (value < 0)
 		return false;
-
 
 	int attacker = PieceOn(pos, from);
 	// Trivial if we still beat the threshold after losing the piece
@@ -116,7 +117,7 @@ bool SEE(const S_Board* pos, const int move,
 		return true;
 
 	// It doesn't matter if the to square is occupied or not
-	Bitboard occupied = Occupancy(pos, BOTH) ^ (1ULL << from);
+	Bitboard occupied = Occupancy(pos, BOTH) ^ (1ULL << from) ^ (1ULL << to);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
 	Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
@@ -519,6 +520,15 @@ moves_loop:
 		if (!root_node && !pv_node && !in_check && depth < 4 && isQuiet &&
 			(quiet_moves.count > (depth * 8))) {
 			SkipQuiets = true;
+			continue;
+		}
+
+		// See pruning
+		if (!root_node
+			&& depth <= 8
+			&& moves_searched >= 2
+			&& !SEE(pos, move, -50 * depth))
+		{
 			continue;
 		}
 
