@@ -20,8 +20,8 @@
 int CounterMoves[Board_sq_num][Board_sq_num];
 
 //Contains the material Values of the pieces
-int PieceValue[12] = { 100, 300, 300, 450, 900, 0,
-					  100, 300, 300, 450, 900, 0 };
+int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
+					  100, 300, 300, 450, 900, 0,0,0,0 };
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -100,7 +100,7 @@ bool SEE(const S_Board* pos, const int move,
 	int to = To(move);
 	int from = From(move);
 
-	int target = PieceOn(pos,to);
+	int target = PieceOn(pos, to);
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
@@ -151,7 +151,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
-			if (pt == KING && (attackers & Occupancy(pos,side)))
+			if (pt == KING && (attackers & Occupancy(pos, side)))
 				side = !side;
 
 			break;
@@ -192,7 +192,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
-				mvv_lva[get_move_piece(move)][PieceOn(pos,To(move))] +
+				mvv_lva[get_move_piece(move)][PieceOn(pos, To(move))] +
 				goodCaptureScore * SEE(pos, move, -107);
 			continue;
 		}
@@ -368,7 +368,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	}
 
 	// check if time is up or we searched the maximum number of nodes we could search
-	if ( (info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
+	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
 		info->stopped = true;
 	}
@@ -637,7 +637,7 @@ moves_loop:
 			}
 		}
 	}
-	
+
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
