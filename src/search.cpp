@@ -254,7 +254,6 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 		return EvalPosition(pos);
 	}
 
-
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
 
@@ -294,6 +293,13 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	for (int count = 0; count < move_list->count; count++) {
 		pick_move(move_list, count);
 		int move = move_list->moves[count].move;
+		int score = move_list->moves[count].score;
+		// See pruning
+		if (score < goodCaptureScore
+			&& moves_searched >= 1)
+		{
+			continue;
+		}
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
