@@ -13,6 +13,7 @@
   * Razoring
   * IIR
   * SE
+  * SEE pruning
   * Check extension
   * PVS
   * Quiescence search
@@ -23,19 +24,11 @@
   
 * Evaluation
   * NNUE Evaluation (Big thanks to Luecx)
-  * HCE based on material evaluation and a piece square table (legacy and not subject to ulterior development)
 
-
-## Things i tried that didn't work
-* Search
-  * SEE
-  
 ## Things i might try in the future
 * Evaluation
   * Improve the nnue using a better architecture and generating more data
-  * Batch update the net
 * Search
-   * Actually getting SEE to work
    * All the histories i don't comprehend at the time of writing (mostly FUH)
 * TT
    * Get Buckets working
