@@ -25,7 +25,7 @@ int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
-	for (int index = 0; index < pos->hisPly; index++)
+	for (int index = pos->hisPly - pos->fiftyMove; index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
