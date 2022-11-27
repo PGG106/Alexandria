@@ -438,19 +438,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		eval = tte.score;
 	}
 
-	// evaluation pruning / static null move pruning
-	if (depth < 3
-		&& !pv_node
-		&& abs(beta - 1) > -MAXSCORE + 100) {
-		// define evaluation margin
-		int eval_margin = 120 * depth;
-
-		// evaluation margin substracted from static evaluation score fails high
-		if (static_eval - eval_margin >= beta)
-			// evaluation margin substracted from static evaluation score
-			return static_eval - eval_margin;
-	}
-
 	// Reverse futility pruning 
 	if (!pv_node
 		&& depth < 9
