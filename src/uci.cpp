@@ -260,7 +260,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 	char input[40000];
 	std::thread search_thread;
 	// print engine info
-	printf("id name Alexandria 3.0.2\n");
+	printf("id name Alexandria 4.0-dev\n");
 
 	// main loop
 	while (1) {
