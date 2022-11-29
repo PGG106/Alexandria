@@ -12,7 +12,6 @@
 #include "ttable.h"
 #include <iostream>
 #include <stdio.h>
-#include "option.h"
 #include <stdlib.h>
 #include <string.h>
 #include <thread>
@@ -236,7 +235,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d nodeset:%d\n", time,
+	printf("time:%d start:%lld stopOpt:%lld stopMax:%lld depth:%d timeset:%d nodeset:%d\n", time,
 		info->starttime, info->stoptimeOpt, info->stoptimeMax, info->depth, info->timeset, info->nodeset);
 }
 
@@ -340,7 +339,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		// parse UCI "uci" command
 		else if (strncmp(input, "uci", 3) == 0) {
 			// print engine info
-			printf("id name Alexandria 3.0.2\n");
+			printf("id name Alexandria 4.0-dev\n");
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");

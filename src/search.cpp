@@ -723,17 +723,17 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 		unsigned long  time = GetTimeMs() - info->starttime;
 		uint64_t nps = info->nodes / (time + !time) * 1000;
 		if (score > -mate_value && score < -mate_score)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
 				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
 				GetTimeMs() - info->starttime);
 
 		else if (score > mate_score && score < mate_value)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %d pv ",
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
 				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
 				GetTimeMs() - info->starttime);
 
 		else
-			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %d pv ", score,
+			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ", score,
 				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
 
 		// loop over the moves within a PV line

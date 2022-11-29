@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	S_Stack ss[1];
-	S_MOVELIST move_list[1];
 	Reset_info(info);
 	InitHashTable(HashTable, 16);
 	setvbuf(stdin, NULL, _IONBF, 0);
