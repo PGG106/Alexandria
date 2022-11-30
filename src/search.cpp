@@ -363,7 +363,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 	ss->pvLength[pos->ply] = pos->ply;
 
-	if (in_check) depth++;
+	if (in_check) depth = (std::max)(1, depth + 1);
 
 	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
