@@ -509,20 +509,25 @@ moves_loop:
 			quiet_moves.count++;
 		}
 
-		//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
-		if (!root_node && !pv_node && !in_check && depth < 4 && isQuiet &&
-			(quiet_moves.count > (depth * 8))) {
-			SkipQuiets = true;
-			continue;
-		}
-
-		// See pruning
-		if (!root_node
-			&& depth <= 8
-			&& moves_searched >= 2
-			&& !SEE(pos, move, -50 * depth))
+		if (!root_node)
 		{
-			continue;
+			//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
+			if (!pv_node
+				&& !in_check
+				&& depth < 4
+				&& isQuiet
+				&& (quiet_moves.count > (depth * 8))) {
+				SkipQuiets = true;
+				continue;
+			}
+
+			// See pruning
+			if (depth <= 8
+				&& moves_searched >= 2
+				&& !SEE(pos, move, -50 * depth))
+			{
+				continue;
+			}
 		}
 
 		int extension = 0;
