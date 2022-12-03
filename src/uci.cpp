@@ -10,6 +10,7 @@
 #include "search.h"
 #include "time_manager.h"
 #include "ttable.h"
+#include "datagen.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -315,7 +316,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info);
+			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info, do_datagen);
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {

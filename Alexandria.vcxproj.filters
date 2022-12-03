@@ -87,6 +87,9 @@
     <ClInclude Include="src\types.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="src\datagen.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">
@@ -155,7 +158,7 @@
     <ClCompile Include="src\History.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="datagen.cpp">
+    <ClCompile Include="src\datagen.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

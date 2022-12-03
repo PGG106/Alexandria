@@ -16,6 +16,7 @@
 #include <cstring>
 #include <thread>
 #include <vector>
+#include "datagen.h"
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
@@ -661,8 +662,9 @@ moves_loop:
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-	search_position(1, depth, pos, ss, info, TRUE);
+void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, bool do_datagen) {
+	if (do_datagen) datagen(pos, ss, info);
+	else search_position(1, depth, pos, ss, info, TRUE);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
@@ -674,11 +676,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(pos, ss, info);
 
-	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -17;
-	int resize_counter = 0;
-	int beta_window = 17;
-
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
@@ -688,34 +685,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	{
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
-		if ((score <= alpha)) {
-			if (resize_counter > 5)
-				alpha = -MAXSCORE;
-			beta = (alpha + beta) / 2;
-			alpha_window *= 1.44;
-			alpha += alpha_window + 1;
-			resize_counter++;
-			current_depth--;
-			continue;
-		}
-
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
-		else if ((score >= beta)) {
-			if (resize_counter > 5)
-				beta = MAXSCORE;
-			beta_window *= 1.44;
-			beta += beta_window + 1;
-			resize_counter++;
-			current_depth--;
-			continue;
-		}
-
-		// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-		if (current_depth >= 3) {
-			alpha = score + alpha_window;
-			beta = score + beta_window;
-		}
 		// check if we just cleared a depth and more than OptTime passed
 		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
 			info->stopped = true;
