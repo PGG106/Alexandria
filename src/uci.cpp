@@ -361,10 +361,8 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			InitHashTable(HashTable, MB);
 		}
 
-		else if (!strncmp(input, "setoption name Datagen value true ", 34)) {
+		else if (!strncmp(input, "setoption name Datagen value true", 33)) {
 			do_datagen = true;
-			printf("Datagen active\n");
-
 		}
 
 		else if (strncmp(input, "bench", 5) == 0) {
