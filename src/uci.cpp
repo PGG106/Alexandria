@@ -344,7 +344,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
-			printf("option name datagen type check default false \n");
+			printf("option name Datagen type check default false \n");
 			printf("uciok\n");
 		}
 
@@ -359,6 +359,12 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			sscanf(input, "%*s %*s %*s %*s %llu", &MB);
 			printf("Set Hash to %llu MB\n", MB);
 			InitHashTable(HashTable, MB);
+		}
+
+		else if (!strncmp(input, "setoption name Datagen value true ", 34)) {
+			do_datagen = true;
+			printf("Datagen active\n");
+
 		}
 
 		else if (strncmp(input, "bench", 5) == 0) {
