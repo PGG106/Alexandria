@@ -179,6 +179,7 @@
     <ClInclude Include="src\uci.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="datagen.cpp" />
     <ClCompile Include="src\History.cpp" />
     <ClCompile Include="src\attack.cpp" />
     <ClCompile Include="src\bench.cpp" />

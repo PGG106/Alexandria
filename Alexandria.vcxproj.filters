@@ -155,6 +155,9 @@
     <ClCompile Include="src\History.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
+    <ClCompile Include="datagen.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\makefile" />
