@@ -183,7 +183,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 	memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
 
 	ResetBoard(pos);
-
+	strcpy(pos->fen, fen);
 	// loop over board ranks
 	for (int rank = 0; rank < 8; rank++) {
 		// loop over board files
@@ -365,7 +365,7 @@ int GetPieceType(int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(S_Board* pos, int side) {
-	return (Occupancy(pos,side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
+	return (Occupancy(pos, side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
 }
 
 //Get on what square of the board the king of color c resides
@@ -387,7 +387,7 @@ Bitboard Us(const S_Board* pos) {
 }
 
 Bitboard Enemy(const S_Board* pos) {
-	return pos->occupancies[pos->side^1];
+	return pos->occupancies[pos->side ^ 1];
 }
 
 Bitboard Occupancy(const S_Board* pos, int side) {

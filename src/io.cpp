@@ -92,7 +92,9 @@ void print_board(S_Board *pos) {
 
   printf("     position hisPly: %d\n", pos->hisPly);
 
-  printf("     position key: %llx\n\n", pos->posKey);
+  printf("     position key: %llx\n", pos->posKey);
+
+  printf("     position fen: %s\n\n", pos->fen);
 
 }
 
