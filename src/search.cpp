@@ -433,48 +433,49 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
 			(pos->history[pos->hisPly - 2].eval) == value_none);
 
-	//if we have a TThit we can use the search score as a more accurate form of eval
-	if (ttHit) {
-		eval = tte.score;
-	}
+	if (!pv_node) {
 
-	// Reverse futility pruning 
-	if (!pv_node
-		&& depth < 9
-		&& eval - futility(depth, improving) >= beta)
-		return eval;
+		//if we have a TThit we can use the search score as a more accurate form of eval
+		if (ttHit) {
+			eval = tte.score;
+		}
 
-	// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-	if (!pv_node
-		&& DoNull
-		&& static_eval >= beta
-		&& eval >= beta
-		&& pos->ply
-		&& depth >= 3
-		&& BoardHasNonPawns(pos, pos->side)) {
-		MakeNullMove(pos);
-		int R = 3 + depth / 3;
-		/* search moves with reduced depth to find beta cutoffs
-		   depth - 1 - R where R is a reduction limit */
-		Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info, FALSE);
+		// Reverse futility pruning 
+		if (depth < 9
+			&& eval - futility(depth, improving) >= beta)
+			return eval;
 
-		TakeNullMove(pos);
+		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
+		if (DoNull
+			&& static_eval >= beta
+			&& eval >= beta
+			&& pos->ply
+			&& depth >= 3
+			&& BoardHasNonPawns(pos, pos->side)) {
+			MakeNullMove(pos);
+			int R = 3 + depth / 3;
+			/* search moves with reduced depth to find beta cutoffs
+			   depth - 1 - R where R is a reduction limit */
+			Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info, FALSE);
 
-		if (info->stopped)
-			return 0;
+			TakeNullMove(pos);
 
-		// fail-hard beta cutoff
-		if (Score >= beta && abs(Score) < ISMATE)
-			// node (position) fails high
-			return beta;
-	}
+			if (info->stopped)
+				return 0;
 
-	// razoring
-	if (!pv_node
-		&& (depth <= 3) &&
-		(eval + 119 + 182 * (depth - 1) <= alpha))
-	{
-		return Quiescence(alpha, beta, pos, ss, info);
+			// fail-hard beta cutoff
+			if (Score >= beta && abs(Score) < ISMATE)
+				// node (position) fails high
+				return beta;
+		}
+
+		// razoring
+		if ((depth <= 3) &&
+			(eval + 119 + 182 * (depth - 1) <= alpha))
+		{
+			return Quiescence(alpha, beta, pos, ss, info);
+		}
+
 	}
 
 moves_loop:
