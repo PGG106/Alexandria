@@ -403,8 +403,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
-	if (pos->ply
-		&& !pv_node
+	if (!pv_node
 		&& ttHit
 		&& tte.depth >= depth) {
 		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
