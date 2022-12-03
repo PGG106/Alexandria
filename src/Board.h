@@ -119,8 +119,6 @@ typedef struct Board {
 
 	int checks = -1;
 
-	//fen of the current position
-	char fen[30];
 } S_Board;
 
 

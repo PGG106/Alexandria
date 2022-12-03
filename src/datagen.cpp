@@ -7,7 +7,7 @@
 
 int random_moves = 0;
 //TODO get from uci
-bool do_datagen = false;
+bool do_datagen = true;
 void make_random_move(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 
 	S_MOVELIST move_list[1];
@@ -47,10 +47,11 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
-
+	int last_completed_depth_score = 0;
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
+		last_completed_depth_score = score;
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
 		// check if we just cleared a depth and more than OptTime passed
@@ -93,7 +94,7 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	print_move(ss->pvArray[0][0]);
 	printf("\n");
 	//At the end of search output position and score to a file
-
+	printf(" fen gameresult %d", last_completed_depth_score);
 	// Once the game ends append the game result to every newly added position
 
 

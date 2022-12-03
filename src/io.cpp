@@ -94,8 +94,6 @@ void print_board(S_Board *pos) {
 
   printf("     position key: %llx\n", pos->posKey);
 
-  printf("     position fen: %s\n\n", pos->fen);
-
 }
 
 // print attacked squares

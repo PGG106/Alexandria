@@ -183,7 +183,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 	memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
 
 	ResetBoard(pos);
-	strcpy(pos->fen, fen);
+
 	// loop over board ranks
 	for (int rank = 0; rank < 8; rank++) {
 		// loop over board files
