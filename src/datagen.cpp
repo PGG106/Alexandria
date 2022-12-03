@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "makemove.h"
 #include "datagen.h"
+#include <iostream>
 
 int random_moves = 0;
 //TODO get from uci
@@ -51,7 +52,6 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-		last_completed_depth_score = score;
 		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
 
 		// check if we just cleared a depth and more than OptTime passed
@@ -88,13 +88,18 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 
 		// print new line
 		printf("\n");
+		last_completed_depth_score = score;
 	}
+
+	//At the end of search output position and score to a file
+	std::cout << getfen(pos) << " result " << ((pos->side == WHITE) ? last_completed_depth_score : -last_completed_depth_score) << std::endl;
+
 
 	printf("bestmove ");
 	print_move(ss->pvArray[0][0]);
 	printf("\n");
-	//At the end of search output position and score to a file
-	printf(" fen gameresult %d", last_completed_depth_score);
+
+
 	// Once the game ends append the game result to every newly added position
 
 

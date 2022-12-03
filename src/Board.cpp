@@ -68,7 +68,7 @@ const int get_diagonal[64] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 12, 11, 10, 9,
 							  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
 // ASCII pieces
-const char ascii_pieces[13] = "PNBRQKpnbrqk";
+ const char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // castling rights update constants
 const int castling_rights[64] = {
@@ -392,4 +392,59 @@ Bitboard Enemy(const S_Board* pos) {
 
 Bitboard Occupancy(const S_Board* pos, int side) {
 	return pos->occupancies[side];
+}
+
+std::string getfen(S_Board* pos) {
+	std::stringstream ss;
+
+	int sq;
+
+	for (int rank = 7; rank >= 0; rank--)
+	{
+		int free_space = 0;
+		for (int file = 0; file < 8; file++)
+		{
+			sq = rank * 8 + file;
+			int piece = PieceOn(pos, sq);
+			if (piece != EMPTY)
+			{
+				if (free_space)
+				{
+					ss << free_space;
+					free_space = 0;
+				}
+				ss << ascii_pieces[piece];
+			}
+			else
+			{
+				free_space++;
+			}
+		}
+		if (free_space != 0)
+		{
+			ss << free_space;
+		}
+		ss << (rank > 0 ? "/" : "");
+	}
+	ss << (pos->side == WHITE ? " w " : " b ");
+
+	if (pos->castleperm & WKCA)
+		ss << "K";
+	if (pos->castleperm & WQCA)
+		ss << "Q";
+	if (pos->castleperm & BKCA)
+		ss << "k";
+	if (pos->castleperm & BQCA)
+		ss << "q";
+	if (pos->castleperm == 0)
+		ss << "-";
+
+	if (pos->enPas == no_sq)
+		ss << " - ";
+	else
+		ss << " " << square_to_coordinates[pos->enPas] << " ";
+
+	ss << int(pos->fiftyMove) << " " << int(pos->hisPly / 2);
+
+	return ss.str();
 }

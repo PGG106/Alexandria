@@ -9,6 +9,7 @@
 #include "stdint.h"
 #include "move.h"
 #include "types.h"
+#include <sstream>      // std::stringstream
 #ifdef __GNUC__
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
 #endif
@@ -206,4 +207,4 @@ Bitboard Us(const S_Board* pos);
 Bitboard Enemy(const S_Board* pos);
 Bitboard Occupancy(const S_Board* pos, int side);
 
-
+std::string getfen(S_Board* pos);
