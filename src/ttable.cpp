@@ -35,7 +35,6 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
 	ClearHashTable(table);
 
-	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
 }
 
 bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,

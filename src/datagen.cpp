@@ -113,7 +113,7 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 			else if (type == fen) {
 				current_fen = get_fen(line);
 			}
-			//TODO make it loop to the right point
+		
 			else if (type == moves)
 			{
 				//remove duplicate result field at the end of the move sequence
