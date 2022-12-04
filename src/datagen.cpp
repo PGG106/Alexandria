@@ -145,15 +145,22 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 			//TODO make it loop to the right point
 			else if (type == moves)
 			{
-				pos = line.find(delimiter);
-				move = line.substr(0, pos);
-				line.erase(0, pos + 1);
-				pos = line.find(delimiter);
-				move_Score = stod(line.substr(0, pos));
-				line.erase(0, pos + 1);
-				//Save result either to file or in datastructure
-				std::cout << current_fen << " [" << game_Score << "] " << move_Score * 100 << std::endl;
-				//update fen for next iter
+				line.erase(line.find_last_of(delimiter), line.length());
+				while (1) {
+					pos = line.find(delimiter);
+					if (pos == std::string::npos) break;
+					move = line.substr(0, pos);
+					line.erase(0, pos + 1);
+					pos = line.find(delimiter);
+					std::string xyz = line.substr(0, pos);
+					if (xyz.find('M') != std::string::npos) break;
+					move_Score = stod(xyz);
+					if (abs(move_Score) > 2000) break;
+					line.erase(0, pos + 1);
+					//Save result either to file or in datastructure
+					std::cout << current_fen << " [" << game_Score << "] " << move_Score * 100 << std::endl;
+					//update fen for next iter
+				}
 			}
 
 		}
