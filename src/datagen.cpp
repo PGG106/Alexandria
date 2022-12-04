@@ -54,7 +54,6 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
-	int last_completed_depth_score = 0;
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
@@ -68,42 +67,14 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 			// stop calculating and return best move so far
 			break;
 
-		//This handles the basic console output
-		unsigned long  time = GetTimeMs() - info->starttime;
-		uint64_t nps = info->nodes / (time + !time) * 1000;
-		if (score > -mate_value && score < -mate_score)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else if (score > mate_score && score < mate_value)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else
-			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ", score,
-				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
-
-		// loop over the moves within a PV line
-		for (int count = 0; count < ss->pvLength[0]; count++) {
-			// print PV move
-			print_move(ss->pvArray[0][count]);
-			printf(" ");
-		}
 
 		// print new line
 		printf("\n");
-		last_completed_depth_score = score;
 	}
 
 	printf("bestmove ");
 	print_move(ss->pvArray[0][0]);
 	printf("\n");
-
-
-	// Once the game ends append the game result to every newly added position
-
 
 	return;
 }
@@ -145,17 +116,25 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 			//TODO make it loop to the right point
 			else if (type == moves)
 			{
+				//remove duplicate result field at the end of the move sequence
 				line.erase(line.find_last_of(delimiter), line.length());
 				while (1) {
 					pos = line.find(delimiter);
+					//if there are no more spaces it means we got all the moves
 					if (pos == std::string::npos) break;
+					//get the played move
 					move = line.substr(0, pos);
+					//remove it from the list
 					line.erase(0, pos + 1);
 					pos = line.find(delimiter);
+					//extra variable to check if it's a mate before doing stod (otherwise it crashes)
 					std::string xyz = line.substr(0, pos);
+					//if it contains an M then it's a mate score, break
 					if (xyz.find('M') != std::string::npos) break;
 					move_Score = stod(xyz);
+					// don't use |scores| > 2000
 					if (abs(move_Score) > 2000) break;
+					//remove from the list
 					line.erase(0, pos + 1);
 					//Save result either to file or in datastructure
 					std::cout << current_fen << " [" << game_Score << "] " << move_Score * 100 << std::endl;
@@ -179,6 +158,6 @@ std::string parse_result(std::string line) {
 }
 
 std::string get_fen(std::string line) {
-	int offset = line.find(' " ') + 2;
+	int offset = line.find(" \" ") + 2;
 	return line.substr(offset, line.length() - 8);
 }
