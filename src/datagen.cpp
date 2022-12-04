@@ -121,7 +121,7 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 	std::ifstream myfile;
 	myfile.open(stripped_pgn_path);
 	std::string line;
-	double game_Score = 0;
+	std::string game_Score;
 	double move_Score = 0;
 	std::string current_fen = start_position;
 	std::string move;
@@ -140,7 +140,7 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 			}
 
 			else if (type == fen) {
-				 current_fen = get_fen(line);
+				current_fen = get_fen(line);
 			}
 			//TODO make it loop to the right point
 			else if (type == moves)
@@ -165,10 +165,10 @@ void convert_pgn_to_format(std::string stripped_pgn_path) {
 
 }
 
-double parse_result(std::string line) {
-	if (line.at(9) == '0') return 0;
-	else if (line.at(10) == '/') return 0.5;
-	else return 1;
+std::string parse_result(std::string line) {
+	if (line.at(9) == '0') return "0.0";
+	else if (line.at(10) == '/') return "0.5";
+	else return "1.0";
 }
 
 std::string get_fen(std::string line) {
