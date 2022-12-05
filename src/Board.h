@@ -36,8 +36,6 @@
 
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
-extern uint8_t PopCnt16[1 << 16];
-
 // FEN dedug positions
 #define empty_board "8/8/8/8/8/8/8/8 b - - "
 #define start_position \

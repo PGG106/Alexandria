@@ -37,7 +37,6 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	srand(time(NULL));
 	// Play 5 random moves
 	if (random_moves < 5) {
-		Sleep(250);
 		make_random_move(pos, ss, info);
 		random_moves++;
 		return;
