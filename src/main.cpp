@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 	// connect to the GUI
-	convert_pgn_to_format("C:\\Users\\giuseppe\\Desktop\\Strippedpgns.txt");
+	Uci_Loop(pos, ss, info, argv);
 
 	free(HashTable->pTable);
 	return 0;
