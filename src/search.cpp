@@ -16,6 +16,7 @@
 #include <cstring>
 #include <thread>
 #include <vector>
+#include "datagen.h"
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
@@ -662,7 +663,8 @@ moves_loop:
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-	search_position(1, depth, pos, ss, info, TRUE);
+	if (do_datagen) datagen(pos, ss, info);
+	else search_position(1, depth, pos, ss, info, TRUE);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output

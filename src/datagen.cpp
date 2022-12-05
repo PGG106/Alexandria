@@ -67,6 +67,29 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 			// stop calculating and return best move so far
 			break;
 
+		//This handles the basic console output
+		unsigned long  time = GetTimeMs() - info->starttime;
+		uint64_t nps = info->nodes / (time + !time) * 1000;
+		if (score > -mate_value && score < -mate_score)
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
+				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
+				GetTimeMs() - info->starttime);
+
+		else if (score > mate_score && score < mate_value)
+			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
+				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
+				GetTimeMs() - info->starttime);
+
+		else
+			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ", score,
+				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
+
+		// loop over the moves within a PV line
+		for (int count = 0; count < ss->pvLength[0]; count++) {
+			// print PV move
+			print_move(ss->pvArray[0][count]);
+			printf(" ");
+		}
 
 		// print new line
 		printf("\n");
