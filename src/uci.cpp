@@ -150,7 +150,7 @@ void parse_position(char* command, S_Board* pos) {
 				break;
 
 			// make move on the chess board
-			make_move(move, pos);
+			make_move_light(move, pos);
 
 			// move current character mointer to the end of current move
 			while (*current_char && *current_char != ' ')
@@ -302,6 +302,9 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			if (search_thread.joinable())
 				search_thread.join();
 			ClearHashTable(HashTable);
+			accumulatorStack.clear();
+			while(!accumulatorStack.empty())
+			accumulatorStack.pop_back();
 
 			// call parse position function
 			parse_position((char*)"position startpos", pos);

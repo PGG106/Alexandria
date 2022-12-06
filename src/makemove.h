@@ -35,6 +35,7 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos);
 
 // make move on chess board
 int make_move(int move, S_Board* pos);
+int make_move_light(int move, S_Board* pos);
 //Reverts the previously played move
 int Unmake_move(S_Board* pos);
 //makes a null move (a move that doesn't move any piece)

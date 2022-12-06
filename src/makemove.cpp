@@ -182,6 +182,127 @@ int make_move(int move, S_Board* pos) {
 	return 1;
 }
 
+// make move on chess board that we know won't be reverted (so we can skip storing history information)
+int make_move_light(int move, S_Board* pos) {
+
+	// parse move
+	int source_square = From(move);
+	int target_square = To(move);
+	int piece = get_move_piece(move);
+	int promoted_piece = get_move_promoted(move);
+
+	int capture = get_move_capture(move);
+	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
+	int enpass = isEnpassant(pos, move);
+	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
+	// increment fifty move rule counter
+	pos->fiftyMove++;
+
+	// handle enpassant captures
+	if (enpass) {
+		//If it's an enpass we remove the pawn corresponding to the opponent square 
+		if (pos->side == WHITE) {
+			ClearPieceNNUE(BP, target_square + 8, pos);
+			pos->fiftyMove = 0;
+		}
+		else {
+			ClearPieceNNUE(WP, target_square - 8, pos);
+			pos->fiftyMove = 0;
+		}
+	}
+
+	// handling capture moves
+	else if (capture) {
+		int piececap = pos->pieces[target_square];
+
+		ClearPieceNNUE(piececap, target_square, pos);
+
+		pos->history[pos->hisPly].capture = piececap;
+		//a capture was played so reset 50 move rule counter
+		pos->fiftyMove = 0;
+	}
+
+	//if a pawn was moves reset the 50 move rule counter
+	if (piece == WP || piece == BP)
+		pos->fiftyMove = 0;
+
+	//increment ply counters
+	pos->hisPly++;
+	pos->ply++;
+	//Remove the piece fom the square it moved from
+	ClearPieceNNUE(piece, source_square, pos);
+	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
+
+
+	//Reset EP square
+	if (pos->enPas != no_sq)
+		HASH_EP;
+	// reset enpassant square
+	pos->enPas = no_sq;
+
+	// handle double pawn push
+	if (double_push) {
+		if (pos->side == WHITE) {
+			// set enpassant square
+			pos->enPas = target_square + 8;
+
+			// hash enpassant
+			HASH_EP;
+		}
+		else {
+			// set enpassant square
+			pos->enPas = target_square - 8;
+
+			// hash enpassant
+			HASH_EP;
+		}
+	}
+
+	// handle castling moves
+	if (castling) {
+		// switch target square
+		switch (target_square) {
+			// white castles king side
+		case (g1):
+			// move H rook
+			MovePieceNNUE(WR, h1, f1, pos);
+			break;
+
+			// white castles queen side
+		case (c1):
+			// move A rook
+			MovePieceNNUE(WR, a1, d1, pos);
+			break;
+
+			// black castles king side
+		case (g8):
+			// move H rook
+			MovePieceNNUE(BR, h8, f8, pos);
+			break;
+
+			// black castles queen side
+		case (c8):
+			// move A rook
+			MovePieceNNUE(BR, a8, d8, pos);
+			break;
+		}
+	}
+	HASH_CA;
+	// update castling rights
+	pos->castleperm &= castling_rights[source_square];
+	pos->castleperm &= castling_rights[target_square];
+
+	HASH_CA;
+
+	// change side
+	pos->side ^= 1;
+	HASH_SIDE;
+	//
+
+	return 1;
+}
+
 int Unmake_move(S_Board* pos) {
 	// quiet moves
 
