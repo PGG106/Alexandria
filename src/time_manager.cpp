@@ -17,12 +17,8 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			time -= safety_overhead;
 			int time_slot = time / info->movestogo;
 			int basetime = (time_slot);
-			//optime is the time we check anytime we clear a depth
-			int optime = basetime * 0.6;
-			//maxtime is the absolute maximum time we can spend on the current depth
-			int maxtime = (std::min)(time, basetime * 5/3);
-			info->stoptimeMax = info->starttime + maxtime;
-			info->stoptimeOpt = info->starttime + optime;
+			info->stoptimeMax = info->starttime + basetime;
+			info->stoptimeOpt = info->starttime + basetime;
 		}
 		else
 		{
