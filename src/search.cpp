@@ -724,12 +724,6 @@ int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO*
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 
-	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-	if (depth >= 3) {
-		alpha = score + alpha_window;
-		beta = score + beta_window;
-	}
-
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
@@ -764,6 +758,11 @@ int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO*
 		}
 		else break;
 
+		// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
+		if (depth >= 3) {
+			alpha = score + alpha_window;
+			beta = score + beta_window;
+		}
 	}
 	return score;
 }
