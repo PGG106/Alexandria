@@ -676,62 +676,23 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(pos, ss, info);
 
-	S_MOVELIST previous_bestmoves;
 
-	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -17;
-	int resize_counter = 0;
-	int beta_window = 17;
-
-	// define initial alpha beta bounds
-	int alpha = -MAXSCORE;
-	int beta = MAXSCORE;
 
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
 
-		for (int i = 0;i < options->MultiPV;i++) {
+		score = aspiration_window_search(current_depth, pos, ss, info);
 
-			score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
+		// check if we just cleared a depth and more than OptTime passed
+		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
+			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+			info->stopped = true;
 
-			// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
-			if ((score <= alpha)) {
-				if (resize_counter > 5)
-					alpha = -MAXSCORE;
-				beta = (alpha + beta) / 2;
-				alpha_window *= 1.44;
-				alpha += alpha_window + 1;
-				resize_counter++;
-				current_depth--;
-				continue;
-			}
+		if (info->stopped)
+			// stop calculating and return best move so far
+			break;
 
-			// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
-			else if ((score >= beta)) {
-				if (resize_counter > 5)
-					beta = MAXSCORE;
-				beta_window *= 1.44;
-				beta += beta_window + 1;
-				resize_counter++;
-				current_depth--;
-				continue;
-			}
-
-			// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-			if (current_depth >= 3) {
-				alpha = score + alpha_window;
-				beta = score + beta_window;
-			}
-
-			// check if we just cleared a depth and more than OptTime passed
-			if (info->timeset && GetTimeMs() > info->stoptimeOpt)
-				info->stopped = true;
-
-			if (info->stopped)
-				// stop calculating and return best move so far
-				break;
-		}
 		PrintUciOutput(score, current_depth, info, options);
 
 		// loop over the moves within a PV line
@@ -751,6 +712,60 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 }
 
 
-int getBestMove(S_Stack* ss) {
+int  getBestMove(S_Stack* ss) {
 	return ss->pvArray[0][0];
+}
+
+int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+	int score = 0;
+	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
+	int alpha_window = -17;
+	int resize_counter = 0;
+	int beta_window = 17;
+	// define initial alpha beta bounds
+	int alpha = -MAXSCORE;
+	int beta = MAXSCORE;
+
+	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
+	if (depth >= 3) {
+		alpha = score + alpha_window;
+		beta = score + beta_window;
+	}
+
+	//Stay at current depth if we fail high/low because of the aspiration windows
+	while (true) {
+
+		score = negamax(alpha, beta, depth, pos, ss, info, TRUE);
+
+		// check if we just cleared a depth and more than OptTime passed
+		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
+			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+			info->stopped = true;
+
+		if (info->stopped)
+			// stop calculating and return best move so far
+			break;
+
+		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		if ((score <= alpha)) {
+			if (resize_counter > 5)
+				alpha = -MAXSCORE;
+			beta = (alpha + beta) / 2;
+			alpha_window *= 1.44;
+			alpha += alpha_window + 1;
+			resize_counter++;
+		}
+
+		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		else if ((score >= beta)) {
+			if (resize_counter > 5)
+				beta = MAXSCORE;
+			beta_window *= 1.44;
+			beta += beta_window + 1;
+			resize_counter++;
+		}
+		else break;
+
+	}
+	return score;
 }

@@ -346,7 +346,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
-			printf("option name MultiPV type spin default 1 min 1 max 4\n");
+			printf("option name MultiPV type spin default 1 min 1 max 1\n");
 			printf("uciok\n");
 		}
 
