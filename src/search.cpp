@@ -679,8 +679,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-
-		score = aspiration_window_search(current_depth, pos, ss, info);
+		score = aspiration_window_search(score, current_depth, pos, ss, info);
 
 		// check if we just cleared a depth and more than OptTime passed
 		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
@@ -713,7 +712,7 @@ int  getBestMove(S_Stack* ss) {
 	return ss->pvArray[0][0];
 }
 
-int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	int score = 0;
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
 	int alpha_window = -17;
@@ -724,9 +723,9 @@ int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO*
 	int beta = MAXSCORE;
 
 	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-	if (depth >= 8) {
-		alpha = score + alpha_window;
-		beta = score + beta_window;
+	if (depth >= 3) {
+		alpha = prev_eval + alpha_window;
+		beta = prev_eval + beta_window;
 	}
 
 	//Stay at current depth if we fail high/low because of the aspiration windows

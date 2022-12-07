@@ -20,7 +20,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options);
-int aspiration_window_search(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
+int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
 void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
 	S_SearchINFO* info, S_UciOptions* options);
