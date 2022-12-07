@@ -579,6 +579,7 @@ moves_loop:
 			{
 				//calculate by how much we should reduce the search depth 
 				int depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+				depth_reduction = (std::min)(depth - 1, (std::max)(depth_reduction, 1));
 
 				// search current move with reduced depth:
 				Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info,
