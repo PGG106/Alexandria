@@ -25,5 +25,7 @@ void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* in
 void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
 	S_SearchINFO* info, S_UciOptions* options);
 
+int getBestMove(S_Stack* ss);
+
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);
