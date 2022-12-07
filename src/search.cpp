@@ -676,8 +676,6 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(pos, ss, info);
 
-
-
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
