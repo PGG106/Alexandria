@@ -14,10 +14,8 @@
 
 int GetTimeMs();
 
-int InputWaiting();
+void PrintUciOutput(int score, int depth, S_SearchINFO* info, S_UciOptions* options);
 
 const char *getfield(char *line, int num);
 
 void runtestpositions(FILE *file, int depth);
-
-void ReadInput(S_SearchINFO *info);

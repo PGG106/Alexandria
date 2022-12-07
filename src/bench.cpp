@@ -62,6 +62,7 @@ int start_bench() {
 	S_Board pos[1];
 	S_SearchINFO info[1];
 	S_Stack ss[1];
+	S_UciOptions options[1];
 	int total_nodes = 0;
 	int total_time = 0;
 	info->quit = 0;
@@ -74,7 +75,7 @@ int start_bench() {
 
 		printf("\nPosition: %d\n", positions);
 
-		Root_search_position(12, pos, ss, info);
+		Root_search_position(12, pos, ss, info, options);
 
 		total_nodes += info->nodes;
 		total_time += GetTimeMs() - info->starttime;
