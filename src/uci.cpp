@@ -253,9 +253,8 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		return;
 	}
 
-	uint64_t MB = 16;
 	bool parsed_position = false;
-
+	S_UciOptions uci_options[1];
 	// define user / GUI input buffer
 	char input[40000];
 	std::thread search_thread;
@@ -319,7 +318,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 				parse_position((char*)"position startpos", pos);
 			// call parse go function
 			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info);
+			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info, uci_options);
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
@@ -347,6 +346,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 1 \n");
+			printf("option name MultiPV type spin default 1 min 1 max 4\n");
 			printf("uciok\n");
 		}
 
@@ -358,9 +358,13 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {
-			sscanf(input, "%*s %*s %*s %*s %llu", &MB);
-			printf("Set Hash to %llu MB\n", MB);
-			InitHashTable(HashTable, MB);
+			sscanf(input, "%*s %*s %*s %*s %llu", &uci_options->Hash);
+			printf("Set Hash to %llu MB\n", uci_options->Hash);
+			InitHashTable(HashTable, uci_options->Hash);
+		}
+		else if (!strncmp(input, "setoption name MultiPV value ", 29)) {
+			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->MultiPV);
+			printf("Set MultiPV to %d\n", uci_options->MultiPV);
 		}
 
 		else if (!strncmp(input, "setoption name Datagen value true", 33)) {

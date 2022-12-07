@@ -35,46 +35,24 @@ const char* getfield(char* line, int num) {
 	return NULL;
 }
 
-/*
-void runtestpositions(FILE* file, int depth) {
-	char line[1024];
-	char position[100];
-	unsigned long long expectednodes;
-	unsigned long long actualnodes;
-	S_Board pos[1];
-	while (fgets(line, 1024, file))
-	{
-		char* tmp = _strdup(line);
-		char* tmp2 = _strdup(line);
-		strcpy(position, getfield(tmp, 1));
+void PrintUciOutput(int score, int depth, S_SearchINFO* info, S_UciOptions* options) {
 
-		printf("position: %s ", position);
+	//This handles the basic console output
+	unsigned long  time = GetTimeMs() - info->starttime;
+	uint64_t nps = info->nodes / (time + !time) * 1000;
 
+	if (score > -mate_value && score < -mate_score)
+		printf("info score mate %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
+			-(score + mate_value) / 2, depth, info->seldepth, options->MultiPV, info->nodes, nps,
+			GetTimeMs() - info->starttime);
 
-		char* nodesfield = getfield(tmp2, depth + 1);
-		strtok(nodesfield, " ");
-		char* nodestoken = strtok(NULL, " ");
+	else if (score > mate_score && score < mate_value)
+		printf("info score mate %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
+			(mate_value - score) / 2 + 1, depth, info->seldepth, options->MultiPV, info->nodes, nps,
+			GetTimeMs() - info->starttime);
 
-
-		expectednodes = strtoull(nodestoken, '\0', 10);
-		printf(" expected nodes: %llu ", expectednodes);
-
-
-
-		parse_fen(position, pos);
-		actualnodes = perft_test(depth, pos);
-		if (expectednodes != actualnodes) {
-			printf("PERFT ERROR\n");
-			printf("expected nodes differ from actual nodes %llu != %llu",
-expectednodes, actualnodes); return;
-		}
-
-		free(tmp);
-		free(tmp2);
-
-
-	}
+	else
+		printf("info score cp %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
+			score, depth, info->seldepth, options->MultiPV, info->nodes, nps, GetTimeMs() - info->starttime);
+	return;
 }
-
-
-*/

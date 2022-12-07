@@ -1,6 +1,13 @@
 #pragma once
 #include "Board.h"
 
+typedef struct OPTIONS {
+	uint64_t Hash=16;
+	int MultiPV=1;
+	bool datagen=false;
+} S_UciOptions;
+
+
 int parse_move(char *move_string, S_Board *pos);
 // parse UCI "position" command
 void parse_position(char *command, S_Board *pos);

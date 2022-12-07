@@ -662,14 +662,14 @@ moves_loop:
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-	if (do_datagen) datagen(pos, ss, info);
-	else search_position(1, depth, pos, ss, info, TRUE);
+void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options) {
+	if (options->datagen) datagen(pos, ss, info);
+	else search_position(1, depth, pos, ss, info, options);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
 void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
-	S_SearchINFO* info, int show) {
+	S_SearchINFO* info, S_UciOptions* options) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
@@ -726,22 +726,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			// stop calculating and return best move so far
 			break;
 
-		//This handles the basic console output
-		unsigned long  time = GetTimeMs() - info->starttime;
-		uint64_t nps = info->nodes / (time + !time) * 1000;
-		if (score > -mate_value && score < -mate_score)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else if (score > mate_score && score < mate_value)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else
-			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ", score,
-				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
+		PrintUciOutput(score, current_depth, info, options);
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < ss->pvLength[0]; count++) {
@@ -758,3 +743,4 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	print_move(ss->pvArray[0][0]);
 	printf("\n");
 }
+
