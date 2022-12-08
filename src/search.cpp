@@ -574,7 +574,6 @@ moves_loop:
 			depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 		}
 
-
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
@@ -589,7 +588,7 @@ moves_loop:
 			if (Score > alpha && depth_reduction != 1)
 				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info, true);
 
-			//If at this point we still failed hard search with a full window
+			//If at this point we still failed high search with a full window
 			if (Score > alpha && Score < beta)
 				Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info, true);
 
@@ -682,9 +681,9 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
 			info->stopped = true;
 
-		if (info->stopped)
-			// stop calculating and return best move so far
-			break;
+		// stop calculating and return best move so far
+		if (info->stopped) break;
+
 		PrintUciOutput(score, current_depth, info, options);
 
 		// loop over the moves within a PV line
