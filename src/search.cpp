@@ -574,7 +574,6 @@ moves_loop:
 			depth_reduction = reduction(pv_node, improving, depth, moves_searched);
 		}
 
-
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
@@ -711,17 +710,16 @@ int  getBestMove(S_Stack* ss) {
 int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	int score = 0;
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -17;
+	int delta = 17;
 	int resize_counter = 0;
-	int beta_window = 17;
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 
 	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
 	if (depth >= 3) {
-		alpha = prev_eval + alpha_window;
-		beta = prev_eval + beta_window;
+		alpha = prev_eval - delta;
+		beta = prev_eval + delta;
 	}
 
 	//Stay at current depth if we fail high/low because of the aspiration windows
@@ -743,8 +741,7 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 			if (resize_counter > 5)
 				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha_window *= 1.44;
-			alpha += alpha_window + 1;
+			alpha = score - delta;
 			resize_counter++;
 		}
 
@@ -752,12 +749,11 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 		else if ((score >= beta)) {
 			if (resize_counter > 5)
 				beta = MAXSCORE;
-			beta_window *= 1.44;
-			beta += beta_window + 1;
+			beta = score + delta;
 			resize_counter++;
 		}
 		else break;
-
+		delta *= 1.44;
 	}
 	return score;
 }
