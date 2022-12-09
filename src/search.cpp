@@ -709,18 +709,16 @@ int  getBestMove(S_Stack* ss) {
 
 int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	int score = 0;
-	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int alpha_window = -17;
-	int resize_counter = 0;
-	int beta_window = 17;
+	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
+	int delta = 12;
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 
 	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
 	if (depth >= 3) {
-		alpha = prev_eval + alpha_window;
-		beta = prev_eval + beta_window;
+		alpha = (std::max)(-MAXSCORE, prev_eval - delta);
+		beta = (std::min)(prev_eval + delta, MAXSCORE);
 	}
 
 	//Stay at current depth if we fail high/low because of the aspiration windows
@@ -737,26 +735,18 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 			// stop calculating and return best move so far
 			break;
 
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
-			if (resize_counter > 5)
-				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha_window *= 1.44;
-			alpha += alpha_window + 1;
-			resize_counter++;
+			alpha = (std::max)(-MAXSCORE, score - delta);
 		}
 
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		else if ((score >= beta)) {
-			if (resize_counter > 5)
-				beta = MAXSCORE;
-			beta_window *= 1.44;
-			beta += beta_window + 1;
-			resize_counter++;
+			beta = (std::min)(score + delta, MAXSCORE);
 		}
 		else break;
-
+		delta *= 1.44;
 	}
 	return score;
 }
