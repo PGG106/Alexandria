@@ -736,20 +736,19 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 			// stop calculating and return best move so far
 			break;
 
+		if (resize_counter > 5)
+			delta = MAXSCORE;
+
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
-			if (resize_counter > 5)
-				alpha = -MAXSCORE;
 			beta = (alpha + beta) / 2;
-			alpha = score - delta;
+			alpha = (std::max)(-MAXSCORE, score - delta);
 			resize_counter++;
 		}
 
 		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
 		else if ((score >= beta)) {
-			if (resize_counter > 5)
-				beta = MAXSCORE;
-			beta = score + delta;
+			beta = (std::min)(score + delta, MAXSCORE);
 			resize_counter++;
 		}
 		else break;
