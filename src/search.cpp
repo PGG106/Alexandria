@@ -710,7 +710,7 @@ int  getBestMove(S_Stack* ss) {
 int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	int score = 0;
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
-	int delta = 17;
+	int delta = 12;
 	int resize_counter = 0;
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
