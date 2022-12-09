@@ -709,9 +709,8 @@ int  getBestMove(S_Stack* ss) {
 
 int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	int score = 0;
-	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position, resize counter keeps track of how many times we had to re-search
+	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
-	int resize_counter = 0;
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
@@ -736,20 +735,19 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 			// stop calculating and return best move so far
 			break;
 
-		if (resize_counter > 5)
+		// if we already tried too many windows we just set the value to maxscore, ensuring we will finish the search
+		if (delta > 69)
 			delta = MAXSCORE;
 
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
 			beta = (alpha + beta) / 2;
 			alpha = (std::max)(-MAXSCORE, score - delta);
-			resize_counter++;
 		}
 
-		// we fell outside the window, so try again with a bigger window for up to Resize_limit times, if we still fail after we just search with a full window
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		else if ((score >= beta)) {
 			beta = (std::min)(score + delta, MAXSCORE);
-			resize_counter++;
 		}
 		else break;
 		delta *= 1.44;
