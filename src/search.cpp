@@ -717,8 +717,8 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 
 	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
 	if (depth >= 3) {
-		alpha = prev_eval - delta;
-		beta = prev_eval + delta;
+		alpha = (std::max)(-MAXSCORE, prev_eval - delta);
+		beta = (std::min)(prev_eval + delta, MAXSCORE);
 	}
 
 	//Stay at current depth if we fail high/low because of the aspiration windows
@@ -734,10 +734,6 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 		if (info->stopped)
 			// stop calculating and return best move so far
 			break;
-
-		// if we already tried too many windows we just set the value to maxscore, ensuring we will finish the search
-		if (delta > 69)
-			delta = MAXSCORE;
 
 		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
