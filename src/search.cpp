@@ -726,8 +726,8 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 
 		score = negamax(alpha, beta, depth, pos, ss, info, TRUE);
 
-		// check if we just cleared a depth and more than OptTime passed
-		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
+		// check if we should stop search
+		if ((info->timeset && GetTimeMs() > info->stoptimeMax)
 			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
 			info->stopped = true;
 
