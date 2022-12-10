@@ -384,7 +384,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	if (!root_node) {
 		//If position is a draw return a randomized draw score to avoid 3-fold blindness
 		if (IsDraw(pos)) {
-			return 8 - (info->nodes & 7);
+			return 1 - (info->nodes & 2);
 		}
 
 		//If we reached maxdepth we return a static evaluation of the position
