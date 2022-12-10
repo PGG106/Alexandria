@@ -88,7 +88,8 @@ int ProbePvMove(S_Board* pos) {
 }
 
 uint64_t Index(PosKey posKey) {
-	return  posKey % HashTable->numEntries;
+	return  ((uint32_t)posKey * (uint64_t)(HashTable->numEntries)) >> 32;
+
 }
 
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
