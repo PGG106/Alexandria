@@ -300,15 +300,7 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
 			if (search_thread.joinable())
 				search_thread.join();
-			ClearHashTable(HashTable);
-			ClearForSearch(pos, ss, info);
-			accumulatorStack.clear();
-			while (!accumulatorStack.empty())
-				accumulatorStack.pop_back();
-			// call parse position function
-			parse_position((char*)"position startpos", pos);
-
-			Reset_info(info);
+			init_new_game( pos,  ss,  info);
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
