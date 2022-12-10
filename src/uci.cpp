@@ -301,10 +301,10 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			if (search_thread.joinable())
 				search_thread.join();
 			ClearHashTable(HashTable);
+			ClearForSearch(pos, ss, info);
 			accumulatorStack.clear();
-			while(!accumulatorStack.empty())
-			accumulatorStack.pop_back();
-
+			while (!accumulatorStack.empty())
+				accumulatorStack.pop_back();
 			// call parse position function
 			parse_position((char*)"position startpos", pos);
 
