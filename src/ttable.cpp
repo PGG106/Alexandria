@@ -63,7 +63,7 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move != NOMOVE || (uint16_t)pos->posKey != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || (TTKey)pos->posKey != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
