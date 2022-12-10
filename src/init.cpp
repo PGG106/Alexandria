@@ -6,6 +6,8 @@
 #include "random.h"
 #include "stdint.h"
 #include <cmath>
+#include "misc.h"
+#include "ttable.h"
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];
@@ -241,4 +243,53 @@ void init_all() {
 	initHashKeys();
 	InitReductions();
 	nnue.init("nn.net");
+}
+
+void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+	//For every piece [12] moved to every square [64] we reset the searchHistory value
+	for (int index = 0; index < 12; ++index) {
+		for (int index2 = 0; index2 < 64; ++index2) {
+			ss->searchHistory[index][index2] = 0;
+		}
+	}
+
+	//Reset the 2 killer moves that are stored for any searched depth
+	for (int index = 0; index < 2; ++index) {
+		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
+			ss->searchKillers[index][index2] = 0;
+		}
+	}
+
+	//Clean the Pv array
+	for (int index = 0; index < MAXDEPTH + 1; ++index) {
+		ss->pvLength[index] = 0;
+		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
+			ss->pvArray[index][index2] = NOMOVE;
+		}
+	}
+
+	//Clean the Pv array
+	for (int index = 0; index < Board_sq_num; ++index) {
+		for (int index2 = 0; index2 < Board_sq_num; ++index2) {
+			CounterMoves[index][index2] = NOMOVE;
+		}
+	}
+
+	//Reset plies and search info
+	pos->ply = 0;
+	info->starttime = GetTimeMs();
+	info->stopped = 0;
+	info->nodes = 0;
+	info->seldepth = 0;
+	//Reset hash table
+	ClearHashTable(HashTable);
+	//Reset info
+	Reset_info(info);
+	//Empty the accumulator stack of any leftover data
+	accumulatorStack.clear();
+	while (!accumulatorStack.empty())
+		accumulatorStack.pop_back();
+	// call parse position function
+	parse_position((char*)"position startpos", pos);
+
 }

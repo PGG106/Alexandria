@@ -24,3 +24,12 @@ void updateHH(S_Board* pos, S_Stack* ss, int depth, int bestmove, S_MOVELIST* qu
 int getHHScore(S_Board* pos, S_Stack* ss, int  move) {
 	return ss->searchHistory[pos->pieces[From(move)]][To(move)];
 }
+
+void cleanHistory(S_Stack* ss) {
+	//For every piece [12] moved to every square [64] we reset the searchHistory value
+	for (int index = 0; index < 12; ++index) {
+		for (int index2 = 0; index2 < 64; ++index2) {
+			ss->searchHistory[index][index2] = 0;
+		}
+	}
+}
