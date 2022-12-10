@@ -16,7 +16,7 @@ void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, int DoNull);
+int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options);

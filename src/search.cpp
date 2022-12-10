@@ -346,8 +346,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info,
-	int DoNull) {
+int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	// Initialize the node
 	bool in_check = IsInCheck(pos, pos->side);
 	S_MOVELIST quiet_moves;
@@ -355,7 +354,6 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 	int root_node = (pos->ply == 0);
 	int eval, static_eval;
 	bool improving;
-	bool ttHit;
 	int Score = -MAXSCORE;
 	S_HASHENTRY tte;
 	int pv_node = (beta - alpha) > 1;
@@ -402,7 +400,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 		}
 	}
 
-	ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
 	//If we found a value in the TT we can return it
 	if (!pv_node
 		&& ttHit
@@ -446,7 +444,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-		if (DoNull
+		if (pos->history[pos->hisPly - 1].move != NOMOVE
 			&& static_eval >= beta
 			&& eval >= beta
 			&& pos->ply
@@ -456,7 +454,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info, FALSE);
+			Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info);
 
 			TakeNullMove(pos);
 
@@ -545,7 +543,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMoves[pos->ply] = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info, false);
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info);
 			ss->excludedMoves[pos->ply] = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -577,20 +575,20 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info, TRUE);
+			Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info, true);
+			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info);
 
 			//if we failed high on a reduced node search again (we can use the value of the reduction to deduce if we are at this stage, this is something i've found out from Berserk)
 			if (Score > alpha && depth_reduction != 1)
-				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info, true);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info);
 
 			//If at this point we still failed high search with a full window
 			if (Score > alpha && Score < beta)
-				Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info, true);
+				Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
 
 		}
 
@@ -724,7 +722,7 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, pos, ss, info, TRUE);
+		score = negamax(alpha, beta, depth, pos, ss, info);
 
 		// check if we should stop search
 		if ((info->timeset && GetTimeMs() > info->stoptimeMax)

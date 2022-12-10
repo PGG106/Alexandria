@@ -56,7 +56,7 @@ void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-		score = negamax(alpha, beta, current_depth, pos, ss, info, TRUE);
+		score = negamax(alpha, beta, current_depth, pos, ss, info);
 
 		// check if we just cleared a depth and more than OptTime passed
 		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
