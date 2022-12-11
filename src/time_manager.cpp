@@ -29,7 +29,7 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 			//optime is the time we use to stop if we just cleared a depth
 			int optime = basetime * 0.6;
 			//maxtime is the absolute maximum time we can spend on a search
-			int maxtime = (std::min)(time, basetime * 5/3);
+			int maxtime = (std::min)(time, basetime * 2);
 			info->stoptimeMax = info->starttime + maxtime;
 			info->stoptimeOpt = info->starttime + optime;
 		}
