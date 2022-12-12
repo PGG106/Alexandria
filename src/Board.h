@@ -60,20 +60,6 @@ extern const int get_diagonal[Board_sq_num];
 
 extern int reductions[MAXDEPTH];
 
-PACK(typedef struct HASHENTRY {
-	int32_t move = NOMOVE;
-	int16_t score = 0;
-	TTKey tt_key = 0;
-	uint8_t depth = 0;
-	uint8_t flags = HFNONE;
-})
-S_HASHENTRY;
-
-typedef struct HASHTABLE {
-	S_HASHENTRY* pTable;
-	uint64_t numEntries = 0;
-} S_HASHTABLE;
-
 typedef struct Undo {
 	int move = 0;
 	int castlePerm = 15;
@@ -126,9 +112,6 @@ typedef struct Stack {
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 } S_Stack;
-
-
-extern S_HASHTABLE HashTable[1];
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 

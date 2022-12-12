@@ -2,6 +2,22 @@
 #include "Board.h"
 #include "stdlib.h"
 
+PACK(typedef struct HASHENTRY {
+	int32_t move = NOMOVE;
+	int16_t score = 0;
+	TTKey tt_key = 0;
+	uint8_t depth = 0;
+	uint8_t flags = HFNONE;
+})
+S_HASHENTRY;
+
+typedef struct HASHTABLE {
+	S_HASHENTRY* pTable;
+	uint64_t numEntries = 0;
+} S_HASHTABLE;
+
+extern S_HASHTABLE HashTable[1];
+
 void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
 void InitHashTable(S_HASHTABLE* table, uint64_t MB);
