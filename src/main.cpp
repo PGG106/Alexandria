@@ -18,15 +18,12 @@
 int main(int argc, char** argv) {
 	// init all
 	init_all();
-	S_Board pos[1];
-	S_SearchINFO info[1];
-	S_Stack ss[1];
-	Reset_info(info);
+
 	InitHashTable(HashTable, 16);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 	// connect to the GUI
-	Uci_Loop(pos, ss, info, argv);
+	Uci_Loop(argv);
 
 	free(HashTable->pTable);
 	return 0;

@@ -59,26 +59,24 @@ const char* benchmarkfens[50] = {
 int start_bench() {
 	// init all
 	init_all();
-	S_Board pos[1];
-	S_SearchINFO info[1];
-	S_Stack ss[1];
-	S_UciOptions options[1];
+	S_UciOptions uci_options[1];
+	S_ThreadData td[1];
 	int total_nodes = 0;
 	int total_time = 0;
-	info->quit = 0;
+	td->info.quit = 0;
 	InitHashTable(HashTable, 64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
 
 	for (int positions = 0; positions < 50; positions++) {
-		parse_fen(benchmarkfens[positions], pos);
+		parse_fen(benchmarkfens[positions], &td->pos);
 
 		printf("\nPosition: %d\n", positions);
 
-		Root_search_position(12, pos, ss, info, options);
+		Root_search_position(12, td, uci_options);
 
-		total_nodes += info->nodes;
-		total_time += GetTimeMs() - info->starttime;
+		total_nodes += td->info.nodes;
+		total_time += GetTimeMs() - td->info.starttime;
 	}
 
 	std::cout << "\n"

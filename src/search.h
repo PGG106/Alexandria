@@ -9,6 +9,13 @@
 #include "move.h"
 #include "movegen.h"
 
+// a collection of all the data a thread needs to condut a search
+typedef struct ThreadData {
+	S_Board pos;
+	S_Stack ss;
+	S_SearchINFO info;
+} S_ThreadData;
+
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 
@@ -19,11 +26,10 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options);
+void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options);
 int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
-	S_SearchINFO* info, S_UciOptions* options);
+void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options);
 
 int getBestMove(S_Stack* ss);
 

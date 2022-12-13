@@ -655,39 +655,38 @@ moves_loop:
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options) {
-	if (options->datagen) datagen(pos, ss, info);
-	else search_position(1, depth, pos, ss, info, options);
+void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
+	//if (options->datagen) datagen(pos, ss, info);
+	search_position(1, depth, td, options);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
-	S_SearchINFO* info, S_UciOptions* options) {
+void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
 	//Clean the position and the search info to start search from a clean state 
-	ClearForSearch(pos, ss, info);
+	ClearForSearch(&td->pos, &td->ss, &td->info);
 
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-		score = aspiration_window_search(score, current_depth, pos, ss, info);
+		score = aspiration_window_search(score, current_depth, &td->pos, &td->ss, &td->info);
 
 		// check if we just cleared a depth and more than OptTime passed
-		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
-			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
-			info->stopped = true;
+		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeOpt)
+			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+			td->info.stopped = true;
 
 		// stop calculating and return best move so far
-		if (info->stopped) break;
+		if (td->info.stopped) break;
 
-		PrintUciOutput(score, current_depth, info, options);
+		PrintUciOutput(score, current_depth, &td->info, options);
 
 		// loop over the moves within a PV line
-		for (int count = 0; count < ss->pvLength[0]; count++) {
+		for (int count = 0; count < td->ss.pvLength[0]; count++) {
 			// print PV move
-			print_move(ss->pvArray[0][count]);
+			print_move(td->ss.pvArray[0][count]);
 			printf(" ");
 		}
 
@@ -696,7 +695,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	}
 
 	printf("bestmove ");
-	print_move(getBestMove(ss));
+	print_move(getBestMove(&td->ss));
 	printf("\n");
 }
 
