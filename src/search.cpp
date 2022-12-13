@@ -664,6 +664,13 @@ moves_loop:
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 
+	//Init a thread_data object for each helper thread that doesn't have one already
+	// Start Threads-1 helper search threads
+	for (int i = thread_data.size()+1; i < options->Threads;i++)
+	{
+		;
+	}
+
 	// Start Threads-1 helper search threads
 	for (int i = 1; i < options->Threads;i++)
 	{
@@ -671,6 +678,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 	//MainThread search
 	search_position(1, depth, td, options);
+
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output

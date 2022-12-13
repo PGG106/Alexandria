@@ -11,6 +11,7 @@
 
 // a collection of all the data a thread needs to condut a search
 typedef struct ThreadData {
+	int id = 0;
 	S_Board pos;
 	S_Stack ss;
 	S_SearchINFO info;
