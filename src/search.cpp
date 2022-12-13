@@ -49,35 +49,35 @@ static bool IsDraw(const S_Board* pos) {
 }
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
-void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+void ClearForSearch(S_ThreadData* td) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			ss->searchHistory[index][index2] = 0;
+			td->ss.searchHistory[index][index2] = 0;
 		}
 	}
 
 	//Reset the 2 killer moves that are stored for any searched depth
 	for (int index = 0; index < 2; ++index) {
 		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			ss->searchKillers[index][index2] = 0;
+			td->ss.searchKillers[index][index2] = 0;
 		}
 	}
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
-		ss->pvLength[index] = 0;
+		td->ss.pvLength[index] = 0;
 		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-			ss->pvArray[index][index2] = NOMOVE;
+			td->ss.pvArray[index][index2] = NOMOVE;
 		}
 	}
 
 	//Reset plies and search info
-	pos->ply = 0;
-	info->starttime = GetTimeMs();
-	info->stopped = 0;
-	info->nodes = 0;
-	info->seldepth = 0;
+	td->pos.ply = 0;
+	td->info.starttime = GetTimeMs();
+	td->info.stopped = FALSE;
+	td->info.nodes = 0;
+	td->info.seldepth = 0;
 }
 
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
@@ -346,7 +346,13 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	S_Stack* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+
 	// Initialize the node
 	bool in_check = IsInCheck(pos, pos->side);
 	S_MOVELIST quiet_moves;
@@ -454,7 +460,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info);
+			Score = -negamax(-beta, -beta + 1, depth - R, td);
 
 			TakeNullMove(pos);
 
@@ -543,7 +549,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMoves[pos->ply] = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info);
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, td);
 			ss->excludedMoves[pos->ply] = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -575,20 +581,20 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
+			Score = -negamax(-beta, -alpha, newDepth - 1, td);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info);
+			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td);
 
 			//if we failed high on a reduced node search again (we can use the value of the reduction to deduce if we are at this stage, this is something i've found out from Berserk)
 			if (Score > alpha && depth_reduction != 1)
-				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td);
 
 			//If at this point we still failed high search with a full window
 			if (Score > alpha && Score < beta)
-				Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
+				Score = -negamax(-beta, -alpha, newDepth - 1, td);
 
 		}
 
@@ -655,39 +661,38 @@ moves_loop:
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info, S_UciOptions* options) {
-	if (options->datagen) datagen(pos, ss, info);
-	else search_position(1, depth, pos, ss, info, options);
+void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
+	//if (options->datagen) datagen(pos, ss, info);
+	search_position(1, depth, td, options);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss,
-	S_SearchINFO* info, S_UciOptions* options) {
+void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
 	//Clean the position and the search info to start search from a clean state 
-	ClearForSearch(pos, ss, info);
+	ClearForSearch(td);
 
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-		score = aspiration_window_search(score, current_depth, pos, ss, info);
+		score = aspiration_window_search(score, current_depth, td);
 
 		// check if we just cleared a depth and more than OptTime passed
-		if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
-			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
-			info->stopped = true;
+		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeOpt)
+			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+			td->info.stopped = true;
 
 		// stop calculating and return best move so far
-		if (info->stopped) break;
+		if (td->info.stopped) break;
 
-		PrintUciOutput(score, current_depth, info, options);
+		PrintUciOutput(score, current_depth, &td->info, options);
 
 		// loop over the moves within a PV line
-		for (int count = 0; count < ss->pvLength[0]; count++) {
+		for (int count = 0; count < td->ss.pvLength[0]; count++) {
 			// print PV move
-			print_move(ss->pvArray[0][count]);
+			print_move(td->ss.pvArray[0][count]);
 			printf(" ");
 		}
 
@@ -696,7 +701,7 @@ void search_position(int start_depth, int final_depth, S_Board* pos, S_Stack* ss
 	}
 
 	printf("bestmove ");
-	print_move(getBestMove(ss));
+	print_move(getBestMove(&td->ss));
 	printf("\n");
 }
 
@@ -705,7 +710,7 @@ int  getBestMove(S_Stack* ss) {
 	return ss->pvArray[0][0];
 }
 
-int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
@@ -722,16 +727,15 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, pos, ss, info);
+		score = negamax(alpha, beta, depth, td);
 
-		// check if we should stop search
-		if ((info->timeset && GetTimeMs() > info->stoptimeMax)
-			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
-			info->stopped = true;
+		// check if more than Maxtime passed and we have to stop
+		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeMax)
+			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+			td->info.stopped = true;
 
-		if (info->stopped)
-			// stop calculating and return best move so far
-			break;
+		// stop calculating and return best move so far
+		if (td->info.stopped) break;
 
 		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {

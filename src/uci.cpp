@@ -247,7 +247,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 */
 
 // main UCI loop
-void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
+void Uci_Loop(char** argv) {
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
 		start_bench();
 		return;
@@ -255,9 +255,10 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
+	S_ThreadData td[1];
 	// define user / GUI input buffer
 	char input[40000];
-	std::thread search_thread;
+	std::vector<std::thread> threads;
 	// print engine info
 	printf("id name Alexandria 3.1.0\n");
 
@@ -290,43 +291,44 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 
 		// parse UCI "position" command
 		else if (strncmp(input, "position", 8) == 0) {
-			if (search_thread.joinable())
-				search_thread.join();
 			// call parse position function
-			parse_position(input, pos);
+			parse_position(input, &td->pos);
 			parsed_position = true;
 		}
 		// parse UCI "ucinewgame" command
 		else if (strncmp(input, "ucinewgame", 10) == 0) {
-			if (search_thread.joinable())
-				search_thread.join();
-			init_new_game( pos,  ss,  info);
+			init_new_game(&td->pos, &td->ss, &td->info);
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if (search_thread.joinable())
-				search_thread.join();
+
 			if (!parsed_position) // call parse position function
-				parse_position((char*)"position startpos", pos);
+			{
+				parse_position((char*)"position startpos", &td->pos);
+			}
 			// call parse go function
-			parse_go(input, info, pos);
-			search_thread = std::thread(Root_search_position, info->depth, pos, ss, info, uci_options);
+			parse_go(input, &td->info, &td->pos);
+			// Prepare each and any search thread, the pos and the info structures we got by converting the output can be copied into each thread
+			for (int i = 0; i < uci_options->Threads;i++)
+			{
+				threads.emplace_back(std::thread(Root_search_position, td->info.depth, td, uci_options));
+			}
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
 			//stop searching
-			info->stopped = true;
-
-			if (search_thread.joinable())
-				search_thread.join();
+			td->info.stopped = true;
 		}
 
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0) {
 			//stop searching
-			info->stopped = true;
-			if (search_thread.joinable())
-				search_thread.join();
+			td->info.stopped = true;
+			//Join any currently running thread
+			for (int i = 0; i < uci_options->Threads; i++) {
+				if (threads[i].joinable())
+					threads[i].join();
+			}
 			// quit from the chess engine program execution
 			break;
 		}
@@ -354,6 +356,10 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			printf("Set Hash to %llu MB\n", uci_options->Hash);
 			InitHashTable(HashTable, uci_options->Hash);
 		}
+		else if (!strncmp(input, "setoption name Threads value ", 29)) {
+			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->Threads);
+			printf("Set Threads to %d\n", uci_options->Threads);
+		}
 		else if (!strncmp(input, "setoption name MultiPV value ", 29)) {
 			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->MultiPV);
 			printf("Set MultiPV to %d\n", uci_options->MultiPV);
@@ -372,12 +378,12 @@ void Uci_Loop(S_Board* pos, S_Stack* ss, S_SearchINFO* info, char** argv) {
 			S_MOVELIST move_list[1];
 
 			// generate moves
-			generate_moves(move_list, pos);
+			generate_moves(move_list, &td->pos);
 			printf("SEE thresholds\n");
 			for (int i = 0; i < move_list->count;i++) {
 				int move = move_list->moves[i].move;
 				for (int j = 1200;j > -1200;j--) {
-					if (SEE(pos, move, j)) {
+					if (SEE(&td->pos, move, j)) {
 						printf(" move number %d  %s SEE result: %d \n", i + 1, FormatMove(move), j);
 						break;
 					}
