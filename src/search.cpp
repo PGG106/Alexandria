@@ -671,7 +671,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-		score = aspiration_window_search(score, current_depth, &td->pos, &td->ss, &td->info);
+		score = aspiration_window_search(score, current_depth, td);
 
 		// check if we just cleared a depth and more than OptTime passed
 		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeOpt)
@@ -704,7 +704,7 @@ int  getBestMove(S_Stack* ss) {
 	return ss->pvArray[0][0];
 }
 
-int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
@@ -721,16 +721,15 @@ int aspiration_window_search(int prev_eval, int depth, S_Board* pos, S_Stack* ss
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, pos, ss, info);
+		score = negamax(alpha, beta, depth, &td->pos, &td->ss, &td->info);
 
-		// check if we should stop search
-		if ((info->timeset && GetTimeMs() > info->stoptimeMax)
-			|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
-			info->stopped = true;
+		// check if more than Maxtime passed and we have to stop
+		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeMax)
+			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+			td->info.stopped = true;
 
-		if (info->stopped)
-			// stop calculating and return best move so far
-			break;
+		// stop calculating and return best move so far
+		if (td->info.stopped) break;
 
 		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
