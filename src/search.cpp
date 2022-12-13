@@ -346,7 +346,13 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	S_Stack* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+
 	// Initialize the node
 	bool in_check = IsInCheck(pos, pos->side);
 	S_MOVELIST quiet_moves;
@@ -454,7 +460,7 @@ int negamax(int alpha, int beta, int depth, S_Board* pos, S_Stack* ss, S_SearchI
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -negamax(-beta, -beta + 1, depth - R, pos, ss, info);
+			Score = -negamax(-beta, -beta + 1, depth - R, td);
 
 			TakeNullMove(pos);
 
@@ -543,7 +549,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMoves[pos->ply] = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, pos, ss, info);
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, td);
 			ss->excludedMoves[pos->ply] = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -575,20 +581,20 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
+			Score = -negamax(-beta, -alpha, newDepth - 1, td);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, pos, ss, info);
+			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td);
 
 			//if we failed high on a reduced node search again (we can use the value of the reduction to deduce if we are at this stage, this is something i've found out from Berserk)
 			if (Score > alpha && depth_reduction != 1)
-				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, pos, ss, info);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td);
 
 			//If at this point we still failed high search with a full window
 			if (Score > alpha && Score < beta)
-				Score = -negamax(-beta, -alpha, newDepth - 1, pos, ss, info);
+				Score = -negamax(-beta, -alpha, newDepth - 1, td);
 
 		}
 
@@ -721,7 +727,7 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, &td->pos, &td->ss, &td->info);
+		score = negamax(alpha, beta, depth, td);
 
 		// check if more than Maxtime passed and we have to stop
 		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeMax)
