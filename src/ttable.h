@@ -38,3 +38,4 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 int ProbePvMove(S_Board* pos);
 uint64_t Index(PosKey posKey);
 void prefetch(void* addr);
+void TTPrefetch(PosKey posKey);

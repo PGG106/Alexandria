@@ -92,6 +92,10 @@ uint64_t Index(PosKey posKey) {
 
 }
 
+void TTPrefetch(PosKey posKey) {
+	prefetch(&HashTable->pTable[Index(posKey)]);
+}
+
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
 void prefetch(void* addr) {
 #  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
