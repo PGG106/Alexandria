@@ -356,6 +356,10 @@ void Uci_Loop(char** argv) {
 			printf("Set Hash to %llu MB\n", uci_options->Hash);
 			InitHashTable(HashTable, uci_options->Hash);
 		}
+		else if (!strncmp(input, "setoption name Threads value ", 29)) {
+			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->Threads);
+			printf("Set Threads to %d\n", uci_options->Threads);
+		}
 		else if (!strncmp(input, "setoption name MultiPV value ", 29)) {
 			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->MultiPV);
 			printf("Set MultiPV to %d\n", uci_options->MultiPV);
