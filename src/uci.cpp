@@ -258,7 +258,7 @@ void Uci_Loop(char** argv) {
 	S_ThreadData td[1];
 	// define user / GUI input buffer
 	char input[40000];
-	std::thread search_thread;
+	std::vector<std::thread> threads;
 	// print engine info
 	printf("id name Alexandria 3.1.0\n");
 
@@ -301,13 +301,18 @@ void Uci_Loop(char** argv) {
 		}
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
-			if (search_thread.joinable())
-				search_thread.join();
+
 			if (!parsed_position) // call parse position function
+			{
 				parse_position((char*)"position startpos", &td->pos);
+			}
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
-			search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+			// Prepare each and any search thread, the pos and the info structures we got by converting the output can be copied into each thread
+			for (int i = 0; i < uci_options->Threads;i++)
+			{
+				threads.emplace_back(std::thread(Root_search_position, td->info.depth, td, uci_options));
+			}
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
@@ -319,6 +324,11 @@ void Uci_Loop(char** argv) {
 		else if (strncmp(input, "quit", 4) == 0) {
 			//stop searching
 			td->info.stopped = true;
+			//Join any currently running thread
+			for (int i = 0; i < uci_options->Threads; i++) {
+				if (threads[i].joinable())
+					threads[i].join();
+			}
 			// quit from the chess engine program execution
 			break;
 		}

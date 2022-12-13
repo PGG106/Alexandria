@@ -4,6 +4,7 @@
 typedef struct OPTIONS {
 	uint64_t Hash = 16;
 	int MultiPV = 1;
+	int Threads = 1;
 	bool datagen = false;
 } S_UciOptions;
 
