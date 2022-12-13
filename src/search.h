@@ -16,8 +16,8 @@ typedef struct ThreadData {
 	S_SearchINFO info;
 } S_ThreadData;
 
-//ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
-void ClearForSearch(S_Board* pos, S_Stack* ss, S_SearchINFO* info);
+//ClearForSearch handles the cleaning of the thread data from a clean state
+void ClearForSearch(S_ThreadData* td);
 
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
