@@ -663,11 +663,14 @@ moves_loop:
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
-	// Prepare each and any search thread, the pos and the info structures we got by converting the output can be copied into each thread
-	for (int i = 0; i < options->Threads;i++)
+
+	// Start Threads-1 helper search threads
+	for (int i = 1; i < options->Threads;i++)
 	{
-		threads.emplace_back(std::thread(search_position,1, td->info.depth, td, options));
+		threads.emplace_back(std::thread(search_position, 1, td->info.depth, td, options));
 	}
+	//MainThread search
+	search_position(1, depth, td, options);
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
