@@ -77,29 +77,25 @@ typedef struct Board {
 	// if there's a piece, or if the square is invalid
 
 	int side = -1; // what side has to move
-	int enPas = -1; // if enpassant is possible and in which square
-	int fiftyMove = -1; // Counter for the 50 moves rule
-	int ply = -1; // number of halfmoves in a search instance
-	int hisPly = -1; // total number of halfmoves
-	int castleperm = -1; // integer that represents the castling permission in his
-	// bits (1111) = all castlings allowed (0000) no castling
-	// allowed, (0101) only WKCA and BKCA allowed...
+	int enPas = no_sq; // if enpassant is possible and in which square
+	int fiftyMove = 0; // Counter for the 50 moves rule
+	int ply = 0; // number of halfmoves in a search instance
+	int hisPly = 0; // total number of halfmoves
+	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
 
-	PosKey posKey = -1; // unique  hashkey  che codifica the  position on the
-	// board,utile per il controllo delle posizioni ripetute.
+	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
 
-	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board
-	// when that move was made for rollback purposes
+	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board when that move was made for rollback purposes
 
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
 
-	// piece pos->bitboards
+	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
-
-	// occupancy pos->bitboards
 	Bitboard occupancies[3];
+	//Previous values of the nnue accumulators. always empty at the start of search
+	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
 	int checks = -1;
 } S_Board;
@@ -161,8 +157,6 @@ int square_distance(int a, int b);
 void parse_fen(const char* fen, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
-
-extern std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
 //Pieces info retrival
 

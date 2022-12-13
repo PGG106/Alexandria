@@ -286,9 +286,9 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	//Reset info
 	Reset_info(info);
 	//Empty the accumulator stack of any leftover data
-	accumulatorStack.clear();
-	while (!accumulatorStack.empty())
-		accumulatorStack.pop_back();
+	pos->accumulatorStack.clear();
+	while (!pos->accumulatorStack.empty())
+		pos->accumulatorStack.pop_back();
 	// call parse position function
 	parse_position((char*)"position startpos", pos);
 
