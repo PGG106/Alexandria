@@ -18,13 +18,14 @@
 #include <thread>
 #include <vector>
 #include "datagen.h"
+#include "time_manager.h"
 
 int CounterMoves[Board_sq_num][Board_sq_num];
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
-	for (int index = (std::max)(0,pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
+	for (int index = (std::max)(0, pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
@@ -279,14 +280,18 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		score = aspiration_window_search(score, current_depth, td);
 
 		// check if we just cleared a depth and more than OptTime passed
-		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeOpt)
-			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+		if (td->id == 0 && stopEarly(&td->info)) 
+		{
+			stopHelperThreads();
 			td->info.stopped = true;
+		}
 
 		// stop calculating and return best move so far
-		if (td->info.stopped) break;
-		if(td->id==0)
-		PrintUciOutput(score, current_depth,td, options);
+		if (td->info.stopped) 
+			break;
+		//If it's the main thread print the uci output
+		if (td->id == 0)
+			PrintUciOutput(score, current_depth, td, options);
 
 	}
 
@@ -312,9 +317,10 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 		score = negamax(alpha, beta, depth, td);
 
 		// check if more than Maxtime passed and we have to stop
-		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeMax)
-			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
+		if (td->id == 0 && timeOver(&td->info)) {
+			stopHelperThreads();
 			td->info.stopped = true;
+		}
 
 		// stop calculating and return best move so far
 		if (td->info.stopped) break;
@@ -369,10 +375,10 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		return Quiescence(alpha, beta, pos, ss, info);
 	}
 
-	// check if time is up or we searched the maximum number of nodes we could search
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
-		info->stopped = true;
+	// check if more than Maxtime passed and we have to stop
+	if (td->id == 0 && timeOver(&td->info)) {
+		stopHelperThreads();
+		td->info.stopped = true;
 	}
 
 	if (!root_node) {
@@ -651,7 +657,12 @@ moves_loop:
 }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+int Quiescence(int alpha, int beta, S_ThreadData* td) {
+
+	S_Board* pos = &td->pos;
+	S_Stack* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+
 	// Initialize the node
 	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
@@ -659,10 +670,10 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	bool TThit = false;
 	int standing_pat = 0;
 
-	// check if time is up or we searched the maximum number of nodes we could search
-	if ((info->timeset == true && GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == true && info->nodes > info->nodeslimit)) {
-		info->stopped = true;
+	// check if more than Maxtime passed and we have to stop
+	if (td->id == 0 && timeOver(&td->info)) {
+		stopHelperThreads();
+		td->info.stopped = true;
 	}
 	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
@@ -762,6 +773,4 @@ int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* inf
 	// node (move) fails low
 	return BestScore;
 }
-
-
 
