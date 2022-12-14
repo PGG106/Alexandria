@@ -6,8 +6,10 @@ void print_bitboard(Bitboard bitboard);
 // print board
 void print_board(S_Board *pos);
 
+void print_info(S_SearchINFO* info);
+
 // print attacked squares
-void print_attacked_squares(int side);
+void print_attacked_squares(S_Board* pos,int side);
 
 // print move (for UCI purposes)
 void print_move(int move);
@@ -16,5 +18,3 @@ void print_move(int move);
 void PrintMoveList(S_MOVELIST *move_list);
 
 char *FormatMove(const int move);
-
-int ParseMove(char *ptrChar, S_Board *pos);

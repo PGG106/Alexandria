@@ -666,15 +666,25 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	// Start Threads-1 helper search threads
-	for (int i = threads_data.size()+1; i < options->Threads;i++)
+	for (int i = threads_data.size() + 1; i < options->Threads;i++)
 	{
-		;
+		S_ThreadData thread_data;
+		thread_data.id = i;
+		thread_data.ss = td->ss;
+		threads_data.emplace_back(thread_data);
+	}
+
+	//Initialize thread_data objects
+	for (int i = 0; i < options->Threads - 1;i++)
+	{
+		threads_data[i].info = td->info;
+		threads_data[i].pos = td->pos;
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 1; i < options->Threads;i++)
+	for (int i = 0; i < options->Threads - 1;i++)
 	{
-		;
+		threads.emplace_back(std::thread(search_position, 1, depth, &threads_data[i], options));
 	}
 	//MainThread search
 	search_position(1, depth, td, options);
@@ -688,6 +698,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
+	printf("id: %d\n", td->id);
 
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
@@ -701,8 +712,8 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 		// stop calculating and return best move so far
 		if (td->info.stopped) break;
-
-		PrintUciOutput(score, current_depth, &td->info, options);
+		if (td->id == 0)
+			PrintUciOutput(score, current_depth, &td->info, options);
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->ss.pvLength[0]; count++) {
@@ -714,10 +725,11 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		// print new line
 		printf("\n");
 	}
-
-	printf("bestmove ");
-	print_move(getBestMove(&td->ss));
-	printf("\n");
+	if (td->id == 0) {
+		printf("bestmove ");
+		print_move(getBestMove(&td->ss));
+		printf("\n");
+	}
 }
 
 

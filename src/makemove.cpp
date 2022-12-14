@@ -63,7 +63,6 @@ int make_move(int move, S_Board* pos) {
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].posKey = pos->posKey;
 	pos->history[pos->hisPly].move = move;
-	pos->accumulatorStack.emplace_back(nnue.accumulator);
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
@@ -326,22 +325,19 @@ int Unmake_move(S_Board* pos) {
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	int piececap = pos->history[pos->hisPly].capture;
 
-	nnue.accumulator = pos->accumulatorStack.back();
-	pos->accumulatorStack.pop_back();
-
 	// handle pawn promotions
 	if (promoted_piece) {
-		ClearPiece(promoted_piece, target_square, pos);
+		ClearPieceNNUE(promoted_piece, target_square, pos);
 	}
 
 	// move piece
-	MovePiece(piece, target_square, source_square, pos);
+	MovePieceNNUE(piece, target_square, source_square, pos);
 
 	// handle enpassant captures
 	if (enpass) {
 		// erase the pawn depending on side to move
-		(pos->side == BLACK) ? AddPiece(BP, target_square + 8, pos)
-			: AddPiece(WP, target_square - 8, pos);
+		(pos->side == BLACK) ? AddPieceNNUE(BP, target_square + 8, pos)
+			: AddPieceNNUE(WP, target_square - 8, pos);
 	}
 
 	// handle castling moves
@@ -351,32 +347,32 @@ int Unmake_move(S_Board* pos) {
 			// white castles king side
 		case (g1):
 			// move H rook
-			MovePiece(WR, f1, h1, pos);
+			MovePieceNNUE(WR, f1, h1, pos);
 			break;
 
 			// white castles queen side
 		case (c1):
 			// move A rook
-			MovePiece(WR, d1, a1, pos);
+			MovePieceNNUE(WR, d1, a1, pos);
 			break;
 
 			// black castles king side
 		case (g8):
 			// move H rook
-			MovePiece(BR, f8, h8, pos);
+			MovePieceNNUE(BR, f8, h8, pos);
 			break;
 
 			// black castles queen side
 		case (c8):
 			// move A rook
-			MovePiece(BR, d8, a8, pos);
+			MovePieceNNUE(BR, d8, a8, pos);
 			break;
 		}
 	}
 
 	// handling capture moves
 	if (capture && !enpass) {
-		AddPiece(piececap, target_square, pos);
+		AddPieceNNUE(piececap, target_square, pos);
 	}
 
 	// change side
