@@ -1,13 +1,6 @@
 #pragma once
 #include "Board.h"
-#include "PieceData.h"
-#include "eval.h"
-#include"uci.h"
-#include "io.h"
-#include "makemove.h"
-#include "misc.h"
-#include "move.h"
-#include "movegen.h"
+#include "uci.h"
 
 // a collection of all the data a thread needs to condut a search
 typedef struct ThreadData {

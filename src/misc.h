@@ -14,7 +14,7 @@
 
 int GetTimeMs();
 
-void PrintUciOutput(int score, int depth, S_SearchINFO* info, S_UciOptions* options);
+void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* options);
 
 const char *getfield(char *line, int num);
 
