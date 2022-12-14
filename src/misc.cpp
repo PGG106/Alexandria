@@ -35,24 +35,35 @@ const char* getfield(char* line, int num) {
 	return NULL;
 }
 
-void PrintUciOutput(int score, int depth, S_SearchINFO* info, S_UciOptions* options) {
+void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//This handles the basic console output
-	unsigned long  time = GetTimeMs() - info->starttime;
-	uint64_t nps = info->nodes / (time + !time) * 1000;
+	unsigned long  time = GetTimeMs() - td->info.starttime;
+	uint64_t nps = td->info.nodes / (time + !time) * 1000;
 
 	if (score > -mate_value && score < -mate_score)
 		printf("info score mate %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
-			-(score + mate_value) / 2, depth, info->seldepth, options->MultiPV, info->nodes, nps,
-			GetTimeMs() - info->starttime);
+			-(score + mate_value) / 2, depth, td->info.seldepth, options->MultiPV, td->info.nodes, nps,
+			GetTimeMs() - td->info.starttime);
 
 	else if (score > mate_score && score < mate_value)
 		printf("info score mate %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
-			(mate_value - score) / 2 + 1, depth, info->seldepth, options->MultiPV, info->nodes, nps,
-			GetTimeMs() - info->starttime);
+			(mate_value - score) / 2 + 1, depth, td->info.seldepth, options->MultiPV, td->info.nodes, nps,
+			GetTimeMs() - td->info.starttime);
 
 	else
 		printf("info score cp %d depth %d seldepth %d multipv %d nodes %lu nps %lld time %lld pv ",
-			score, depth, info->seldepth, options->MultiPV, info->nodes, nps, GetTimeMs() - info->starttime);
+			score, depth, td->info.seldepth, options->MultiPV, td->info.nodes, nps, GetTimeMs() - td->info.starttime);
+
+	// loop over the moves within a PV line
+	for (int count = 0; count < td->ss.pvLength[0]; count++) {
+		// print PV move
+		print_move(td->ss.pvArray[0][count]);
+		printf(" ");
+	}
+
+	// print new line
+	printf("\n");
+
 	return;
 }
