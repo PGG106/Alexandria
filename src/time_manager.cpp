@@ -44,6 +44,7 @@ bool stopEarly(S_SearchINFO* info) {
 	if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
 		return true;
+	else return false;
 }
 
 bool timeOver(S_SearchINFO* info) {
@@ -51,4 +52,5 @@ bool timeOver(S_SearchINFO* info) {
 	if ((info->timeset && GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
 		return true;
+	else return false;
 }

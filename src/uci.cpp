@@ -303,6 +303,8 @@ void Uci_Loop(char** argv) {
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
 
+			joinHelperThreads();
+
 			//Join previous search thread if it exists
 			if (search_thread.joinable())
 				search_thread.join();

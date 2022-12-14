@@ -372,7 +372,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(alpha, beta, pos, ss, info);
+		return Quiescence(alpha, beta, td);
 	}
 
 	// check if more than Maxtime passed and we have to stop
@@ -473,7 +473,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		if ((depth <= 3) &&
 			(eval + 119 + 182 * (depth - 1) <= alpha))
 		{
-			return Quiescence(alpha, beta, pos, ss, info);
+			return Quiescence(alpha, beta, td);
 		}
 
 	}
@@ -739,7 +739,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, pos, ss, info);
+		Score = -Quiescence(-beta, -alpha, td);
 
 		// take move back
 		Unmake_move(pos);
