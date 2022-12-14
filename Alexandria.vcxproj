@@ -200,6 +200,7 @@
     <ClCompile Include="src\PieceData.cpp" />
     <ClCompile Include="src\random.cpp" />
     <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\threads.cpp" />
     <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ttable.cpp" />
     <ClCompile Include="src\uci.cpp" />
