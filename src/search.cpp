@@ -242,6 +242,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	{
 		S_ThreadData thread_data;
 		thread_data.id = i + 1;
+		thread_data.ss = td->ss;
 		threads_data.emplace_back(thread_data);
 	}
 
@@ -253,9 +254,9 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 0; i < options->Threads-1;i++)
+	for (int i = 0; i < options->Threads - 1;i++)
 	{
-		;
+		threads.emplace_back(std::thread(search_position, 1, depth, &threads_data[i], options));
 	}
 	//MainThread search
 	search_position(1, depth, td, options);
@@ -282,8 +283,8 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 		// stop calculating and return best move so far
 		if (td->info.stopped) break;
-
-		PrintUciOutput(score, current_depth, &td->info, options);
+		if (td->id == 0)
+			PrintUciOutput(score, current_depth, &td->info, options);
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->ss.pvLength[0]; count++) {
