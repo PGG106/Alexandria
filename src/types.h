@@ -87,6 +87,10 @@ enum {
 	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };
 
+//Contains the material Values of the pieces
+constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
+					  100, 300, 300, 450, 900, 0,0,0,0 };
+
 enum {
 	goodCaptureScore= 900000000,
 	killerMoveScore0 = 800000000,
