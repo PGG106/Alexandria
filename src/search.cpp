@@ -666,7 +666,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	// Start Threads-1 helper search threads
-	for (int i = thread_data.size()+1; i < options->Threads;i++)
+	for (int i = threads_data.size()+1; i < options->Threads;i++)
 	{
 		;
 	}
@@ -674,7 +674,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	// Start Threads-1 helper search threads
 	for (int i = 1; i < options->Threads;i++)
 	{
-		threads.emplace_back(std::thread(search_position, 1, td->info.depth, td, options));
+		;
 	}
 	//MainThread search
 	search_position(1, depth, td, options);
