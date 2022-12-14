@@ -238,13 +238,22 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	// Start Threads-1 helper search threads
-	for (int i = threads_data.size() + 1; i < options->Threads;i++)
+	for (int i = threads_data.size(); i < options->Threads - 1;i++)
 	{
-		;
+		S_ThreadData thread_data;
+		thread_data.id = i + 1;
+		threads_data.emplace_back(thread_data);
+	}
+
+	//Init thread_data objects
+	for (int i = 0; i < options->Threads - 1;i++)
+	{
+		threads_data[i].info = td->info;
+		threads_data[i].pos = td->pos;
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 1; i < options->Threads;i++)
+	for (int i = 0; i < options->Threads-1;i++)
 	{
 		;
 	}
