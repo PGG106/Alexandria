@@ -242,7 +242,6 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	{
 		S_ThreadData thread_data;
 		thread_data.id = i + 1;
-		thread_data.ss = td->ss;
 		threads_data.emplace_back(thread_data);
 	}
 
