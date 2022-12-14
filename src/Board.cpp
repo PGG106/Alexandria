@@ -152,7 +152,7 @@ void ResetBoard(S_Board* pos) {
 
 	// set default nnue values
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		nnue.accumulator[i] = nnue.hiddenBias[i];
+		pos->accumulator[i] = nnue.hiddenBias[i];
 	}
 }
 
@@ -200,7 +200,7 @@ void parse_fen(const char* fen, S_Board* pos) {
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
 
-					nnue.add(piece, square);
+					nnue.add(pos->accumulator, piece, square);
 					// increment pointer to FEN string
 				}
 				fen++;
@@ -393,3 +393,4 @@ Bitboard Enemy(const S_Board* pos) {
 Bitboard Occupancy(const S_Board* pos, int side) {
 	return pos->occupancies[side];
 }
+

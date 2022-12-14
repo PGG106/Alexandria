@@ -345,7 +345,7 @@ void Uci_Loop(char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(td->pos.accumulator));
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {

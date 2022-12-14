@@ -282,8 +282,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 		// stop calculating and return best move so far
 		if (td->info.stopped) break;
-		if (td->id == 0)
-			PrintUciOutput(score, current_depth, &td->info, options);
+		PrintUciOutput(score, current_depth, &td->info, options);
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->ss.pvLength[0]; count++) {

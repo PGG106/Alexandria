@@ -94,6 +94,7 @@ typedef struct Board {
 	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
 	Bitboard occupancies[3];
+	NNUE::accumulator accumulator;
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
