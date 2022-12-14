@@ -16,6 +16,7 @@
 #include <string.h>
 #include <thread>
 #include "datagen.h"
+#include "threads.h"
 
 int parse_move(char* move_string, S_Board* pos) {
 	// create move list instance
@@ -317,15 +318,24 @@ void Uci_Loop(char** argv) {
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
-			//stop searching
+			//Stop helper threads
+			for (int i = 0; i < uci_options->Threads - 1;i++)
+			{
+				threads_data[i].info.stopped = true;
+			}
+			//stop main thread search
 			td->info.stopped = true;
 		}
 
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0) {
-			//stop searching
+			//Stop helper threads
+			for (int i = 0; i < uci_options->Threads - 1;i++)
+			{
+				threads_data[i].info.stopped = true;
+			}
+			//stop main thread search
 			td->info.stopped = true;
-			//Join any currently running thread
 			// quit from the chess engine program execution
 			break;
 		}

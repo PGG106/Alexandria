@@ -238,7 +238,6 @@ int  getBestMove(S_Stack* ss) {
 void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
-	// Start Threads-1 helper search threads
 	for (int i = threads_data.size(); i < options->Threads - 1;i++)
 	{
 		S_ThreadData thread_data;
