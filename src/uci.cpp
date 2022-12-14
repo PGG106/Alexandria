@@ -319,10 +319,7 @@ void Uci_Loop(char** argv) {
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
 			//Stop helper threads
-			for (int i = 0; i < uci_options->Threads - 1;i++)
-			{
-				threads_data[i].info.stopped = true;
-			}
+			stopHelperThreads();
 			//stop main thread search
 			td->info.stopped = true;
 		}
@@ -330,10 +327,7 @@ void Uci_Loop(char** argv) {
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0) {
 			//Stop helper threads
-			for (int i = 0; i < uci_options->Threads - 1;i++)
-			{
-				threads_data[i].info.stopped = true;
-			}
+			stopHelperThreads();
 			//stop main thread search
 			td->info.stopped = true;
 			// quit from the chess engine program execution

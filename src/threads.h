@@ -9,5 +9,5 @@ extern std::vector<std::thread> threads;
 extern std::vector<S_ThreadData> threads_data;
 
 uint64_t getTotalNodes(int threadcount);
-
+void stopHelperThreads();
 

@@ -12,3 +12,11 @@ uint64_t getTotalNodes(int threadcount) {
 	}
 	return nodes;
 }
+
+void stopHelperThreads() {
+	//Stop helper threads
+	for (int i = 0; i < threads_data.size() - 1;i++)
+	{
+		threads_data[i].info.stopped = true;
+	}
+}
