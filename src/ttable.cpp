@@ -3,13 +3,13 @@
 #include "Board.h"
 #include "assert.h"
 #include "io.h"
-#include "makemove.h"
 #include "move.h"
-#include "movegen.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include <cstring>
-#include <iostream>
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 S_HASHTABLE HashTable[1];
 
@@ -35,7 +35,7 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
 	ClearHashTable(table);
 
-	std::cout << "HashTable init complete with " << table->numEntries << " entries" << std::endl;
+	printf( "HashTable init complete with %lld entries\n", table->numEntries);
 }
 
 bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,

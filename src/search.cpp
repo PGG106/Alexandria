@@ -23,7 +23,8 @@ int CounterMoves[Board_sq_num][Board_sq_num];
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
-	for (int index = pos->hisPly - pos->fiftyMove; index < pos->hisPly; index++)
+	assert(pos->hisPly >= pos->fiftyMove);
+	for (int index = (std::max)(0,pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
@@ -259,7 +260,10 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 	//MainThread search
 	search_position(1, depth, td, options);
-
+	//Print final bestmove found
+	printf("bestmove ");
+	print_move(getBestMove(&td->ss));
+	printf("\n");
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
@@ -287,9 +291,6 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 	}
 
-	printf("bestmove ");
-	print_move(getBestMove(&td->ss));
-	printf("\n");
 }
 
 int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
