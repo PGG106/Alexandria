@@ -7,6 +7,7 @@
 #include "movegen.h"
 #include "search.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
 #include "uci.h"
 
