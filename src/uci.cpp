@@ -1,6 +1,7 @@
 #include "Board.h"
 #include "bench.h"
 #include "io.h"
+#include "uci.h"
 #include "makemove.h"
 #include "misc.h"
 #include "move.h"

@@ -293,10 +293,9 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	//Empty threads and thread data
 	void stopHelperThreads();
 	void joinHelperThreads();
-	while (!threads_data.empty())
+	while (!threads_data.empty()) 
 		threads_data.pop_back();
-	while (!threads.empty())
-		threads.pop_back();
+	
 	// call parse position function
 	parse_position((char*)"position startpos", pos);
 
