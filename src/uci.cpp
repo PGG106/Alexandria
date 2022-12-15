@@ -304,7 +304,7 @@ void Uci_Loop(char** argv) {
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
 
-			joinHelperThreads();
+			stopHelperThreads();
 
 			//Join previous search thread if it exists
 			if (main_search_thread.joinable())
@@ -333,8 +333,6 @@ void Uci_Loop(char** argv) {
 			stopHelperThreads();
 			//stop main thread search
 			td->info.stopped = true;
-
-			joinHelperThreads();
 
 			//Join previous search thread if it exists
 			if (main_search_thread.joinable())

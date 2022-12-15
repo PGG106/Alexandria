@@ -292,7 +292,7 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 		pos->accumulatorStack.pop_back();
 	//Empty threads and thread data
 	void stopHelperThreads();
-	void joinHelperThreads();
+
 	while (!threads_data.empty()) 
 		threads_data.pop_back();
 	

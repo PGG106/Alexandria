@@ -19,14 +19,13 @@ void stopHelperThreads() {
 	{
 		threads_data[i].info.stopped = true;
 	}
-}
 
-void joinHelperThreads() {
-	//Stop helper threads
-	for (size_t i = 0; i < threads.size();i++)
+	for (std::thread& th : threads)
 	{
-		if (threads[i].joinable())
-			threads[i].join();
+		if (th.joinable())
+			th.join();
 	}
+
+	threads.clear();
 
 }
