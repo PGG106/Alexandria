@@ -20,8 +20,6 @@
 #include "datagen.h"
 #include "time_manager.h"
 
-int CounterMoves[Board_sq_num][Board_sq_num];
-
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
@@ -208,7 +206,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
+		else if (move == ss->CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
@@ -247,7 +245,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 
 	//Init thread_data objects
-	for (int i = 0; i < options->Threads - 1;i++)
+	for (int i = 0; i < threads_data.size();i++)
 	{
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
@@ -283,6 +281,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		if (td->id == 0 && stopEarly(&td->info)) 
 		{
 			stopHelperThreads();
+			//Stop mainthread search
 			td->info.stopped = true;
 		}
 
@@ -631,7 +630,7 @@ moves_loop:
 
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
-						CounterMoves[From(previousMove)][To(previousMove)] = move;
+						ss->CounterMoves[From(previousMove)][To(previousMove)] = move;
 						//Update the history heuristic based on the new best move
 						updateHH(pos, ss, depth, bestmove, &quiet_moves);
 					}

@@ -257,7 +257,7 @@ void Uci_Loop(char** argv) {
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
 	S_ThreadData td[1];
-	std::thread search_thread;
+	std::thread main_search_thread;
 	// define user / GUI input buffer
 	char input[40000];
 	// print engine info
@@ -306,8 +306,8 @@ void Uci_Loop(char** argv) {
 			joinHelperThreads();
 
 			//Join previous search thread if it exists
-			if (search_thread.joinable())
-				search_thread.join();
+			if (main_search_thread.joinable())
+				main_search_thread.join();
 
 			if (!parsed_position) // call parse position function
 			{
@@ -316,7 +316,7 @@ void Uci_Loop(char** argv) {
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
-			search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
@@ -332,6 +332,12 @@ void Uci_Loop(char** argv) {
 			stopHelperThreads();
 			//stop main thread search
 			td->info.stopped = true;
+
+			joinHelperThreads();
+
+			//Join previous search thread if it exists
+			if (main_search_thread.joinable())
+				main_search_thread.join();
 			// quit from the chess engine program execution
 			break;
 		}

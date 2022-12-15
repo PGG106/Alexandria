@@ -8,6 +8,7 @@
 #include <cmath>
 #include "misc.h"
 #include "ttable.h"
+#include "threads.h"
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];
@@ -268,10 +269,10 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 		}
 	}
 
-	//Clean the Pv array
+	//Clean the Counter moves array
 	for (int index = 0; index < Board_sq_num; ++index) {
 		for (int index2 = 0; index2 < Board_sq_num; ++index2) {
-			CounterMoves[index][index2] = NOMOVE;
+			ss->CounterMoves[index][index2] = NOMOVE;
 		}
 	}
 
@@ -289,6 +290,13 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	pos->accumulatorStack.clear();
 	while (!pos->accumulatorStack.empty())
 		pos->accumulatorStack.pop_back();
+	//Empty threads and thread data
+	void stopHelperThreads();
+	void joinHelperThreads();
+	while (!threads_data.empty())
+		threads_data.pop_back();
+	while (!threads.empty())
+		threads.pop_back();
 	// call parse position function
 	parse_position((char*)"position startpos", pos);
 

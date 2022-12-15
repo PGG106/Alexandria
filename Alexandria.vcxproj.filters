@@ -90,6 +90,9 @@
     <ClInclude Include="src\datagen.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="src\threads.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Board.cpp">

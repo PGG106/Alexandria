@@ -15,7 +15,7 @@ uint64_t getTotalNodes(int threadcount) {
 
 void stopHelperThreads() {
 	//Stop helper threads
-	for (int i = 0; i < static_cast<int>(threads_data.size()) - 1;i++)
+	for (int i = 0; i < threads_data.size();i++)
 	{
 		threads_data[i].info.stopped = true;
 	}
@@ -23,7 +23,7 @@ void stopHelperThreads() {
 
 void joinHelperThreads() {
 	//Stop helper threads
-	for (int i = 0; i < static_cast<int>(threads.size()) - 1;i++)
+	for (int i = 0; i < static_cast<int>(threads.size());i++)
 	{
 		if (threads[i].joinable())
 			threads[i].join();

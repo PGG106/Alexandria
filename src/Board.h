@@ -108,30 +108,28 @@ typedef struct Stack {
 	int searchHistory[12][Board_sq_num] = { 0 };
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
+	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int64_t starttime = -1;
-	int64_t stoptimeOpt = -1;
-	int64_t stoptimeMax = -1;
+	uint64_t starttime = 0;
+	uint64_t stoptimeOpt = 0;
+	uint64_t stoptimeMax = 0;
 	int depth = -1;
 	int seldepth = -1;
-	bool depthset = false;
 	bool timeset = false;
 	bool nodeset = false;
 	int movestogo = -1;
 	int nodeslimit = -1;
 	bool infinite = false;
 
-	bool quit = false;
 	bool stopped = false;
 
 	long nodes = 0;
 } S_SearchINFO;
 
-extern int CounterMoves[Board_sq_num][Board_sq_num];
 // castling rights update constants
 extern const int castling_rights[Board_sq_num];
 
