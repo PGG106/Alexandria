@@ -1,16 +1,10 @@
 #pragma once
 #include "Board.h"
-#include "PieceData.h"
-#include "eval.h"
-#include"uci.h"
-#include "io.h"
-#include "makemove.h"
-#include "misc.h"
-#include "move.h"
-#include "movegen.h"
+#include "uci.h"
 
 // a collection of all the data a thread needs to condut a search
 typedef struct ThreadData {
+	int id = 0;
 	S_Board pos;
 	S_Stack ss;
 	S_SearchINFO info;
@@ -28,7 +22,7 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td);
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_ThreadData* td);
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info);
+int Quiescence(int alpha, int beta, S_ThreadData* td);
 
 int getBestMove(S_Stack* ss);
 

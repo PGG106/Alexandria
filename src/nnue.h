@@ -10,15 +10,17 @@
 
 class NNUE {
 public:
-	void init(const char* nn);
-	void add(int piece, int to);
-	void clear(int piece, int from);
-	void move(int piece, int from, int to);
-	int relu(int x);
-	int32_t output();
-	void Clear();
+	using accumulator = std::array<int16_t, HIDDEN_BIAS>;
 
-	std::array<int16_t, HIDDEN_BIAS> accumulator;
+	void init(const char* nn);
+	void add(NNUE::accumulator& accumulator,int piece, int to);
+	void clear(NNUE::accumulator& accumulator,int piece, int from);
+	void move(NNUE::accumulator& accumulator,int piece, int from, int to);
+	int relu(int x);
+	int32_t output(const NNUE::accumulator& accumulator);
+	void Clear(NNUE::accumulator& accumulator);
+
+	
 	uint8_t inputValues[INPUT_WEIGHTS];
 	int16_t inputWeights[INPUT_WEIGHTS * HIDDEN_WEIGHTS];
 	int16_t hiddenBias[HIDDEN_BIAS];

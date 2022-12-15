@@ -2,6 +2,8 @@
 #include "search.h"
 #include "ttable.h"
 #include <iostream>
+#include "init.h"
+#include "misc.h"
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[50] = {
@@ -63,7 +65,6 @@ int start_bench() {
 	S_ThreadData td[1];
 	int total_nodes = 0;
 	int total_time = 0;
-	td->info.quit = 0;
 	InitHashTable(HashTable, 64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);

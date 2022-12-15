@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include "misc.h"
 
 //Calculate how much time to spend on searching a move
 void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
@@ -36,4 +37,20 @@ void optimum(S_Board* pos, S_SearchINFO* info, int time, int inc) {
 	}
 
 	return;
+}
+
+bool stopEarly(S_SearchINFO* info) {
+	// check if more than Maxtime passed and we have to stop
+	if ((info->timeset && GetTimeMs() > info->stoptimeOpt)
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+		return true;
+	else return false;
+}
+
+bool timeOver(S_SearchINFO* info) {
+	// check if more than Maxtime passed and we have to stop
+	if ((info->timeset && GetTimeMs() > info->stoptimeMax)
+		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+		return true;
+	else return false;
 }

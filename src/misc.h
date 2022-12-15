@@ -4,6 +4,9 @@
 #include "search.h"
 #include "stdio.h"
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "windows.h"
 #else
 #include "string.h"
@@ -14,7 +17,7 @@
 
 int GetTimeMs();
 
-void PrintUciOutput(int score, int depth, S_SearchINFO* info, S_UciOptions* options);
+void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* options);
 
 const char *getfield(char *line, int num);
 

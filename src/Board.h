@@ -94,6 +94,7 @@ typedef struct Board {
 	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
 	Bitboard occupancies[3];
+	NNUE::accumulator accumulator;
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
 
@@ -107,30 +108,28 @@ typedef struct Stack {
 	int searchHistory[12][Board_sq_num] = { 0 };
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
+	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int64_t starttime = -1;
-	int64_t stoptimeOpt = -1;
-	int64_t stoptimeMax = -1;
+	int starttime = 0;
+	int stoptimeOpt = 0;
+	int stoptimeMax = 0;
 	int depth = -1;
 	int seldepth = -1;
-	bool depthset = false;
 	bool timeset = false;
 	bool nodeset = false;
 	int movestogo = -1;
 	int nodeslimit = -1;
 	bool infinite = false;
 
-	bool quit = false;
 	bool stopped = false;
 
 	long nodes = 0;
 } S_SearchINFO;
 
-extern int CounterMoves[Board_sq_num][Board_sq_num];
 // castling rights update constants
 extern const int castling_rights[Board_sq_num];
 

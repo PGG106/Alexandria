@@ -15,8 +15,6 @@ const unsigned int gEmbeddedNNUESize = 1;
 // Thanks to Disservin for having me look at his code and Lucex for the
 // invaluable help and the immense patience
 
-std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
-
 int NNUE::relu(int x) { return std::max(0, x); }
 
 void NNUE::init(const char* file) {
@@ -52,7 +50,7 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::add(int piece, int to) {
+void NNUE::add(NNUE::accumulator& accumulator,int piece, int to) {
 	int piecetype = GetPieceType(piece);
 	int inputNum = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
@@ -60,7 +58,7 @@ void NNUE::add(int piece, int to) {
 	}
 }
 
-void NNUE::clear(int piece, int from) {
+void NNUE::clear(NNUE::accumulator& accumulator,int piece, int from) {
 	int piecetype = GetPieceType(piece);
 	int inputNum = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
@@ -68,7 +66,7 @@ void NNUE::clear(int piece, int from) {
 	}
 }
 
-void NNUE::move(int piece, int from, int to) {
+void NNUE::move(NNUE::accumulator& accumulator,int piece, int from, int to) {
 	int piecetype = GetPieceType(piece);
 	int inputNumFrom = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	int inputNumTo = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
@@ -77,7 +75,7 @@ void NNUE::move(int piece, int from, int to) {
 	}
 }
 
-int32_t NNUE::output() {
+int32_t NNUE::output(const NNUE::accumulator& accumulator) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
@@ -87,7 +85,7 @@ int32_t NNUE::output() {
 	return output / (64 * 256);
 }
 
-void NNUE::Clear() {
+void NNUE::Clear(NNUE::accumulator& accumulator) {
 	//Reset the accumulators of the nnue
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		accumulator[i] = 0;

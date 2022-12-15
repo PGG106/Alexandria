@@ -1,6 +1,7 @@
 #include "Board.h"
 #include "bench.h"
 #include "io.h"
+#include "uci.h"
 #include "makemove.h"
 #include "misc.h"
 #include "move.h"
@@ -16,6 +17,7 @@
 #include <string.h>
 #include <thread>
 #include "datagen.h"
+#include "threads.h"
 
 int parse_move(char* move_string, S_Board* pos) {
 	// create move list instance
@@ -236,7 +238,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%lld stopOpt:%lld stopMax:%lld depth:%d timeset:%d nodeset:%d\n", time,
+	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d nodeset:%d\n", time,
 		info->starttime, info->stoptimeOpt, info->stoptimeMax, info->depth, info->timeset, info->nodeset);
 }
 
@@ -256,11 +258,11 @@ void Uci_Loop(char** argv) {
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
 	S_ThreadData td[1];
+	std::thread main_search_thread;
 	// define user / GUI input buffer
 	char input[40000];
-	std::vector<std::thread> threads;
 	// print engine info
-	printf("id name Alexandria 3.1.0\n");
+	printf("id name Alexandria 4.0\n");
 
 	// main loop
 	while (1) {
@@ -302,33 +304,39 @@ void Uci_Loop(char** argv) {
 		// parse UCI "go" command
 		else if (strncmp(input, "go", 2) == 0) {
 
+			stopHelperThreads();
+
+			//Join previous search thread if it exists
+			if (main_search_thread.joinable())
+				main_search_thread.join();
+
 			if (!parsed_position) // call parse position function
 			{
 				parse_position((char*)"position startpos", &td->pos);
 			}
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
-			// Prepare each and any search thread, the pos and the info structures we got by converting the output can be copied into each thread
-			for (int i = 0; i < uci_options->Threads;i++)
-			{
-				threads.emplace_back(std::thread(Root_search_position, td->info.depth, td, uci_options));
-			}
+			// Start search in a separate thread
+			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 		// parse UCI "stop" command
 		else if (strncmp(input, "stop", 4) == 0) {
-			//stop searching
+			//Stop helper threads
+			stopHelperThreads();
+			//stop main thread search
 			td->info.stopped = true;
 		}
 
 		// parse UCI "quit" command
 		else if (strncmp(input, "quit", 4) == 0) {
-			//stop searching
+			//Stop helper threads
+			stopHelperThreads();
+			//stop main thread search
 			td->info.stopped = true;
-			//Join any currently running thread
-			for (int i = 0; i < uci_options->Threads; i++) {
-				if (threads[i].joinable())
-					threads[i].join();
-			}
+
+			//Join previous search thread if it exists
+			if (main_search_thread.joinable())
+				main_search_thread.join();
 			// quit from the chess engine program execution
 			break;
 		}
@@ -336,10 +344,10 @@ void Uci_Loop(char** argv) {
 		// parse UCI "uci" command
 		else if (strncmp(input, "uci", 3) == 0) {
 			// print engine info
-			printf("id name Alexandria 3.1.0\n");
+			printf("id name Alexandria 4.0\n");
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
-			printf("option name Threads type spin default 1 min 1 max 1 \n");
+			printf("option name Threads type spin default 1 min 1 max 4 \n");
 			printf("option name MultiPV type spin default 1 min 1 max 1\n");
 			printf("uciok\n");
 		}
@@ -348,7 +356,7 @@ void Uci_Loop(char** argv) {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output());
+				nnue.output(td->pos.accumulator));
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {

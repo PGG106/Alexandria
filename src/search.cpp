@@ -8,6 +8,7 @@
 #include "magic.h"
 #include "makemove.h"
 #include "misc.h"
+#include "threads.h"
 #include "move.h"
 #include "movegen.h"
 #include "movepicker.h"
@@ -17,16 +18,12 @@
 #include <thread>
 #include <vector>
 #include "datagen.h"
-
-int CounterMoves[Board_sq_num][Board_sq_num];
-
-//Contains the material Values of the pieces
-int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
-					  100, 300, 300, 450, 900, 0,0,0,0 };
+#include "time_manager.h"
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
-	for (int index = pos->hisPly - pos->fiftyMove; index < pos->hisPly; index++)
+	assert(pos->hisPly >= pos->fiftyMove);
+	for (int index = (std::max)(0, pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
@@ -209,7 +206,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
+		else if (move == ss->CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
@@ -227,122 +224,120 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 //Calculate a futility margin based on depth and if the search is improving or not
 int futility(int depth, bool improving) { return 66 * (depth - improving); }
 
-//Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
-	// Initialize the node
-	bool pv_node = (beta - alpha) > 1;
-	//tte is an hashtable entry, it will store the values fetched from the TT
-	S_HASHENTRY tte;
-	bool TThit = false;
-	int standing_pat = 0;
-
-	// check if time is up or we searched the maximum number of nodes we could search
-	if ((info->timeset == true && GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == true && info->nodes > info->nodeslimit)) {
-		info->stopped = true;
-	}
-	//Check for the highest depth reached in search to report it to the cli
-	if (pos->ply > info->seldepth)
-		info->seldepth = pos->ply;
-
-	//If position is a draw return a randomized draw score to avoid 3-fold blindness
-	if (IsDraw(pos)) {
-		return 1 - (info->nodes & 2);
-	}
-
-	//If we reached maxdepth we return a static evaluation of the position
-	if (pos->ply > MAXDEPTH - 1) {
-		return EvalPosition(pos);
-	}
-
-	//Get a static evaluation of the position
-	standing_pat = EvalPosition(pos);
-
-	alpha = (std::max)(alpha, standing_pat);
-
-	if (standing_pat >= beta) return standing_pat;
-
-	//TThit is true if and only if we find something in the TT
-	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
-
-	//If we found a value in the TT we can return it
-	if (!pv_node && TThit) {
-		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
-			return tte.score;
-	}
-
-	// create move list instance
-	S_MOVELIST move_list[1];
-
-	// generate the captures
-	generate_captures(move_list, pos);
-
-	//score the generated moves
-	score_moves(pos, ss, move_list, tte.move);
-
-	//set up variables needed for the search
-	int BestScore = standing_pat;
-	int bestmove = NOMOVE;
-	int Score = -MAXSCORE;
-
-	// old value of alpha
-	int old_alpha = alpha;
-
-	int moves_searched = 0;
-
-	// loop over moves within a movelist
-	for (int count = 0; count < move_list->count; count++) {
-		pick_move(move_list, count);
-		int move = move_list->moves[count].move;
-		int score = move_list->moves[count].score;
-		// See pruning
-		if (score < goodCaptureScore
-			&& moves_searched >= 1)
-		{
-			continue;
-		}
-		make_move(move, pos);
-		// increment nodes count
-		info->nodes++;
-		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, pos, ss, info);
-
-		// take move back
-		Unmake_move(pos);
-
-		if (info->stopped)
-			return 0;
-
-		moves_searched++;
-
-		//If the Score of the current move is the best we've found until now
-		if (Score > BestScore) {
-			//Update the best move found and what the best score is
-			BestScore = Score;
-
-			// if the Score is better than alpha update alpha
-			if (Score > alpha) {
-				alpha = Score;
-				bestmove = move;
-
-				// if the Score is better than beta save the move in the TT and return beta
-				if (Score >= beta) break;
-			}
-		}
-	}
-	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
-
-	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
-
-	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
-
-	// node (move) fails low
-	return BestScore;
-}
-
 //Calculate a reduction margin based on the search depth and the number of moves played
 static inline int reduction(bool pv_node, bool improving, int depth, int num_moves) {
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
+}
+
+int  getBestMove(S_Stack* ss) {
+	return ss->pvArray[0][0];
+}
+
+//Starts the search process, this is ideally the point where you can start a multithreaded search
+void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
+
+	//Init a thread_data object for each helper thread that doesn't have one already
+	for (int i = threads_data.size(); i < options->Threads - 1;i++)
+	{
+		S_ThreadData thread_data;
+		thread_data.id = i + 1;
+		threads_data.emplace_back(thread_data);
+	}
+
+	//Init thread_data objects
+	for (size_t i = 0; i < threads_data.size();i++)
+	{
+		threads_data[i].info = td->info;
+		threads_data[i].pos = td->pos;
+	}
+
+	// Start Threads-1 helper search threads
+	for (int i = 0; i < options->Threads - 1;i++)
+	{
+		threads.emplace_back(std::thread(search_position, 1, depth, &threads_data[i], options));
+	}
+	//MainThread search
+	search_position(1, depth, td, options);
+	//Print final bestmove found
+	printf("bestmove ");
+	print_move(getBestMove(&td->ss));
+	printf("\n");
+}
+
+// search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
+void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
+	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
+	int score = 0;
+
+	//Clean the position and the search info to start search from a clean state 
+	ClearForSearch(td);
+
+	// Call the negamax function in an iterative deepening framework
+	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
+	{
+		score = aspiration_window_search(score, current_depth, td);
+
+		// check if we just cleared a depth and more than OptTime passed
+		if (td->id == 0 && stopEarly(&td->info)) 
+		{
+			stopHelperThreads();
+			//Stop mainthread search
+			td->info.stopped = true;
+		}
+
+		// stop calculating and return best move so far
+		if (td->info.stopped) 
+			break;
+		//If it's the main thread print the uci output
+		if (td->id == 0)
+			PrintUciOutput(score, current_depth, td, options);
+
+	}
+
+}
+
+int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
+	int score = 0;
+	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
+	int delta = 12;
+	// define initial alpha beta bounds
+	int alpha = -MAXSCORE;
+	int beta = MAXSCORE;
+
+	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
+	if (depth >= 3) {
+		alpha = (std::max)(-MAXSCORE, prev_eval - delta);
+		beta = (std::min)(prev_eval + delta, MAXSCORE);
+	}
+
+	//Stay at current depth if we fail high/low because of the aspiration windows
+	while (true) {
+
+		score = negamax(alpha, beta, depth, td);
+
+		// check if more than Maxtime passed and we have to stop
+		if (td->id == 0 && timeOver(&td->info)) {
+			stopHelperThreads();
+			td->info.stopped = true;
+		}
+
+		// stop calculating and return best move so far
+		if (td->info.stopped) break;
+
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
+		if ((score <= alpha)) {
+			beta = (alpha + beta) / 2;
+			alpha = (std::max)(-MAXSCORE, score - delta);
+		}
+
+		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
+		else if ((score >= beta)) {
+			beta = (std::min)(score + delta, MAXSCORE);
+		}
+		else break;
+		delta *= 1.44;
+	}
+	return score;
 }
 
 // negamax alpha beta search
@@ -376,13 +371,13 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(alpha, beta, pos, ss, info);
+		return Quiescence(alpha, beta, td);
 	}
 
-	// check if time is up or we searched the maximum number of nodes we could search
-	if ((info->timeset == TRUE && GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit)) {
-		info->stopped = true;
+	// check if more than Maxtime passed and we have to stop
+	if (td->id == 0 && timeOver(&td->info)) {
+		stopHelperThreads();
+		td->info.stopped = true;
 	}
 
 	if (!root_node) {
@@ -477,7 +472,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		if ((depth <= 3) &&
 			(eval + 119 + 182 * (depth - 1) <= alpha))
 		{
-			return Quiescence(alpha, beta, pos, ss, info);
+			return Quiescence(alpha, beta, td);
 		}
 
 	}
@@ -635,7 +630,7 @@ moves_loop:
 
 						//Save CounterMoves
 						int previousMove = pos->history[pos->hisPly].move;
-						CounterMoves[From(previousMove)][To(previousMove)] = move;
+						ss->CounterMoves[From(previousMove)][To(previousMove)] = move;
 						//Update the history heuristic based on the new best move
 						updateHH(pos, ss, depth, bestmove, &quiet_moves);
 					}
@@ -660,95 +655,121 @@ moves_loop:
 	return BestScore;
 }
 
-//Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
-	//if (options->datagen) datagen(pos, ss, info);
-	search_position(1, depth, td, options);
-}
+//Quiescence search to avoid the horizon effect
+int Quiescence(int alpha, int beta, S_ThreadData* td) {
 
-// search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
-	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
-	int score = 0;
+	S_Board* pos = &td->pos;
+	S_Stack* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
 
-	//Clean the position and the search info to start search from a clean state 
-	ClearForSearch(td);
+	// Initialize the node
+	bool pv_node = (beta - alpha) > 1;
+	//tte is an hashtable entry, it will store the values fetched from the TT
+	S_HASHENTRY tte;
+	bool TThit = false;
+	int standing_pat = 0;
 
-	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
-	{
-		score = aspiration_window_search(score, current_depth, td);
+	// check if more than Maxtime passed and we have to stop
+	if (td->id == 0 && timeOver(&td->info)) {
+		stopHelperThreads();
+		td->info.stopped = true;
+	}
+	//Check for the highest depth reached in search to report it to the cli
+	if (pos->ply > info->seldepth)
+		info->seldepth = pos->ply;
 
-		// check if we just cleared a depth and more than OptTime passed
-		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeOpt)
-			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
-			td->info.stopped = true;
-
-		// stop calculating and return best move so far
-		if (td->info.stopped) break;
-
-		PrintUciOutput(score, current_depth, &td->info, options);
-
-		// loop over the moves within a PV line
-		for (int count = 0; count < td->ss.pvLength[0]; count++) {
-			// print PV move
-			print_move(td->ss.pvArray[0][count]);
-			printf(" ");
-		}
-
-		// print new line
-		printf("\n");
+	//If position is a draw return a randomized draw score to avoid 3-fold blindness
+	if (IsDraw(pos)) {
+		return 1 - (info->nodes & 2);
 	}
 
-	printf("bestmove ");
-	print_move(getBestMove(&td->ss));
-	printf("\n");
-}
-
-
-int  getBestMove(S_Stack* ss) {
-	return ss->pvArray[0][0];
-}
-
-int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
-	int score = 0;
-	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
-	int delta = 12;
-	// define initial alpha beta bounds
-	int alpha = -MAXSCORE;
-	int beta = MAXSCORE;
-
-	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-	if (depth >= 3) {
-		alpha = (std::max)(-MAXSCORE, prev_eval - delta);
-		beta = (std::min)(prev_eval + delta, MAXSCORE);
+	//If we reached maxdepth we return a static evaluation of the position
+	if (pos->ply > MAXDEPTH - 1) {
+		return EvalPosition(pos);
 	}
 
-	//Stay at current depth if we fail high/low because of the aspiration windows
-	while (true) {
+	//Get a static evaluation of the position
+	standing_pat = EvalPosition(pos);
 
-		score = negamax(alpha, beta, depth, td);
+	alpha = (std::max)(alpha, standing_pat);
 
-		// check if more than Maxtime passed and we have to stop
-		if ((td->info.timeset && GetTimeMs() > td->info.stoptimeMax)
-			|| (td->info.nodeset == TRUE && td->info.nodes > td->info.nodeslimit))
-			td->info.stopped = true;
+	if (standing_pat >= beta) return standing_pat;
 
-		// stop calculating and return best move so far
-		if (td->info.stopped) break;
+	//TThit is true if and only if we find something in the TT
+	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
 
-		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
-		if ((score <= alpha)) {
-			beta = (alpha + beta) / 2;
-			alpha = (std::max)(-MAXSCORE, score - delta);
-		}
-
-		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
-		else if ((score >= beta)) {
-			beta = (std::min)(score + delta, MAXSCORE);
-		}
-		else break;
-		delta *= 1.44;
+	//If we found a value in the TT we can return it
+	if (!pv_node && TThit) {
+		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
+			return tte.score;
 	}
-	return score;
+
+	// create move list instance
+	S_MOVELIST move_list[1];
+
+	// generate the captures
+	generate_captures(move_list, pos);
+
+	//score the generated moves
+	score_moves(pos, ss, move_list, tte.move);
+
+	//set up variables needed for the search
+	int BestScore = standing_pat;
+	int bestmove = NOMOVE;
+	int Score = -MAXSCORE;
+
+	// old value of alpha
+	int old_alpha = alpha;
+
+	int moves_searched = 0;
+
+	// loop over moves within a movelist
+	for (int count = 0; count < move_list->count; count++) {
+		pick_move(move_list, count);
+		int move = move_list->moves[count].move;
+		int score = move_list->moves[count].score;
+		// See pruning
+		if (score < goodCaptureScore
+			&& moves_searched >= 1)
+		{
+			continue;
+		}
+		make_move(move, pos);
+		// increment nodes count
+		info->nodes++;
+		//Call Quiescence search recursively
+		Score = -Quiescence(-beta, -alpha, td);
+
+		// take move back
+		Unmake_move(pos);
+
+		if (info->stopped)
+			return 0;
+
+		moves_searched++;
+
+		//If the Score of the current move is the best we've found until now
+		if (Score > BestScore) {
+			//Update the best move found and what the best score is
+			BestScore = Score;
+
+			// if the Score is better than alpha update alpha
+			if (Score > alpha) {
+				alpha = Score;
+				bestmove = move;
+
+				// if the Score is better than beta save the move in the TT and return beta
+				if (Score >= beta) break;
+			}
+		}
+	}
+	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
+
+	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+
+	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
+
+	// node (move) fails low
+	return BestScore;
 }
+
