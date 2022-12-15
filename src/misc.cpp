@@ -44,17 +44,17 @@ void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* option
 	uint64_t nps = nodes / (time + !time) * 1000;
 
 	if (score > -mate_value && score < -mate_score)
-		printf("info score mate %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %lld pv ",
+		printf("info score mate %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %d pv ",
 			-(score + mate_value) / 2, depth, td->info.seldepth, options->MultiPV, nodes, nps,
 			GetTimeMs() - td->info.starttime);
 
 	else if (score > mate_score && score < mate_value)
-		printf("info score mate %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %lld pv ",
+		printf("info score mate %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %d pv ",
 			(mate_value - score) / 2 + 1, depth, td->info.seldepth, options->MultiPV, nodes, nps,
 			GetTimeMs() - td->info.starttime);
 
 	else
-		printf("info score cp %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %lld pv ",
+		printf("info score cp %d depth %d seldepth %d multipv %d nodes %llu nps %llu time %d pv ",
 			score, depth, td->info.seldepth, options->MultiPV, nodes, nps, GetTimeMs() - td->info.starttime);
 
 	// loop over the moves within a PV line

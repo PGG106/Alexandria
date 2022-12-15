@@ -158,14 +158,12 @@ void ResetBoard(S_Board* pos) {
 
 void Reset_info(S_SearchINFO* info) {
 	info->depth = 0;
-	info->depthset = 0;
 	info->nodes = 0;
 	info->starttime = 0;
 	info->stoptimeOpt = 0;
 	info->stoptimeMax = 0;
 	info->infinite = 0;
 	info->movestogo = -1;
-	info->quit = 0;
 	info->stopped = false;
 	info->timeset = false;
 }

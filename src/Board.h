@@ -114,9 +114,9 @@ typedef struct Stack {
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	uint64_t starttime = 0;
-	uint64_t stoptimeOpt = 0;
-	uint64_t stoptimeMax = 0;
+	int starttime = 0;
+	int stoptimeOpt = 0;
+	int stoptimeMax = 0;
 	int depth = -1;
 	int seldepth = -1;
 	bool timeset = false;

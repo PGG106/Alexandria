@@ -237,7 +237,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%lld stopOpt:%lld stopMax:%lld depth:%d timeset:%d nodeset:%d\n", time,
+	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d nodeset:%d\n", time,
 		info->starttime, info->stoptimeOpt, info->stoptimeMax, info->depth, info->timeset, info->nodeset);
 }
 

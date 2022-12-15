@@ -245,7 +245,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 
 	//Init thread_data objects
-	for (int i = 0; i < threads_data.size();i++)
+	for (size_t i = 0; i < threads_data.size();i++)
 	{
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
