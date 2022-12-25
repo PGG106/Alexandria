@@ -278,7 +278,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		score = aspiration_window_search(score, current_depth, td);
 
 		// check if we just cleared a depth and more than OptTime passed
-		if (td->id == 0 && stopEarly(&td->info)) 
+		if (td->id == 0 && stopEarly(&td->info))
 		{
 			stopHelperThreads();
 			//Stop mainthread search
@@ -286,7 +286,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		}
 
 		// stop calculating and return best move so far
-		if (td->info.stopped) 
+		if (td->info.stopped)
 			break;
 		//If it's the main thread print the uci output
 		if (td->id == 0)
@@ -388,7 +388,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 		//If we reached maxdepth we return a static evaluation of the position
 		if (pos->ply > MAXDEPTH - 1) {
-			return EvalPosition(pos);
+			return in_check ? 0 : EvalPosition(pos);
 		}
 
 		// Mate distance pruning
@@ -418,19 +418,17 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	if (in_check || excludedMove) {
 		static_eval = value_none;
-		pos->history[pos->hisPly].eval = value_none;
+		ss->eval[pos->ply] = value_none;
 		improving = false;
 		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
 	}
 
 	// get static evaluation score
 	static_eval = eval = EvalPosition(pos);
-	pos->history[pos->hisPly].eval = static_eval;
+	ss->eval[pos->ply] = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (pos->hisPly >= 2) &&
-		(static_eval > (pos->history[pos->hisPly - 2].eval) ||
-			(pos->history[pos->hisPly - 2].eval) == value_none);
+	improving = (pos->ply >= 2) && static_eval > ss->eval[pos->ply - 2];
 
 	if (!pv_node) {
 
