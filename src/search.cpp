@@ -428,7 +428,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	ss->eval[pos->ply] = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (pos->ply >= 2) && static_eval > ss->eval[pos->ply - 2];
+	improving = (pos->ply >= 2) && (static_eval > ss->eval[pos->ply - 2] || ss->eval[pos->ply - 2] == value_none);
 
 	if (!pv_node) {
 
