@@ -19,9 +19,7 @@
 #endif
 
 #define NAME "Alexandria"
-#define MAXGAMEMOVES \
-    1024 // maximum number of moves possibile,no recorderd game has ever gone
-// past 1000 moves so it shoukd be a good approximation
+#define MAXGAMEMOVES 1024 
 #define MAXDEPTH 128
 #define Board_sq_num 64
 #define UNDOSIZE MAXGAMEMOVES + MAXDEPTH
@@ -66,7 +64,6 @@ typedef struct Undo {
 	int capture = EMPTY;
 	int enPas = 0;
 	int fiftyMove = 0;
-	int eval = 0;
 	PosKey posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
@@ -109,6 +106,7 @@ typedef struct Stack {
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
+	int eval[MAXGAMEMOVES + MAXDEPTH] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
