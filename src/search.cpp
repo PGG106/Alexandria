@@ -659,7 +659,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	S_Board* pos = &td->pos;
 	S_Stack* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
-
+	bool in_check = IsInCheck(pos, pos->side);
 	// Initialize the node
 	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
@@ -683,7 +683,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 
 	//If we reached maxdepth we return a static evaluation of the position
 	if (pos->ply > MAXDEPTH - 1) {
-		return EvalPosition(pos);
+		return in_check ? 0 : EvalPosition(pos);
 	}
 
 	//Get a static evaluation of the position
