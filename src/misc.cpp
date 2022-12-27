@@ -36,7 +36,7 @@ const char* getfield(char* line, int num) {
 	return NULL;
 }
 
-void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* options) {
+void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const  S_UciOptions* options) {
 
 	//This handles the basic console output
 	uint64_t  time = GetTimeMs() - td->info.starttime;

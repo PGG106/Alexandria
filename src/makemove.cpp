@@ -33,13 +33,13 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-	nnue.clear(pos->accumulator,piece, sq);
+	nnue.clear(pos->accumulator, piece, sq);
 	ClearPiece(piece, sq, pos);
 }
 
 //Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-	nnue.add(pos->accumulator,piece, to);
+	nnue.add(pos->accumulator, piece, to);
 	AddPiece(piece, to, pos);
 }
 
@@ -51,13 +51,13 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 //Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-	nnue.move(pos->accumulator,piece, from, to);
+	nnue.move(pos->accumulator, piece, from, to);
 	MovePiece(piece, from, to, pos);
 }
 
 
 // make move on chess board
-int make_move(int move, S_Board* pos) {
+int make_move(const int move, S_Board* pos) {
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -184,7 +184,7 @@ int make_move(int move, S_Board* pos) {
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information)
-int make_move_light(int move, S_Board* pos) {
+int make_move_light(const int move, S_Board* pos) {
 
 	// parse move
 	int source_square = From(move);
@@ -424,38 +424,38 @@ void TakeNullMove(S_Board* pos) {
 	pos->posKey = pos->history[pos->hisPly].posKey;
 }
 
-PosKey KeyAfterMove(const S_Board* pos, PosKey OldKey, int move) {
+PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = get_move_piece(move);
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);
-
+	PosKey newKey = OldKey;
 	// handling capture moves
 	if (capture) {
 		int piececap = pos->pieces[target_square];
-		(OldKey ^= (PieceKeys[(piececap)][(target_square)]));
+		(newKey ^= (PieceKeys[(piececap)][(target_square)]));
 	}
 
 	// move piece
-	(OldKey ^= (PieceKeys[(piece)][(source_square)]));
-	(OldKey ^= (PieceKeys[(piece)][(target_square)]));
+	(newKey ^= (PieceKeys[(piece)][(source_square)]));
+	(newKey ^= (PieceKeys[(piece)][(target_square)]));
 
 	// handle pawn promotions
 	if (promoted_piece) {
 		if (pos->side == WHITE)
-			(OldKey ^= (PieceKeys[(WP)][(target_square)]));
+			(newKey ^= (PieceKeys[(WP)][(target_square)]));
 
 		else
-			(OldKey ^= (PieceKeys[(BP)][(target_square)]));
+			(newKey ^= (PieceKeys[(BP)][(target_square)]));
 
 		// set up promoted piece on chess board
-		(OldKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
+		(newKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
 	}
 
 	// change side
-	(OldKey ^= (SideKey));
+	(newKey ^= (SideKey));
 
 	return OldKey;
 }

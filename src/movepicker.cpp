@@ -1,6 +1,6 @@
 #include "movepicker.h"
 
-void pick_move(S_MOVELIST* move_list, int moveNum) {
+void pick_move(S_MOVELIST* move_list, const int moveNum) {
 	S_MOVE temp;
 	int index = 0;
 	int bestScore = 0;

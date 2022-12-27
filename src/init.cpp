@@ -85,7 +85,7 @@ void init_leapers_attacks() {
 }
 
 // init slider piece's attack tables
-void init_sliders_attacks(int bishop) {
+void init_sliders_attacks(const int slider) {
 	// loop over 64 board squares
 	for (int square = 0; square < Board_sq_num; square++) {
 		// init bishop & rook masks
@@ -294,7 +294,7 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	void stopHelperThreads();
 
 	threads_data.clear();
-	
+
 	// call parse position function
 	parse_position((char*)"position startpos", pos);
 

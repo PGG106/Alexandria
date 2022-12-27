@@ -1,7 +1,4 @@
 #pragma once
-#ifndef NDEBUG
-#define NDEBUG
-#endif
 #include <cassert>
 #include <cctype>
 
@@ -158,23 +155,23 @@ void Reset_info(S_SearchINFO* info);
 //Pieces info retrival
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, int piecetype, int color);
+Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const  int color);
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceBB(const S_Board* pos, int piecetype);
+Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
 //Return a piece based on the type and the color 
-int GetPiece(int piecetype, int color);
+int GetPiece(const int piecetype, const int color);
 //Returns the piece_type of a piece
-int GetPieceType(int piece);
+int GetPieceType(const int piece);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
-bool BoardHasNonPawns(S_Board* pos, int side);
+bool BoardHasNonPawns(const S_Board* pos, const int side);
 //Get on what square of the board the king of color c resides
-int KingSQ(S_Board* pos, int c);
+int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
-bool IsInCheck(S_Board* pos, int side);
-int PieceOn(const S_Board* pos, int square);
+bool IsInCheck(const S_Board* pos, const int side);
+int PieceOn(const S_Board* pos, const int square);
 //Occupancy info retrieval
 Bitboard Us(const S_Board* pos);
 Bitboard Enemy(const S_Board* pos);
-Bitboard Occupancy(const S_Board* pos, int side);
+Bitboard Occupancy(const S_Board* pos, const int side);
 
 

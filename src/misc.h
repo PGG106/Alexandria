@@ -17,8 +17,7 @@
 
 int GetTimeMs();
 
-void PrintUciOutput(int score, int depth, S_ThreadData* td, S_UciOptions* options);
+void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
 
-const char *getfield(char *line, int num);
+const char* getfield(char* line, int num);
 
-void runtestpositions(FILE *file, int depth);
