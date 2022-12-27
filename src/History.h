@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 //Update the history heuristics of all the quiet moves passed to the function
-void updateHH(S_Board* pos, S_Stack* ss, int depth, int bestmove, S_MOVELIST* quiet_moves);
+void updateHH(const S_Board* pos, S_Stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves);
 
 //Returns the history score of a move
-int getHHScore(S_Board* pos, S_Stack* ss, int  move);
+int getHHScore(const S_Board* pos, const S_Stack* ss, const int  move);

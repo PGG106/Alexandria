@@ -10,49 +10,36 @@
 #ifdef _WIN32
 #include "windows.h"
 #endif
+#include <iostream>
 
-S_HASHTABLE HashTable[1];
+S_HashTable HashTable[1];
 
-void ClearHashTable(S_HASHTABLE* table) {
-	S_HASHENTRY* tableEntry;
-
-	for (tableEntry = table->pTable;
-		tableEntry < table->pTable + table->numEntries; tableEntry++) {
-		tableEntry->tt_key = 0ULL;
-		tableEntry->move = NOMOVE;
-		tableEntry->depth = 0;
-		tableEntry->score = 0;
-		tableEntry->flags = 0;
-	}
+void ClearHashTable(S_HashTable* table) {
+	std::fill(table->pTable.begin(), table->pTable.end(), S_HashEntry());
 }
 
-void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
+void InitHashTable(S_HashTable* table, uint64_t MB) {
 	uint64_t HashSize = 0x100000 * MB;
-	table->numEntries = (HashSize / sizeof(S_HASHENTRY));
-	table->numEntries -= 2;
-	if (table->pTable != NULL)
-		free(table->pTable);
-	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
+	uint64_t numEntries = (HashSize / sizeof(S_HashEntry)) - 2;
+	table->pTable.resize(numEntries);
 	ClearHashTable(table);
-
-	printf( "HashTable init complete with %lld entries\n", table->numEntries);
+	std::cout << "HashTable init complete with " << numEntries << " entries\n";
 }
 
-bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
-	S_HASHENTRY* tte) {
+bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 	uint64_t index = Index(pos->posKey);
 
-	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
+	*tte = HashTable->pTable[index];
 
 	if (tte->score > ISMATE)
 		tte->score -= pos->ply;
 	else if (tte->score < -ISMATE)
 		tte->score += pos->ply;
 
-	return (HashTable->pTable[index].tt_key == (TTKey)pos->posKey);
+	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
-void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
+void StoreHashEntry(const S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv) {
 	uint64_t index = Index(pos->posKey);
 
@@ -63,44 +50,35 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move != NOMOVE || (TTKey)pos->posKey != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
-		(TTKey)pos->posKey != HashTable->pTable[index].tt_key ||
+		static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key ||
 		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
 	{
-		HashTable->pTable[index].tt_key = (TTKey)pos->posKey;
-		HashTable->pTable[index].flags = (uint8_t)flags;
-		HashTable->pTable[index].score = (int16_t)score;
-		HashTable->pTable[index].depth = (uint8_t)depth;
+		HashTable->pTable[index].tt_key = static_cast<TTKey>(pos->posKey);
+		HashTable->pTable[index].flags = static_cast<uint8_t>(flags);
+		HashTable->pTable[index].score = static_cast<int16_t>(score);
+		HashTable->pTable[index].depth = static_cast<uint8_t>(depth);
 	}
 }
 
-int ProbePvMove(S_Board* pos) {
-	uint64_t index = Index(pos->posKey);
-	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	if (HashTable->pTable[index].tt_key == (TTKey)pos->posKey) {
-		return HashTable->pTable[index].move;
-	}
-	return NOMOVE;
-}
+uint64_t Index(const PosKey posKey) {
+	return  (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 32;
 
-uint64_t Index(PosKey posKey) {
-	return  ((uint32_t)posKey * (uint64_t)(HashTable->numEntries)) >> 32;
-
-}
-
-void TTPrefetch(PosKey posKey) {
-	prefetch(&HashTable->pTable[Index(posKey)]);
 }
 
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
-void prefetch(void* addr) {
+void prefetch(const void* addr) {
 #  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 	_mm_prefetch((char*)addr, _MM_HINT_T0);
 #  else
 	__builtin_prefetch(addr);
 #  endif
+}
+
+void TTPrefetch(const PosKey posKey) {
+	prefetch(&HashTable->pTable[Index(posKey)]);
 }

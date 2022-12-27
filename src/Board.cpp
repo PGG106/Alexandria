@@ -151,7 +151,7 @@ void ResetBoard(S_Board* pos) {
 	pos->checks = 0;
 
 	// set default nnue values
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
+	for (size_t i = 0; i < HIDDEN_BIAS; i++) {
 		pos->accumulator[i] = nnue.hiddenBias[i];
 	}
 }
@@ -169,7 +169,7 @@ void Reset_info(S_SearchINFO* info) {
 }
 
 int square_distance(int a, int b) {
-	return fmax(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
+	return std::max(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
 }
 
 // parse FEN string
@@ -344,38 +344,38 @@ void accumulate(const S_Board* pos) {
 //Function to get the bitboard of a certain piece
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, int piecetype, int color) {
+Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const int color) {
 	return pos->bitboards[piecetype + color * 6];
 }
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceBB(const S_Board* pos, int piecetype) {
+Bitboard GetPieceBB(const S_Board* pos, const  int piecetype) {
 	return GetPieceColorBB(pos, piecetype, WHITE) | GetPieceColorBB(pos, piecetype, BLACK);
 }
 //Return a piece based on the type and the color 
-int GetPiece(int piecetype, int color) {
+int GetPiece(const int piecetype, const int color) {
 	return piecetype + 6 * color;
 }
 
 //Return a piece based on the type and the color 
-int GetPieceType(int piece) {
+int GetPieceType(const int piece) {
 	return PieceType[piece];
 }
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
-bool BoardHasNonPawns(S_Board* pos, int side) {
-	return (Occupancy(pos,side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
+bool BoardHasNonPawns(const S_Board* pos, const int side) {
+	return (Occupancy(pos, side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
 }
 
 //Get on what square of the board the king of color c resides
-int KingSQ(S_Board* pos, int c) {
+int KingSQ(const S_Board* pos, const int c) {
 	return (get_ls1b_index(GetPieceColorBB(pos, KING, c)));
 }
 
-bool IsInCheck(S_Board* pos, int side) {
-	return is_square_attacked(pos, KingSQ(pos, pos->side), pos->side ^ 1);
+bool IsInCheck(const S_Board* pos, const int side) {
+	return is_square_attacked(pos, KingSQ(pos, side), side ^ 1);
 }
 
-int PieceOn(const S_Board* pos, int square)
+int PieceOn(const S_Board* pos, const int square)
 {
 	return pos->pieces[square];
 }
@@ -385,7 +385,7 @@ Bitboard Us(const S_Board* pos) {
 }
 
 Bitboard Enemy(const S_Board* pos) {
-	return pos->occupancies[pos->side^1];
+	return pos->occupancies[pos->side ^ 1];
 }
 
 Bitboard Occupancy(const S_Board* pos, int side) {

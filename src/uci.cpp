@@ -232,14 +232,20 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	info->starttime = GetTimeMs();
 	info->depth = depth;
 	//calculate time allocation for the move
-	optimum(pos, info, time, inc);
+	optimum(info, time, inc);
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
 	}
 
-	printf("time:%d start:%d stopOpt:%d stopMax:%d depth:%d timeset:%d nodeset:%d\n", time,
-		info->starttime, info->stoptimeOpt, info->stoptimeMax, info->depth, info->timeset, info->nodeset);
+	std::cout << "time: " << time << " ";
+	std::cout << "start: " << info->starttime << " ";
+	std::cout << "stopOpt: " << info->stoptimeOpt << " ";
+	std::cout << "stopMax: " << info->stoptimeMax << " ";
+	std::cout << "depth: " << info->depth << " ";
+	std::cout << "timeset: " << info->timeset << " ";
+	std::cout << "nodeset: " << info->nodeset << "\n";
+
 }
 
 /*
@@ -312,7 +318,7 @@ void Uci_Loop(char** argv) {
 
 			if (!parsed_position) // call parse position function
 			{
-				parse_position((char*)"position startpos", &td->pos);
+				parse_position("position startpos", &td->pos);
 			}
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
@@ -360,8 +366,8 @@ void Uci_Loop(char** argv) {
 		}
 
 		else if (!strncmp(input, "setoption name Hash value ", 26)) {
-			sscanf(input, "%*s %*s %*s %*s %llu", &uci_options->Hash);
-			printf("Set Hash to %llu MB\n", uci_options->Hash);
+			sscanf(input, "%*s %*s %*s %*s %lu", &uci_options->Hash);
+			std::cout << "Set Hash to" << uci_options->Hash << " MB";
 			InitHashTable(HashTable, uci_options->Hash);
 		}
 		else if (!strncmp(input, "setoption name Threads value ", 29)) {

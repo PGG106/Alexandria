@@ -8,6 +8,6 @@ extern std::vector<std::thread> threads;
 // global vector of thread_datas
 extern std::vector<S_ThreadData> threads_data;
 
-uint64_t getTotalNodes(int threadcount);
+uint64_t getTotalNodes(const int threadcount);
 void stopHelperThreads();
 

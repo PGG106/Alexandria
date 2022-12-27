@@ -63,8 +63,8 @@ int start_bench() {
 	init_all();
 	S_UciOptions uci_options[1];
 	S_ThreadData td[1];
-	int total_nodes = 0;
-	int total_time = 0;
+	uint64_t total_nodes = 0;
+	long total_time = 0;
 	InitHashTable(HashTable, 64);
 	setvbuf(stdin, NULL, _IONBF, 0);
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -82,6 +82,6 @@ int start_bench() {
 
 	std::cout << "\n"
 		<< total_nodes << " nodes "
-		<< total_nodes / ((total_time / 1000) + 1) << " nps " << std::endl;
+		<< total_nodes / static_cast<uint64_t>(((total_time / 1000) + 1)) << " nps " << std::endl;
 	return 0;
 }

@@ -1,7 +1,4 @@
 #pragma once
-#ifndef NDEBUG
-#define NDEBUG
-#endif
 #include <cassert>
 #include <cctype>
 
@@ -69,7 +66,8 @@ typedef struct Undo {
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
-typedef struct Board {
+struct S_Board {
+public:
 	int pieces[Board_sq_num]; // array that stores for every square of the board
 	// if there's a piece, or if the square is invalid
 
@@ -91,12 +89,12 @@ typedef struct Board {
 	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
 	Bitboard occupancies[3];
-	NNUE::accumulator accumulator;
+	NNUE::accumulator accumulator={};
 	//Previous values of the nnue accumulators. always empty at the start of search
-	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
 
 	int checks = -1;
-} S_Board;
+};
 
 
 typedef struct Stack {
@@ -112,20 +110,21 @@ typedef struct Stack {
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int starttime = 0;
-	int stoptimeOpt = 0;
-	int stoptimeMax = 0;
+	long starttime = 0;
+	long stoptimeOpt = 0;
+	long stoptimeMax = 0;
 	int depth = -1;
 	int seldepth = -1;
 	bool timeset = false;
 	bool nodeset = false;
 	int movestogo = -1;
-	int nodeslimit = -1;
+	uint64_t nodes = 0;
+	uint64_t nodeslimit = 0;
 	bool infinite = false;
 
 	bool stopped = false;
 
-	long nodes = 0;
+
 } S_SearchINFO;
 
 // castling rights update constants
@@ -158,23 +157,23 @@ void Reset_info(S_SearchINFO* info);
 //Pieces info retrival
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, int piecetype, int color);
+Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const  int color);
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceBB(const S_Board* pos, int piecetype);
+Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
 //Return a piece based on the type and the color 
-int GetPiece(int piecetype, int color);
+int GetPiece(const int piecetype, const int color);
 //Returns the piece_type of a piece
-int GetPieceType(int piece);
+int GetPieceType(const int piece);
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
-bool BoardHasNonPawns(S_Board* pos, int side);
+bool BoardHasNonPawns(const S_Board* pos, const int side);
 //Get on what square of the board the king of color c resides
-int KingSQ(S_Board* pos, int c);
+int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
-bool IsInCheck(S_Board* pos, int side);
-int PieceOn(const S_Board* pos, int square);
+bool IsInCheck(const S_Board* pos, const int side);
+int PieceOn(const S_Board* pos, const int square);
 //Occupancy info retrieval
 Bitboard Us(const S_Board* pos);
 Bitboard Enemy(const S_Board* pos);
-Bitboard Occupancy(const S_Board* pos, int side);
+Bitboard Occupancy(const S_Board* pos, const int side);
 
 

@@ -229,7 +229,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int  getBestMove(S_Stack* ss) {
+int  getBestMove(const S_Stack* ss) {
 	return ss->pvArray[0][0];
 }
 
@@ -356,7 +356,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	int eval, static_eval;
 	bool improving;
 	int Score = -MAXSCORE;
-	S_HASHENTRY tte;
+	S_HashEntry tte;
 	int pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
 	int excludedMove = ss->excludedMoves[pos->ply];
@@ -401,7 +401,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		}
 	}
 
-	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
 	//If we found a value in the TT we can return it
 	if (!pv_node
 		&& ttHit
@@ -663,7 +663,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	// Initialize the node
 	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
-	S_HASHENTRY tte;
+	S_HashEntry tte;
 	bool TThit = false;
 	int standing_pat = 0;
 
@@ -694,7 +694,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	if (standing_pat >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
-	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
+	TThit = ProbeHashEntry(pos, &tte);
 
 	//If we found a value in the TT we can return it
 	if (!pv_node && TThit) {

@@ -11,10 +11,10 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info);
 void init_leapers_attacks();
 
 // init slider piece's attack tables
-void init_sliders_attacks(int bishop);
+void init_sliders_attacks(const int bishop);
 
 void init_all();
 
-Bitboard DoCheckmask(S_Board *pos, int color, int sq);
+Bitboard DoCheckmask(S_Board* pos, int color, int sq);
 
-void DoPinMask(S_Board *pos, int color, int sq);
+void DoPinMask(S_Board* pos, int color, int sq);
