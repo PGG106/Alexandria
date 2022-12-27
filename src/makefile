@@ -3,7 +3,8 @@ _ROOT     := $(_THIS)
 EVALFILE   = $(_ROOT)/nn.net
 CXX       := g++
 TARGET    := Alexandria
-CXXFLAGS  := -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -DNDEBUG
+CXXFLAGS  :=  -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
+-Wlogical-op -Wsign-conversion -Wunused -Wold-style-cast -Wundef -Wconversion -DNDEBUG
 NATIVE     = -march=native
 
 # engine name
