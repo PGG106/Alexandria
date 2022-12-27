@@ -38,7 +38,7 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	printf( "HashTable init complete with %lld entries\n", table->numEntries);
 }
 
-bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
+bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const int depth,
 	S_HASHENTRY* tte) {
 	uint64_t index = Index(pos->posKey);
 
@@ -52,7 +52,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 	return (HashTable->pTable[index].tt_key == (TTKey)pos->posKey);
 }
 
-void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
+void StoreHashEntry(const S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv) {
 	uint64_t index = Index(pos->posKey);
 
@@ -78,29 +78,20 @@ void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
 	}
 }
 
-int ProbePvMove(S_Board* pos) {
-	uint64_t index = Index(pos->posKey);
-	assert(index >= 0 && index <= HashTable->numEntries - 1);
-	if (HashTable->pTable[index].tt_key == (TTKey)pos->posKey) {
-		return HashTable->pTable[index].move;
-	}
-	return NOMOVE;
-}
-
-uint64_t Index(PosKey posKey) {
+uint64_t Index(const PosKey posKey) {
 	return  ((uint32_t)posKey * (uint64_t)(HashTable->numEntries)) >> 32;
 
 }
 
-void TTPrefetch(PosKey posKey) {
-	prefetch(&HashTable->pTable[Index(posKey)]);
-}
-
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
-void prefetch(void* addr) {
+void prefetch(const void* addr) {
 #  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 	_mm_prefetch((char*)addr, _MM_HINT_T0);
 #  else
 	__builtin_prefetch(addr);
 #  endif
+}
+
+void TTPrefetch(const PosKey posKey) {
+	prefetch(&HashTable->pTable[Index(posKey)]);
 }

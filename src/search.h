@@ -24,7 +24,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td);
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td);
 
-int getBestMove(S_Stack* ss);
+int getBestMove(const S_Stack* ss);
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);

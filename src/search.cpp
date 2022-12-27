@@ -229,7 +229,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int  getBestMove(S_Stack* ss) {
+int  getBestMove(const S_Stack* ss) {
 	return ss->pvArray[0][0];
 }
 

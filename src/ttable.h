@@ -22,7 +22,7 @@ void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
 void InitHashTable(S_HASHTABLE* table, uint64_t MB);
 
-bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
+bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const int depth,
 	S_HASHENTRY* tte);
 /// <summary>
 /// Store a move in the TT
@@ -33,9 +33,7 @@ bool ProbeHashEntry(S_Board* pos, int alpha, int beta, int depth,
 /// <param name="flags">a flag that represents if the score is exact or an alpha/beta bound</param>
 /// <param name="depth"><The depth we've searched the move at/param>
 /// <param name="pv">if the node we've found the move in was or not a pv node</param>
-void StoreHashEntry(S_Board* pos, const int move, int score, const int flags,
+void StoreHashEntry(const S_Board* pos, const int move, int score, const int flags,
 	const int depth, const bool pv);
-int ProbePvMove(S_Board* pos);
-uint64_t Index(PosKey posKey);
-void prefetch(void* addr);
-void TTPrefetch(PosKey posKey);
+uint64_t Index(const PosKey posKey);
+void TTPrefetch(const PosKey posKey);

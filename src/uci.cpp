@@ -232,7 +232,7 @@ void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
 	info->starttime = GetTimeMs();
 	info->depth = depth;
 	//calculate time allocation for the move
-	optimum(pos, info, time, inc);
+	optimum(info, time, inc);
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
