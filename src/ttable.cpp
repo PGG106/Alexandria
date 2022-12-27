@@ -12,10 +12,10 @@
 #endif
 #include <iostream>
 
-S_HASHTABLE HashTable[1];
+S_HashTable HashTable[1];
 
-void ClearHashTable(S_HASHTABLE* table) {
-	S_HASHENTRY* tableEntry;
+void ClearHashTable(S_HashTable* table) {
+	S_HashEntry* tableEntry;
 
 	for (tableEntry = table->pTable;
 		tableEntry < table->pTable + table->numEntries; tableEntry++) {
@@ -27,21 +27,21 @@ void ClearHashTable(S_HASHTABLE* table) {
 	}
 }
 
-void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
+void InitHashTable(S_HashTable* table, uint64_t MB) {
 	uint64_t HashSize = 0x100000 * MB;
-	table->numEntries = (HashSize / sizeof(S_HASHENTRY));
+	table->numEntries = (HashSize / sizeof(S_HashEntry));
 	table->numEntries -= 2;
 	if (table->pTable != NULL)
 		free(table->pTable);
-	table->pTable = static_cast<S_HASHENTRY*>(malloc(table->numEntries * sizeof(S_HASHENTRY)));
+	table->pTable = static_cast<S_HashEntry*>(malloc(table->numEntries * sizeof(S_HashEntry)));
 	ClearHashTable(table);
 	std::cout << "HashTable init complete with " << table->numEntries << " entries\n";
 }
 
-bool ProbeHashEntry(const S_Board* pos, S_HASHENTRY* tte) {
+bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 	uint64_t index = Index(pos->posKey);
 
-	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
+	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HashEntry));
 
 	if (tte->score > ISMATE)
 		tte->score -= pos->ply;

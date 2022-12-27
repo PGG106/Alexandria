@@ -356,7 +356,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	int eval, static_eval;
 	bool improving;
 	int Score = -MAXSCORE;
-	S_HASHENTRY tte;
+	S_HashEntry tte;
 	int pv_node = (beta - alpha) > 1;
 	bool SkipQuiets = false;
 	int excludedMove = ss->excludedMoves[pos->ply];
@@ -663,7 +663,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	// Initialize the node
 	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
-	S_HASHENTRY tte;
+	S_HashEntry tte;
 	bool TThit = false;
 	int standing_pat = 0;
 
