@@ -85,7 +85,7 @@ void init_leapers_attacks() {
 }
 
 // init slider piece's attack tables
-void init_sliders_attacks(const int slider) {
+void init_sliders_attacks(const int bishop) {
 	// loop over 64 board squares
 	for (int square = 0; square < Board_sq_num; square++) {
 		// init bishop & rook masks
