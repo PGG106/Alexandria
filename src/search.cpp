@@ -401,7 +401,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		}
 	}
 
-	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, alpha, beta, depth, &tte);
+	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
 	//If we found a value in the TT we can return it
 	if (!pv_node
 		&& ttHit
@@ -694,7 +694,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	if (standing_pat >= beta) return standing_pat;
 
 	//TThit is true if and only if we find something in the TT
-	TThit = ProbeHashEntry(pos, alpha, beta, 0, &tte);
+	TThit = ProbeHashEntry(pos, &tte);
 
 	//If we found a value in the TT we can return it
 	if (!pv_node && TThit) {

@@ -66,7 +66,8 @@ typedef struct Undo {
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
-typedef struct Board {
+struct S_Board {
+public:
 	int pieces[Board_sq_num]; // array that stores for every square of the board
 	// if there's a piece, or if the square is invalid
 
@@ -88,12 +89,12 @@ typedef struct Board {
 	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
 	Bitboard occupancies[3];
-	NNUE::accumulator accumulator;
+	NNUE::accumulator accumulator={};
 	//Previous values of the nnue accumulators. always empty at the start of search
-	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack;
+	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
 
 	int checks = -1;
-} S_Board;
+};
 
 
 typedef struct Stack {
@@ -117,12 +118,13 @@ typedef struct info {
 	bool timeset = false;
 	bool nodeset = false;
 	int movestogo = -1;
-	int nodeslimit = -1;
+	uint64_t nodes = 0;
+	uint64_t nodeslimit = 0;
 	bool infinite = false;
 
 	bool stopped = false;
 
-	uint64_t nodes = 0;
+
 } S_SearchINFO;
 
 // castling rights update constants

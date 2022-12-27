@@ -22,8 +22,7 @@ void ClearHashTable(S_HASHTABLE* table);
 //Initialize an Hashtable of size MB
 void InitHashTable(S_HASHTABLE* table, uint64_t MB);
 
-bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const int depth,
-	S_HASHENTRY* tte);
+bool ProbeHashEntry(const S_Board* pos, S_HASHENTRY* tte);
 /// <summary>
 /// Store a move in the TT
 /// </summary>

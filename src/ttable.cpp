@@ -10,6 +10,7 @@
 #ifdef _WIN32
 #include "windows.h"
 #endif
+#include <iostream>
 
 S_HASHTABLE HashTable[1];
 
@@ -32,14 +33,12 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	table->numEntries -= 2;
 	if (table->pTable != NULL)
 		free(table->pTable);
-	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
+	table->pTable = static_cast<S_HASHENTRY*>(malloc(table->numEntries * sizeof(S_HASHENTRY)));
 	ClearHashTable(table);
-
-	printf("HashTable init complete with %lld entries\n", table->numEntries);
+	std::cout << "HashTable init complete with " << table->numEntries << " entries\n";
 }
 
-bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const int depth,
-	S_HASHENTRY* tte) {
+bool ProbeHashEntry(const S_Board* pos, S_HASHENTRY* tte) {
 	uint64_t index = Index(pos->posKey);
 
 	std::memcpy(tte, &HashTable->pTable[index], sizeof(S_HASHENTRY));
@@ -49,7 +48,7 @@ bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const i
 	else if (tte->score < -ISMATE)
 		tte->score += pos->ply;
 
-	return (HashTable->pTable[index].tt_key == (TTKey)pos->posKey);
+	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
 void StoreHashEntry(const S_Board* pos, const int move, int score, const int flags,
@@ -63,12 +62,12 @@ void StoreHashEntry(const S_Board* pos, const int move, int score, const int fla
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move != NOMOVE || (TTKey)pos->posKey != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
-		(TTKey)pos->posKey != HashTable->pTable[index].tt_key ||
+		static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key ||
 		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
 	{
 		HashTable->pTable[index].tt_key = static_cast<TTKey>(pos->posKey);
