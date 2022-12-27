@@ -25,6 +25,5 @@ int main([[maybe_unused]] int argc, char** argv) {
 	// connect to the GUI
 	Uci_Loop(argv);
 
-	free(HashTable->pTable);
 	return 0;
 }

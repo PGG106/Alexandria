@@ -1,6 +1,7 @@
 #pragma once
 #include "Board.h"
 #include "stdlib.h"
+#include <memory>
 
 PACK(struct S_HashEntry {
 	int32_t move = NOMOVE;
@@ -11,8 +12,7 @@ PACK(struct S_HashEntry {
 });
 
 struct S_HashTable {
-	S_HashEntry* pTable;
-	uint64_t numEntries = 0;
+	std::vector<S_HashEntry> pTable;
 };
 
 extern S_HashTable HashTable[1];
