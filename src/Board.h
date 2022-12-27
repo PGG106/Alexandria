@@ -109,9 +109,9 @@ typedef struct Stack {
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 
 typedef struct info {
-	int starttime = 0;
-	int stoptimeOpt = 0;
-	int stoptimeMax = 0;
+	long starttime = 0;
+	long stoptimeOpt = 0;
+	long stoptimeMax = 0;
 	int depth = -1;
 	int seldepth = -1;
 	bool timeset = false;
@@ -122,7 +122,7 @@ typedef struct info {
 
 	bool stopped = false;
 
-	long nodes = 0;
+	uint64_t nodes = 0;
 } S_SearchINFO;
 
 // castling rights update constants

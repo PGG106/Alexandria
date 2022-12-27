@@ -15,7 +15,7 @@
 #include "unistd.h"
 #endif
 
-int GetTimeMs();
+long GetTimeMs();
 
 void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
 

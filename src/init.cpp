@@ -110,7 +110,7 @@ void init_sliders_attacks(const int bishop) {
 					set_occupancy(index, relevant_bits_count, attack_mask);
 
 				// init magic index
-				int magic_index = (occupancy * bishop_magic_numbers[square]) >>
+				uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >>
 					(64 - bishop_relevant_bits[square]);
 
 				// init bishop attacks
@@ -125,7 +125,7 @@ void init_sliders_attacks(const int bishop) {
 					set_occupancy(index, relevant_bits_count, attack_mask);
 
 				// init magic index
-				int magic_index = (occupancy * rook_magic_numbers[square]) >>
+				uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
 					(64 - rook_relevant_bits[square]);
 
 				// init rook attacks
@@ -180,7 +180,7 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 		if (count_bits(bishop_mask) > 1)
 			pos->checks++;
 
-		int8_t index = get_ls1b_index(bishop_mask);
+		int index = get_ls1b_index(bishop_mask);
 		checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
 		pos->checks++;
 	}
@@ -188,7 +188,7 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 		if (count_bits(rook_mask) > 1)
 			pos->checks++;
 
-		int8_t index = get_ls1b_index(rook_mask);
+		int index = get_ls1b_index(rook_mask);
 		checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
 		pos->checks++;
 	}
@@ -229,7 +229,7 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 //PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
 	for (int i = 0; i < MAXDEPTH; i++) {
-		reductions[i] = log(i);
+		reductions[i] = static_cast<int>(log(i));
 	}
 }
 
@@ -296,6 +296,6 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	threads_data.clear();
 
 	// call parse position function
-	parse_position((char*)"position startpos", pos);
+	parse_position("position startpos", pos);
 
 }

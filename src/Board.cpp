@@ -151,7 +151,7 @@ void ResetBoard(S_Board* pos) {
 	pos->checks = 0;
 
 	// set default nnue values
-	for (int i = 0; i < HIDDEN_BIAS; i++) {
+	for (size_t i = 0; i < HIDDEN_BIAS; i++) {
 		pos->accumulator[i] = nnue.hiddenBias[i];
 	}
 }
@@ -169,7 +169,7 @@ void Reset_info(S_SearchINFO* info) {
 }
 
 int square_distance(int a, int b) {
-	return fmax(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
+	return std::max(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
 }
 
 // parse FEN string
@@ -372,7 +372,7 @@ int KingSQ(const S_Board* pos, const int c) {
 }
 
 bool IsInCheck(const S_Board* pos, const int side) {
-	return is_square_attacked(pos, KingSQ(pos, pos->side), pos->side ^ 1);
+	return is_square_attacked(pos, KingSQ(pos, side), side ^ 1);
 }
 
 int PieceOn(const S_Board* pos, const int square)

@@ -15,7 +15,7 @@ enum line_type {
 	moves
 
 };
-void make_random_move(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+void make_random_move(S_Board* pos) {
 
 	S_MOVELIST move_list[1];
 

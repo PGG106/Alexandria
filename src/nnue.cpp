@@ -4,6 +4,7 @@
 #include <cstring>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
 #include "incbin/incbin.h"
+#include <iostream>
 #if !defined(_MSC_VER)
 INCBIN(EVAL, EVALFILE);
 #else
@@ -19,22 +20,30 @@ int NNUE::relu(int x) { return std::max(0, x); }
 
 void NNUE::init(const char* file) {
 	// initialize an accumulator for every input of the second layer
-
+	size_t read = 0;
+	size_t fileSize = INPUT_WEIGHTS * HIDDEN_WEIGHTS + HIDDEN_BIAS + HIDDEN_WEIGHTS + OUTPUT_BIAS;
 	// open the nn file
 	FILE* nn = fopen(file, "rb");
 
 	// if it's not invalid read the config values from it
 	if (nn) {
-		fread(inputWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_WEIGHTS, nn);
-		fread(hiddenBias, sizeof(int16_t), HIDDEN_BIAS, nn);
-		fread(hiddenWeights, sizeof(int16_t), HIDDEN_WEIGHTS, nn);
-		fread(outputBias, sizeof(int32_t), OUTPUT_BIAS, nn);
+		read += fread(inputWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_WEIGHTS, nn);
+		read += fread(hiddenBias, sizeof(int16_t), HIDDEN_BIAS, nn);
+		read += fread(hiddenWeights, sizeof(int16_t), HIDDEN_WEIGHTS, nn);
+		read += fread(outputBias, sizeof(int32_t), OUTPUT_BIAS, nn);
+
+		if (read != fileSize)
+		{
+			std::cout << "Error loading the net, aborting ";
+			exit(1);
+		}
+
 		// after reading the config we can close the file
 		fclose(nn);
 	}
 	else {
 		//if we don't find the nnue file we use the net embedded in the exe
-		int memoryIndex = 0;
+		uint64_t memoryIndex = 0;
 		std::memcpy(inputWeights, &gEVALData[memoryIndex],
 			INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t));
 		memoryIndex += INPUT_WEIGHTS * HIDDEN_WEIGHTS * sizeof(int16_t);
@@ -50,44 +59,44 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::add(NNUE::accumulator& accumulator,int piece, int to) {
+void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
 	int piecetype = GetPieceType(piece);
 	int inputNum = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
+		board_accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::clear(NNUE::accumulator& accumulator,int piece, int from) {
+void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
 	int piecetype = GetPieceType(piece);
 	int inputNum = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
+		board_accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::move(NNUE::accumulator& accumulator,int piece, int from, int to) {
+void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) {
 	int piecetype = GetPieceType(piece);
 	int inputNumFrom = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	int inputNumTo = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] = accumulator[i] - inputWeights[inputNumFrom * HIDDEN_BIAS + i] + inputWeights[inputNumTo * HIDDEN_BIAS + i];
+		board_accumulator[i] = board_accumulator[i] - inputWeights[inputNumFrom * HIDDEN_BIAS + i] + inputWeights[inputNumTo * HIDDEN_BIAS + i];
 	}
 }
 
-int32_t NNUE::output(const NNUE::accumulator& accumulator) {
+int32_t NNUE::output(const NNUE::accumulator& board_accumulator) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
 	int32_t output = 0;
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		output += relu(accumulator[i]) * hiddenWeights[i];
+		output += relu(board_accumulator[i]) * hiddenWeights[i];
 	}
 	output += outputBias[0];
 	return output / (64 * 256);
 }
 
-void NNUE::Clear(NNUE::accumulator& accumulator) {
+void NNUE::Clear(NNUE::accumulator& board_accumulator) {
 	//Reset the accumulators of the nnue
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
-		accumulator[i] = 0;
+		board_accumulator[i] = 0;
 	}
 }

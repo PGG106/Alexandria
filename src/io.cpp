@@ -5,6 +5,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "stdio.h"
+#include <iostream>
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 
@@ -35,7 +36,7 @@ void print_bitboard(const Bitboard bitboard) {
 	printf("\n     a b c d e f g h\n\n");
 
 	// print bitboard as unsigned decimal number
-	printf("     Bitboard: %llud\n\n", bitboard);
+	std::cout << "     Bitboard: " << bitboard << "\n\n";
 }
 
 // print board
@@ -92,7 +93,7 @@ void print_board(const S_Board* pos) {
 
 	printf("     position hisPly: %d\n", pos->hisPly);
 
-	printf("     position key: %llx\n\n", pos->posKey);
+	std::cout << "      position key: " << pos->posKey << "\n\n";
 
 }
 

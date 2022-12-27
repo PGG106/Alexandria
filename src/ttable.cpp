@@ -35,7 +35,7 @@ void InitHashTable(S_HASHTABLE* table, uint64_t MB) {
 	table->pTable = (S_HASHENTRY*)malloc(table->numEntries * sizeof(S_HASHENTRY));
 	ClearHashTable(table);
 
-	printf( "HashTable init complete with %lld entries\n", table->numEntries);
+	printf("HashTable init complete with %lld entries\n", table->numEntries);
 }
 
 bool ProbeHashEntry(const S_Board* pos, const int alpha, const int beta, const int depth,
@@ -71,15 +71,15 @@ void StoreHashEntry(const S_Board* pos, const int move, int score, const int fla
 		(TTKey)pos->posKey != HashTable->pTable[index].tt_key ||
 		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
 	{
-		HashTable->pTable[index].tt_key = (TTKey)pos->posKey;
-		HashTable->pTable[index].flags = (uint8_t)flags;
-		HashTable->pTable[index].score = (int16_t)score;
-		HashTable->pTable[index].depth = (uint8_t)depth;
+		HashTable->pTable[index].tt_key = static_cast<TTKey>(pos->posKey);
+		HashTable->pTable[index].flags = static_cast<uint8_t>(flags);
+		HashTable->pTable[index].score = static_cast<int16_t>(score);
+		HashTable->pTable[index].depth = static_cast<uint8_t>(depth);
 	}
 }
 
 uint64_t Index(const PosKey posKey) {
-	return  ((uint32_t)posKey * (uint64_t)(HashTable->numEntries)) >> 32;
+	return  (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->numEntries)) >> 32;
 
 }
 
