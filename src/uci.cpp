@@ -128,7 +128,7 @@ void parse_position(std::string command, S_Board* pos) {
 	if (command.find("moves") != std::string::npos) {
 		int string_start = command.find("moves") + 6;
 		std::string moves_substr = command.substr(string_start, std::string::npos);
-		parse_moves(moves_substr,pos);
+		parse_moves(moves_substr, pos);
 	}
 }
 
@@ -140,57 +140,61 @@ void parse_position(std::string command, S_Board* pos) {
 */
 
 // parse UCI "go" command
-void parse_go(char* line, S_SearchINFO* info, S_Board* pos) {
+void parse_go(std::string line, S_SearchINFO* info, S_Board* pos) {
 	Reset_info(info);
 	int depth = -1, movetime = -1;
 	int movestogo;
 	int time = -1, inc = 0;
-	char* ptr = NULL;
 
-	if ((ptr = strstr(line, "infinite"))) {
+	std::vector<std::string> tokens = split_command(line);
+	if (tokens[1] == "infinite") {
 		;
 	}
 
-	if ((ptr = strstr(line, "perft"))) {
-		int perft_depth = atoi(ptr + 6);
+	if (tokens[1] == "perft") {
+		int perft_depth = std::stoi(tokens[1]);
 		perft_test(perft_depth, pos);
 		return;
 	}
+	//loop over all the tokens and parse the commands
+	for (int i = 1; i < tokens.size();i++) {
 
-	if ((ptr = strstr(line, "binc")) && pos->side == BLACK) {
-		inc = atoi(ptr + 5);
+		if (tokens[i] == "binc" && pos->side == BLACK) {
+			inc = stoi(tokens[i + 1]);
+		}
+
+		if (tokens[i] == "winc" && pos->side == WHITE) {
+			inc = stoi(tokens[i + 1]);
+		}
+
+		if (tokens[i] == "wtime" && pos->side == WHITE) {
+			time = stoi(tokens[i + 1]);
+		}
+		if (tokens[i] == "btime" && pos->side == BLACK) {
+			time = stoi(tokens[i + 1]);
+		}
+
+		if (tokens[i] == "movestogo") {
+			movestogo = stoi(tokens[i + 1]);
+			if (movestogo > 0)
+				info->movestogo = movestogo;
+		}
+
+		if (tokens[i] == "movetime") {
+			movetime = stoi(tokens[i + 1]);
+		}
+
+
+		if (tokens[i] == "depth") {
+			depth = stoi(tokens[i + 1]);
+		}
+
+		if (tokens[i] == "nodes") {
+			info->nodeset = true;
+			info->nodeslimit = stoi(tokens[i + 1]);
+		}
 	}
 
-	if ((ptr = strstr(line, "winc")) && pos->side == WHITE) {
-		inc = atoi(ptr + 5);
-	}
-
-	if ((ptr = strstr(line, "wtime")) && pos->side == WHITE) {
-		time = atoi(ptr + 6);
-	}
-
-	if ((ptr = strstr(line, "btime")) && pos->side == BLACK) {
-		time = atoi(ptr + 6);
-	}
-
-	if ((ptr = strstr(line, "movestogo"))) {
-		movestogo = atoi(ptr + 10);
-		if (movestogo > 0)
-			info->movestogo = movestogo;
-	}
-
-	if ((ptr = strstr(line, "movetime"))) {
-		movetime = atoi(ptr + 9);
-	}
-
-	if ((ptr = strstr(line, "depth"))) {
-		depth = atoi(ptr + 6);
-	}
-
-	if ((ptr = strstr(line, "nodes"))) {
-		info->nodeset = true;
-		info->nodeslimit = atoi(ptr + 6);
-	}
 
 	if (movetime != -1) {
 		time = movetime;
@@ -263,9 +267,9 @@ void Uci_Loop(char** argv) {
 			parse_position(input, &td->pos);
 			parsed_position = true;
 		}
-		/*
+
 		// parse UCI "go" command
-		else if (input == "go") {
+		else if (tokens[0] == "go") {
 
 			stopHelperThreads();
 
@@ -277,12 +281,13 @@ void Uci_Loop(char** argv) {
 			{
 				parse_position("position startpos", &td->pos);
 			}
+
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
 			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
-		*/
+
 		// parse UCI "isready" command
 		if (input == "isready") {
 			printf("readyok\n");
