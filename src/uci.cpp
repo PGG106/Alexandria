@@ -105,19 +105,17 @@ void parse_position(std::string command, S_Board* pos) {
 
 	// parse UCI "startpos" command
 	if (command.find("startpos") != std::string::npos) {
-		printf("found startpos\n");
 		// init chess board with start position
 		parse_fen(start_position, pos);
 	}
-		
+
 	// parse UCI "fen" command
 	else {
 
 		// if no "fen" command is available within command string
 		if (command.find("fen") != std::string::npos) {
-
 			// init chess board with position from FEN string
-			parse_fen(command, pos);
+			parse_fen(command.substr(command.find("fen") + 4, std::string::npos), pos);
 		}
 		else {
 			// init chess board with start position

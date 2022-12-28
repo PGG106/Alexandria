@@ -188,10 +188,19 @@ void parse_fen(std::string command, S_Board* pos) {
 
 
 	std::string pos_string = tokens[0];
-	std::cout << "pos_String is: " << tokens[0] << std::endl;
 	std::string turn = tokens[1];
 	std::string castle_perm = tokens[2];
 	std::string ep_square = tokens[3];
+	std::string fifty_move = "";
+	std::string HisPly = "";
+	//Keep fifty move and Hisply arguments optional
+	if (tokens.size() >= 5) {
+		fifty_move = tokens[4];
+		if (tokens.size() >= 6) {
+			HisPly = tokens[5];
+		}
+	}
+
 	int fen_counter = 0;
 	for (int rank = 0; rank < 8; rank++) {
 		// loop over board files
@@ -199,8 +208,6 @@ void parse_fen(std::string command, S_Board* pos) {
 			// init current square
 			int square = rank * 8 + file;
 			char current_char = pos_string[fen_counter];
-
-			std::cout << "currently on square " << square << " current char is: " << current_char << "\n";
 
 			// match ascii pieces within FEN string
 			if ((current_char >= 'a' && current_char <= 'z') || (current_char >= 'A' && current_char <= 'Z')) {
@@ -244,14 +251,85 @@ void parse_fen(std::string command, S_Board* pos) {
 				fen_counter++;
 
 			}
+
 			// match rank separator
-			if (current_char == '/')
+			if (pos_string[fen_counter] == '/')
 				// increment pointer to FEN string
 				fen_counter++;
 		}
 	}
+	//parse player turn
+	(turn == "w") ? (pos->side = WHITE) : (pos->side = BLACK);
 
+	//Parse castling rights
+	if (castle_perm.find('K') != std::string::npos) {
+		(pos->castleperm) |= WKCA;
+	}
+	if (castle_perm.find('Q') != std::string::npos) {
+		(pos->castleperm) |= WQCA;
+	}
+	if (castle_perm.find('k') != std::string::npos) {
+		(pos->castleperm) |= BKCA;
+	}
+	if (castle_perm.find('q') != std::string::npos) {
+		(pos->castleperm) |= BQCA;
+	}
 
+	// parse enpassant square
+	if (ep_square != "-") {
+		// parse enpassant file & rank
+		int file = ep_square[0] - 'a';
+		int rank = 8 - (ep_square[1] - '0');
+
+		// init enpassant square
+		pos->enPas = rank * 8 + file;
+	}
+	// no enpassant square
+	else
+		pos->enPas = no_sq;
+
+	//Read fifty moves counter
+	if (!fifty_move.empty()) {
+		std::string::iterator it;
+		// Traverse the string
+		int positional_Factor = pow(10, (fifty_move.size() - 1));
+		for (it = fifty_move.begin(); it != fifty_move.end();it++)
+		{
+			int increment(*it - '0');
+			increment *= positional_Factor;
+			pos->fiftyMove += increment;
+			positional_Factor /= 10;
+		}
+	}
+	//Read Hisply moves counter
+	if (!HisPly.empty()) {
+		std::string::iterator it;
+		// Traverse the string
+		int positional_Factor = pow(10, (HisPly.size() - 1));
+		for (it = HisPly.begin(); it != HisPly.end();it++)
+		{
+			int increment(*it - '0');
+			increment *= positional_Factor;
+			pos->hisPly += increment;
+			positional_Factor /= 10;
+		}
+	}
+
+	// loop over white pieces pos->pos->bitboards
+	for (int piece = WP; piece <= WK; piece++)
+		// populate white occupancy bitboard
+		pos->occupancies[WHITE] |= pos->bitboards[piece];
+
+	// loop over black pieces pos->pos->bitboards
+	for (int piece = BP; piece <= BK; piece++)
+		// populate white occupancy bitboard
+		pos->occupancies[BLACK] |= pos->bitboards[piece];
+
+	// init all pos->occupancies
+	pos->occupancies[BOTH] |= pos->occupancies[WHITE];
+	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
+
+	pos->posKey = GeneratePosKey(pos);
 
 }
 /*
