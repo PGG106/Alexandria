@@ -9,7 +9,7 @@ typedef struct OPTIONS {
 } S_UciOptions;
 
 
-int parse_move(char* move_string, S_Board* pos);
+int parse_move(std::string move_string, S_Board* pos);
 // parse UCI "position" command
 void parse_position(std::string command, S_Board* pos);
 

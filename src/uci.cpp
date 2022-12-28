@@ -19,7 +19,7 @@
 #include "datagen.h"
 #include "threads.h"
 
-int parse_move(char* move_string, S_Board* pos) {
+int parse_move(std::string move_string, S_Board* pos) {
 	// create move list instance
 	S_MOVELIST move_list[1];
 
@@ -126,12 +126,9 @@ void parse_position(std::string command, S_Board* pos) {
 
 	// moves available
 	if (command.find("moves") != std::string::npos) {
-
-
-		;
-
-
-
+		int string_start = command.find("moves") + 6;
+		std::string moves_substr = command.substr(string_start, std::string::npos);
+		parse_moves(moves_substr,pos);
 	}
 }
 

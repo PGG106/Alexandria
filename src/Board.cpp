@@ -175,7 +175,7 @@ int square_distance(int a, int b) {
 }
 
 // parse FEN string
-void parse_fen(std::string command, S_Board* pos) {
+void parse_fen(const std::string command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -332,6 +332,20 @@ void parse_fen(std::string command, S_Board* pos) {
 	pos->posKey = GeneratePosKey(pos);
 
 }
+
+// parse FEN string
+void parse_moves(const std::string moves, S_Board* pos)
+{
+	std::vector<std::string> move_tokens = split_command(moves);
+	// loop over moves within a move string
+	for (int i = 0;i < move_tokens.size();i++) {
+		// parse next move
+		int move = parse_move(move_tokens[i], pos);
+		// make move on the chess board
+		make_move_light(move, pos);
+	}
+}
+
 /*
 void accumulate(const S_Board* pos) {
 
