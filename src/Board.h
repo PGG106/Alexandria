@@ -1,7 +1,7 @@
 #pragma once
 #include <cassert>
 #include <cctype>
-
+#include <string>
 #include "nnue.h"
 #include "stdint.h"
 #include "move.h"
@@ -15,11 +15,11 @@
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
 
-#define NAME "Alexandria"
-#define MAXGAMEMOVES 1024 
-#define MAXDEPTH 128
-#define Board_sq_num 64
-#define UNDOSIZE MAXGAMEMOVES + MAXDEPTH
+constexpr int MAXGAMEMOVES = 1024;
+constexpr int MAXDEPTH = 128;
+constexpr int UNDOSIZE = MAXGAMEMOVES + MAXDEPTH;
+constexpr int Board_sq_num = 64;
+
 
 // set/get/pop bit macros
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
@@ -27,20 +27,9 @@
 #define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
 #define clr_bit(bitboard) ((bitboard) &= (bitboard - 1))
 
-#define TEST
-
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
-// FEN dedug positions
-#define empty_board "8/8/8/8/8/8/8/8 b - - "
-#define start_position \
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 17 1 "
-#define tricky_position \
-    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-#define killer_position \
-    "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
-#define cmk_position \
-    "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 // extract rank from a square [square]
 extern const int get_rank[Board_sq_num];
@@ -89,7 +78,7 @@ public:
 	// Occupancies bitboards based on piece and side
 	Bitboard bitboards[12];
 	Bitboard occupancies[3];
-	NNUE::accumulator accumulator={};
+	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
 
@@ -150,7 +139,7 @@ int get_ls1b_index(Bitboard bitboard);
 int square_distance(int a, int b);
 
 // parse FEN string
-void parse_fen(const char* fen, S_Board* pos);
+void parse_fen(std::string command, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
 

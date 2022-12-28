@@ -11,7 +11,7 @@ typedef struct OPTIONS {
 
 int parse_move(char* move_string, S_Board* pos);
 // parse UCI "position" command
-void parse_position(char* command, S_Board* pos);
+void parse_position(std::string command, S_Board* pos);
 
 // parse UCI "go" command
 void parse_go(char* line, S_SearchINFO* info, S_Board* pos);

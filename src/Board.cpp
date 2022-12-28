@@ -7,6 +7,8 @@
 #include "string.h"
 #include <cassert>
 #include <stdio.h>
+#include "misc.h"
+#include <iostream>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #include <intrin.h> // Microsoft header for _BitScanForward64()
@@ -173,7 +175,7 @@ int square_distance(int a, int b) {
 }
 
 // parse FEN string
-void parse_fen(const char* fen, S_Board* pos) {
+void parse_fen(std::string command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -182,17 +184,28 @@ void parse_fen(const char* fen, S_Board* pos) {
 
 	ResetBoard(pos);
 
-	// loop over board ranks
+	std::vector<std::string> tokens = split_command(command);
+
+
+	std::string pos_string = tokens[0];
+	std::cout << "pos_String is: " << tokens[0] << std::endl;
+	std::string turn = tokens[1];
+	std::string castle_perm = tokens[2];
+	std::string ep_square = tokens[3];
+	int fen_counter = 0;
 	for (int rank = 0; rank < 8; rank++) {
 		// loop over board files
 		for (int file = 0; file < 8; file++) {
 			// init current square
 			int square = rank * 8 + file;
+			char current_char = pos_string[fen_counter];
+
+			std::cout << "currently on square " << square << " current char is: " << current_char << "\n";
 
 			// match ascii pieces within FEN string
-			if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
+			if ((current_char >= 'a' && current_char <= 'z') || (current_char >= 'A' && current_char <= 'Z')) {
 				// init piece type
-				int piece = char_pieces[*fen];
+				int piece = char_pieces[current_char];
 				if (piece != EMPTY) {
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
@@ -201,13 +214,13 @@ void parse_fen(const char* fen, S_Board* pos) {
 					nnue.add(pos->accumulator, piece, square);
 					// increment pointer to FEN string
 				}
-				fen++;
+				fen_counter++;
 			}
 
 			// match empty square numbers within FEN string
-			if (*fen >= '0' && *fen <= '9') {
+			if (current_char >= '0' && current_char <= '9') {
 				// init offset (convert char 0 to int 0)
-				int offset = *fen - '0';
+				int offset = current_char - '0';
 
 				// define piece variable
 				int piece = -1;
@@ -219,7 +232,6 @@ void parse_fen(const char* fen, S_Board* pos) {
 						// get piece code
 						piece = bb_piece;
 				}
-
 				// on empty current square
 				if (piece == -1)
 					// decrement file
@@ -229,101 +241,18 @@ void parse_fen(const char* fen, S_Board* pos) {
 				file += offset;
 
 				// increment pointer to FEN string
-				fen++;
+				fen_counter++;
+
 			}
-
 			// match rank separator
-			if (*fen == '/')
+			if (current_char == '/')
 				// increment pointer to FEN string
-				fen++;
+				fen_counter++;
 		}
 	}
 
-	// got to parsing side to move (increment pointer to FEN string)
-	fen++;
 
-	// parse side to move
 
-	(*fen == 'w') ? (pos->side = WHITE) : (pos->side = BLACK);
-
-	// go to parsing castling rights
-	fen += 2;
-
-	// parse castling rights
-	while (*fen != ' ') {
-		switch (*fen) {
-		case 'K':
-			(pos->castleperm) |= WKCA;
-			break;
-		case 'Q':
-			(pos->castleperm) |= WQCA;
-			break;
-		case 'k':
-			(pos->castleperm) |= BKCA;
-			break;
-		case 'q':
-			(pos->castleperm) |= BQCA;
-			break;
-		case '-':
-			break;
-		}
-
-		// increment pointer to FEN string
-		fen++;
-	}
-
-	// got to parsing enpassant square (increment pointer to FEN string)
-	fen++;
-
-	// parse enpassant square
-	if (*fen != '-') {
-		// parse enpassant file & rank
-		int file = fen[0] - 'a';
-		int rank = 8 - (fen[1] - '0');
-
-		// init enpassant square
-		pos->enPas = rank * 8 + file;
-	}
-
-	// no enpassant square
-	else
-		pos->enPas = no_sq;
-	// read plies for fifty move rule
-	fen += 2;
-	if (isdigit(*fen)) {
-		while (isdigit(*fen)) {
-			int increment(fen[0] - '0');
-			if (isdigit(fen[1])) increment *= 10;
-			pos->fiftyMove += increment;
-			fen++;
-		}
-	}
-	//read Hisply
-	fen++;
-	if (isdigit(*fen)) {
-		while (isdigit(*fen)) {
-			int increment(fen[0] - '0');
-			if (isdigit(fen[1])) increment *= 10;
-			pos->hisPly += increment;
-			fen++;
-		}
-	}
-
-	// loop over white pieces pos->pos->bitboards
-	for (int piece = WP; piece <= WK; piece++)
-		// populate white occupancy bitboard
-		pos->occupancies[WHITE] |= pos->bitboards[piece];
-
-	// loop over black pieces pos->pos->bitboards
-	for (int piece = BP; piece <= BK; piece++)
-		// populate white occupancy bitboard
-		pos->occupancies[BLACK] |= pos->bitboards[piece];
-
-	// init all pos->occupancies
-	pos->occupancies[BOTH] |= pos->occupancies[WHITE];
-	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
-
-	pos->posKey = GeneratePosKey(pos);
 }
 /*
 void accumulate(const S_Board* pos) {

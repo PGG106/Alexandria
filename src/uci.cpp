@@ -101,66 +101,39 @@ int parse_move(char* move_string, S_Board* pos) {
 */
 
 // parse UCI "position" command
-void parse_position(char* command, S_Board* pos) {
-	// shift pointer to the right where next token begins
-	command += 9;
-
-	// init pointer to the current character in the command string
-	char* current_char = command;
+void parse_position(std::string command, S_Board* pos) {
 
 	// parse UCI "startpos" command
-	if (strncmp(command, "startpos", 8) == 0)
+	if (command.find("startpos") != std::string::npos) {
+		printf("found startpos\n");
 		// init chess board with start position
 		parse_fen(start_position, pos);
-
+	}
+		
 	// parse UCI "fen" command
 	else {
-		// make sure "fen" command is available within command string
-		current_char = strstr(command, "fen");
 
 		// if no "fen" command is available within command string
-		if (current_char == NULL)
-			// init chess board with start position
-			parse_fen(start_position, pos);
-
-		// found "fen" substring
-		else {
-			// shift pointer to the right where next token begins
-			current_char += 4;
+		if (command.find("fen") != std::string::npos) {
 
 			// init chess board with position from FEN string
-			parse_fen(current_char, pos);
+			parse_fen(command, pos);
 		}
+		else {
+			// init chess board with start position
+			parse_fen(start_position, pos);
+		}
+
 	}
 
-	// parse moves after position
-	current_char = strstr(command, "moves");
-
 	// moves available
-	if (current_char != NULL) {
-		// shift pointer to the right where next token begins
-		current_char += 6;
+	if (command.find("moves") != std::string::npos) {
 
-		// loop over moves within a move string
-		while (*current_char) {
-			// parse next move
-			int move = parse_move(current_char, pos);
 
-			// if no more moves
-			if (move == 0)
-				// break out of the loop
-				break;
+		;
 
-			// make move on the chess board
-			make_move_light(move, pos);
 
-			// move current character mointer to the end of current move
-			while (*current_char && *current_char != ' ')
-				current_char++;
 
-			// go to the next move
-			current_char++;
-		}
 	}
 }
 
@@ -265,21 +238,17 @@ void Uci_Loop(char** argv) {
 	S_UciOptions uci_options[1];
 	S_ThreadData td[1];
 	std::thread main_search_thread;
-	// define user / GUI input buffer
-	char input[40000];
 	// print engine info
 	printf("id name Alexandria 4.0\n");
 
 	// main loop
 	while (1) {
-		// reset user /GUI input
-		memset(input, 0, sizeof(input));
 
-		// make sure output reaches the GUI
-		fflush(stdout);
+		// define user / GUI input buffer
+		std::string input;
 
 		// get user / GUI input
-		if (!fgets(input, 40000, stdin)) {
+		if (!std::getline(std::cin, input)) {
 			// continue the loop
 			continue;
 		}
@@ -290,25 +259,18 @@ void Uci_Loop(char** argv) {
 			continue;
 		}
 
-		// parse UCI "isready" command
-		if (strncmp(input, "isready", 7) == 0) {
-			printf("readyok\n");
-
-			continue;
-		}
+		//Split the string into tokens to make it easier to work with
+		std::vector<std::string> tokens = split_command(input);
 
 		// parse UCI "position" command
-		else if (strncmp(input, "position", 8) == 0) {
+		if (tokens[0] == "position") {
 			// call parse position function
 			parse_position(input, &td->pos);
 			parsed_position = true;
 		}
-		// parse UCI "ucinewgame" command
-		else if (strncmp(input, "ucinewgame", 10) == 0) {
-			init_new_game(&td->pos, &td->ss, &td->info);
-		}
+		/*
 		// parse UCI "go" command
-		else if (strncmp(input, "go", 2) == 0) {
+		else if (input == "go") {
 
 			stopHelperThreads();
 
@@ -325,8 +287,20 @@ void Uci_Loop(char** argv) {
 			// Start search in a separate thread
 			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
+		*/
+		// parse UCI "isready" command
+		if (input == "isready") {
+			printf("readyok\n");
+
+			continue;
+		}
+
+		// parse UCI "ucinewgame" command
+		else if (input == "ucinewgame") {
+			init_new_game(&td->pos, &td->ss, &td->info);
+		}
 		// parse UCI "stop" command
-		else if (strncmp(input, "stop", 4) == 0) {
+		else if (input == "stop") {
 			//Stop helper threads
 			stopHelperThreads();
 			//stop main thread search
@@ -334,7 +308,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "quit" command
-		else if (strncmp(input, "quit", 4) == 0) {
+		else if (input == "quit") {
 			//Stop helper threads
 			stopHelperThreads();
 			//stop main thread search
@@ -348,7 +322,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "uci" command
-		else if (strncmp(input, "uci", 3) == 0) {
+		else if (input == "uci") {
 			// print engine info
 			printf("id name Alexandria 4.0\n");
 			printf("id author PGG\n");
@@ -358,36 +332,41 @@ void Uci_Loop(char** argv) {
 			printf("uciok\n");
 		}
 
-		else if (strncmp(input, "eval", 4) == 0) {
+		// parse UCI "uci" command
+		else if (input == "d") {
+			print_board(&td->pos);
+		}
+
+		else if (input == "eval") {
 			// print engine info
 			printf(
 				"the eval of this position according to the neural network is %d\n",
 				nnue.output(td->pos.accumulator));
 		}
-
-		else if (!strncmp(input, "setoption name Hash value ", 26)) {
+		/*
+		else if (input == "setoption name Hash value ") {
 			sscanf(input, "%*s %*s %*s %*s %lu", &uci_options->Hash);
 			std::cout << "Set Hash to" << uci_options->Hash << " MB";
 			InitHashTable(HashTable, uci_options->Hash);
 		}
-		else if (!strncmp(input, "setoption name Threads value ", 29)) {
+		else if (input == "setoption name Threads value ") {
 			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->Threads);
 			printf("Set Threads to %d\n", uci_options->Threads);
 		}
-		else if (!strncmp(input, "setoption name MultiPV value ", 29)) {
+		else if (input == "setoption name MultiPV value ") {
 			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->MultiPV);
 			printf("Set MultiPV to %d\n", uci_options->MultiPV);
 		}
-
-		else if (!strncmp(input, "setoption name Datagen value true", 33)) {
+		*/
+		else if (input == "setoption name Datagen value true") {
 			do_datagen = true;
 		}
 
-		else if (strncmp(input, "bench", 5) == 0) {
+		else if (input == "bench") {
 			start_bench();
 		}
 
-		else if (strncmp(input, "see", 3) == 0) {
+		else if (input == "see") {
 			// create move list instance
 			S_MOVELIST move_list[1];
 
