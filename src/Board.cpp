@@ -338,7 +338,7 @@ void parse_moves(const std::string moves, S_Board* pos)
 {
 	std::vector<std::string> move_tokens = split_command(moves);
 	// loop over moves within a move string
-	for (int i = 0;i < move_tokens.size();i++) {
+	for (size_t i = 0;i < move_tokens.size();i++) {
 		// parse next move
 		int move = parse_move(move_tokens[i], pos);
 		// make move on the chess board

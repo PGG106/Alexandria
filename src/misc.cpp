@@ -5,6 +5,7 @@
 #include "threads.h"
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 
 long GetTimeMs() {
@@ -82,4 +83,5 @@ bool contains(std::vector<std::string> tokens, std::string key) {
 	else {
 		return false;
 	}
+	return false;
 }

@@ -157,7 +157,7 @@ void parse_go(std::string line, S_SearchINFO* info, S_Board* pos) {
 		return;
 	}
 	//loop over all the tokens and parse the commands
-	for (int i = 1; i < tokens.size();i++) {
+	for (size_t i = 1; i < tokens.size();i++) {
 
 		if (tokens[i] == "binc" && pos->side == BLACK) {
 			inc = stoi(tokens[i + 1]);
@@ -288,6 +288,19 @@ void Uci_Loop(char** argv) {
 			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 
+		if (tokens[0] == "setoption") {
+
+			if (tokens[2] == "Hash") {
+				uci_options->Hash = stoi(tokens[4]);
+				std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
+				InitHashTable(HashTable, uci_options->Hash);
+			}
+			else if (tokens[2] == "Threads") {
+				uci_options->Threads = stoi(tokens[4]);
+				std::cout << "Set Threads to " << uci_options->Threads << "\n";
+			}
+		}
+
 		// parse UCI "isready" command
 		if (input == "isready") {
 			printf("readyok\n");
@@ -343,24 +356,6 @@ void Uci_Loop(char** argv) {
 				"the eval of this position according to the neural network is %d\n",
 				nnue.output(td->pos.accumulator));
 		}
-		/*
-		else if (input == "setoption name Hash value ") {
-			sscanf(input, "%*s %*s %*s %*s %lu", &uci_options->Hash);
-			std::cout << "Set Hash to" << uci_options->Hash << " MB";
-			InitHashTable(HashTable, uci_options->Hash);
-		}
-		else if (input == "setoption name Threads value ") {
-			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->Threads);
-			printf("Set Threads to %d\n", uci_options->Threads);
-		}
-		else if (input == "setoption name MultiPV value ") {
-			sscanf(input, "%*s %*s %*s %*s %d", &uci_options->MultiPV);
-			printf("Set MultiPV to %d\n", uci_options->MultiPV);
-		}
-		*/
-		else if (input == "setoption name Datagen value true") {
-			do_datagen = true;
-		}
 
 		else if (input == "bench") {
 			start_bench();
@@ -383,6 +378,5 @@ void Uci_Loop(char** argv) {
 				}
 			}
 		}
-
 	}
 }
