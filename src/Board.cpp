@@ -7,6 +7,8 @@
 #include "string.h"
 #include <cassert>
 #include <stdio.h>
+#include "misc.h"
+#include <iostream>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #include <intrin.h> // Microsoft header for _BitScanForward64()
@@ -173,7 +175,7 @@ int square_distance(int a, int b) {
 }
 
 // parse FEN string
-void parse_fen(const char* fen, S_Board* pos) {
+void parse_fen(const std::string command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -182,17 +184,35 @@ void parse_fen(const char* fen, S_Board* pos) {
 
 	ResetBoard(pos);
 
-	// loop over board ranks
+	std::vector<std::string> tokens = split_command(command);
+
+
+	std::string pos_string = tokens[0];
+	std::string turn = tokens[1];
+	std::string castle_perm = tokens[2];
+	std::string ep_square = tokens[3];
+	std::string fifty_move = "";
+	std::string HisPly = "";
+	//Keep fifty move and Hisply arguments optional
+	if (tokens.size() >= 5) {
+		fifty_move = tokens[4];
+		if (tokens.size() >= 6) {
+			HisPly = tokens[5];
+		}
+	}
+
+	int fen_counter = 0;
 	for (int rank = 0; rank < 8; rank++) {
 		// loop over board files
 		for (int file = 0; file < 8; file++) {
 			// init current square
 			int square = rank * 8 + file;
+			char current_char = pos_string[fen_counter];
 
 			// match ascii pieces within FEN string
-			if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
+			if ((current_char >= 'a' && current_char <= 'z') || (current_char >= 'A' && current_char <= 'Z')) {
 				// init piece type
-				int piece = char_pieces[*fen];
+				int piece = char_pieces[current_char];
 				if (piece != EMPTY) {
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
@@ -201,13 +221,13 @@ void parse_fen(const char* fen, S_Board* pos) {
 					nnue.add(pos->accumulator, piece, square);
 					// increment pointer to FEN string
 				}
-				fen++;
+				fen_counter++;
 			}
 
 			// match empty square numbers within FEN string
-			if (*fen >= '0' && *fen <= '9') {
+			if (current_char >= '0' && current_char <= '9') {
 				// init offset (convert char 0 to int 0)
-				int offset = *fen - '0';
+				int offset = current_char - '0';
 
 				// define piece variable
 				int piece = -1;
@@ -219,7 +239,6 @@ void parse_fen(const char* fen, S_Board* pos) {
 						// get piece code
 						piece = bb_piece;
 				}
-
 				// on empty current square
 				if (piece == -1)
 					// decrement file
@@ -229,83 +248,70 @@ void parse_fen(const char* fen, S_Board* pos) {
 				file += offset;
 
 				// increment pointer to FEN string
-				fen++;
+				fen_counter++;
+
 			}
 
 			// match rank separator
-			if (*fen == '/')
+			if (pos_string[fen_counter] == '/')
 				// increment pointer to FEN string
-				fen++;
+				fen_counter++;
 		}
 	}
+	//parse player turn
+	(turn == "w") ? (pos->side = WHITE) : (pos->side = BLACK);
 
-	// got to parsing side to move (increment pointer to FEN string)
-	fen++;
-
-	// parse side to move
-
-	(*fen == 'w') ? (pos->side = WHITE) : (pos->side = BLACK);
-
-	// go to parsing castling rights
-	fen += 2;
-
-	// parse castling rights
-	while (*fen != ' ') {
-		switch (*fen) {
-		case 'K':
-			(pos->castleperm) |= WKCA;
-			break;
-		case 'Q':
-			(pos->castleperm) |= WQCA;
-			break;
-		case 'k':
-			(pos->castleperm) |= BKCA;
-			break;
-		case 'q':
-			(pos->castleperm) |= BQCA;
-			break;
-		case '-':
-			break;
-		}
-
-		// increment pointer to FEN string
-		fen++;
+	//Parse castling rights
+	if (castle_perm.find('K') != std::string::npos) {
+		(pos->castleperm) |= WKCA;
 	}
-
-	// got to parsing enpassant square (increment pointer to FEN string)
-	fen++;
+	if (castle_perm.find('Q') != std::string::npos) {
+		(pos->castleperm) |= WQCA;
+	}
+	if (castle_perm.find('k') != std::string::npos) {
+		(pos->castleperm) |= BKCA;
+	}
+	if (castle_perm.find('q') != std::string::npos) {
+		(pos->castleperm) |= BQCA;
+	}
 
 	// parse enpassant square
-	if (*fen != '-') {
+	if (ep_square != "-") {
 		// parse enpassant file & rank
-		int file = fen[0] - 'a';
-		int rank = 8 - (fen[1] - '0');
+		int file = ep_square[0] - 'a';
+		int rank = 8 - (ep_square[1] - '0');
 
 		// init enpassant square
 		pos->enPas = rank * 8 + file;
 	}
-
 	// no enpassant square
 	else
 		pos->enPas = no_sq;
-	// read plies for fifty move rule
-	fen += 2;
-	if (isdigit(*fen)) {
-		while (isdigit(*fen)) {
-			int increment(fen[0] - '0');
-			if (isdigit(fen[1])) increment *= 10;
+
+	//Read fifty moves counter
+	if (!fifty_move.empty()) {
+		std::string::iterator it;
+		// Traverse the string
+		int positional_Factor = pow(10, (fifty_move.size() - 1));
+		for (it = fifty_move.begin(); it != fifty_move.end();it++)
+		{
+			int increment(*it - '0');
+			increment *= positional_Factor;
 			pos->fiftyMove += increment;
-			fen++;
+			positional_Factor /= 10;
 		}
 	}
-	//read Hisply
-	fen++;
-	if (isdigit(*fen)) {
-		while (isdigit(*fen)) {
-			int increment(fen[0] - '0');
-			if (isdigit(fen[1])) increment *= 10;
+	//Read Hisply moves counter
+	if (!HisPly.empty()) {
+		std::string::iterator it;
+		// Traverse the string
+		int positional_Factor = pow(10, (HisPly.size() - 1));
+		for (it = HisPly.begin(); it != HisPly.end();it++)
+		{
+			int increment(*it - '0');
+			increment *= positional_Factor;
 			pos->hisPly += increment;
-			fen++;
+			positional_Factor /= 10;
 		}
 	}
 
@@ -324,7 +330,22 @@ void parse_fen(const char* fen, S_Board* pos) {
 	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
 
 	pos->posKey = GeneratePosKey(pos);
+
 }
+
+// parse FEN string
+void parse_moves(const std::string moves, S_Board* pos)
+{
+	std::vector<std::string> move_tokens = split_command(moves);
+	// loop over moves within a move string
+	for (size_t i = 0;i < move_tokens.size();i++) {
+		// parse next move
+		int move = parse_move(move_tokens[i], pos);
+		// make move on the chess board
+		make_move_light(move, pos);
+	}
+}
+
 /*
 void accumulate(const S_Board* pos) {
 

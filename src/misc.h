@@ -14,6 +14,7 @@
 #include "sys/time.h"
 #include "unistd.h"
 #endif
+#include <string>
 
 long GetTimeMs();
 
@@ -21,3 +22,6 @@ void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, c
 
 const char* getfield(char* line, int num);
 
+std::vector<std::string> split_command(const std::string& command);
+
+bool contains(std::vector<std::string> tokens, std::string key);

@@ -1,20 +1,11 @@
 
-
-#include "Board.h"
-#include "stdio.h"
+#include "misc.h"
 #include "stdlib.h"
-#include "search.h"
 #include "io.h"
-#ifdef _WIN64
-#include "windows.h"
-#else
-#include "string.h"
-#include "sys/select.h"
-#include "sys/time.h"
-#include "unistd.h"
-#endif
 #include "threads.h"
 #include <iostream>
+#include <sstream>
+#include <algorithm>
 
 
 long GetTimeMs() {
@@ -67,4 +58,30 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 	printf("\n");
 
 	return;
+}
+
+std::vector<std::string> split_command(const std::string& command)
+{
+
+	std::stringstream stream(command);
+	std::string intermediate;
+	std::vector<std::string> tokens;
+
+	while (std::getline(stream, intermediate, ' '))
+	{
+		tokens.push_back(intermediate);
+	}
+
+	return tokens;
+}
+
+bool contains(std::vector<std::string> tokens, std::string key) {
+
+	if (std::find(tokens.begin(), tokens.end(), key) != tokens.end()) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
 }
