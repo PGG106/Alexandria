@@ -147,49 +147,51 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	int time = -1, inc = 0;
 
 	std::vector<std::string> tokens = split_command(line);
-	if (tokens[1] == "infinite") {
-		;
-	}
 
-	if (tokens[1] == "perft") {
-		int perft_depth = std::stoi(tokens[1]);
-		perft_test(perft_depth, pos);
-		return;
-	}
 	//loop over all the tokens and parse the commands
 	for (size_t i = 1; i < tokens.size();i++) {
 
-		if (tokens[i] == "binc" && pos->side == BLACK) {
+		if (tokens.at(1) == "infinite") {
+			;
+		}
+
+		if (tokens.at(1) == "perft") {
+			int perft_depth = std::stoi(tokens[1]);
+			perft_test(perft_depth, pos);
+			return;
+		}
+
+		if (tokens.at(i) == "binc" && pos->side == BLACK) {
 			inc = std::stoi(tokens[i + 1]);
 		}
 
-		if (tokens[i] == "winc" && pos->side == WHITE) {
+		if (tokens.at(i) == "winc" && pos->side == WHITE) {
 			inc = std::stoi(tokens[i + 1]);
 		}
 
-		if (tokens[i] == "wtime" && pos->side == WHITE) {
+		if (tokens.at(i) == "wtime" && pos->side == WHITE) {
 			time = std::stoi(tokens[i + 1]);
 		}
-		if (tokens[i] == "btime" && pos->side == BLACK) {
+		if (tokens.at(i) == "btime" && pos->side == BLACK) {
 			time = std::stoi(tokens[i + 1]);
 		}
 
-		if (tokens[i] == "movestogo") {
+		if (tokens.at(i) == "movestogo") {
 			movestogo = std::stoi(tokens[i + 1]);
 			if (movestogo > 0)
 				info->movestogo = movestogo;
 		}
 
-		if (tokens[i] == "movetime") {
+		if (tokens.at(i) == "movetime") {
 			movetime = std::stoi(tokens[i + 1]);
 		}
 
 
-		if (tokens[i] == "depth") {
+		if (tokens.at(i) == "depth") {
 			depth = std::stoi(tokens[i + 1]);
 		}
 
-		if (tokens[i] == "nodes") {
+		if (tokens.at(i) == "nodes") {
 			info->nodeset = true;
 			info->nodeslimit = std::stoi(tokens[i + 1]);
 		}
@@ -272,7 +274,6 @@ void Uci_Loop(char** argv) {
 		else if (tokens[0] == "go") {
 
 			stopHelperThreads();
-
 			//Join previous search thread if it exists
 			if (main_search_thread.joinable())
 				main_search_thread.join();
@@ -281,7 +282,6 @@ void Uci_Loop(char** argv) {
 			{
 				parse_position("position startpos", &td->pos);
 			}
-
 			// call parse go function
 			parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread

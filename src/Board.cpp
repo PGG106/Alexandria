@@ -187,17 +187,18 @@ void parse_fen(const std::string& command, S_Board* pos) {
 	std::vector<std::string> tokens = split_command(command);
 
 
-	const std::string pos_string = tokens[0];
-	const std::string turn = tokens[1];
-	const std::string castle_perm = tokens[2];
-	const std::string ep_square = tokens[3];
+	const std::string pos_string = tokens.at(0);
+	const std::string turn = tokens.at(1);
+	const std::string castle_perm = tokens.at(2);
+	const std::string ep_square = tokens.at(3);
 	std::string fifty_move;
 	std::string HisPly;
 	//Keep fifty move and Hisply arguments optional
 	if (tokens.size() >= 5) {
-		fifty_move = tokens[4];
+		fifty_move = tokens.at(4);
 		if (tokens.size() >= 6) {
-			HisPly = tokens[5];
+			HisPly = tokens.at(5);
+			HisPly = tokens.at(5);
 		}
 	}
 
