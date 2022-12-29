@@ -19,7 +19,7 @@
 #include "datagen.h"
 #include "threads.h"
 
-int parse_move(std::string move_string, S_Board* pos) {
+int parse_move(const std::string& move_string, S_Board* pos) {
 	// create move list instance
 	S_MOVELIST move_list[1];
 
@@ -27,21 +27,21 @@ int parse_move(std::string move_string, S_Board* pos) {
 	generate_moves(move_list, pos);
 
 	// parse source square
-	int source_square = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
+	const int source_square = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
 
 	// parse target square
-	int target_square = (move_string[2] - 'a') + (8 - (move_string[3] - '0')) * 8;
+	const int target_square = (move_string[2] - 'a') + (8 - (move_string[3] - '0')) * 8;
 
 	// loop over the moves within a move list
 	for (int move_count = 0; move_count < move_list->count; move_count++) {
 		// init move
-		int move = move_list->moves[move_count].move;
+		const int move = move_list->moves[move_count].move;
 
 		// make sure source & target squares are available within the generated move
 		if (source_square == From(move) &&
 			target_square == To(move)) {
 			// init promoted piece
-			int promoted_piece = get_move_promoted(move);
+			const int promoted_piece = get_move_promoted(move);
 
 			// promoted piece is available
 			if (promoted_piece) {
@@ -101,7 +101,7 @@ int parse_move(std::string move_string, S_Board* pos) {
 */
 
 // parse UCI "position" command
-void parse_position(std::string command, S_Board* pos) {
+void parse_position(const std::string& command, S_Board* pos) {
 
 	// parse UCI "startpos" command
 	if (command.find("startpos") != std::string::npos) {
@@ -140,7 +140,7 @@ void parse_position(std::string command, S_Board* pos) {
 */
 
 // parse UCI "go" command
-void parse_go(std::string line, S_SearchINFO* info, S_Board* pos) {
+void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	Reset_info(info);
 	int depth = -1, movetime = -1;
 	int movestogo;
@@ -160,38 +160,38 @@ void parse_go(std::string line, S_SearchINFO* info, S_Board* pos) {
 	for (size_t i = 1; i < tokens.size();i++) {
 
 		if (tokens[i] == "binc" && pos->side == BLACK) {
-			inc = stoi(tokens[i + 1]);
+			inc = std::stoi(tokens[i + 1]);
 		}
 
 		if (tokens[i] == "winc" && pos->side == WHITE) {
-			inc = stoi(tokens[i + 1]);
+			inc = std::stoi(tokens[i + 1]);
 		}
 
 		if (tokens[i] == "wtime" && pos->side == WHITE) {
-			time = stoi(tokens[i + 1]);
+			time = std::stoi(tokens[i + 1]);
 		}
 		if (tokens[i] == "btime" && pos->side == BLACK) {
-			time = stoi(tokens[i + 1]);
+			time = std::stoi(tokens[i + 1]);
 		}
 
 		if (tokens[i] == "movestogo") {
-			movestogo = stoi(tokens[i + 1]);
+			movestogo = std::stoi(tokens[i + 1]);
 			if (movestogo > 0)
 				info->movestogo = movestogo;
 		}
 
 		if (tokens[i] == "movetime") {
-			movetime = stoi(tokens[i + 1]);
+			movetime = std::stoi(tokens[i + 1]);
 		}
 
 
 		if (tokens[i] == "depth") {
-			depth = stoi(tokens[i + 1]);
+			depth = std::stoi(tokens[i + 1]);
 		}
 
 		if (tokens[i] == "nodes") {
 			info->nodeset = true;
-			info->nodeslimit = stoi(tokens[i + 1]);
+			info->nodeslimit = std::stoi(tokens[i + 1]);
 		}
 	}
 
@@ -291,19 +291,19 @@ void Uci_Loop(char** argv) {
 		if (tokens[0] == "setoption") {
 
 			if (tokens[2] == "Hash") {
-				uci_options->Hash = stoi(tokens[4]);
+				uci_options->Hash = std::stoi(tokens[4]);
 				std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
 				InitHashTable(HashTable, uci_options->Hash);
 			}
 			else if (tokens[2] == "Threads") {
-				uci_options->Threads = stoi(tokens[4]);
+				uci_options->Threads = std::stoi(tokens[4]);
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
 			}
 		}
 
 		// parse UCI "isready" command
 		if (input == "isready") {
-			printf("readyok\n");
+			std::cout << "readyok\n";
 
 			continue;
 		}
@@ -341,7 +341,7 @@ void Uci_Loop(char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 256 \n");
-			printf("option name MultiPV type spin default 1 min 1 max 1\n");
+			//printf("option name MultiPV type spin default 1 min 1 max 1\n");
 			printf("uciok\n");
 		}
 

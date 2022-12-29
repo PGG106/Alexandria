@@ -175,7 +175,7 @@ int square_distance(int a, int b) {
 }
 
 // parse FEN string
-void parse_fen(const std::string command, S_Board* pos) {
+void parse_fen(const std::string& command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -187,12 +187,12 @@ void parse_fen(const std::string command, S_Board* pos) {
 	std::vector<std::string> tokens = split_command(command);
 
 
-	std::string pos_string = tokens[0];
-	std::string turn = tokens[1];
-	std::string castle_perm = tokens[2];
-	std::string ep_square = tokens[3];
-	std::string fifty_move = "";
-	std::string HisPly = "";
+	const std::string pos_string = tokens[0];
+	const std::string turn = tokens[1];
+	const std::string castle_perm = tokens[2];
+	const std::string ep_square = tokens[3];
+	std::string fifty_move;
+	std::string HisPly;
 	//Keep fifty move and Hisply arguments optional
 	if (tokens.size() >= 5) {
 		fifty_move = tokens[4];
@@ -206,13 +206,13 @@ void parse_fen(const std::string command, S_Board* pos) {
 		// loop over board files
 		for (int file = 0; file < 8; file++) {
 			// init current square
-			int square = rank * 8 + file;
-			char current_char = pos_string[fen_counter];
+			const int square = rank * 8 + file;
+			const char current_char = pos_string[fen_counter];
 
 			// match ascii pieces within FEN string
 			if ((current_char >= 'a' && current_char <= 'z') || (current_char >= 'A' && current_char <= 'Z')) {
 				// init piece type
-				int piece = char_pieces[current_char];
+				const int piece = char_pieces[current_char];
 				if (piece != EMPTY) {
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
@@ -227,7 +227,7 @@ void parse_fen(const std::string command, S_Board* pos) {
 			// match empty square numbers within FEN string
 			if (current_char >= '0' && current_char <= '9') {
 				// init offset (convert char 0 to int 0)
-				int offset = current_char - '0';
+				const int offset = current_char - '0';
 
 				// define piece variable
 				int piece = -1;
@@ -262,24 +262,30 @@ void parse_fen(const std::string command, S_Board* pos) {
 	(turn == "w") ? (pos->side = WHITE) : (pos->side = BLACK);
 
 	//Parse castling rights
-	if (castle_perm.find('K') != std::string::npos) {
-		(pos->castleperm) |= WKCA;
-	}
-	if (castle_perm.find('Q') != std::string::npos) {
-		(pos->castleperm) |= WQCA;
-	}
-	if (castle_perm.find('k') != std::string::npos) {
-		(pos->castleperm) |= BKCA;
-	}
-	if (castle_perm.find('q') != std::string::npos) {
-		(pos->castleperm) |= BQCA;
+	for (const char c : castle_perm) {
+		switch (c) {
+		case 'K':
+			(pos->castleperm) |= WKCA;
+			break;
+		case 'Q':
+			(pos->castleperm) |= WQCA;
+			break;
+		case 'k':
+			(pos->castleperm) |= BKCA;
+			break;
+		case 'q':
+			(pos->castleperm) |= BQCA;
+			break;
+		case '-':
+			break;
+		}
 	}
 
 	// parse enpassant square
-	if (ep_square != "-") {
+	if (ep_square != "-" && ep_square.size() == 2) {
 		// parse enpassant file & rank
-		int file = ep_square[0] - 'a';
-		int rank = 8 - (ep_square[1] - '0');
+		const int file = ep_square[0] - 'a';
+		const int rank = 8 - (ep_square[1] - '0');
 
 		// init enpassant square
 		pos->enPas = rank * 8 + file;
@@ -290,29 +296,13 @@ void parse_fen(const std::string command, S_Board* pos) {
 
 	//Read fifty moves counter
 	if (!fifty_move.empty()) {
-		std::string::iterator it;
-		// Traverse the string
-		int positional_Factor = pow(10, (fifty_move.size() - 1));
-		for (it = fifty_move.begin(); it != fifty_move.end();it++)
-		{
-			int increment(*it - '0');
-			increment *= positional_Factor;
-			pos->fiftyMove += increment;
-			positional_Factor /= 10;
-		}
+		pos->fiftyMove = std::stoi(fifty_move);
 	}
 	//Read Hisply moves counter
 	if (!HisPly.empty()) {
-		std::string::iterator it;
-		// Traverse the string
-		int positional_Factor = pow(10, (HisPly.size() - 1));
-		for (it = HisPly.begin(); it != HisPly.end();it++)
-		{
-			int increment(*it - '0');
-			increment *= positional_Factor;
-			pos->hisPly += increment;
-			positional_Factor /= 10;
-		}
+
+		pos->hisPly = std::stoi(HisPly);
+
 	}
 
 	// loop over white pieces pos->pos->bitboards

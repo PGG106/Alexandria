@@ -9,12 +9,12 @@ typedef struct OPTIONS {
 } S_UciOptions;
 
 
-int parse_move(std::string move_string, S_Board* pos);
+int parse_move(const std::string& move_string, S_Board* pos);
 // parse UCI "position" command
-void parse_position(std::string command, S_Board* pos);
+void parse_position(const std::string& command, S_Board* pos);
 
 // parse UCI "go" command
-void parse_go(std::string line, S_SearchINFO* info, S_Board* pos);
+void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos);
 
 // main UCI loop
 void Uci_Loop(char** argv);
