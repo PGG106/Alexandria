@@ -23,7 +23,7 @@
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
-	for (int index = (std::max)(0, pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
+	for (int index = std::max(0, pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
@@ -306,8 +306,8 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 
 	// only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
 	if (depth >= 3) {
-		alpha = (std::max)(-MAXSCORE, prev_eval - delta);
-		beta = (std::min)(prev_eval + delta, MAXSCORE);
+		alpha = std::max(-MAXSCORE, prev_eval - delta);
+		beta = std::min(prev_eval + delta, MAXSCORE);
 	}
 
 	//Stay at current depth if we fail high/low because of the aspiration windows
@@ -327,12 +327,12 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		if ((score <= alpha)) {
 			beta = (alpha + beta) / 2;
-			alpha = (std::max)(-MAXSCORE, score - delta);
+			alpha = std::max(-MAXSCORE, score - delta);
 		}
 
 		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
 		else if ((score >= beta)) {
-			beta = (std::min)(score + delta, MAXSCORE);
+			beta = std::min(score + delta, MAXSCORE);
 		}
 		else break;
 		delta *= 1.44;
@@ -363,7 +363,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	ss->pvLength[pos->ply] = pos->ply;
 
-	if (in_check) depth = (std::max)(1, depth + 1);
+	if (in_check) depth = std::max(1, depth + 1);
 
 	//Check for the highest depth reached in search to report it to the cli
 	if (pos->ply > info->seldepth)
@@ -689,7 +689,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	//Get a static evaluation of the position
 	standing_pat = EvalPosition(pos);
 
-	alpha = (std::max)(alpha, standing_pat);
+	alpha = std::max(alpha, standing_pat);
 
 	if (standing_pat >= beta) return standing_pat;
 
