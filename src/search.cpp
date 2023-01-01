@@ -188,7 +188,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 			move_list->moves[i].score = 105 + goodCaptureScore;
 			continue;
 		}
-		//if the mvoe is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
+		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[get_move_piece(move)][PieceOn(pos, To(move))] +
