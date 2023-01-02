@@ -20,8 +20,6 @@ public:
 	int32_t output(const NNUE::accumulator& board_accumulator);
 	void Clear(NNUE::accumulator& board_accumulator);
 
-
-	uint8_t inputValues[INPUT_WEIGHTS];
 	int16_t inputWeights[INPUT_WEIGHTS * HIDDEN_WEIGHTS];
 	int16_t hiddenBias[HIDDEN_BIAS];
 	int16_t hiddenWeights[HIDDEN_WEIGHTS];
