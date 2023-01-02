@@ -16,12 +16,11 @@
 #include <string.h>
 
 int main([[maybe_unused]] int argc, char** argv) {
+	setvbuf(stdout, NULL, _IONBF, 0);
 	// init all
 	init_all();
 
 	InitHashTable(HashTable, 16);
-	setvbuf(stdin, NULL, _IONBF, 0);
-	setvbuf(stdout, NULL, _IONBF, 0);
 
 	// connect to the GUI
 	Uci_Loop(argv);

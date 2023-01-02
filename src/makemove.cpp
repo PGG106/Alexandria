@@ -186,6 +186,9 @@ int make_move(const int move, S_Board* pos) {
 // make move on chess board that we know won't be reverted (so we can skip storing history information)
 int make_move_light(const int move, S_Board* pos) {
 
+	pos->history[pos->hisPly].posKey = pos->posKey;
+	pos->history[pos->hisPly].move = move;
+
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);

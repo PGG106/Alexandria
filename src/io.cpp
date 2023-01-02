@@ -131,9 +131,9 @@ void print_move(const int move) {
 	char promoted = get_move_promoted(move);
 
 	if (promoted)
-		printf("%s%s%c", from, to, promoted_pieces[promoted]);
+		std::cout << from << to << promoted_pieces[promoted];
 	else
-		printf("%s%s", from, to);
+		std::cout << from << to;
 }
 
 char* FormatMove(const int move) {

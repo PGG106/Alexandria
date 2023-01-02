@@ -23,7 +23,7 @@
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
-	for (int index = std::max(0, pos->hisPly - pos->fiftyMove); index < pos->hisPly; index++)
+	for (int index = 0; index < pos->hisPly; index++)
 		// if we found the hash key same with a current
 		if (pos->history[index].posKey == pos->posKey)
 			// we found a repetition
