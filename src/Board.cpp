@@ -22,8 +22,6 @@
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
 
-uint8_t PopCnt16[1 << 16];
-
 // convert squares to coordinates
 const char* square_to_coordinates[] = {
 	"a8", "b8", "c8", "d8", "e8", "f8","g8","h8",
@@ -35,9 +33,6 @@ const char* square_to_coordinates[] = {
 	"a2", "b2", "c2", "d2", "e2", "f2","g2","h2",
 	"a1", "b1", "c1", "d1", "e1", "f1","g1","h1",
 };
-
-char RankChar[] = "12345678";
-char FileChar[] = "abcdefgh";
 
 //Lookup to get the rank of a square
 const int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
@@ -55,22 +50,6 @@ const int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 
 const int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
-
-// extract rank from a square [square]
-const int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
-						  0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
-						  0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7,
-						  0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7 };
-
-// extract rank from a square [square]
-const int get_diagonal[64] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 12, 11, 10, 9,
-							  8,  7,  6,  12, 11, 10, 9,  8, 7,  6,  5,  11, 10,
-							  9,  8,  7,  6,  5,  4,  10, 9, 8,  7,  6,  5,  4,
-							  3,  9,  8,  7,  6,  5,  4,  3, 2,  8,  7,  6,  5,
-							  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
-
-// ASCII pieces
-const char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // castling rights update constants
 const int castling_rights[64] = {
@@ -156,6 +135,9 @@ void ResetBoard(S_Board* pos) {
 	for (size_t i = 0; i < HIDDEN_BIAS; i++) {
 		pos->accumulator[i] = nnue.hiddenBias[i];
 	}
+
+	//Reset nnue accumulator stack
+	pos->accumulatorStack.clear();
 }
 
 void Reset_info(S_SearchINFO* info) {
@@ -403,4 +385,21 @@ Bitboard Enemy(const S_Board* pos) {
 Bitboard Occupancy(const S_Board* pos, int side) {
 	return pos->occupancies[side];
 }
+
+int get_side(const S_Board* pos) {
+	return pos->side;
+}
+int get_ep_square(const S_Board* pos) {
+	return pos->enPas;
+}
+int get_fifty_moves_counter(const S_Board* pos) {
+	return pos->fiftyMove;
+}
+int get_castleperm(const S_Board* pos) {
+	return pos->castleperm;
+}
+int get_poskey(const S_Board* pos) {
+	return pos->posKey;
+}
+
 

@@ -62,7 +62,9 @@ int make_move(const int move, S_Board* pos) {
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
-	pos->history[pos->hisPly].posKey = pos->posKey;
+	//Store position key in the array of searched position
+	pos->searched_positions.emplace_back(pos->posKey);
+
 	pos->history[pos->hisPly].move = move;
 	pos->accumulatorStack.emplace_back(pos->accumulator);
 	// parse move
@@ -186,7 +188,8 @@ int make_move(const int move, S_Board* pos) {
 // make move on chess board that we know won't be reverted (so we can skip storing history information)
 int make_move_light(const int move, S_Board* pos) {
 
-	pos->history[pos->hisPly].posKey = pos->posKey;
+	//Store position key in the array of searched position
+	pos->searched_positions.emplace_back(pos->posKey);
 	pos->history[pos->hisPly].move = move;
 
 	// parse move
@@ -388,15 +391,15 @@ int Unmake_move(S_Board* pos) {
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
 
-	pos->posKey = pos->history[pos->hisPly].posKey;
-
+	pos->posKey = pos->searched_positions.back();
+	pos->searched_positions.pop_back();
 	return 1;
 }
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
 	pos->ply++;
-	pos->history[pos->hisPly].posKey = pos->posKey;
+	pos->searched_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
 		HASH_EP;
@@ -424,7 +427,9 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 
 	pos->side ^= 1;
-	pos->posKey = pos->history[pos->hisPly].posKey;
+	pos->posKey = pos->searched_positions.back();
+	pos->searched_positions.pop_back();
+	return;
 }
 
 PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {

@@ -286,14 +286,14 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	ClearHashTable(HashTable);
 	//Reset info
 	Reset_info(info);
-	//Empty the accumulator stack of any leftover data
-	pos->accumulatorStack.clear();
-	while (!pos->accumulatorStack.empty())
-		pos->accumulatorStack.pop_back();
+
 	//Empty threads and thread data
 	void stopHelperThreads();
 
 	threads_data.clear();
+
+	//delete played moves hashes
+	pos->searched_positions.clear();
 
 	// call parse position function
 	parse_position("position startpos", pos);

@@ -37,10 +37,21 @@ extern const int get_rank[Board_sq_num];
 extern const int Color[12];
 
 // extract rank from a square [square]
-extern const int get_file[Board_sq_num];
+constexpr int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7,
+							   0, 1, 2, 3, 4, 5, 6, 7 };
 
 // extract diagonal from a square [square]
-extern const int get_diagonal[Board_sq_num];
+constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 12, 11, 10, 9,
+											  8,  7,  6,  12, 11, 10, 9,  8, 7,  6,  5,  11, 10,
+											  9,  8,  7,  6,  5,  4,  10, 9, 8,  7,  6,  5,  4,
+											  3,  9,  8,  7,  6,  5,  4,  3, 2,  8,  7,  6,  5,
+											  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
 extern int reductions[MAXDEPTH];
 
@@ -50,7 +61,6 @@ typedef struct Undo {
 	int capture = EMPTY;
 	int enPas = 0;
 	int fiftyMove = 0;
-	PosKey posKey = 0ULL;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes
@@ -70,21 +80,20 @@ public:
 	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board when that move was made for rollback purposes
-
+	std::vector<PosKey> searched_positions={};
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
 
 	// Occupancies bitboards based on piece and side
-	Bitboard bitboards[12];
-	Bitboard occupancies[3];
+	Bitboard bitboards[12]{ 0ULL };
+	Bitboard occupancies[3] = { 0ULL };
 	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
 
 	int checks = -1;
 };
-
 
 typedef struct Stack {
 	int pvLength[MAXDEPTH + 1];
@@ -122,11 +131,11 @@ extern const int castling_rights[Board_sq_num];
 // convert squares to coordinates
 extern const char* square_to_coordinates[];
 
-extern char RankChar[];
-extern char FileChar[];
+constexpr char RankChar[] = "12345678";
+constexpr char FileChar[] = "abcdefgh";
 
 // ASCII pieces
-extern const char ascii_pieces[13];
+constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // NNUE
 extern NNUE nnue;
@@ -145,6 +154,13 @@ void parse_moves(std::string moves, S_Board* pos);
 
 void Reset_info(S_SearchINFO* info);
 
+//Board state retrieval
+
+//Occupancy info retrieval
+Bitboard Us(const S_Board* pos);
+Bitboard Enemy(const S_Board* pos);
+Bitboard Occupancy(const S_Board* pos, const int side);
+
 //Pieces info retrival
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
@@ -162,9 +178,13 @@ int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
 bool IsInCheck(const S_Board* pos, const int side);
 int PieceOn(const S_Board* pos, const int square);
-//Occupancy info retrieval
-Bitboard Us(const S_Board* pos);
-Bitboard Enemy(const S_Board* pos);
-Bitboard Occupancy(const S_Board* pos, const int side);
+
+//Board state retrieval
+
+int get_side(const S_Board* pos);
+int get_ep_square(const S_Board* pos);
+int get_fifty_moves_counter(const S_Board* pos);
+int get_castleperm(const S_Board* pos);
+int get_poskey(const S_Board* pos);
 
 
