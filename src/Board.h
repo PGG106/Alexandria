@@ -103,6 +103,7 @@ typedef struct Stack {
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 	int eval[MAXGAMEMOVES + MAXDEPTH] = { 0 };
+	int NodesMove[64][64] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];

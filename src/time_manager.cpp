@@ -54,3 +54,24 @@ bool timeOver(const S_SearchINFO* info) {
 		return true;
 	else return false;
 }
+
+bool QuickReturn(const S_Stack* ss, const S_SearchINFO* info)
+{
+	if (!info->timeset) return false;
+	//Get the best move
+	int bestmove = getBestMove(ss);
+	//get the minimum duration a normal search iteration would have
+	int minimum_search_duration = (info->stoptimeOpt - info->starttime);
+	//Calculate the reduction
+	int bestMoveNodePercent = (ss->NodesMove[From(bestmove)][To(bestmove)] * 100) / info->nodes;
+	float time_scaling_factor = 50.0 / std::max(bestMoveNodePercent, 25);
+	assert(bestMoveNodePercent >= 0);
+	//Get new minimum duration 
+	int reduced_min_time = minimum_search_duration * time_scaling_factor;
+	//If more time than the minimum search duration passed then stop search
+	int elapsed = GetTimeMs() - info->starttime;
+	if (elapsed > reduced_min_time)
+		return true;
+
+	return false;
+}

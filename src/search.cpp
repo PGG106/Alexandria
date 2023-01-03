@@ -71,6 +71,13 @@ void ClearForSearch(S_ThreadData* td) {
 		}
 	}
 
+	//Clean the NodesMove table
+	for (int index = 0; index < 64; ++index) {
+		for (int index2 = 0; index2 < 64; ++index2) {
+			td->ss.NodesMove[index][index2] = 0;
+		}
+	}
+
 	//Reset plies and search info
 	td->pos.ply = 0;
 	td->info.starttime = GetTimeMs();
@@ -282,6 +289,11 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		// check if we just cleared a depth and more than OptTime passed
 		if (td->id == 0 && stopEarly(&td->info))
 		{
+			stopHelperThreads();
+			//Stop mainthread search
+			td->info.stopped = true;
+		}
+		else if (td->id == 0 && QuickReturn(&td->ss, &td->info)) {
 			stopHelperThreads();
 			//Stop mainthread search
 			td->info.stopped = true;
@@ -556,6 +568,7 @@ moves_loop:
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
+		int nodesBefore = info->nodes;
 		//Play the move
 		make_move(move, pos);
 		//Speculative prefetch of the TT entry
@@ -596,10 +609,16 @@ moves_loop:
 		// take move back
 		Unmake_move(pos);
 
+		if (root_node) {
+			int searchedNodes = info->nodes - nodesBefore;
+			ss->NodesMove[From(move)][To(move)] += searchedNodes;
+		}
+
+		moves_searched++;
+
 		if (info->stopped)
 			return 0;
 
-		moves_searched++;
 		//If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
 			//Update the best move found and what the best score is
