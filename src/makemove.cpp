@@ -63,7 +63,7 @@ int make_move(const int move, S_Board* pos) {
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	//Store position key in the array of searched position
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 
 	pos->history[pos->hisPly].move = move;
 	pos->accumulatorStack.emplace_back(pos->accumulator);
@@ -189,7 +189,7 @@ int make_move(const int move, S_Board* pos) {
 int make_move_light(const int move, S_Board* pos) {
 
 	//Store position key in the array of searched position
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 	pos->history[pos->hisPly].move = move;
 
 	// parse move
@@ -391,15 +391,15 @@ int Unmake_move(S_Board* pos) {
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
 
-	pos->posKey = pos->searched_positions.back();
-	pos->searched_positions.pop_back();
+	pos->posKey = pos->played_positions.back();
+	pos->played_positions.pop_back();
 	return 1;
 }
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
 	pos->ply++;
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
 		HASH_EP;
@@ -427,8 +427,8 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 
 	pos->side ^= 1;
-	pos->posKey = pos->searched_positions.back();
-	pos->searched_positions.pop_back();
+	pos->posKey = pos->played_positions.back();
+	pos->played_positions.pop_back();
 	return;
 }
 

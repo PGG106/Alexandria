@@ -80,14 +80,17 @@ public:
 	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board when that move was made for rollback purposes
-	std::vector<PosKey> searched_positions={};
+	// Stores the keys of every single position that happened on the board to detect 3-fold
+	std::vector<PosKey> played_positions={};
+	// Occupancies bitboards based on piece and side
+	Bitboard bitboards[12]{ 0ULL };
+	Bitboard occupancies[3] = { 0ULL };
+	//movegen stuff
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
 
-	// Occupancies bitboards based on piece and side
-	Bitboard bitboards[12]{ 0ULL };
-	Bitboard occupancies[3] = { 0ULL };
+	//Active nnue accumulator
 	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};

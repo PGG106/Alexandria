@@ -293,7 +293,7 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 	threads_data.clear();
 
 	//delete played moves hashes
-	pos->searched_positions.clear();
+	pos->played_positions.clear();
 
 	// call parse position function
 	parse_position("position startpos", pos);
