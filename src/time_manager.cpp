@@ -49,7 +49,9 @@ bool stopEarly(const S_SearchINFO* info) {
 
 bool timeOver(const S_SearchINFO* info) {
 	// check if more than Maxtime passed and we have to stop
-	if ((info->timeset && GetTimeMs() > info->stoptimeMax)
+	if ((info->timeset
+		&& ((info->nodes & 1023) == 1023)
+		&& GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
 		return true;
 	else return false;
