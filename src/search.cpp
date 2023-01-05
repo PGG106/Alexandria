@@ -286,14 +286,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 	{
 		score = aspiration_window_search(score, current_depth, td);
 
-		// check if we just cleared a depth and more than OptTime passed
-		if (td->id == 0 && stopEarly(&td->info))
-		{
-			stopHelperThreads();
-			//Stop mainthread search
-			td->info.stopped = true;
-		}
-		else if (td->id == 0 && QuickReturn(&td->ss, &td->info)) {
+		if (td->id == 0 && QuickReturn(&td->ss, &td->info)) {
 			stopHelperThreads();
 			//Stop mainthread search
 			td->info.stopped = true;
