@@ -15,9 +15,9 @@
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
 
+constexpr int MAXGAMEMOVES = 1024;
 constexpr int MAXDEPTH = 128;
 constexpr int Board_sq_num = 64;
-
 
 // set/get/pop bit macros
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
@@ -91,20 +91,17 @@ public:
 
 	int checks = -1;
 };
-//contains data used for several search heuristics
-struct S_Stack {
+
+typedef struct Stack {
 	int pvLength[MAXDEPTH + 1];
 	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
-	//History heuristic table, index by piece and landing square
 	int searchHistory[12][Board_sq_num] = { 0 };
-	//Array of killer moves, index by color and ply
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
-	//Array that contains the move we are currently verifying as a singularity (if present)
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 	int eval[MAXDEPTH] = { 0 };
-	int move[MAXDEPTH] = { 0 };
-};
+	int move[MAXGAMEMOVES + MAXDEPTH] = { 0 };
+} S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 //Hold the data from the uci input to set search parameters and some search data to populate the uci output

@@ -59,6 +59,7 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 // make move on chess board
 int make_move(const int move, S_Board* pos) {
 	//Store position variables for rollback purposes
+	assert(pos->ply < MAXDEPTH);
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
 	pos->history[pos->ply].enPas = pos->enPas;
 	pos->history[pos->ply].castlePerm = pos->castleperm;
@@ -222,7 +223,6 @@ int make_move_light(const int move, S_Board* pos) {
 
 		ClearPieceNNUE(piececap, target_square, pos);
 
-		pos->history[pos->ply].capture = piececap;
 		//a capture was played so reset 50 move rule counter
 		pos->fiftyMove = 0;
 	}
@@ -400,6 +400,7 @@ void MakeNullMove(S_Board* pos) {
 	if (pos->enPas != no_sq)
 		HASH_EP;
 
+	assert(pos->ply < MAXDEPTH);
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
 	pos->history[pos->ply].enPas = pos->enPas;
 	pos->history[pos->ply].castlePerm = pos->castleperm;
