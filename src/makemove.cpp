@@ -208,11 +208,11 @@ int make_move_light(const int move, S_Board* pos) {
 	if (enpass) {
 		//If it's an enpass we remove the pawn corresponding to the opponent square 
 		if (pos->side == WHITE) {
-			ClearPieceNNUE(BP, target_square + 8, pos);
+			ClearPiece(BP, target_square + 8, pos);
 			pos->fiftyMove = 0;
 		}
 		else {
-			ClearPieceNNUE(WP, target_square - 8, pos);
+			ClearPiece(WP, target_square - 8, pos);
 			pos->fiftyMove = 0;
 		}
 	}
@@ -221,7 +221,7 @@ int make_move_light(const int move, S_Board* pos) {
 	else if (capture) {
 		int piececap = pos->pieces[target_square];
 
-		ClearPieceNNUE(piececap, target_square, pos);
+		ClearPiece(piececap, target_square, pos);
 
 		//a capture was played so reset 50 move rule counter
 		pos->fiftyMove = 0;
@@ -235,9 +235,9 @@ int make_move_light(const int move, S_Board* pos) {
 	pos->hisPly++;
 	pos->ply++;
 	//Remove the piece fom the square it moved from
-	ClearPieceNNUE(piece, source_square, pos);
+	ClearPiece(piece, source_square, pos);
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
+	AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
 
 
 	//Reset EP square
@@ -271,25 +271,25 @@ int make_move_light(const int move, S_Board* pos) {
 			// white castles king side
 		case (g1):
 			// move H rook
-			MovePieceNNUE(WR, h1, f1, pos);
+			MovePiece(WR, h1, f1, pos);
 			break;
 
 			// white castles queen side
 		case (c1):
 			// move A rook
-			MovePieceNNUE(WR, a1, d1, pos);
+			MovePiece(WR, a1, d1, pos);
 			break;
 
 			// black castles king side
 		case (g8):
 			// move H rook
-			MovePieceNNUE(BR, h8, f8, pos);
+			MovePiece(BR, h8, f8, pos);
 			break;
 
 			// black castles queen side
 		case (c8):
 			// move A rook
-			MovePieceNNUE(BR, a8, d8, pos);
+			MovePiece(BR, a8, d8, pos);
 			break;
 		}
 	}

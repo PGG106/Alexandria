@@ -130,6 +130,9 @@ void parse_position(const std::string& command, S_Board* pos) {
 		std::string moves_substr = command.substr(string_start, std::string::npos);
 		parse_moves(moves_substr, pos);
 	}
+
+	//Update accumulator state to reflect the new position
+	accumulate(pos->accumulator, pos);
 }
 
 /*

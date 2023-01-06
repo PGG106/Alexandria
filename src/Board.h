@@ -191,4 +191,6 @@ int get_fifty_moves_counter(const S_Board* pos);
 int get_castleperm(const S_Board* pos);
 int get_poskey(const S_Board* pos);
 
+void accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
+
 

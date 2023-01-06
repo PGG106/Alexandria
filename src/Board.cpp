@@ -200,9 +200,6 @@ void parse_fen(const std::string& command, S_Board* pos) {
 					// set piece on corresponding bitboard
 					set_bit(pos->bitboards[piece], square);
 					pos->pieces[square] = piece;
-
-					nnue.add(pos->accumulator, piece, square);
-					// increment pointer to FEN string
 				}
 				fen_counter++;
 			}
@@ -304,6 +301,9 @@ void parse_fen(const std::string& command, S_Board* pos) {
 
 	pos->posKey = GeneratePosKey(pos);
 
+	//Update nnue accumulator to reflect board state
+	accumulate(pos->accumulator, pos);
+
 }
 
 // parse FEN string
@@ -319,23 +319,6 @@ void parse_moves(const std::string moves, S_Board* pos)
 	}
 }
 
-/*
-void accumulate(const S_Board* pos) {
-
-		for (int i = 0; i < HIDDEN_BIAS; i++) {
-				nnue.accumulator[i] = nnue.hiddenBias[i];
-		}
-
-		for (int i = 0; i < 64; i++) {
-				bool input = pos->pieces[i]!=EMPTY;
-				if (!input) continue;
-				int j = i + (pos->pieces[i]) * 64;
-				nnue.inputValues[j] = 1;
-				nnue.activate(j);
-		}
-}*/
-
-//Function to get the bitboard of a certain piece
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const int color) {
@@ -403,3 +386,15 @@ int get_poskey(const S_Board* pos) {
 }
 
 
+void accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
+
+	for (int i = 0; i < HIDDEN_BIAS; i++) {
+		board_accumulator[i] = nnue.hiddenBias[i];
+	}
+
+	for (int i = 0; i < 64; i++) {
+		bool input = pos->pieces[i] != EMPTY;
+		if (!input) continue;
+		nnue.add(board_accumulator, pos->pieces[i], i);
+	}
+}
