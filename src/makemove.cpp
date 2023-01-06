@@ -58,13 +58,13 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 
 // make move on chess board
 int make_move(const int move, S_Board* pos) {
-	//Store position variables for rollback purposes
 	assert(pos->ply < MAXDEPTH);
+	//Store position variables for rollback purposes
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
 	pos->history[pos->ply].enPas = pos->enPas;
 	pos->history[pos->ply].castlePerm = pos->castleperm;
 	//Store position key in the array of searched position
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 
 	pos->accumulatorStack.emplace_back(pos->accumulator);
 	// parse move
@@ -185,11 +185,11 @@ int make_move(const int move, S_Board* pos) {
 	return 1;
 }
 
-// make move on chess board that we know won't be reverted (so we can skip storing history information)
+// make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
 int make_move_light(const int move, S_Board* pos) {
 
 	//Store position key in the array of searched position
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 
 	// parse move
 	int source_square = From(move);
@@ -387,15 +387,15 @@ int Unmake_move(const int move, S_Board* pos) {
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
 
-	pos->posKey = pos->searched_positions.back();
-	pos->searched_positions.pop_back();
+	pos->posKey = pos->played_positions.back();
+	pos->played_positions.pop_back();
 	return 1;
 }
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
 
-	pos->searched_positions.emplace_back(pos->posKey);
+	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
 		HASH_EP;
@@ -424,8 +424,8 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->ply].enPas;
 
 	pos->side ^= 1;
-	pos->posKey = pos->searched_positions.back();
-	pos->searched_positions.pop_back();
+	pos->posKey = pos->played_positions.back();
+	pos->played_positions.pop_back();
 	return;
 }
 

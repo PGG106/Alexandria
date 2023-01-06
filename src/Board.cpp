@@ -150,6 +150,7 @@ void Reset_info(S_SearchINFO* info) {
 	info->movestogo = -1;
 	info->stopped = false;
 	info->timeset = false;
+	info->movetimeset = false;
 }
 
 int square_distance(int a, int b) {
@@ -167,7 +168,6 @@ void parse_fen(const std::string& command, S_Board* pos) {
 	ResetBoard(pos);
 
 	std::vector<std::string> tokens = split_command(command);
-
 
 	const std::string pos_string = tokens.at(0);
 	const std::string turn = tokens.at(1);
@@ -306,7 +306,7 @@ void parse_fen(const std::string& command, S_Board* pos) {
 
 }
 
-// parse FEN string
+// parses the moves part of a fen string and plays all the moves included
 void parse_moves(const std::string moves, S_Board* pos)
 {
 	std::vector<std::string> move_tokens = split_command(moves);

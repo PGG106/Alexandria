@@ -73,11 +73,12 @@ public:
 	int ply = 0; // number of halfmoves in a search instance
 	int hisPly = 0; // total number of halfmoves
 	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
-
-	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
-
-	S_Undo	history[MAXDEPTH]; // stores every single move and the state of the board when that move was made for rollback purposes
-	std::vector<PosKey> searched_positions = {};
+	// unique  hashkey  that encodes a board position
+	PosKey posKey = 0ULL; 
+	// stores the state of the board  rollback purposes
+	S_Undo	history[MAXDEPTH];
+	//Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
+	std::vector<PosKey> played_positions = {};
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
