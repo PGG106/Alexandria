@@ -208,7 +208,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == ss->CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
+		else if (move == ss->CounterMoves[From(ss->move[pos->ply])][To(ss->move[pos->ply])])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
@@ -445,12 +445,13 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-		if (pos->history[pos->hisPly - 1].move != NOMOVE
-			&& static_eval >= beta
+		if (static_eval >= beta
 			&& eval >= beta
 			&& pos->ply
+			&& ss->move[pos->ply - 1] != NOMOVE
 			&& depth >= 3
 			&& BoardHasNonPawns(pos, pos->side)) {
+			ss->move[pos->ply] = NOMOVE;
 			MakeNullMove(pos);
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
@@ -556,6 +557,7 @@ moves_loop:
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
+		ss->move[pos->ply] = move;
 		//Play the move
 		make_move(move, pos);
 		//Speculative prefetch of the TT entry
@@ -594,7 +596,7 @@ moves_loop:
 		}
 
 		// take move back
-		Unmake_move(pos);
+		Unmake_move(move, pos);
 
 		if (info->stopped)
 			return 0;
@@ -629,7 +631,7 @@ moves_loop:
 						}
 
 						//Save CounterMoves
-						int previousMove = pos->history[pos->hisPly].move;
+						int previousMove = ss->move[pos->ply];
 						ss->CounterMoves[From(previousMove)][To(previousMove)] = move;
 						//Update the history heuristic based on the new best move
 						updateHH(pos, ss, depth, bestmove, &quiet_moves);
@@ -734,6 +736,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		{
 			continue;
 		}
+		ss->move[pos->ply] = move;
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
@@ -741,7 +744,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		Score = -Quiescence(-beta, -alpha, td);
 
 		// take move back
-		Unmake_move(pos);
+		Unmake_move(move, pos);
 
 		if (info->stopped)
 			return 0;

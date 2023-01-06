@@ -37,7 +37,7 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos);
 int make_move(const int move, S_Board* pos);
 int make_move_light(const int move, S_Board* pos);
 //Reverts the previously played move
-int Unmake_move(S_Board* pos);
+int Unmake_move(const int move, S_Board* pos);
 //makes a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos);
 //Reverts the previously played null move

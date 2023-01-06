@@ -56,7 +56,6 @@ constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 
 extern int reductions[MAXDEPTH];
 
 typedef struct Undo {
-	int move = 0;
 	int castlePerm = 15;
 	int capture = EMPTY;
 	int enPas = 0;
@@ -80,7 +79,7 @@ public:
 	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
 
 	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board when that move was made for rollback purposes
-	std::vector<PosKey> searched_positions={};
+	std::vector<PosKey> searched_positions = {};
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
@@ -103,6 +102,7 @@ typedef struct Stack {
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 	int eval[MAXGAMEMOVES + MAXDEPTH] = { 0 };
+	int move[MAXGAMEMOVES + MAXDEPTH] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];

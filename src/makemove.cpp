@@ -59,13 +59,12 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 // make move on chess board
 int make_move(const int move, S_Board* pos) {
 	//Store position variables for rollback purposes
-	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-	pos->history[pos->hisPly].enPas = pos->enPas;
-	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
+	pos->history[pos->ply].enPas = pos->enPas;
+	pos->history[pos->ply].castlePerm = pos->castleperm;
 	//Store position key in the array of searched position
 	pos->searched_positions.emplace_back(pos->posKey);
 
-	pos->history[pos->hisPly].move = move;
 	pos->accumulatorStack.emplace_back(pos->accumulator);
 	// parse move
 	int source_square = From(move);
@@ -99,7 +98,7 @@ int make_move(const int move, S_Board* pos) {
 
 		ClearPieceNNUE(piececap, target_square, pos);
 
-		pos->history[pos->hisPly].capture = piececap;
+		pos->history[pos->ply].capture = piececap;
 		//a capture was played so reset 50 move rule counter
 		pos->fiftyMove = 0;
 	}
@@ -190,7 +189,6 @@ int make_move_light(const int move, S_Board* pos) {
 
 	//Store position key in the array of searched position
 	pos->searched_positions.emplace_back(pos->posKey);
-	pos->history[pos->hisPly].move = move;
 
 	// parse move
 	int source_square = From(move);
@@ -224,7 +222,7 @@ int make_move_light(const int move, S_Board* pos) {
 
 		ClearPieceNNUE(piececap, target_square, pos);
 
-		pos->history[pos->hisPly].capture = piececap;
+		pos->history[pos->ply].capture = piececap;
 		//a capture was played so reset 50 move rule counter
 		pos->fiftyMove = 0;
 	}
@@ -310,17 +308,15 @@ int make_move_light(const int move, S_Board* pos) {
 	return 1;
 }
 
-int Unmake_move(S_Board* pos) {
+int Unmake_move(const int move, S_Board* pos) {
 	// quiet moves
 
 	pos->hisPly--;
 	pos->ply--;
 
-	pos->enPas = pos->history[pos->hisPly].enPas;
-	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-	pos->castleperm = pos->history[pos->hisPly].castlePerm;
-
-	int move = pos->history[pos->hisPly].move;
+	pos->enPas = pos->history[pos->ply].enPas;
+	pos->fiftyMove = pos->history[pos->ply].fiftyMove;
+	pos->castleperm = pos->history[pos->ply].castlePerm;
 
 	// parse move
 	int source_square = From(move);
@@ -331,7 +327,7 @@ int Unmake_move(S_Board* pos) {
 
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
-	int piececap = pos->history[pos->hisPly].capture;
+	int piececap = pos->history[pos->ply].capture;
 
 	pos->accumulator = pos->accumulatorStack.back();
 	pos->accumulatorStack.pop_back();
@@ -398,19 +394,19 @@ int Unmake_move(S_Board* pos) {
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
-	pos->ply++;
+
 	pos->searched_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
 		HASH_EP;
 
-	pos->history[pos->hisPly].move = NOMOVE;
-	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-	pos->history[pos->hisPly].enPas = pos->enPas;
-	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
+	pos->history[pos->ply].enPas = pos->enPas;
+	pos->history[pos->ply].castlePerm = pos->castleperm;
 	pos->enPas = no_sq;
 
 	pos->side ^= 1;
+	pos->ply++;
 	pos->hisPly++;
 	HASH_SIDE;
 
@@ -422,9 +418,9 @@ void TakeNullMove(S_Board* pos) {
 	pos->hisPly--;
 	pos->ply--;
 
-	pos->castleperm = pos->history[pos->hisPly].castlePerm;
-	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-	pos->enPas = pos->history[pos->hisPly].enPas;
+	pos->castleperm = pos->history[pos->ply].castlePerm;
+	pos->fiftyMove = pos->history[pos->ply].fiftyMove;
+	pos->enPas = pos->history[pos->ply].enPas;
 
 	pos->side ^= 1;
 	pos->posKey = pos->searched_positions.back();
