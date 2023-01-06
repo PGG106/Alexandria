@@ -18,15 +18,7 @@ long GetTimeMs() {
 #endif
 }
 
-const char* getfield(char* line, int num) {
-	const char* tok;
-	for (tok = strtok(line, ";"); tok && *tok; tok = strtok(NULL, ";")) {
-		if (!--num)
-			return tok;
-	}
-	return NULL;
-}
-
+//Prints the uci output
 void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const  S_UciOptions* options) {
 
 	//This handles the basic console output
@@ -60,6 +52,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 	return;
 }
 
+//splits a string into a vector of tokens and returns it
 std::vector<std::string> split_command(const std::string& command)
 {
 
@@ -75,6 +68,7 @@ std::vector<std::string> split_command(const std::string& command)
 	return tokens;
 }
 
+//returns true if in a vector of string there's one that matches the key
 bool contains(std::vector<std::string> tokens, std::string key) {
 
 	if (std::find(tokens.begin(), tokens.end(), key) != tokens.end()) {
