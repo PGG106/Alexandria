@@ -23,9 +23,10 @@
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
+	// we only need to check for repetition the moves since the last 50mr reset
 	for (int index = std::max(static_cast<int>(pos->searched_positions.size()) - get_fifty_moves_counter(pos), 0);
 		index < static_cast<int>(pos->searched_positions.size()); index++)
-		// if we found the hash key same with a current
+		// if we found the same position hashkey as the current position
 		if (pos->searched_positions[index] == pos->posKey) {
 			// we found a repetition
 			return TRUE;
@@ -78,7 +79,7 @@ void ClearForSearch(S_ThreadData* td) {
 	td->info.nodes = 0;
 	td->info.seldepth = 0;
 }
-
+// returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
@@ -484,7 +485,7 @@ moves_loop:
 
 	// generate moves
 	generate_moves(move_list, pos);
-
+	//assign a score to every move based on how promising it is
 	score_moves(pos, ss, move_list, tte.move);
 
 	// old value of alpha
@@ -496,6 +497,7 @@ moves_loop:
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
+		//take the most promising move that hasn't been played yet
 		pick_move(move_list, count);
 		//get the move with the highest score in the move ordering
 		int move = move_list->moves[count].move;
@@ -532,7 +534,7 @@ moves_loop:
 		}
 
 		int extension = 0;
-
+		//Search extension
 		if (!root_node
 			&& depth >= 7
 			&& move == tte.move

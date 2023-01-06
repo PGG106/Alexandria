@@ -91,25 +91,31 @@ public:
 
 	int checks = -1;
 };
-
-typedef struct Stack {
+//contains data used for several search heuristics
+struct S_Stack {
 	int pvLength[MAXDEPTH + 1];
 	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
+	//History heuristic table, index by piece and landing square
 	int searchHistory[12][Board_sq_num] = { 0 };
+	//Array of killer moves, index by color and ply
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
+	//Array that contains the move we are currently verifying as a singularity (if present)
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 	int eval[MAXDEPTH] = { 0 };
 	int move[MAXDEPTH] = { 0 };
-} S_Stack;
+};
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
-
-typedef struct info {
+//Hold the data from the uci input to set search parameters and some search data to populate the uci output
+struct S_SearchINFO {
+	//search start time 
 	long starttime = 0;
+	//search time initial lower bound if present
 	long stoptimeOpt = 0;
+	//search time upper bound if present
 	long stoptimeMax = 0;
-
+	//max depth to reach for depth limited searches
 	int depth = -1;
 	int seldepth = -1;
 	//types of search limits
@@ -124,7 +130,7 @@ typedef struct info {
 
 	bool stopped = false;
 
-} S_SearchINFO;
+};
 
 // castling rights update constants
 extern const int castling_rights[Board_sq_num];

@@ -249,7 +249,7 @@ void Uci_Loop(char** argv) {
 		// get user / GUI input
 		if (!std::getline(std::cin, input)) {
 			// continue the loop
-			exit;
+			break;
 		}
 
 		// make sure input is available
