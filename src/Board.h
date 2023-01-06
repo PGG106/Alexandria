@@ -15,9 +15,7 @@
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
 
-constexpr int MAXGAMEMOVES = 1024;
 constexpr int MAXDEPTH = 128;
-constexpr int UNDOSIZE = MAXGAMEMOVES + MAXDEPTH;
 constexpr int Board_sq_num = 64;
 
 
@@ -78,7 +76,7 @@ public:
 
 	PosKey posKey = 0ULL; // unique  hashkey  that encodes a board position
 
-	S_Undo	history[UNDOSIZE]; // stores every single move and the state of the board when that move was made for rollback purposes
+	S_Undo	history[MAXDEPTH]; // stores every single move and the state of the board when that move was made for rollback purposes
 	std::vector<PosKey> searched_positions = {};
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
@@ -101,8 +99,8 @@ typedef struct Stack {
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int excludedMoves[MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
-	int eval[MAXGAMEMOVES + MAXDEPTH] = { 0 };
-	int move[MAXGAMEMOVES + MAXDEPTH] = { 0 };
+	int eval[MAXDEPTH] = { 0 };
+	int move[MAXDEPTH] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
@@ -111,17 +109,20 @@ typedef struct info {
 	long starttime = 0;
 	long stoptimeOpt = 0;
 	long stoptimeMax = 0;
+
 	int depth = -1;
 	int seldepth = -1;
+	//types of search limits
 	bool timeset = false;
 	bool nodeset = false;
+	bool movetimeset = false;
+
 	int movestogo = -1;
 	uint64_t nodes = 0;
 	uint64_t nodeslimit = 0;
 	bool infinite = false;
 
 	bool stopped = false;
-
 
 } S_SearchINFO;
 

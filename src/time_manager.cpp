@@ -11,9 +11,13 @@
 void optimum(S_SearchINFO* info, int time, int inc) {
 	//if we recieved a time parameter from the gui
 	if (time != -1) {
-		info->timeset = TRUE;
+		//if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
+		if (info->movetimeset) {
+			info->stoptimeMax = info->starttime + time;
+			info->stoptimeOpt = info->starttime + time;
+		}
 		//If we recieved a movestogo parameter
-		if (info->movestogo != -1) {
+		else if (info->timeset && info->movestogo != -1) {
 			int safety_overhead = 50;
 			time -= safety_overhead;
 			int time_slot = time / info->movestogo;
@@ -49,7 +53,7 @@ bool stopEarly(const S_SearchINFO* info) {
 
 bool timeOver(const S_SearchINFO* info) {
 	// check if more than Maxtime passed and we have to stop
-	if ((info->timeset
+	if ((info->timeset || info->movetimeset
 		&& ((info->nodes & 1023) == 1023)
 		&& GetTimeMs() > info->stoptimeMax)
 		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))

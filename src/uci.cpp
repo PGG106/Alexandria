@@ -171,9 +171,11 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 		if (tokens.at(i) == "wtime" && pos->side == WHITE) {
 			time = std::stoi(tokens[i + 1]);
+			info->timeset = true;
 		}
 		if (tokens.at(i) == "btime" && pos->side == BLACK) {
 			time = std::stoi(tokens[i + 1]);
+			info->timeset = true;
 		}
 
 		if (tokens.at(i) == "movestogo") {
@@ -184,6 +186,8 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 		if (tokens.at(i) == "movetime") {
 			movetime = std::stoi(tokens[i + 1]);
+			time = movetime;
+			info->movetimeset = true;
 		}
 
 
@@ -195,12 +199,6 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 			info->nodeset = true;
 			info->nodeslimit = std::stoi(tokens[i + 1]);
 		}
-	}
-
-
-	if (movetime != -1) {
-		time = movetime;
-		info->movestogo = 1;
 	}
 
 	info->starttime = GetTimeMs();
@@ -251,11 +249,11 @@ void Uci_Loop(char** argv) {
 		// get user / GUI input
 		if (!std::getline(std::cin, input)) {
 			// continue the loop
-			continue;
+			exit;
 		}
 
 		// make sure input is available
-		if (input[0] == '\n') {
+		if (!input.length()) {
 			// continue the loop
 			continue;
 		}
@@ -321,7 +319,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "quit" command
-		else if (input == "quit") {
+		else if (input == "quit" || input == "exit") {
 			//Stop helper threads
 			stopHelperThreads();
 			//stop main thread search
