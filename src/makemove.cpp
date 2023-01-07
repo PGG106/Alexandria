@@ -1,4 +1,4 @@
-﻿#include "makemove.h"
+#include "makemove.h"
 #include "Board.h"
 #include "hashkey.h"
 #include "init.h"
@@ -394,7 +394,6 @@ int Unmake_move(const int move, S_Board* pos) {
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
-
 	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)

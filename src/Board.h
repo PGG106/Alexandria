@@ -79,13 +79,15 @@ public:
 	S_Undo	history[MAXDEPTH];
 	//Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
 	std::vector<PosKey> played_positions = {};
+	// Occupancies bitboards based on piece and side
+	Bitboard bitboards[12]{ 0ULL };
+	Bitboard occupancies[3] = { 0ULL };
+	//movegen stuff
 	Bitboard pinHV = 0ULL;
 	Bitboard pinD = 0ULL;
 	Bitboard checkMask = 0ULL;
 
-	// Occupancies bitboards based on piece and side
-	Bitboard bitboards[12]{ 0ULL };
-	Bitboard occupancies[3] = { 0ULL };
+	//Active nnue accumulator
 	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
@@ -102,6 +104,7 @@ typedef struct Stack {
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 	int eval[MAXDEPTH] = { 0 };
 	int move[MAXDEPTH] = { 0 };
+	int NodesMove[64][64] = { 0 };
 } S_Stack;
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
