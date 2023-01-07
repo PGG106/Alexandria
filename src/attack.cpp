@@ -111,21 +111,6 @@ Bitboard mask_pawn_attacks(int side, int square) {
 	return attacks;
 }
 
-Bitboard get_attacked_square_pawns(const S_Board* pos, int side) {
-	Bitboard pawns = GetPieceColorBB(pos,PAWN,side);
-	Bitboard attacked_squares = 0ULL;
-
-	while (pawns) {
-		int target_square = get_ls1b_index(pawns);
-
-		attacked_squares |= pawn_attacks[side][target_square];
-
-		clr_bit(pawns);
-	}
-
-	return attacked_squares;
-}
-
 // generate knight attacks
 Bitboard mask_knight_attacks(int square) {
 	// result attacks bitboard

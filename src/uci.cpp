@@ -19,6 +19,7 @@
 #include "datagen.h"
 #include "threads.h"
 
+//convert a move to coordinate notation to internal notation
 int parse_move(const std::string& move_string, S_Board* pos) {
 	// create move list instance
 	S_MOVELIST move_list[1];
@@ -82,24 +83,6 @@ int parse_move(const std::string& move_string, S_Board* pos) {
 	return 0;
 }
 
-/*
-		Example UCI commands to init position on chess board
-
-		// init start position
-		position startpos
-
-		// init start position and make the moves on chess board
-		position startpos moves e2e4 e7e5
-
-		// init position from FEN string
-		position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w
-   KQkq - 0 1
-
-		// init position from fen string and make moves on chess board
-		position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w
-   KQkq - 0 1 moves e2a6 e8g8
-*/
-
 // parse UCI "position" command
 void parse_position(const std::string& command, S_Board* pos) {
 
@@ -112,7 +95,7 @@ void parse_position(const std::string& command, S_Board* pos) {
 	// parse UCI "fen" command
 	else {
 
-		// if no "fen" command is available within command string
+		// if a "fen" command is available within command string
 		if (command.find("fen") != std::string::npos) {
 			// init chess board with position from FEN string
 			parse_fen(command.substr(command.find("fen") + 4, std::string::npos), pos);
@@ -124,12 +107,15 @@ void parse_position(const std::string& command, S_Board* pos) {
 
 	}
 
-	// moves available
+	// if there are moves to be played in the fen play them
 	if (command.find("moves") != std::string::npos) {
 		int string_start = command.find("moves") + 6;
 		std::string moves_substr = command.substr(string_start, std::string::npos);
 		parse_moves(moves_substr, pos);
 	}
+
+	//Update accumulator state to reflect the new position
+	accumulate(pos->accumulator, pos);
 }
 
 /*
@@ -171,9 +157,11 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 		if (tokens.at(i) == "wtime" && pos->side == WHITE) {
 			time = std::stoi(tokens[i + 1]);
+			info->timeset = true;
 		}
 		if (tokens.at(i) == "btime" && pos->side == BLACK) {
 			time = std::stoi(tokens[i + 1]);
+			info->timeset = true;
 		}
 
 		if (tokens.at(i) == "movestogo") {
@@ -184,6 +172,8 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 		if (tokens.at(i) == "movetime") {
 			movetime = std::stoi(tokens[i + 1]);
+			time = movetime;
+			info->movetimeset = true;
 		}
 
 
@@ -195,12 +185,6 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 			info->nodeset = true;
 			info->nodeslimit = std::stoi(tokens[i + 1]);
 		}
-	}
-
-
-	if (movetime != -1) {
-		time = movetime;
-		info->movestogo = 1;
 	}
 
 	info->starttime = GetTimeMs();
@@ -222,12 +206,6 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 }
 
-/*
-		GUI -> isready
-		Engine -> readyok
-		GUI -> ucinewgame
-*/
-
 // main UCI loop
 void Uci_Loop(char** argv) {
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
@@ -240,7 +218,7 @@ void Uci_Loop(char** argv) {
 	S_ThreadData td[1];
 	std::thread main_search_thread;
 	// print engine info
-	printf("id name Alexandria 4.0\n");
+	printf("id name Alexandria 4.0-dev\n");
 
 	// main loop
 	while (1) {
@@ -251,11 +229,11 @@ void Uci_Loop(char** argv) {
 		// get user / GUI input
 		if (!std::getline(std::cin, input)) {
 			// continue the loop
-			continue;
+			break;
 		}
 
 		// make sure input is available
-		if (input[0] == '\n') {
+		if (!input.length()) {
 			// continue the loop
 			continue;
 		}
@@ -321,7 +299,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "quit" command
-		else if (input == "quit") {
+		else if (input == "quit" || input == "exit") {
 			//Stop helper threads
 			stopHelperThreads();
 			//stop main thread search
@@ -337,7 +315,7 @@ void Uci_Loop(char** argv) {
 		// parse UCI "uci" command
 		else if (input == "uci") {
 			// print engine info
-			printf("id name Alexandria 4.0\n");
+			printf("id name Alexandria 4.0-dev\n");
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 256 \n");

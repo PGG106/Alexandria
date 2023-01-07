@@ -23,10 +23,11 @@
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
-	for (int index = std::max(static_cast<int>(pos->searched_positions.size()) - get_fifty_moves_counter(pos), 0);
-		index < static_cast<int>(pos->searched_positions.size()); index++)
-		// if we found the hash key same with a current
-		if (pos->searched_positions[index] == pos->posKey) {
+	// we only need to check for repetition the moves since the last 50mr reset
+	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - get_fifty_moves_counter(pos), 0);
+		index < static_cast<int>(pos->played_positions.size()); index++)
+		// if we found the same position hashkey as the current position
+		if (pos->played_positions[index] == pos->posKey) {
 			// we found a repetition
 			return TRUE;
 		}
@@ -78,7 +79,7 @@ void ClearForSearch(S_ThreadData* td) {
 	td->info.nodes = 0;
 	td->info.seldepth = 0;
 }
-
+// returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
@@ -208,7 +209,7 @@ static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == ss->CounterMoves[From(pos->history[pos->hisPly].move)][To(pos->history[pos->hisPly].move)])
+		else if (move == ss->CounterMoves[From(ss->move[pos->ply])][To(ss->move[pos->ply])])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
@@ -445,12 +446,13 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-		if (pos->history[pos->hisPly - 1].move != NOMOVE
-			&& static_eval >= beta
+		if (static_eval >= beta
 			&& eval >= beta
 			&& pos->ply
+			&& ss->move[pos->ply - 1] != NOMOVE
 			&& depth >= 3
 			&& BoardHasNonPawns(pos, pos->side)) {
+			ss->move[pos->ply] = NOMOVE;
 			MakeNullMove(pos);
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
@@ -483,7 +485,7 @@ moves_loop:
 
 	// generate moves
 	generate_moves(move_list, pos);
-
+	//assign a score to every move based on how promising it is
 	score_moves(pos, ss, move_list, tte.move);
 
 	// old value of alpha
@@ -495,6 +497,7 @@ moves_loop:
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
+		//take the most promising move that hasn't been played yet
 		pick_move(move_list, count);
 		//get the move with the highest score in the move ordering
 		int move = move_list->moves[count].move;
@@ -531,7 +534,7 @@ moves_loop:
 		}
 
 		int extension = 0;
-
+		//Search extension
 		if (!root_node
 			&& depth >= 7
 			&& move == tte.move
@@ -556,6 +559,7 @@ moves_loop:
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
+		ss->move[pos->ply] = move;
 		//Play the move
 		make_move(move, pos);
 		//Speculative prefetch of the TT entry
@@ -594,7 +598,7 @@ moves_loop:
 		}
 
 		// take move back
-		Unmake_move(pos);
+		Unmake_move(move, pos);
 
 		if (info->stopped)
 			return 0;
@@ -629,7 +633,7 @@ moves_loop:
 						}
 
 						//Save CounterMoves
-						int previousMove = pos->history[pos->hisPly].move;
+						int previousMove = ss->move[pos->ply];
 						ss->CounterMoves[From(previousMove)][To(previousMove)] = move;
 						//Update the history heuristic based on the new best move
 						updateHH(pos, ss, depth, bestmove, &quiet_moves);
@@ -734,6 +738,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		{
 			continue;
 		}
+		ss->move[pos->ply] = move;
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
@@ -741,7 +746,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		Score = -Quiescence(-beta, -alpha, td);
 
 		// take move back
-		Unmake_move(pos);
+		Unmake_move(move, pos);
 
 		if (info->stopped)
 			return 0;

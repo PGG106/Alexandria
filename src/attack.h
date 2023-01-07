@@ -29,8 +29,6 @@ extern Bitboard bishop_magic_numbers[64];
 // generate pawn attacks
 Bitboard mask_pawn_attacks(int side, int square);
 
-Bitboard get_attacked_square_pawns(const S_Board *pos, int side);
-
 // generate knight attacks
 Bitboard mask_knight_attacks(int square);
 // generate king attacks
