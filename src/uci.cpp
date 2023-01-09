@@ -215,7 +215,7 @@ void Uci_Loop(char** argv) {
 
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
-	S_ThreadData td[1];
+	S_ThreadData* td(new ThreadData());
 	std::thread main_search_thread;
 	// print engine info
 	printf("id name Alexandria 4.0-dev\n");
@@ -308,6 +308,8 @@ void Uci_Loop(char** argv) {
 			//Join previous search thread if it exists
 			if (main_search_thread.joinable())
 				main_search_thread.join();
+			//free thread data
+			delete td;
 			// quit from the chess engine program execution
 			break;
 		}
