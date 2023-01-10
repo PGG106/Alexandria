@@ -172,7 +172,7 @@ bool SEE(const S_Board* pos, const int move,
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
+static inline void score_moves(S_Board* pos, Search_data* ss, S_MOVELIST* move_list,
 	int PvMove) {
 	//Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
@@ -232,7 +232,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int  getBestMove(const S_Stack* ss) {
+int  getBestMove(const Search_data* ss) {
 	return ss->pvArray[0][0];
 }
 
@@ -347,7 +347,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
-	S_Stack* ss = &td->ss;
+	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
 
 	// Initialize the node
@@ -664,7 +664,7 @@ moves_loop:
 int Quiescence(int alpha, int beta, S_ThreadData* td) {
 
 	S_Board* pos = &td->pos;
-	S_Stack* ss = &td->ss;
+	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = IsInCheck(pos, pos->side);
 	// Initialize the node

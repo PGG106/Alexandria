@@ -6,7 +6,7 @@
 typedef struct ThreadData {
 	int id = 0;
 	S_Board pos;
-	S_Stack ss;
+	Search_data ss;
 	S_SearchINFO info;
 } S_ThreadData;
 
@@ -24,7 +24,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td);
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td);
 
-int getBestMove(const S_Stack* ss);
+int getBestMove(const Search_data* ss);
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);

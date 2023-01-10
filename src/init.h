@@ -6,7 +6,7 @@ extern Bitboard enpassant_keys[64];
 extern Bitboard SideKey;
 extern Bitboard CastleKeys[16];
 
-void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info);
+void init_new_game(S_Board* pos, Search_data* ss, S_SearchINFO* info);
 
 void init_leapers_attacks();
 
