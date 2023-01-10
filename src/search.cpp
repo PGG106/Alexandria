@@ -50,34 +50,41 @@ static bool IsDraw(const S_Board* pos) {
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	Search_data* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
+
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			td->ss.searchHistory[index][index2] = 0;
+			ss->searchHistory[index][index2] = 0;
 		}
 	}
 
 	//Reset the 2 killer moves that are stored for any searched depth
 	for (int index = 0; index < 2; ++index) {
 		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			td->ss.searchKillers[index][index2] = 0;
+			ss->searchKillers[index][index2] = 0;
 		}
 	}
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
-		td->ss.pvLength[index] = 0;
+		pv_table->pvLength[index] = 0;
 		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-			td->ss.pvArray[index][index2] = NOMOVE;
+			pv_table->pvArray[index][index2] = NOMOVE;
 		}
 	}
 
 	//Reset plies and search info
-	td->pos.ply = 0;
-	td->info.starttime = GetTimeMs();
-	td->info.stopped = FALSE;
-	td->info.nodes = 0;
-	td->info.seldepth = 0;
+	pos->ply = 0;
+	info->starttime = GetTimeMs();
+	info->stopped = FALSE;
+	info->nodes = 0;
+	info->seldepth = 0;
 }
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
@@ -232,8 +239,8 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int  getBestMove(const Search_data* ss) {
-	return ss->pvArray[0][0];
+int getBestMove(const PvTable* pv_table) {
+	return pv_table->pvArray[0][0];
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -262,7 +269,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	search_position(1, depth, td, options);
 	//Print final bestmove found
 	printf("bestmove ");
-	print_move(getBestMove(&td->ss));
+	print_move(getBestMove(&td->pv_table));
 	printf("\n");
 }
 
@@ -349,6 +356,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	S_Board* pos = &td->pos;
 	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
 
 	// Initialize the node
 	bool in_check = IsInCheck(pos, pos->side);
@@ -363,7 +371,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	bool SkipQuiets = false;
 	int excludedMove = ss->excludedMoves[pos->ply];
 
-	ss->pvLength[pos->ply] = pos->ply;
+	pv_table->pvLength[pos->ply] = pos->ply;
 
 	if (in_check) depth = std::max(1, depth + 1);
 
@@ -613,12 +621,12 @@ moves_loop:
 				bestmove = move;
 				alpha = Score;
 				//Update the pv table
-				ss->pvArray[pos->ply][pos->ply] = move;
-				for (int next_ply = pos->ply + 1;next_ply < ss->pvLength[pos->ply + 1];next_ply++)
+				pv_table->pvArray[pos->ply][pos->ply] = move;
+				for (int next_ply = pos->ply + 1;next_ply < pv_table->pvLength[pos->ply + 1];next_ply++)
 				{
-					ss->pvArray[pos->ply][next_ply] = ss->pvArray[pos->ply + 1][next_ply];
+					pv_table->pvArray[pos->ply][next_ply] = pv_table->pvArray[pos->ply + 1][next_ply];
 				}
-				ss->pvLength[pos->ply] = ss->pvLength[pos->ply + 1];
+				pv_table->pvLength[pos->ply] = pv_table->pvLength[pos->ply + 1];
 
 				if (Score >= beta)
 				{
@@ -633,7 +641,6 @@ moves_loop:
 
 						//Save CounterMoves
 						int previous_move = ss->move[pos->ply];
-						int previous_previous_move = ss->move[pos->ply - 1];
 						ss->CounterMoves[From(previous_move)][To(previous_move)] = move;
 						//Update the history heuristic based on the new best move
 						updateHH(pos, ss, depth, bestmove, &quiet_moves);

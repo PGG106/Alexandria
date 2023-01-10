@@ -288,7 +288,7 @@ void Uci_Loop(char** argv) {
 
 		// parse UCI "ucinewgame" command
 		else if (input == "ucinewgame") {
-			init_new_game(&td->pos, &td->ss, &td->info);
+			init_new_game(td);
 		}
 		// parse UCI "stop" command
 		else if (input == "stop") {

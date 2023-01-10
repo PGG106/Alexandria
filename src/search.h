@@ -2,12 +2,22 @@
 #include "Board.h"
 #include "uci.h"
 
+struct Search_data {
+	int searchHistory[12][Board_sq_num] = { 0 };
+	int searchKillers[2][MAXDEPTH] = { NOMOVE };
+	int excludedMoves[MAXDEPTH] = { NOMOVE };
+	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
+	int eval[MAXDEPTH] = { 0 };
+	int move[MAXDEPTH] = { 0 };
+};
+
 // a collection of all the data a thread needs to condut a search
 typedef struct ThreadData {
 	int id = 0;
 	S_Board pos;
 	Search_data ss;
 	S_SearchINFO info;
+	PvTable pv_table;
 } S_ThreadData;
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
@@ -24,7 +34,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td);
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td);
 
-int getBestMove(const Search_data* ss);
+int getBestMove(const PvTable* pv_table);
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);
