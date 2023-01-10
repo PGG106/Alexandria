@@ -278,6 +278,8 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
+	Search_stack stack[MAXDEPTH], * ss = stack;
+
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
 

@@ -2,6 +2,12 @@
 #include "Board.h"
 #include "uci.h"
 
+struct Search_stack {
+	int excludedMoves = { NOMOVE };
+	int eval = { 0 };
+	int move = { 0 };
+};
+
 struct Search_data {
 	int searchHistory[12][Board_sq_num] = { 0 };
 	int searchKillers[2][MAXDEPTH] = { NOMOVE };
@@ -12,13 +18,13 @@ struct Search_data {
 };
 
 // a collection of all the data a thread needs to condut a search
-typedef struct ThreadData {
+struct S_ThreadData {
 	int id = 0;
 	S_Board pos;
 	Search_data ss;
 	S_SearchINFO info;
 	PvTable pv_table;
-} S_ThreadData;
+};
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
 void ClearForSearch(S_ThreadData* td);
