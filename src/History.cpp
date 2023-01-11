@@ -24,8 +24,8 @@ void updateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 }
 
 //Returns the history score of a move
-int getHHScore(const S_Board* pos, const Search_data* ss, const int  move) {
-	return ss->searchHistory[pos->pieces[From(move)]][To(move)];
+int getHHScore(const S_Board* pos, const Search_data* sd, const int  move) {
+	return sd->searchHistory[pos->pieces[From(move)]][To(move)];
 }
 //Resets the history table
 void cleanHistory(Search_data* ss) {

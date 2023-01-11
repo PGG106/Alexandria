@@ -35,7 +35,7 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td);
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss);
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_ThreadData* td);
+int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss);
 
 int getBestMove(const PvTable* pv_table);
 

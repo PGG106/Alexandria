@@ -179,7 +179,7 @@ bool SEE(const S_Board* pos, const int move,
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, Search_data* ss, S_MOVELIST* move_list,
+static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list,
 	int PvMove) {
 	//Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
@@ -206,24 +206,24 @@ static inline void score_moves(S_Board* pos, Search_data* ss, S_MOVELIST* move_l
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
-		else if (ss->searchKillers[0][pos->ply] == move) {
+		else if (sd->searchKillers[0][pos->ply] == move) {
 			move_list->moves[i].score = killerMoveScore0;
 			continue;
 		}
 		//Second killer move always comes after the first one
-		else if (ss->searchKillers[1][pos->ply] == move) {
+		else if (sd->searchKillers[1][pos->ply] == move) {
 			move_list->moves[i].score = killerMoveScore1;
 			continue;
 		}
 		//After the killer moves try the Counter moves
-		else if (move == ss->CounterMoves[From(ss->move[pos->ply])][To(ss->move[pos->ply])])
+		else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)])
 		{
 			move_list->moves[i].score = 600000000;
 			continue;
 		}
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
-			move_list->moves[i].score = getHHScore(pos, ss, move);
+			move_list->moves[i].score = getHHScore(pos, sd, move);
 			continue;
 		}
 	}
@@ -384,7 +384,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(alpha, beta, td);
+		return Quiescence(alpha, beta, td, ss);
 	}
 
 	// check if more than Maxtime passed and we have to stop
@@ -484,7 +484,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 		if ((depth <= 3) &&
 			(eval + 119 + 182 * (depth - 1) <= alpha))
 		{
-			return Quiescence(alpha, beta, td);
+			return Quiescence(alpha, beta, td, ss);
 		}
 
 	}
@@ -496,7 +496,7 @@ moves_loop:
 	// generate moves
 	generate_moves(move_list, pos);
 	//assign a score to every move based on how promising it is
-	score_moves(pos, sd, move_list, tte.move);
+	score_moves(pos, sd, ss, move_list, tte.move);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -672,10 +672,10 @@ moves_loop:
 }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_ThreadData* td) {
+int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	S_Board* pos = &td->pos;
-	Search_data* ss = &td->ss;
+	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = IsInCheck(pos, pos->side);
 	// Initialize the node
@@ -727,7 +727,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 	generate_captures(move_list, pos);
 
 	//score the generated moves
-	score_moves(pos, ss, move_list, tte.move);
+	score_moves(pos, sd, ss, move_list, tte.move);
 
 	//set up variables needed for the search
 	int BestScore = standing_pat;
@@ -750,12 +750,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td) {
 		{
 			continue;
 		}
-		ss->move[pos->ply] = move;
+		ss->move = move;
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
-		Score = -Quiescence(-beta, -alpha, td);
+		Score = -Quiescence(-beta, -alpha, td, ss + 1);
 
 		// take move back
 		Unmake_move(move, pos);
