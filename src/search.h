@@ -2,13 +2,29 @@
 #include "Board.h"
 #include "uci.h"
 
+struct Search_stack {
+	int excludedMove = { NOMOVE };
+	int eval = { 0 };
+	int move = { 0 };
+};
+
+struct Search_data {
+	int searchHistory[12][Board_sq_num] = { 0 };
+	int searchKillers[2][MAXDEPTH] = { NOMOVE };
+	int excludedMoves[MAXDEPTH] = { NOMOVE };
+	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
+	int eval[MAXDEPTH] = { 0 };
+	int move[MAXDEPTH] = { 0 };
+};
+
 // a collection of all the data a thread needs to condut a search
 typedef struct ThreadData {
 	int id = 0;
 	S_Board pos;
-	S_Stack ss;
+	Search_data ss;
 	S_SearchINFO info;
-} S_ThreadData;
+	PvTable pv_table;
+}S_ThreadData;
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
 void ClearForSearch(S_ThreadData* td);
@@ -20,11 +36,11 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 //Sets up aspiration windows and starts a negamax search
 int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td);
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_ThreadData* td);
+int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss);
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td);
 
-int getBestMove(const S_Stack* ss);
+int getBestMove(const PvTable* pv_table);
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);

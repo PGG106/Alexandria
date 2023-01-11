@@ -93,16 +93,10 @@ public:
 	int checks = -1;
 };
 
-typedef struct Stack {
+struct PvTable {
 	int pvLength[MAXDEPTH + 1];
 	int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
-	int searchHistory[12][Board_sq_num] = { 0 };
-	int searchKillers[2][MAXDEPTH] = { NOMOVE };
-	int excludedMoves[MAXDEPTH] = { NOMOVE };
-	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
-	int eval[MAXDEPTH] = { 0 };
-	int move[MAXDEPTH] = { 0 };
-} S_Stack;
+};
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 //Hold the data from the uci input to set search parameters and some search data to populate the uci output

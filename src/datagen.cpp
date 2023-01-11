@@ -32,7 +32,7 @@ void make_random_move(S_Board* pos) {
 
 
 /*
-void datagen(S_Board* pos, S_Stack* ss, S_SearchINFO* info)
+void datagen(S_Board* pos, Search_data* ss, S_SearchINFO* info)
 {
 	srand(time(NULL));
 	// Play 5 random moves

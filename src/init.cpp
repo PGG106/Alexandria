@@ -246,7 +246,14 @@ void init_all() {
 	nnue.init("nn.net");
 }
 
-void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
+void init_new_game(S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	Search_data* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
+
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
@@ -263,9 +270,9 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
-		ss->pvLength[index] = 0;
+		pv_table->pvLength[index] = 0;
 		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-			ss->pvArray[index][index2] = NOMOVE;
+			pv_table->pvArray[index][index2] = NOMOVE;
 		}
 	}
 
@@ -297,5 +304,6 @@ void init_new_game(S_Board* pos, S_Stack* ss, S_SearchINFO* info) {
 
 	// call parse position function
 	parse_position("position startpos", pos);
+	return;
 
 }

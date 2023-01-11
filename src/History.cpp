@@ -1,9 +1,8 @@
-#include "Board.h"
-#include "move.h"
 #include "History.h"
 
+
 //Update the history heuristics of all the quiet moves passed to the function
-void updateHH(const S_Board* pos, S_Stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
+void updateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
 	//define the history bonus
 	int bonus = depth * depth;
 	//Loop through all the quiet moves
@@ -25,11 +24,11 @@ void updateHH(const S_Board* pos, S_Stack* ss, const int depth, const int bestmo
 }
 
 //Returns the history score of a move
-int getHHScore(const S_Board* pos, const S_Stack* ss, const int  move) {
+int getHHScore(const S_Board* pos, const Search_data* ss, const int  move) {
 	return ss->searchHistory[pos->pieces[From(move)]][To(move)];
 }
 //Resets the history table
-void cleanHistory(S_Stack* ss) {
+void cleanHistory(Search_data* ss) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {

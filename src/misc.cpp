@@ -40,9 +40,9 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		" nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
 
 	// loop over the moves within a PV line
-	for (int count = 0; count < td->ss.pvLength[0]; count++) {
+	for (int count = 0; count < td->pv_table.pvLength[0]; count++) {
 		// print PV move
-		print_move(td->ss.pvArray[0][count]);
+		print_move(td->pv_table.pvArray[0][count]);
 		printf(" ");
 	}
 

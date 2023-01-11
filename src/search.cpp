@@ -50,34 +50,41 @@ static bool IsDraw(const S_Board* pos) {
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	Search_data* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
+
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			td->ss.searchHistory[index][index2] = 0;
+			ss->searchHistory[index][index2] = 0;
 		}
 	}
 
 	//Reset the 2 killer moves that are stored for any searched depth
 	for (int index = 0; index < 2; ++index) {
 		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			td->ss.searchKillers[index][index2] = 0;
+			ss->searchKillers[index][index2] = 0;
 		}
 	}
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
-		td->ss.pvLength[index] = 0;
+		pv_table->pvLength[index] = 0;
 		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-			td->ss.pvArray[index][index2] = NOMOVE;
+			pv_table->pvArray[index][index2] = NOMOVE;
 		}
 	}
 
 	//Reset plies and search info
-	td->pos.ply = 0;
-	td->info.starttime = GetTimeMs();
-	td->info.stopped = FALSE;
-	td->info.nodes = 0;
-	td->info.seldepth = 0;
+	pos->ply = 0;
+	info->starttime = GetTimeMs();
+	info->stopped = FALSE;
+	info->nodes = 0;
+	info->seldepth = 0;
 }
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
@@ -172,7 +179,7 @@ bool SEE(const S_Board* pos, const int move,
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, S_Stack* ss, S_MOVELIST* move_list,
+static inline void score_moves(S_Board* pos, Search_data* ss, S_MOVELIST* move_list,
 	int PvMove) {
 	//Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
@@ -232,8 +239,8 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int  getBestMove(const S_Stack* ss) {
-	return ss->pvArray[0][0];
+int getBestMove(const PvTable* pv_table) {
+	return pv_table->pvArray[0][0];
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -262,7 +269,7 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	search_position(1, depth, td, options);
 	//Print final bestmove found
 	printf("bestmove ");
-	print_move(getBestMove(&td->ss));
+	print_move(getBestMove(&td->pv_table));
 	printf("\n");
 }
 
@@ -300,6 +307,9 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
+
+	Search_stack stack[MAXDEPTH], * ss = stack;
+
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
 	// define initial alpha beta bounds
@@ -315,7 +325,7 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, td);
+		score = negamax(alpha, beta, depth, td, ss);
 
 		// check if more than Maxtime passed and we have to stop
 		if (td->id == 0 && timeOver(&td->info)) {
@@ -343,12 +353,13 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
+int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
-	S_Stack* ss = &td->ss;
+	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
 
 	// Initialize the node
 	bool in_check = IsInCheck(pos, pos->side);
@@ -360,10 +371,10 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
 	int pv_node = (beta - alpha) > 1;
-	bool SkipQuiets = false;
-	int excludedMove = ss->excludedMoves[pos->ply];
 
-	ss->pvLength[pos->ply] = pos->ply;
+	int excludedMove = ss->excludedMove;
+
+	pv_table->pvLength[pos->ply] = pos->ply;
 
 	if (in_check) depth = std::max(1, depth + 1);
 
@@ -420,17 +431,17 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 
 	if (in_check || excludedMove) {
 		static_eval = value_none;
-		ss->eval[pos->ply] = value_none;
+		ss->eval = value_none;
 		improving = false;
 		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
 	}
 
 	// get static evaluation score
 	static_eval = eval = EvalPosition(pos);
-	ss->eval[pos->ply] = static_eval;
+	ss->eval = static_eval;
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (pos->ply >= 2) && (static_eval > ss->eval[pos->ply - 2] || ss->eval[pos->ply - 2] == value_none);
+	improving = (pos->ply >= 2) && (static_eval > (ss - 2)->eval || (ss - 2)->eval == value_none);
 
 	if (!pv_node) {
 
@@ -448,15 +459,15 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td) {
 		if (static_eval >= beta
 			&& eval >= beta
 			&& pos->ply
-			&& ss->move[pos->ply - 1] != NOMOVE
+			&& (ss - 1)->move != NOMOVE
 			&& depth >= 3
 			&& BoardHasNonPawns(pos, pos->side)) {
-			ss->move[pos->ply] = NOMOVE;
+			ss->move = NOMOVE;
 			MakeNullMove(pos);
 			int R = 3 + depth / 3;
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -negamax(-beta, -beta + 1, depth - R, td);
+			Score = -negamax(-beta, -beta + 1, depth - R, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -485,7 +496,7 @@ moves_loop:
 	// generate moves
 	generate_moves(move_list, pos);
 	//assign a score to every move based on how promising it is
-	score_moves(pos, ss, move_list, tte.move);
+	score_moves(pos, sd, move_list, tte.move);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -502,6 +513,7 @@ moves_loop:
 		int move = move_list->moves[count].move;
 		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
+		bool SkipQuiets = false;
 
 		if (isQuiet && SkipQuiets) continue;
 
@@ -545,9 +557,9 @@ moves_loop:
 			int singularBeta = tte.score - 3 * depth;
 			int singularDepth = (depth - 1) / 2;
 
-			ss->excludedMoves[pos->ply] = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, td);
-			ss->excludedMoves[pos->ply] = NOMOVE;
+			ss->excludedMove = tte.move;
+			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, td, ss);
+			ss->excludedMove = NOMOVE;
 
 			if (singularScore < singularBeta)
 				extension = 1;
@@ -558,7 +570,7 @@ moves_loop:
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
-		ss->move[pos->ply] = move;
+		ss->move = move;
 		//Play the move
 		make_move(move, pos);
 		//Speculative prefetch of the TT entry
@@ -579,20 +591,20 @@ moves_loop:
 		// full depth search
 		if (moves_searched == 0)
 			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, newDepth - 1, td);
+			Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
 
 		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
 		else {
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td);
+			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
 
 			//if we failed high on a reduced node search again (we can use the value of the reduction to deduce if we are at this stage, this is something i've found out from Berserk)
 			if (Score > alpha && depth_reduction != 1)
-				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td);
+				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
 
 			//If at this point we still failed high search with a full window
 			if (Score > alpha && Score < beta)
-				Score = -negamax(-beta, -alpha, newDepth - 1, td);
+				Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
 
 		}
 
@@ -613,30 +625,29 @@ moves_loop:
 				bestmove = move;
 				alpha = Score;
 				//Update the pv table
-				ss->pvArray[pos->ply][pos->ply] = move;
-				for (int next_ply = pos->ply + 1;next_ply < ss->pvLength[pos->ply + 1];next_ply++)
+				pv_table->pvArray[pos->ply][pos->ply] = move;
+				for (int next_ply = pos->ply + 1;next_ply < pv_table->pvLength[pos->ply + 1];next_ply++)
 				{
-					ss->pvArray[pos->ply][next_ply] = ss->pvArray[pos->ply + 1][next_ply];
+					pv_table->pvArray[pos->ply][next_ply] = pv_table->pvArray[pos->ply + 1][next_ply];
 				}
-				ss->pvLength[pos->ply] = ss->pvLength[pos->ply + 1];
+				pv_table->pvLength[pos->ply] = pv_table->pvLength[pos->ply + 1];
 
 				if (Score >= beta)
 				{
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
 						//Don't update killer moves if it would result in having 2 identical killer moves
-						if (ss->searchKillers[0][pos->ply] != bestmove) {
+						if (sd->searchKillers[0][pos->ply] != bestmove) {
 							// store killer moves
-							ss->searchKillers[1][pos->ply] = ss->searchKillers[0][pos->ply];
-							ss->searchKillers[0][pos->ply] = bestmove;
+							sd->searchKillers[1][pos->ply] = sd->searchKillers[0][pos->ply];
+							sd->searchKillers[0][pos->ply] = bestmove;
 						}
 
 						//Save CounterMoves
-						int previous_move = ss->move[pos->ply];
-						int previous_previous_move = ss->move[pos->ply - 1];
-						ss->CounterMoves[From(previous_move)][To(previous_move)] = move;
+						int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
+						sd->CounterMoves[From(previous_move)][To(previous_move)] = move;
 						//Update the history heuristic based on the new best move
-						updateHH(pos, ss, depth, bestmove, &quiet_moves);
+						updateHH(pos, sd, depth, bestmove, &quiet_moves);
 
 					}
 					// node (move) fails high
@@ -664,7 +675,7 @@ moves_loop:
 int Quiescence(int alpha, int beta, S_ThreadData* td) {
 
 	S_Board* pos = &td->pos;
-	S_Stack* ss = &td->ss;
+	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = IsInCheck(pos, pos->side);
 	// Initialize the node
