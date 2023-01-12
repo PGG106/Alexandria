@@ -53,7 +53,6 @@ void ClearForSearch(S_ThreadData* td) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
-	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 
