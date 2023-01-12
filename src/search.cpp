@@ -64,13 +64,6 @@ void ClearForSearch(S_ThreadData* td) {
 		}
 	}
 
-	//Reset the 2 killer moves that are stored for any searched depth
-	for (int index = 0; index < 2; ++index) {
-		for (int index2 = 0; index2 < MAXDEPTH; ++index2) {
-			ss->searchKillers[index][index2] = 0;
-		}
-	}
-
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
 		pv_table->pvLength[index] = 0;
@@ -206,12 +199,12 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
-		else if (sd->searchKillers[0][pos->ply] == move) {
+		else if (ss->searchKillers[0] == move) {
 			move_list->moves[i].score = killerMoveScore0;
 			continue;
 		}
 		//Second killer move always comes after the first one
-		else if (sd->searchKillers[1][pos->ply] == move) {
+		else if (ss->searchKillers[1] == move) {
 			move_list->moves[i].score = killerMoveScore1;
 			continue;
 		}
@@ -637,10 +630,10 @@ moves_loop:
 					//If the move that caused the beta cutoff is quiet we have a killer move
 					if (IsQuiet(move)) {
 						//Don't update killer moves if it would result in having 2 identical killer moves
-						if (sd->searchKillers[0][pos->ply] != bestmove) {
+						if (ss->searchKillers[0] != bestmove) {
 							// store killer moves
-							sd->searchKillers[1][pos->ply] = sd->searchKillers[0][pos->ply];
-							sd->searchKillers[0][pos->ply] = bestmove;
+							ss->searchKillers[1] = ss->searchKillers[0];
+							ss->searchKillers[0] = bestmove;
 						}
 
 						//Save CounterMoves

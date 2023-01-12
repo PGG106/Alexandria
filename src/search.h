@@ -6,11 +6,11 @@ struct Search_stack {
 	int excludedMove = { NOMOVE };
 	int eval = { 0 };
 	int move = { 0 };
+	int searchKillers[2] = { NOMOVE };
 };
 
 struct Search_data {
 	int searchHistory[12][Board_sq_num] = { 0 };
-	int searchKillers[2][MAXDEPTH] = { NOMOVE };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
 };
 
