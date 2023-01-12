@@ -9,16 +9,16 @@ void updateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 	for (int i = 0; i < quiet_moves->count; i++) {
 		int move = quiet_moves->moves[i].move;
 		//Scale the history bonus in order to cap the history value to +-32768
-		bonus = bonus - getHHScore(pos, ss, move) * abs(bonus) / 32768;
+		int hhbonus = bonus - getHHScore(pos, ss, move) * abs(bonus) / 32768;
 		//We increase the score for the bestmove
 		if (move == bestmove) {
 			ss->searchHistory[pos->pieces[From(bestmove)]]
-				[To(bestmove)] += bonus;
+				[To(bestmove)] += hhbonus;
 		}
 		// and decrease it for all the others
 		else { 
 			ss->searchHistory[pos->pieces[From(move)]]
-				[To(move)] -= bonus;
+				[To(move)] -= hhbonus;
 		}
 	}
 }
