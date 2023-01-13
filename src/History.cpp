@@ -1,6 +1,6 @@
 #include "History.h"
 void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
-	int scaled_bonus = bonus - getHHScore(pos, ss, move) * std::abs(bonus) / 16384;
+	int scaled_bonus = bonus - getHHScore(pos, ss, move) * std::abs(bonus) / 32768;
 	//Update move score
 	ss->searchHistory[pos->pieces[From(move)]]
 		[To(move)] += scaled_bonus;
@@ -9,7 +9,7 @@ void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
 //Update the history heuristics of all the quiet moves passed to the function
 void updateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
 	//define the history bonus
-	int bonus = std::min(150 * depth, 1200);
+	int bonus = std::min(150 * depth, 1500);
 	//increase bestmove HH score
 	updateHHScore(pos, ss, bestmove, bonus);
 	//Loop through all the quiet moves
