@@ -53,16 +53,8 @@ void ClearForSearch(S_ThreadData* td) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
-	Search_data* ss = &td->ss;
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
-
-	//For every piece [12] moved to every square [64] we reset the searchHistory value
-	for (int index = 0; index < 12; ++index) {
-		for (int index2 = 0; index2 < 64; ++index2) {
-			ss->searchHistory[index][index2] = 0;
-		}
-	}
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
