@@ -459,10 +459,10 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			if (info->stopped)
 				return 0;
 
-			// fail-hard beta cutoff
+			// fail-soft beta cutoff
 			if (Score >= beta && abs(Score) < ISMATE)
 				// node (position) fails high
-				return beta;
+				return Score;
 		}
 
 		// razoring
