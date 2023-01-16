@@ -7,8 +7,8 @@ typedef struct OPTIONS {
 	int Threads = 1;
 	bool datagen = false;
 } S_UciOptions;
-
-
+//Internal flag to decide if to pretty or ugly print search results
+extern bool print_uci;
 int parse_move(const std::string& move_string, S_Board* pos);
 // parse UCI "position" command
 void parse_position(const std::string& command, S_Board* pos);

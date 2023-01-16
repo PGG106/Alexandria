@@ -18,7 +18,7 @@
 #include <thread>
 #include "datagen.h"
 #include "threads.h"
-
+bool print_uci = false;
 //convert a move to coordinate notation to internal notation
 int parse_move(const std::string& move_string, S_Board* pos) {
 	// create move list instance
@@ -323,6 +323,8 @@ void Uci_Loop(char** argv) {
 			printf("option name Threads type spin default 1 min 1 max 256 \n");
 			//printf("option name MultiPV type spin default 1 min 1 max 1\n");
 			printf("uciok\n");
+			//Set uci compatible output mode
+			print_uci = true;
 		}
 
 		// parse UCI "uci" command
