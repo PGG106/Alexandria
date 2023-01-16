@@ -95,6 +95,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		//Pretty print search info
 		std::cout << std::setw(3) << depth << "/";
 		std::cout << std::left << std::setw(3) << td->info.seldepth;
+
 		std::cout << std::right << std::setw(8) << time_string;
 		std::cout << std::right << std::setw(10) << nodes / 1000 << "kn ";
 		std::cout << std::setw(8) << std::right << score_string;
