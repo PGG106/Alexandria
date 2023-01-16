@@ -359,6 +359,6 @@ void Uci_Loop(char** argv) {
 					}
 				}
 			}
-		}
+		}  else std::cout << "Unknown command: " << input << std::endl;
 	}
 }
