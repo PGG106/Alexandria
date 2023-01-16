@@ -266,7 +266,7 @@ void Uci_Loop(char** argv) {
 			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 
-		if (tokens[0] == "setoption") {
+		else if (tokens[0] == "setoption") {
 
 			if (tokens[2] == "Hash") {
 				uci_options->Hash = std::stoi(tokens[4]);
@@ -280,7 +280,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "isready" command
-		if (input == "isready") {
+		else if (input == "isready") {
 			std::cout << "readyok\n";
 
 			continue;
