@@ -337,7 +337,7 @@ void Uci_Loop(char** argv) {
 			start_bench();
 		}
 		
-		else if (strncmp(input, "perft", 5) == 0) {
+		else if (input == "perft") {
 			if (!parsed_position) // call parse position function
 				parse_position((char*)"position startpos", pos);
 			int perft_depth = atoi(input + 6);
