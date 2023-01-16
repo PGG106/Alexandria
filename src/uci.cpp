@@ -125,8 +125,8 @@ void parse_position(const std::string& command, S_Board* pos) {
 		go depth 64
 */
 
-// parse UCI "go" command
-void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
+// parse UCI "go" command, returns true if we have to search afterwards and false otherwise
+bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	Reset_info(info);
 	int depth = -1, movetime = -1;
 	int movestogo;
@@ -142,9 +142,9 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 		}
 
 		if (tokens.at(1) == "perft") {
-			int perft_depth = std::stoi(tokens[1]);
+			int perft_depth = std::stoi(tokens[2]);
 			perft_test(perft_depth, pos);
-			return;
+			return false;
 		}
 
 		if (tokens.at(i) == "binc" && pos->side == BLACK) {
@@ -203,7 +203,7 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	std::cout << "depth: " << info->depth << " ";
 	std::cout << "timeset: " << info->timeset << " ";
 	std::cout << "nodeset: " << info->nodeset << "\n";
-
+	return true;
 }
 
 // main UCI loop
@@ -261,12 +261,12 @@ void Uci_Loop(char** argv) {
 				parse_position("position startpos", &td->pos);
 			}
 			// call parse go function
-			parse_go(input, &td->info, &td->pos);
+			bool search = parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
-			main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+			if (search) main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 
-		if (tokens[0] == "setoption") {
+		else if (tokens[0] == "setoption") {
 
 			if (tokens[2] == "Hash") {
 				uci_options->Hash = std::stoi(tokens[4]);
@@ -280,7 +280,7 @@ void Uci_Loop(char** argv) {
 		}
 
 		// parse UCI "isready" command
-		if (input == "isready") {
+		else if (input == "isready") {
 			std::cout << "readyok\n";
 
 			continue;
@@ -359,6 +359,7 @@ void Uci_Loop(char** argv) {
 					}
 				}
 			}
-		}  else std::cout << "Unknown command: " << input << std::endl;
+		}
+		else std::cout << "Unknown command: " << input << std::endl;
 	}
 }

@@ -76,12 +76,12 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
 
 		std::cout << std::setw(3) << depth << "/";
-		std::cout << std::left << std::setw(3) << td->info.seldepth << " ";
-		std::cout << std::setw(4) << std::setprecision(3) << parsed_time;
-		std::cout << std::setw(2) << time_unit << " ";
-		std::cout << std::right << std::setw(5) << nodes / 1000 << "kn" << " ";
-		if (is_mate) std::cout << std::setw(2) << " M" << std::left << std::setw(3) << parsed_score << " ";
-		else std::cout << std::setw(5) << parsed_score << " ";
+		std::cout << std::left << std::setw(3) << td->info.seldepth;
+		std::cout << std::right << std::setw(4) << std::setprecision(3) << parsed_time;
+		std::cout << std::left << std::setw(2) << time_unit;
+		std::cout << std::right << std::setw(5) << nodes / 1000 << "kn ";
+		if (is_mate) std::cout << std::setw(1) << "M" << std::left << std::setw(3) << parsed_score;
+		else std::cout << std::setw(5) << parsed_score;
 		std::cout << std::right << std::setw(5) << nps / 1000 << "kn/s" << "  ";
 
 		// loop over the moves within a PV line
