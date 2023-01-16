@@ -60,7 +60,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		if (parsed_time >= 1000) {
 			parsed_time = parsed_time / 1000;
 			time_unit = 's';
-			if (parsed_time >= 60) 
+			if (parsed_time >= 60)
 			{
 				parsed_time = parsed_time / 60;
 				time_unit = 'm';
@@ -76,7 +76,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		float parsed_score = 0;
 		std::string score_unit = "";
 		if (score > -mate_value && score < -mate_score) {
-			parsed_score = (score + mate_value) / 2;
+			parsed_score = std::abs((score + mate_value) / 2);
 			score_unit = "-M";
 		}
 		else if (score > mate_score && score < mate_value) {
