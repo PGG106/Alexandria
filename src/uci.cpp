@@ -359,6 +359,6 @@ void Uci_Loop(char** argv) {
 					}
 				}
 			}
-		}
+		}  else printf("Unknown command: %s \n",input);
 	}
 }
