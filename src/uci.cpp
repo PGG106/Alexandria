@@ -337,10 +337,10 @@ void Uci_Loop(char** argv) {
 			start_bench();
 		}
 		
-		else if (input == "perft") {
+		else if (input.find("perft") != std::string::npos) {
 			if (!parsed_position) parse_position("position startpos", &td->pos);
-			int perft_depth = atoi(input + 6);
-			perft_test(perft_depth,pos);
+			int perft_depth = std::atoi(input.c_str() + 6);
+			perft_test(perft_depth, &td->pos);
 		}
 
 		else if (input == "see") {
