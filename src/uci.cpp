@@ -141,12 +141,6 @@ void parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 			;
 		}
 
-		if (tokens.at(1) == "perft") {
-			int perft_depth = std::stoi(tokens[1]);
-			perft_test(perft_depth, pos);
-			return;
-		}
-
 		if (tokens.at(i) == "binc" && pos->side == BLACK) {
 			inc = std::stoi(tokens[i + 1]);
 		}
@@ -341,6 +335,13 @@ void Uci_Loop(char** argv) {
 
 		else if (input == "bench") {
 			start_bench();
+		}
+		
+		else if (strncmp(input, "perft", 5) == 0) {
+			if (!parsed_position) // call parse position function
+				parse_position((char*)"position startpos", pos);
+			int perft_depth = atoi(input + 6);
+			perft_test(perft_depth,pos);
 		}
 
 		else if (input == "see") {
