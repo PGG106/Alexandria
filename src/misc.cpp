@@ -57,32 +57,48 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		//Convert time in seconds if possible
 		std::string time_unit = "ms";
 		float parsed_time = time;
-		if (time >= 1000) {
+		if (parsed_time >= 1000) {
 			parsed_time = parsed_time / 1000;
 			time_unit = 's';
+			if (parsed_time >= 60) 
+			{
+				parsed_time = parsed_time / 60;
+				time_unit = 'm';
+			}
 		}
+
+		// convert time to string
+		std::stringstream time_stream;
+		time_stream << std::setprecision(3) << parsed_time;
+		std::string time_string = time_stream.str() + time_unit;
+
 		//Convert score to a decimal format or to a mate string
 		float parsed_score = 0;
-		bool is_mate = false;
+		std::string score_unit = "";
 		if (score > -mate_value && score < -mate_score) {
-			parsed_score = -(score + mate_value) / 2;
-			is_mate = true;
+			parsed_score = (score + mate_value) / 2;
+			score_unit = "-M";
 		}
 		else if (score > mate_score && score < mate_value) {
 			parsed_score = (mate_value - score) / 2 + 1;
-			is_mate = true;
+			score_unit = "+M";
 		}
-		else  parsed_score = static_cast<float>(score) / 100;
+		else {
+			parsed_score = static_cast<float>(score) / 100;
+			score_unit = parsed_score > 0 ? '+' : '-';
+		}
+		// convert score to string
+		std::stringstream score_stream;
+		score_stream << std::fixed << std::setprecision(2) << parsed_score;
+		std::string score_string = score_unit + score_stream.str();
 
-
+		//Pretty print search info
 		std::cout << std::setw(3) << depth << "/";
 		std::cout << std::left << std::setw(3) << td->info.seldepth;
-		std::cout << std::right << std::setw(4) << std::setprecision(3) << parsed_time;
-		std::cout << std::left << std::setw(2) << time_unit;
-		std::cout << std::right << std::setw(5) << nodes / 1000 << "kn ";
-		if (is_mate) std::cout << std::setw(1) << "M" << std::left << std::setw(3) << parsed_score;
-		else std::cout << std::setw(5) << parsed_score;
-		std::cout << std::right << std::setw(5) << nps / 1000 << "kn/s" << "  ";
+		std::cout << std::right << std::setw(8) << time_string;
+		std::cout << std::right << std::setw(10) << nodes / 1000 << "kn ";
+		std::cout << std::setw(8) << std::right << score_string;
+		std::cout << std::setw(8) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->pv_table.pvLength[0]; count++) {
