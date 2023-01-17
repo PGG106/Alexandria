@@ -85,7 +85,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		}
 		else {
 			parsed_score = static_cast<float>(score) / 100;
-			score_unit = parsed_score > 0 ? '+' : '-';
+			if (parsed_score > 0)   score_unit = '+';
 		}
 		// convert score to string
 		std::stringstream score_stream;
