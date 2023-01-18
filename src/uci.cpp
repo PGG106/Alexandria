@@ -332,8 +332,13 @@ void Uci_Loop(char** argv) {
 			print_board(&td->pos);
 		}
 
-		else if (input == "eval") {
-			// print engine info
+		else if (input == "eval")
+		{// call parse position function
+			if (!parsed_position) 
+			{
+				parse_position("position startpos", &td->pos);
+			}
+			// print position eval
 			printf(
 				"the eval of this position according to the neural network is %d\n",
 				nnue.output(td->pos.accumulator));

@@ -34,6 +34,12 @@ void perft_driver(int depth, S_Board* pos) {
 		return;
 	}
 
+	// Bulk Counting
+	if (depth == 0) {
+		nodes += 1;
+		return;
+	}
+
 	// loop over generated moves
 	for (int move_count = 0; move_count < move_list->count; move_count++) {
 		int move = move_list->moves[move_count].move;
@@ -64,7 +70,7 @@ unsigned long long perft_test(int depth, S_Board* pos) {
 	long start = GetTimeMs();
 
 	// loop over generated moves
-	for (int move_count = 0; move_count < move_list->count; move_count++) { // e3h3
+	for (int move_count = 0; move_count < move_list->count; move_count++) {
 		const int move = move_list->moves[move_count].move;
 		// make move
 		make_move(move, pos);
@@ -84,13 +90,10 @@ unsigned long long perft_test(int depth, S_Board* pos) {
 
 		// print move
 		printf(" %s%s%c: %ld\n",
-			square_to_coordinates[From(
-				move_list->moves[move_count].move)],
-			square_to_coordinates[To(
-				move_list->moves[move_count].move)],
-			get_move_promoted(move_list->moves[move_count].move)
-			? promoted_pieces[get_move_promoted(
-				move_list->moves[move_count].move)]
+			square_to_coordinates[From(move)],
+			square_to_coordinates[To(move)],
+			get_move_promoted(move)
+			? promoted_pieces[get_move_promoted(move)]
 			: ' ',
 			old_nodes);
 	}
