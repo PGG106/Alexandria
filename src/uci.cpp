@@ -277,6 +277,12 @@ void Uci_Loop(char** argv) {
 				uci_options->Threads = std::stoi(tokens[4]);
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
 			}
+			else if (tokens[2] == "NNUE") {
+				// print engine info
+				nnue_eval = bool(std::stoi(tokens[4]));
+				std::cout << std::boolalpha;
+				std::cout << "NNUE is now set to " << nnue_eval << "\n";
+			}
 		}
 
 		// parse UCI "isready" command
@@ -321,6 +327,7 @@ void Uci_Loop(char** argv) {
 			printf("id author PGG\n");
 			printf("option name Hash type spin default 16 min 1 max 8192 \n");
 			printf("option name Threads type spin default 1 min 1 max 256 \n");
+			printf("option name NNUE type check default 1 \n");
 			//printf("option name MultiPV type spin default 1 min 1 max 1\n");
 			printf("uciok\n");
 			//Set uci compatible output mode

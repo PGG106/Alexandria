@@ -138,6 +138,7 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // NNUE
 extern NNUE nnue;
+extern bool nnue_eval;
 
 // counts how many bits are set in a bitboard
 int count_bits(Bitboard bitboard);

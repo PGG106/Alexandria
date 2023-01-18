@@ -82,6 +82,17 @@ enum {
 	HFEXACT
 };
 
+// game phase scores
+const int opening_phase_score = 6192;
+const int endgame_phase_score = 518;
+
+// game phases
+enum {
+	opening,
+	endgame,
+	middlegame
+};
+
 // piece types
 enum {
 	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
