@@ -91,13 +91,31 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		std::stringstream score_stream;
 		score_stream << std::fixed << std::setprecision(2) << parsed_score;
 		std::string score_string = score_unit + score_stream.str();
+		int node_precision = 0;
+		//convert nodes into string
+		std::string node_unit = "n";
+		float parsed_nodes = static_cast<float>(nodes);
+		if (parsed_nodes >= 1000) {
+			parsed_nodes = parsed_nodes / 1000;
+			node_unit = "Kn";
+			node_precision = 2;
+			if (parsed_nodes >= 1000)
+			{
+				parsed_nodes = parsed_nodes / 60;
+				node_unit = "Mn";
+			}
+		}
+
+		std::stringstream node_stream;
+		node_stream << std::fixed << std::setprecision(node_precision) << parsed_nodes;
+		std::string node_string = node_stream.str() + node_unit;
 
 		//Pretty print search info
 		std::cout << std::setw(3) << depth << "/";
 		std::cout << std::left << std::setw(3) << td->info.seldepth;
 
 		std::cout << std::right << std::setw(8) << time_string;
-		std::cout << std::right << std::setw(10) << nodes / 1000 << "kn ";
+		std::cout << std::right << std::setw(10) << node_string;
 		std::cout << std::setw(8) << std::right << score_string;
 		std::cout << std::setw(8) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
 
