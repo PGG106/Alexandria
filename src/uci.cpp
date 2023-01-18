@@ -276,7 +276,7 @@ void Uci_Loop(char** argv) {
 			else if (tokens[2] == "Threads") {
 				uci_options->Threads = std::stoi(tokens[4]);
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
-			}
+			} else std::cout << "Unknown command: " << input << std::endl;
 		}
 
 		// parse UCI "isready" command
