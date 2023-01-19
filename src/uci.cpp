@@ -267,16 +267,21 @@ void Uci_Loop(char** argv) {
 		}
 
 		else if (tokens[0] == "setoption") {
-
-			if (tokens[2] == "Hash") {
-				uci_options->Hash = std::stoi(tokens[4]);
+			//check tokens for size to see if we have a value
+			if (tokens.size() < 5) {
+				std::cout << "Invalid setoption format" << "\n";
+				continue;
+			}
+			if (tokens.at(2) == "Hash") {
+				uci_options->Hash = std::stoi(tokens.at(4));
 				std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
 				InitHashTable(HashTable, uci_options->Hash);
 			}
-			else if (tokens[2] == "Threads") {
-				uci_options->Threads = std::stoi(tokens[4]);
+			else if (tokens.at(4) == "Threads") {
+				uci_options->Threads = std::stoi(tokens.at(4));
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
-			} else std::cout << "Unknown command: " << input << std::endl;
+			}
+			else std::cout << "Unknown command: " << input << std::endl;
 		}
 
 		// parse UCI "isready" command
@@ -334,7 +339,7 @@ void Uci_Loop(char** argv) {
 
 		else if (input == "eval")
 		{// call parse position function
-			if (!parsed_position) 
+			if (!parsed_position)
 			{
 				parse_position("position startpos", &td->pos);
 			}
