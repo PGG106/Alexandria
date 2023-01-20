@@ -66,8 +66,7 @@ Alexandria is open to external PRs and code contributions are highly encouraged 
 what is the best way to proceed in fixing it.
 #### Bench altering commits (anything that is functional and changes bench)
 1) Please make sure your idea makes sense from a chess engine development point of view, no single position analysis nor bizarre chess theories that only apply to humans.
-2) If possible SPRT your change before making the PR, if not create a test on alexandria's OB instance and i'll judge whether i can spare the resources to run it or 
-not.
+2) If possible ensure your change passes a SPRT before making the PR, if not create a test on alexandria's OB instance and i'll judge whether i can spare the resources to run it.
 
 ## Acknowledgements
 This project would not have been possible without the following people
