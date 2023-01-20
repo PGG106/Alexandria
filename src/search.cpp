@@ -571,34 +571,31 @@ moves_loop:
 		info->nodes++;
 
 		int depth_reduction = 1;
-		// condition to consider LMR
+		bool do_full_search = false;
+		// conditions to consider LMR
 		if (moves_searched >= 5
 			&& depth >= 3
 			&& !in_check
-			&& IsQuiet(move)) {
+			&& IsQuiet(move))
+		{
 			//calculate by how much we should reduce the search depth 
 			depth_reduction = reduction(pv_node, improving, depth, moves_searched);
-		}
-
-		// full depth search
-		if (moves_searched == 0)
-			// do normal alpha beta search
-			Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
-
-		// late move reduction: After we've searched /full_depth_moves/ and if we are at an appropriate depth we can search the remaining moves at a reduced depth
-		else {
 			// search current move with reduced depth:
 			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
-
-			//if we failed high on a reduced node search again (we can use the value of the reduction to deduce if we are at this stage, this is something i've found out from Berserk)
-			if (Score > alpha && depth_reduction != 1)
-				Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
-
-			//If at this point we still failed high search with a full window
-			if (Score > alpha && Score < beta)
-				Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
-
+			//if we failed high on a reduced node we'll search with a reduced window and full depth
+			do_full_search = Score > alpha && depth_reduction != 1;
 		}
+		else {
+			//If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
+			do_full_search = moves_searched > 0;
+		}
+		//Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
+		if (do_full_search)
+			Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
+
+		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
+		if (moves_searched == 0 || (Score > alpha && Score < beta))
+			Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
 
 		// take move back
 		Unmake_move(move, pos);
