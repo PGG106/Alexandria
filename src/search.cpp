@@ -378,6 +378,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 		td->info.stopped = true;
 	}
 
+	//Check for early return conditions
 	if (!root_node) {
 		//If position is a draw return a randomized draw score to avoid 3-fold blindness
 		if (IsDraw(pos)) {
@@ -390,21 +391,22 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 		}
 
 		// Mate distance pruning
-		int mating_value = mate_value - pos->ply;
-
-		if (mating_value < beta) {
-			beta = mating_value;
-			if (alpha >= mating_value)
-				return mating_value;
-		}
+		alpha = std::max(alpha, -mate_value + pos->ply);
+		beta = std::min(beta, mate_value - pos->ply - 1);
+		if (alpha >= beta)
+			return alpha;
 	}
 
+	//Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
 	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
-	//If we found a value in the TT we can return it
+	//If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
 		&& ttHit
-		&& tte.depth >= depth) {
-		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
+		&& tte.depth >= depth)
+	{
+		if ((tte.flags == HFALPHA && tte.score <= alpha)
+			|| (tte.flags == HFBETA && tte.score >= beta)
+			|| (tte.flags == HFEXACT))
 			return tte.score;
 	}
 
@@ -414,11 +416,12 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
+	//If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
 		static_eval = value_none;
 		ss->eval = value_none;
 		improving = false;
-		goto moves_loop; //if we are in check we jump directly to the move loop because the net isn't good when evaluating positions that are in check
+		goto moves_loop;
 	}
 
 	// get static evaluation score
@@ -460,9 +463,13 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 				return 0;
 
 			// fail-soft beta cutoff
-			if (Score >= beta && abs(Score) < ISMATE)
+			if (Score >= beta)
+			{
+				//Don't return unproven mates but still return beta
+				if (Score > ISMATE) Score = beta;
 				// node (position) fails high
 				return Score;
+			}
 		}
 
 		// razoring
