@@ -21,6 +21,13 @@ unsigned long long nodes;
 
 // perft driver
 void perft_driver(int depth, S_Board* pos) {
+	
+	// Bulk Counting
+	if (depth == 0) {
+		nodes += 1;
+		return;
+	}
+	
 	// create move list instance
 	S_MOVELIST move_list[1];
 
@@ -31,12 +38,6 @@ void perft_driver(int depth, S_Board* pos) {
 	if (depth == 1) {
 		// increment nodes count (count reached positions)
 		nodes += move_list->count;
-		return;
-	}
-
-	// Bulk Counting
-	if (depth == 0) {
-		nodes += 1;
 		return;
 	}
 
