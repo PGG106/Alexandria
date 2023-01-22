@@ -51,11 +51,12 @@ int64_t getCHScore(const S_Board* pos, const Search_data* sd, const int  move, c
 		[get_move_piece(move)][To(move)] : 0;
 }
 //Resets the history table
-void cleanHistory(Search_data* ss) {
+void cleanHistories(Search_data* ss) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
 	for (int index = 0; index < 12; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
 			ss->searchHistory[index][index2] = 0;
 		}
 	}
+	std::memset(ss->cont_hist, 0, sizeof(ss->cont_hist));
 }

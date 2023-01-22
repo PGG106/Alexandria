@@ -210,7 +210,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		else {
 			int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
 			int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
-			move_list->moves[i].score = getHHScore(pos, sd, move)+2*getCHScore(pos,sd,move,previous_move, previous_previous_move);
+			move_list->moves[i].score = getHHScore(pos, sd, move) + 2 * getCHScore(pos, sd, move, previous_move, previous_previous_move);
 			continue;
 		}
 	}
