@@ -277,7 +277,7 @@ void Uci_Loop(char** argv) {
 				std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
 				InitHashTable(HashTable, uci_options->Hash);
 			}
-			else if (tokens.at(4) == "Threads") {
+			else if (tokens.at(2) == "Threads") {
 				uci_options->Threads = std::stoi(tokens.at(4));
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
 			}

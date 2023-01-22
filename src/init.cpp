@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "ttable.h"
 #include "threads.h"
+#include <cstring>
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];
@@ -260,6 +261,8 @@ void init_new_game(S_ThreadData* td) {
 			ss->searchHistory[index][index2] = 0;
 		}
 	}
+
+	std::memset(ss->cont_hist, 0, sizeof(ss->cont_hist));
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {

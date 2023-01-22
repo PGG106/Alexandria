@@ -12,6 +12,7 @@ struct Search_stack {
 struct Search_data {
 	int searchHistory[12][Board_sq_num] = { 0 };
 	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
+	int64_t cont_hist[12][64][12][64] = { 0 };
 };
 
 // a collection of all the data a thread needs to condut a search
