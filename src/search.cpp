@@ -452,7 +452,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			&& BoardHasNonPawns(pos, pos->side)) {
 			ss->move = NOMOVE;
 			MakeNullMove(pos);
-			int R = 3 + depth / 3;
+			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
 			Score = -negamax(-beta, -beta + 1, depth - R, td, ss + 1);
