@@ -9,6 +9,8 @@
 #include "misc.h"
 #include "ttable.h"
 #include "threads.h"
+#include <cstring>
+#include "History.h"
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];
@@ -254,12 +256,7 @@ void init_new_game(S_ThreadData* td) {
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 
-	//For every piece [12] moved to every square [64] we reset the searchHistory value
-	for (int index = 0; index < 12; ++index) {
-		for (int index2 = 0; index2 < 64; ++index2) {
-			ss->searchHistory[index][index2] = 0;
-		}
-	}
+	cleanHistories(ss);
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
