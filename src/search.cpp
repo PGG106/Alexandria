@@ -353,7 +353,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (pos->ply == 0);
-	int eval, static_eval;
+	int eval;
 	bool improving;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
@@ -420,18 +420,16 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 
 	//If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
-		static_eval = value_none;
-		ss->eval = value_none;
+		ss->static_eval = value_none;
 		improving = false;
 		goto moves_loop;
 	}
 
 	// get static evaluation score
-	static_eval = eval = EvalPosition(pos);
-	ss->eval = static_eval;
+	ss->static_eval = eval = ttHit ? tte.eval : EvalPosition(pos);
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (pos->ply >= 2) && (static_eval > (ss - 2)->eval || (ss - 2)->eval == value_none);
+	improving = (pos->ply >= 2) && (ss->static_eval > (ss - 2)->static_eval || (ss - 2)->static_eval == value_none);
 
 	if (!pv_node) {
 
@@ -446,7 +444,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-		if (static_eval >= beta
+		if (ss->static_eval >= beta
 			&& eval >= beta
 			&& pos->ply
 			&& (ss - 1)->move != NOMOVE
@@ -658,7 +656,7 @@ moves_loop:
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	if (!excludedMove) StoreHashEntry(pos, bestmove, BestScore, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos, bestmove, BestScore, ss->static_eval, flag, depth, pv_node);
 	// node (move) fails low
 	return BestScore;
 }
@@ -776,7 +774,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, flag, 0, pv_node);
+	StoreHashEntry(pos, bestmove, BestScore, standing_pat, flag, 0, pv_node);
 
 	// node (move) fails low
 	return BestScore;
