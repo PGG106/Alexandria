@@ -27,7 +27,7 @@ void updateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 
 //Update the history heuristics of all the quiet moves passed to the function
 void updateCH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const int previous_move, const int previous_previous_move) {
-	int bonus = depth * depth;
+	int bonus = std::min(16 * depth * depth, 1200);
 	// Score countermove
 	if (pos->ply > 0) {
 		updateCHScore(ss, previous_move, bestmove, bonus);
