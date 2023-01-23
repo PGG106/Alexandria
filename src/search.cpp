@@ -356,7 +356,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
 	int pv_node = (beta - alpha) > 1;
-
+	int xyz;
 	int excludedMove = ss->excludedMove;
 
 	pv_table->pvLength[pos->ply] = pos->ply;
