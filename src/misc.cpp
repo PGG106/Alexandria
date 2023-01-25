@@ -101,7 +101,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 			node_precision = 2;
 			if (parsed_nodes >= 1000)
 			{
-				parsed_nodes = parsed_nodes / 60;
+				parsed_nodes = parsed_nodes / 1000;
 				node_unit = "Mn";
 			}
 		}
