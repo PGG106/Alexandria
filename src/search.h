@@ -4,7 +4,7 @@
 
 struct Search_stack {
 	int excludedMove = { NOMOVE };
-	int eval = { 0 };
+	int16_t static_eval = { 0 };
 	int move = { 0 };
 	int searchKillers[2] = { NOMOVE };
 };

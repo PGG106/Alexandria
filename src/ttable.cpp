@@ -39,7 +39,7 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
-void StoreHashEntry(const S_Board* pos, const int move, int score, const int flags,
+void StoreHashEntry(const S_Board* pos, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv) {
 	uint64_t index = Index(pos->posKey);
 
@@ -61,6 +61,7 @@ void StoreHashEntry(const S_Board* pos, const int move, int score, const int fla
 		HashTable->pTable[index].tt_key = static_cast<TTKey>(pos->posKey);
 		HashTable->pTable[index].flags = static_cast<uint8_t>(flags);
 		HashTable->pTable[index].score = static_cast<int16_t>(score);
+		HashTable->pTable[index].eval = eval;
 		HashTable->pTable[index].depth = static_cast<uint8_t>(depth);
 	}
 }
