@@ -705,8 +705,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	TThit = ProbeHashEntry(pos, &tte);
 
 	//If we found a value in the TT we can return it
-	if (!pv_node && TThit) {
-		if ((tte.flags == HFALPHA && tte.score <= alpha) || (tte.flags == HFBETA && tte.score >= beta) || (tte.flags == HFEXACT))
+	if (!pv_node
+		&& TThit)
+	{
+		if ((tte.flags == HFALPHA && tte.score <= alpha) ||
+			(tte.flags == HFBETA && tte.score >= beta) ||
+			(tte.flags == HFEXACT))
 			return tte.score;
 	}
 
@@ -723,9 +727,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	int BestScore = standing_pat;
 	int bestmove = NOMOVE;
 	int Score = -MAXSCORE;
-
-	// old value of alpha
-	int old_alpha = alpha;
 
 	int moves_searched = 0;
 
@@ -770,9 +771,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			}
 		}
 	}
-	//Set the TT flag based on whether the BestScore is better than alpha and if not based on if we changed alpha or not
 
-	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
+	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
+	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
 	StoreHashEntry(pos, bestmove, BestScore, standing_pat, flag, 0, pv_node);
 
