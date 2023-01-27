@@ -19,6 +19,7 @@
 #include <vector>
 #include "datagen.h"
 #include "time_manager.h"
+#include <algorithm>
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -580,6 +581,8 @@ moves_loop:
 		{
 			//calculate by how much we should reduce the search depth 
 			depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
+			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
 			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
 			//if we failed high on a reduced node we'll search with a reduced window and full depth
