@@ -18,7 +18,7 @@
 #include <thread>
 #include "datagen.h"
 #include "threads.h"
-#include "..//tests//test_main.h"
+#include "test_main.h"
 
 bool print_uci = false;
 //convert a move to coordinate notation to internal notation
