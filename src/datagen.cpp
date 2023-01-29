@@ -88,7 +88,7 @@ void datagen(S_ThreadData* td, int number_of_games) {
 	{
 		for (int i = 0;i < number_of_games;i++)
 		{
-			playgame(td, myfile);
+			play_game(td, myfile);
 			if (i % 5000 == 0) {
 				std::cout << i << " games completed" << " current speed is " << i * 1000 / (GetTimeMs() - start_time) << " games per second\n";
 			}

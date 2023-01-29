@@ -5,7 +5,7 @@ void Root_datagen(S_ThreadData* td);
 //Root datagen function that handles the start-up of datagen
 void datagen(S_ThreadData* td, int number_of_games = 100000000);
 //Generates one game worth of fens
-void playgame(S_ThreadData* td, std::ofstream& myfile);
+void play_game(S_ThreadData* td, std::ofstream& myfile);
 
 struct data_entry {
 	std::string fen;
