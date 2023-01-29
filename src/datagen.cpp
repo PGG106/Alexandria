@@ -33,7 +33,7 @@ int search_best_move(S_ThreadData* td)
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = 1; current_depth <= 6; current_depth++)
+	for (int current_depth = 1; current_depth <= td->info.depth; current_depth++)
 	{
 		score = negamax(alpha, beta, current_depth, td, ss);
 
@@ -106,7 +106,7 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
 	init_new_game(td);
-	// Play 10 random moves
+	// Play 6 random moves
 	for (int i = 0;i < 6; i++)
 	{
 		ClearForSearch(td);
