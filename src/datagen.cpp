@@ -1,12 +1,12 @@
 #include "Board.h"
 #include "movegen.h"
 #include <time.h>
-#include <stdlib.h>
 #include "makemove.h"
 #include "datagen.h"
 #include <iostream>
 #include <fstream>
 #include "misc.h"
+#include "threads.h"
 
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
@@ -51,11 +51,11 @@ int search_best_move(S_ThreadData* td)
 
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_datagen(S_ThreadData* td) 
+void Root_datagen(S_ThreadData* td, int threadNum)
 {
-	/*
+
 	//Init a thread_data object for each helper thread that doesn't have one already
-	for (int i = threads_data.size(); i < options->Threads - 1;i++)
+	for (int i = threads_data.size(); i < threadNum - 1;i++)
 	{
 		threads_data.emplace_back();
 		threads_data.back().id = i + 1;
@@ -67,7 +67,7 @@ void Root_datagen(S_ThreadData* td)
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
 	}
-
+	/*
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < options->Threads - 1;i++)
 	{
