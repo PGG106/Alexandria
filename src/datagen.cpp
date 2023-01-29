@@ -21,8 +21,6 @@ void make_random_move(S_Board* pos) {
 
 int search_best_move(S_ThreadData* td)
 {
-	S_Board* pos = &td->pos;
-	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
@@ -55,8 +53,6 @@ int search_best_move(S_ThreadData* td)
 void datagen(S_ThreadData* td)
 {
 	S_Board* pos = &td->pos;
-	Search_data* sd = &td->ss;
-	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 	parse_fen(start_position, pos);
 	// Play 10 random moves
@@ -79,7 +75,7 @@ void datagen(S_ThreadData* td)
 		entry.fen = get_fen(pos);
 		//Search best move and get score
 		ClearForSearch(td);
-		entry.score = search_best_move(td);
+		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
 		//Add the entry to the vector waiting for the wdl
 		entries.push_back(entry);
 		//Get best move
@@ -91,7 +87,7 @@ void datagen(S_ThreadData* td)
 
 	//Dump to file
 	for (data_entry entry : entries)
-		std::cout << "fen: " << entry.fen << " wdl: " << wdl << " score: " << entry.score << "\n";
+		std::cout << entry.fen << " " << wdl << " " << entry.score << "\n";
 	return;
 }
 
@@ -99,7 +95,7 @@ bool is_game_over(S_Board* pos, std::string& wdl)
 {
 	//Check for draw
 	if (IsDraw(pos)) {
-		wdl = "1/2";
+		wdl = "[0.5]";
 		return true;
 	}
 	// create move list instance
@@ -111,7 +107,7 @@ bool is_game_over(S_Board* pos, std::string& wdl)
 	{
 		bool in_check = IsInCheck(pos, pos->side);
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
-		wdl = in_check ? pos->side == WHITE ? "0" : "1" : "1/2";
+		wdl = in_check ? pos->side == WHITE ? "[0.0]" : "[1.0]" : "[0.5]";
 		return true;
 	}
 
