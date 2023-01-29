@@ -81,7 +81,7 @@ void Root_datagen(S_ThreadData* td, int threadNum)
 }
 
 
-void datagen(S_ThreadData* td, int number_of_games) 
+void datagen(S_ThreadData* td, int number_of_games)
 {
 	std::ofstream myfile("data1.txt", std::ios_base::app);
 	auto start_time = GetTimeMs();
@@ -90,10 +90,8 @@ void datagen(S_ThreadData* td, int number_of_games)
 		for (int i = 0;i < number_of_games;i++)
 		{
 			play_game(td, myfile);
-			if ((total_fens % 10000) == 0)
-			{
+			if (!(i % 1000))
 				std::cout << total_fens << " fens completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
-			}
 		}
 		myfile.close();
 		std::cout << "Datagen done!";
