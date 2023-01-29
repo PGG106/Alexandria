@@ -42,3 +42,5 @@ int getBestMove(const PvTable* pv_table);
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold);
+//Checks if the current position is a draw
+bool IsDraw(const S_Board* pos);

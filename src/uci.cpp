@@ -18,7 +18,8 @@
 #include <thread>
 #include "datagen.h"
 #include "threads.h"
-#include "../tests/test_main.h"
+#include "test_main.h"
+
 bool print_uci = false;
 //convert a move to coordinate notation to internal notation
 int parse_move(const std::string& move_string, S_Board* pos) {
@@ -265,6 +266,17 @@ void Uci_Loop(char** argv) {
 			bool search = parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
 			if (search) main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+		}
+
+		else if (tokens[0] == "datagen")
+		{
+			if (!parsed_position) // call parse position function
+			{
+				parse_position("position startpos", &td->pos);
+			}
+			//we re-use parse go to read the datagen params
+			parse_go(input, &td->info, &td->pos);
+			datagen(td);
 		}
 
 		else if (tokens[0] == "setoption") {

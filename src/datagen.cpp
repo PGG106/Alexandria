@@ -8,35 +8,21 @@
 #include <fstream>
 #include "misc.h"
 
-int random_moves = 0;
-bool do_datagen = false;
-enum line_type {
-	result,
-	fen,
-	moves
-
-};
 void make_random_move(S_Board* pos) {
-
+	srand(time(NULL));
 	S_MOVELIST move_list[1];
-
 	// generate moves
 	generate_moves(move_list, pos);
-
 	int r = rand() % move_list->count;
 	int random_move = move_list->moves[r].move;
-	printf("bestmove ");
-	print_move(random_move);
-	printf("\n");
+	make_move(random_move, pos);
 	return;
 }
 
-int search_best_move(S_ThreadData* td, Search_stack* ss)
+int search_best_move(S_ThreadData* td)
 {
-	S_Board* pos = &td->pos;
-	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
-
+	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
@@ -47,7 +33,7 @@ int search_best_move(S_ThreadData* td, Search_stack* ss)
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
+	for (int current_depth = 1; current_depth <= 6; current_depth++)
 	{
 		score = negamax(alpha, beta, current_depth, td, ss);
 
@@ -64,24 +50,66 @@ int search_best_move(S_ThreadData* td, Search_stack* ss)
 }
 
 
-void datagen(S_ThreadData* td, Search_stack* ss)
+void datagen(S_ThreadData* td)
 {
 	S_Board* pos = &td->pos;
-	Search_data* sd = &td->ss;
-	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
-	// Play 5 random moves
-	if (random_moves < 5) {
+	parse_fen(start_position, pos);
+	// Play 10 random moves
+	for (int i = 0;i < 6; i++)
+	{
+		ClearForSearch(td);
 		make_random_move(pos);
-		random_moves++;
-		return;
 	}
-	//Get position fen
-	std::string pos_fen = get_fen(pos);
-	//Search best move and get score
-	int score = search_best_move(td, ss);
-	//Get best move
-	getBestMove(pv_table);
 
+	//container to store all the data entries before dumping them to a file
+	std::vector<data_entry> entries;
+	//String for wdl
+	std::string wdl;
+	//if the game is over we also get the wdl to avoid having to check twice
+	while (!is_game_over(pos, wdl))
+	{
+		//Get a data entry
+		data_entry entry;
+		//Get position fen
+		entry.fen = get_fen(pos);
+		//Search best move and get score
+		ClearForSearch(td);
+		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
+		//Add the entry to the vector waiting for the wdl
+		entries.push_back(entry);
+		//Get best move
+		int move = getBestMove(pv_table);
+		//play the move
+		make_move(move, pos);
+	}
+	//When the game is over
+
+	//Dump to file
+	for (data_entry entry : entries)
+		std::cout << entry.fen << " " << wdl << " " << entry.score << "\n";
 	return;
+}
+
+bool is_game_over(S_Board* pos, std::string& wdl)
+{
+	//Check for draw
+	if (IsDraw(pos)) {
+		wdl = "[0.5]";
+		return true;
+	}
+	// create move list instance
+	S_MOVELIST move_list[1];
+	// generate moves
+	generate_moves(move_list, pos);
+	//Check for mate or stalemate
+	if (move_list->count == 0)
+	{
+		bool in_check = IsInCheck(pos, pos->side);
+		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
+		wdl = in_check ? pos->side == WHITE ? "[0.0]" : "[1.0]" : "[0.5]";
+		return true;
+	}
+
+	return false;
 }
