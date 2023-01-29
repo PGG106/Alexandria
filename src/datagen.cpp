@@ -33,7 +33,7 @@ int search_best_move(S_ThreadData* td)
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = 1; current_depth <= td->info.depth; current_depth++)
+	for (int current_depth = 1; current_depth <= 7; current_depth++)
 	{
 		score = negamax(alpha, beta, current_depth, td, ss);
 
@@ -89,7 +89,8 @@ void datagen(S_ThreadData* td, int number_of_games) {
 		for (int i = 0;i < number_of_games;i++)
 		{
 			play_game(td, myfile);
-			if (i % 5000 == 0) {
+			if (i % 5000 == 0) 
+			{
 				std::cout << i << " games completed" << " current speed is " << i * 1000 / (GetTimeMs() - start_time) << " games per second\n";
 			}
 		}
