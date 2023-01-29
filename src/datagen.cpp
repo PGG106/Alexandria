@@ -76,12 +76,32 @@ void datagen(S_ThreadData* td, Search_stack* ss)
 		random_moves++;
 		return;
 	}
+	//container to store all the data entries before dumping them to a file
+	std::vector<data_entry> entries;
+	
+	while(!is_game_over(pos))
+	{
+	//Get a data entry
+	data_entry entry;
 	//Get position fen
-	std::string pos_fen = get_fen(pos);
+	entry.fen = get_fen(pos);
 	//Search best move and get score
-	int score = search_best_move(td, ss);
+	entry.score = search_best_move(td, ss);
+	//Add the entry to the vector waiting for the wdl
+	entries.push_back(entry);
 	//Get best move
-	getBestMove(pv_table);
-
+	int move = getBestMove(pv_table);
+	//play the move
+	make_move(move, pos);
+	}
+	//When the game is over
+	//Get WDL
+	//Add WDL to all entries
+	//Dump to file
 	return;
+}
+
+bool is_game_over(S_Board* pos)
+{
+	return false;
 }
