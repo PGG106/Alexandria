@@ -29,12 +29,11 @@ int search_best_move(S_ThreadData* td)
 
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
-
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
 	// Call the negamax function in an iterative deepening framework
-	for (int current_depth = 1; current_depth <= 7; current_depth++)
+	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
 		score = negamax(alpha, beta, current_depth, td, ss);
 
@@ -82,7 +81,8 @@ void Root_datagen(S_ThreadData* td, int threadNum)
 }
 
 
-void datagen(S_ThreadData* td, int number_of_games) {
+void datagen(S_ThreadData* td, int number_of_games) 
+{
 	std::ofstream myfile("data1.txt", std::ios_base::app);
 	auto start_time = GetTimeMs();
 	if (myfile.is_open())
@@ -90,9 +90,9 @@ void datagen(S_ThreadData* td, int number_of_games) {
 		for (int i = 0;i < number_of_games;i++)
 		{
 			play_game(td, myfile);
-			if (i % 10 == 0)
+			if ((total_fens % 10000) == 0)
 			{
-				std::cout << i << " games completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
+				std::cout << total_fens << " fens completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
 			}
 		}
 		myfile.close();
@@ -129,7 +129,6 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 		//Get if the position is in check
 		bool in_check = IsInCheck(pos, pos->side);
 		//Search best move and get score
-		ClearForSearch(td);
 		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
 		//Get best move
 		int move = getBestMove(pv_table);

@@ -281,8 +281,6 @@ void init_new_game(S_ThreadData* td) {
 	info->seldepth = 0;
 	//Reset hash table
 	ClearHashTable(HashTable);
-	//Reset info
-	Reset_info(info);
 
 	//Empty threads and thread data
 	void stopHelperThreads();
