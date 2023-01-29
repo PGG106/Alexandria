@@ -50,19 +50,30 @@ int search_best_move(S_ThreadData* td)
 }
 
 void Root_datagen(S_ThreadData* td, int number_of_games) {
-
-	for (int i = 0;i < number_of_games;i++)
+	std::ofstream myfile("data1.txt", std::ios_base::app);
+	auto start_time = GetTimeMs();
+	if (myfile.is_open())
 	{
-		datagen(td);
+		for (int i = 0;i < number_of_games;i++)
+		{
+			datagen(td, myfile);
+			if (i % 10000 == 0) {
+				std::cout << i << " games completed" << " current speed is " << i * 1000 / (GetTimeMs() - start_time) << " games per second\n";
+			}
+		}
+		myfile.close();
+		std::cout << "Datagen done!";
 	}
-	std::cout << "Datagen done!";
+	else std::cout << "Unable to open file";
+	return;
+
 }
 
-void datagen(S_ThreadData* td)
+void datagen(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-	parse_fen(start_position, pos);
+	init_new_game(td);
 	// Play 10 random moves
 	for (int i = 0;i < 6; i++)
 	{
@@ -105,14 +116,15 @@ void datagen(S_ThreadData* td)
 	//When the game is over
 	//Dump to file
 	for (data_entry entry : entries)
-		std::cout << entry.fen << " " << wdl << " " << entry.score << "\n";
+		myfile << entry.fen << " " << wdl << " " << entry.score << "\n";
 	return;
 }
 
 bool is_game_over(S_Board* pos, std::string& wdl)
 {
 	//Check for draw
-	if (IsDraw(pos)) {
+	if (IsDraw(pos))
+	{
 		wdl = "[0.5]";
 		return true;
 	}
@@ -124,7 +136,6 @@ bool is_game_over(S_Board* pos, std::string& wdl)
 	if (move_list->count == 0)
 	{
 		bool in_check = IsInCheck(pos, pos->side);
-		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
 		wdl = in_check ? pos->side == WHITE ? "[0.0]" : "[1.0]" : "[0.5]";
 		return true;
 	}
