@@ -7,7 +7,7 @@
 #include <fstream>
 #include "misc.h"
 #include "threads.h"
-
+int total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
 	S_MOVELIST move_list[1];
@@ -22,6 +22,7 @@ void make_random_move(S_Board* pos) {
 int search_best_move(S_ThreadData* td)
 {
 	S_SearchINFO* info = &td->info;
+
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
@@ -89,9 +90,9 @@ void datagen(S_ThreadData* td, int number_of_games) {
 		for (int i = 0;i < number_of_games;i++)
 		{
 			play_game(td, myfile);
-			if (i % 5000 == 0) 
+			if (i % 10 == 0)
 			{
-				std::cout << i << " games completed" << " current speed is " << i * 1000 / (GetTimeMs() - start_time) << " games per second\n";
+				std::cout << i << " games completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
 			}
 		}
 		myfile.close();
@@ -147,6 +148,7 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 
 	}
 	//When the game is over
+	total_fens += entries.size();
 	//Dump to file
 	for (data_entry entry : entries)
 		myfile << entry.fen << " " << wdl << " " << entry.score << "\n";
