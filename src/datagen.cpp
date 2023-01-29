@@ -49,15 +49,47 @@ int search_best_move(S_ThreadData* td)
 	return score;
 }
 
-void Root_datagen(S_ThreadData* td, int number_of_games) {
+
+//Starts the search process, this is ideally the point where you can start a multithreaded search
+void Root_datagen(S_ThreadData* td) 
+{
+	/*
+	//Init a thread_data object for each helper thread that doesn't have one already
+	for (int i = threads_data.size(); i < options->Threads - 1;i++)
+	{
+		threads_data.emplace_back();
+		threads_data.back().id = i + 1;
+	}
+
+	//Init thread_data objects
+	for (size_t i = 0; i < threads_data.size();i++)
+	{
+		threads_data[i].info = td->info;
+		threads_data[i].pos = td->pos;
+	}
+
+	// Start Threads-1 helper search threads
+	for (int i = 0; i < options->Threads - 1;i++)
+	{
+		threads.emplace_back(std::thread(datagen,&threads_data[i]));
+	}
+
+	*/
+
+	//MainThread datagen
+	datagen(td);
+}
+
+
+void datagen(S_ThreadData* td, int number_of_games) {
 	std::ofstream myfile("data1.txt", std::ios_base::app);
 	auto start_time = GetTimeMs();
 	if (myfile.is_open())
 	{
 		for (int i = 0;i < number_of_games;i++)
 		{
-			datagen(td, myfile);
-			if (i % 10000 == 0) {
+			play_game(td, myfile);
+			if (i % 5000 == 0) {
 				std::cout << i << " games completed" << " current speed is " << i * 1000 / (GetTimeMs() - start_time) << " games per second\n";
 			}
 		}
@@ -69,7 +101,7 @@ void Root_datagen(S_ThreadData* td, int number_of_games) {
 
 }
 
-void datagen(S_ThreadData* td, std::ofstream& myfile)
+void play_game(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;

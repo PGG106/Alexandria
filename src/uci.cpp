@@ -276,7 +276,7 @@ void Uci_Loop(char** argv) {
 			}
 			//we re-use parse go to read the datagen params
 			parse_go(input, &td->info, &td->pos);
-			Root_datagen(td);
+			datagen(td);
 		}
 
 		else if (tokens[0] == "setoption") {
