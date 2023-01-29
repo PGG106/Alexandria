@@ -49,6 +49,14 @@ int search_best_move(S_ThreadData* td)
 	return score;
 }
 
+void Root_datagen(S_ThreadData* td, int number_of_games) {
+
+	for (int i = 0;i < number_of_games;i++)
+	{
+		datagen(td);
+	}
+	std::cout << "Datagen done!";
+}
 
 void datagen(S_ThreadData* td)
 {
@@ -89,13 +97,12 @@ void datagen(S_ThreadData* td)
 		//If we were in check we discard the position
 		if (in_check) continue;
 		//If we are at an early ply skip the position
-		if (pos->ply < 8) continue;
+		if (pos->hisPly < 8) continue;
 		//Add the entry to the vector waiting for the wdl
 		entries.push_back(entry);
 
 	}
 	//When the game is over
-
 	//Dump to file
 	for (data_entry entry : entries)
 		std::cout << entry.fen << " " << wdl << " " << entry.score << "\n";
