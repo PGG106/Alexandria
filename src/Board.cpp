@@ -306,6 +306,82 @@ void parse_fen(const std::string& command, S_Board* pos) {
 
 }
 
+std::string get_fen(S_Board* pos)
+{
+
+	std::string pos_string;
+	std::string turn;
+	std::string castle_perm;
+	std::string ep_square;
+	std::string fifty_move;
+	std::string HisPly;
+
+
+	int empty_squares = 0;
+	//Parse pieces
+	for (int rank = 0; rank < 8; rank++)
+	{
+		// loop over board files
+		for (int file = 0; file < 8; file++)
+		{
+			// init current square
+			const int square = rank * 8 + file;
+			const int potential_piece = PieceOn(pos, square);
+			//If the piece isn't empty we add the empty squares counter to the fen string and then the piece
+			if (potential_piece != EMPTY)
+			{
+				if (empty_squares) {
+					pos_string += std::to_string(empty_squares);
+					empty_squares = 0;
+				}
+				pos_string += ascii_pieces[potential_piece];
+			}
+			else
+			{
+				empty_squares++;
+			}
+		}
+		//At the end of a file we dump the empty squares
+		if (empty_squares) {
+			pos_string += std::to_string(empty_squares);
+			empty_squares = 0;
+		}
+		//skip the last file
+		if (rank != 7)
+			pos_string += '/';
+	}
+	//parse player turn
+	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
+	//Parse over castling rights
+	if (pos->castleperm == 0)
+		castle_perm = '-';
+	else {
+		if (pos->castleperm & WKCA)
+			castle_perm += "K";
+		if (pos->castleperm & WQCA)
+			castle_perm += "Q";
+		if (pos->castleperm & BKCA)
+			castle_perm += "k";
+		if (pos->castleperm & BQCA)
+			castle_perm += "q";
+	}
+	// parse enpassant square
+	if (pos->enPas != no_sq)
+	{
+		ep_square = square_to_coordinates[pos->enPas];
+	}
+	else {
+		ep_square = "-";
+	}
+
+	//Parse fifty moves counter
+	fifty_move = std::to_string(pos->fiftyMove);
+	//Parse Hisply moves counter
+	HisPly = std::to_string(pos->hisPly);
+
+	return pos_string + " " + turn + " " + castle_perm + " " + ep_square + " " + fifty_move + " " + HisPly;
+
+}
 // parses the moves part of a fen string and plays all the moves included
 void parse_moves(const std::string moves, S_Board* pos)
 {

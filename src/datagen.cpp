@@ -6,6 +6,7 @@
 #include "datagen.h"
 #include <iostream>
 #include <fstream>
+#include "misc.h"
 
 int random_moves = 0;
 bool do_datagen = false;
@@ -30,25 +31,17 @@ void make_random_move(S_Board* pos) {
 	return;
 }
 
-
-/*
-void datagen(S_Board* pos, Search_data* ss, S_SearchINFO* info)
+int search_best_move(S_ThreadData* td, Search_stack* ss)
 {
-	srand(time(NULL));
-	// Play 5 random moves
-	if (random_moves < 5) {
-		make_random_move(pos, ss, info);
-		random_moves++;
-		return;
-	}
-
-	//From this point onwards search as normal
+	S_Board* pos = &td->pos;
+	Search_data* sd = &td->ss;
+	S_SearchINFO* info = &td->info;
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
 	//Clean the position and the search info to start search from a clean state 
-	ClearForSearch(pos, ss, info);
+	ClearForSearch(td);
 
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
@@ -56,7 +49,7 @@ void datagen(S_Board* pos, Search_data* ss, S_SearchINFO* info)
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-		score = negamax(alpha, beta, current_depth, pos, ss, info);
+		score = negamax(alpha, beta, current_depth, td, ss);
 
 		// check if we just cleared a depth and more than OptTime passed
 		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
@@ -66,38 +59,29 @@ void datagen(S_Board* pos, Search_data* ss, S_SearchINFO* info)
 			// stop calculating and return best move so far
 			break;
 
-		//This handles the basic console output
-		unsigned long  time = GetTimeMs() - info->starttime;
-		uint64_t nps = info->nodes / (time + !time) * 1000;
-		if (score > -mate_value && score < -mate_score)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				-(score + mate_value) / 2, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else if (score > mate_score && score < mate_value)
-			printf("info score mate %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ",
-				(mate_value - score) / 2 + 1, current_depth, info->seldepth, info->nodes, nps,
-				GetTimeMs() - info->starttime);
-
-		else
-			printf("info score cp %d depth %d seldepth %d nodes %lu nps %lld time %lld pv ", score,
-				current_depth, info->seldepth, info->nodes, nps, GetTimeMs() - info->starttime);
-
-		// loop over the moves within a PV line
-		for (int count = 0; count < ss->pvLength[0]; count++) {
-			// print PV move
-			print_move(ss->pvArray[0][count]);
-			printf(" ");
-		}
-
-		// print new line
-		printf("\n");
 	}
+	return score;
+}
 
-	printf("bestmove ");
-	print_move(ss->pvArray[0][0]);
-	printf("\n");
+
+void datagen(S_ThreadData* td, Search_stack* ss)
+{
+	S_Board* pos = &td->pos;
+	Search_data* sd = &td->ss;
+	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
+	// Play 5 random moves
+	if (random_moves < 5) {
+		make_random_move(pos);
+		random_moves++;
+		return;
+	}
+	//Get position fen
+	std::string pos_fen = get_fen(pos);
+	//Search best move and get score
+	int score = search_best_move(td, ss);
+	//Get best move
+	getBestMove(pv_table);
 
 	return;
 }
-*/

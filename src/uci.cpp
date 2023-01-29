@@ -18,6 +18,7 @@
 #include <thread>
 #include "datagen.h"
 #include "threads.h"
+#include "../tests/test_main.h"
 bool print_uci = false;
 //convert a move to coordinate notation to internal notation
 int parse_move(const std::string& move_string, S_Board* pos) {
@@ -351,6 +352,10 @@ void Uci_Loop(char** argv) {
 
 		else if (input == "bench") {
 			start_bench();
+		}
+
+		else if (input == "tests") {
+			run_tests();
 		}
 
 		else if (input == "see") {

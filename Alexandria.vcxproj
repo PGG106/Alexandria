@@ -179,6 +179,7 @@
     <ClInclude Include="src\ttable.h" />
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\uci.h" />
+    <ClInclude Include="tests\test_main.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\datagen.cpp" />
@@ -205,6 +206,7 @@
     <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ttable.cpp" />
     <ClCompile Include="src\uci.cpp" />
+    <ClCompile Include="tests\test_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\makefile" />

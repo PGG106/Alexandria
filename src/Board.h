@@ -148,6 +148,8 @@ int square_distance(int a, int b);
 
 // parse FEN string
 void parse_fen(const std::string& command, S_Board* pos);
+//Get fen string from board
+std::string get_fen(S_Board* pos);
 //Parse a string of moves in coordinate format and plays them
 void parse_moves(std::string moves, S_Board* pos);
 
