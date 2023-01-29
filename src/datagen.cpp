@@ -73,15 +73,24 @@ void datagen(S_ThreadData* td)
 		data_entry entry;
 		//Get position fen
 		entry.fen = get_fen(pos);
+		//Get if the position is in check
+		bool in_check = IsInCheck(pos, pos->side);
 		//Search best move and get score
 		ClearForSearch(td);
 		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
-		//Add the entry to the vector waiting for the wdl
-		entries.push_back(entry);
 		//Get best move
 		int move = getBestMove(pv_table);
 		//play the move
 		make_move(move, pos);
+		//We don't save the position if the best move is a capture
+		if (get_move_capture(move)) continue;
+		//We don't save the position if the score is a mate score
+		if (abs(entry.score) > ISMATE) continue;
+		//If we were in check we discard the position
+		if (in_check) continue;
+		//Add the entry to the vector waiting for the wdl
+		entries.push_back(entry);
+
 	}
 	//When the game is over
 
