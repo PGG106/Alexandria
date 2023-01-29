@@ -88,6 +88,8 @@ void datagen(S_ThreadData* td)
 		if (abs(entry.score) > ISMATE) continue;
 		//If we were in check we discard the position
 		if (in_check) continue;
+		//If we are at an early ply skip the position
+		if (pos->ply < 8) continue;
 		//Add the entry to the vector waiting for the wdl
 		entries.push_back(entry);
 
