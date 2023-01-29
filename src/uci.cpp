@@ -267,6 +267,17 @@ void Uci_Loop(char** argv) {
 			if (search) main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 
+		else if (tokens[0] == "datagen")
+		{
+			if (!parsed_position) // call parse position function
+			{
+				parse_position("position startpos", &td->pos);
+			}
+			//we re-use parse go to read the datagen params
+			parse_go(input, &td->info, &td->pos);
+			datagen(td);
+		}
+
 		else if (tokens[0] == "setoption") {
 			//check tokens for size to see if we have a value
 			if (tokens.size() < 5) {

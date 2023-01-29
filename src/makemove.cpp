@@ -79,7 +79,6 @@ int make_move(const int move, S_Board* pos) {
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	// increment fifty move rule counter
 	pos->fiftyMove++;
-
 	// handle enpassant captures
 	if (enpass) {
 		//If it's an enpass we remove the pawn corresponding to the opponent square 
