@@ -16,10 +16,57 @@ void make_random_move(S_Board* pos) {
 	S_MOVELIST move_list[1];
 	// generate moves
 	generate_moves(move_list, pos);
+	//In the extremely rare case that we have mate/stale during the random moves
+	if (move_list->count == 0)
+		return;
+	//We have at least one move
+	assert(move_list->count >= 1);
 	int r = rand() % move_list->count;
+	assert(r >= 0 && r < move_list->count);
 	int random_move = move_list->moves[r].move;
 	make_move(random_move, pos);
 	return;
+}
+
+void set_new_game_state(S_ThreadData* td) {
+
+	//Extract data structures from ThreadData
+	S_Board* pos = &td->pos;
+	Search_data* ss = &td->ss;
+	S_SearchINFO* info = &td->info;
+	PvTable* pv_table = &td->pv_table;
+
+	cleanHistories(ss);
+
+	//Clean the Pv array
+	for (int index = 0; index < MAXDEPTH + 1; ++index) {
+		pv_table->pvLength[index] = 0;
+		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
+			pv_table->pvArray[index][index2] = NOMOVE;
+		}
+	}
+
+	//Clean the Counter moves array
+	for (int index = 0; index < Board_sq_num; ++index) {
+		for (int index2 = 0; index2 < Board_sq_num; ++index2) {
+			ss->CounterMoves[index][index2] = NOMOVE;
+		}
+	}
+
+	//Reset plies and search info
+	pos->ply = 0;
+	info->starttime = GetTimeMs();
+	info->stopped = 0;
+	info->nodes = 0;
+	info->seldepth = 0;
+
+	//delete played moves hashes
+	pos->played_positions.clear();
+
+	// call parse position function
+	parse_position("position startpos", pos);
+	return;
+
 }
 
 int search_best_move(S_ThreadData* td)
@@ -56,6 +103,7 @@ int search_best_move(S_ThreadData* td)
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_datagen(S_ThreadData* td, Datagen_params params)
 {
+	std::cout << "Starting datagen with " << params.threadnum << " threads and an estimated total of " << params.games * params.threadnum << " games" << std::endl;
 	//Resize TT to an appropriate size
 	InitHashTable(HashTable, 32 * params.threadnum);
 
@@ -95,38 +143,38 @@ void datagen(S_ThreadData* td, int games_number)
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
-		if (td->id == 0)
+		if (td->id == 0) {
 			std::cout << "Datagen started successfully" << std::endl;
-		for (int i = 1;i <= games_number;i++)
-		{
-			//Make sure a game is started on a clean state
-			cleanHistories(&td->ss);
-			td->pos.played_positions.clear();
-			td->pos.accumulatorStack.clear();
-			//Set start_position
-			parse_fen(start_position, &td->pos);
-			play_game(td, myfile);
-			if (td->id == 0 && !(i % 1000))
-				std::cout << i << " games completed" << std::endl;
+			for (int i = 1;i <= games_number;i++)
+			{
+				//Make sure a game is started on a clean state
+				set_new_game_state(td);
+				//Restart if we get a busted random score
+				if (!play_game(td, myfile)) continue;
+				myfile << "\n--------------GAME " << i << " Done-------------\n";
+				if (td->id == 0 && !(i % 1000))
+					std::cout << i << " games completed" << std::endl;
+			}
+			myfile.close();
 		}
-		myfile.close();
 	}
 	else std::cout << "Unable to open file";
 	return;
 
 }
 
-void play_game(S_ThreadData* td, std::ofstream& myfile)
+bool play_game(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-	// Play 6 random moves
+
 	for (int i = 0;i < 6; i++)
 	{
-		ClearForSearch(td);
 		make_random_move(pos);
 	}
-
+	//Pre emptively check the position to see if it's to be discarderd
+	int sanity_score = search_best_move(td);
+	if (abs(sanity_score) > 1000) return false;
 	//container to store all the data entries before dumping them to a file
 	std::vector<data_entry> entries;
 	//String for wdl
@@ -146,14 +194,6 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 		int move = getBestMove(pv_table);
 		//play the move
 		make_move(move, pos);
-		//We don't save the position if the best move is a capture
-		if (get_move_capture(move)) continue;
-		//We don't save the position if the score is a mate score
-		if (abs(entry.score) > ISMATE) continue;
-		//If we were in check we discard the position
-		if (in_check) continue;
-		//If we are at an early ply skip the position
-		if (pos->hisPly < 8) continue;
 		//Add the entry to the vector waiting for the wdl
 		entries.push_back(entry);
 
@@ -163,7 +203,7 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 	//Dump to file
 	for (data_entry entry : entries)
 		myfile << entry.fen << " " << wdl << " " << entry.score << "\n";
-	return;
+	return true;
 }
 
 bool is_game_over(S_Board* pos, std::string& wdl)
