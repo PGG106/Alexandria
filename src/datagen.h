@@ -1,7 +1,7 @@
 #pragma once
 extern bool do_datagen;
 //Root datagen function that handles the start-up of datagen
-void Root_datagen(S_ThreadData* td);
+void Root_datagen(S_ThreadData* td, int threadNum);
 //Root datagen function that handles the start-up of datagen
 void datagen(S_ThreadData* td, int number_of_games = 100000000);
 //Generates one game worth of fens

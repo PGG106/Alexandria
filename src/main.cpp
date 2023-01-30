@@ -10,8 +10,6 @@ int main([[maybe_unused]] int argc, char** argv) {
 	// init all
 	init_all();
 
-	InitHashTable(HashTable, 16);
-
 	// connect to the GUI
 	Uci_Loop(argv);
 	

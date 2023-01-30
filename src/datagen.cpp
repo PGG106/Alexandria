@@ -7,6 +7,7 @@
 #include <fstream>
 #include "misc.h"
 #include "threads.h"
+#include "ttable.h"
 int total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
@@ -53,6 +54,8 @@ int search_best_move(S_ThreadData* td)
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void Root_datagen(S_ThreadData* td, int threadNum)
 {
+	//Resize TT to an appropriate size
+	InitHashTable(HashTable, 16 * threadNum);
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	for (int i = threads_data.size(); i < threadNum - 1;i++)
@@ -67,14 +70,12 @@ void Root_datagen(S_ThreadData* td, int threadNum)
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
 	}
-	/*
-	// Start Threads-1 helper search threads
-	for (int i = 0; i < options->Threads - 1;i++)
-	{
-		threads.emplace_back(std::thread(datagen,&threads_data[i]));
-	}
 
-	*/
+	// Start Threads-1 helper search threads
+	for (int i = 0; i < threadNum - 1;i++)
+	{
+		//threads.emplace_back(std::thread(datagen, &threads_data[i]));
+	}
 
 	//MainThread datagen
 	datagen(td);
@@ -83,7 +84,8 @@ void Root_datagen(S_ThreadData* td, int threadNum)
 
 void datagen(S_ThreadData* td, int number_of_games)
 {
-	std::ofstream myfile("data1.txt", std::ios_base::app);
+	//Each thread gets its own file to dump data into
+	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	auto start_time = GetTimeMs();
 	if (myfile.is_open())
 	{

@@ -276,7 +276,7 @@ void Uci_Loop(char** argv) {
 			}
 			//we re-use parse go to read the datagen params
 			parse_go(input, &td->info, &td->pos);
-			datagen(td);
+			main_search_thread = std::thread(Root_datagen, td, 1);
 		}
 
 		else if (tokens[0] == "setoption") {
