@@ -16,7 +16,7 @@ struct Datagen_params
 //Root datagen function that handles the start-up of datagen
 void Root_datagen(S_ThreadData* td, Datagen_params params);
 //Per thread datagen function
-void datagen(S_ThreadData* td, Datagen_params params);
+void datagen(S_ThreadData* td);
 //Generates one game worth of fens
 void play_game(S_ThreadData* td, std::ofstream& myfile);
 

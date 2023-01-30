@@ -310,10 +310,6 @@ void Uci_Loop(char** argv) {
 		else if (tokens[0] == "datagen")
 		{
 			Datagen_params params;
-			if (!parsed_position) // call parse position function
-			{
-				parse_position("position startpos", &td->pos);
-			}
 			//we re-use parse go to read the datagen params
 			parse_datagen(input, &td->info, params);
 			main_search_thread = std::thread(Root_datagen, td, params);

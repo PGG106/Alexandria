@@ -8,6 +8,7 @@
 #include "misc.h"
 #include "threads.h"
 #include "ttable.h"
+#include "History.h"
 int total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
@@ -55,7 +56,7 @@ int search_best_move(S_ThreadData* td)
 void Root_datagen(S_ThreadData* td, Datagen_params params)
 {
 	//Resize TT to an appropriate size
-	InitHashTable(HashTable, 16 * params.threadnum);
+	InitHashTable(HashTable, 32 * params.threadnum);
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	for (int i = threads_data.size(); i < params.threadnum - 1;i++)
@@ -74,16 +75,19 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < params.threadnum - 1;i++)
 	{
-		threads.emplace_back(std::thread(datagen, &threads_data[i], params));
+		threads.emplace_back(std::thread(datagen, &threads_data[i]));
 	}
 
 	//MainThread datagen
-	datagen(td, params);
+	datagen(td);
+	//Wait for helper threads to finish
+	stopHelperThreads();
+
 	std::cout << "Datagen done!\n";
 }
 
 
-void datagen(S_ThreadData* td, Datagen_params params)
+void datagen(S_ThreadData* td)
 {
 
 	//Each thread gets its own file to dump data into
@@ -91,11 +95,20 @@ void datagen(S_ThreadData* td, Datagen_params params)
 	auto start_time = GetTimeMs();
 	if (myfile.is_open())
 	{
-		for (int i = 0;i < params.games;i++)
+		for (int i = 0;i < 10000;i++)
 		{
+			//Make sure a game is started on a clean state
+			cleanHistories(&td->ss);
+			td->pos.played_positions.clear();
+			td->pos.accumulatorStack.clear();
+			//Set start_position
+			parse_fen(start_position, &td->pos);
 			play_game(td, myfile);
-			if (!(i % 1000))
-				std::cout << total_fens << " fens completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
+			if(td->id==0)
+			std::cout << i << " games completed";
+			//Check if we should stop
+			if (td->info.stopped)
+				break;
 		}
 		myfile.close();
 	}
@@ -108,7 +121,6 @@ void play_game(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-	init_new_game(td);
 	// Play 6 random moves
 	for (int i = 0;i < 6; i++)
 	{
