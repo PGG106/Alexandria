@@ -95,8 +95,8 @@ void datagen(S_ThreadData* td, int games_number)
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
-		std::cout << "Datagen started successfully on thread " << td->id + 1 << "\n";
-		for (int i = 0;i < games_number;i++)
+		std::cout << "Datagen started successfully on thread " << td->id + 1 << std::endl;
+		for (int i = 1;i <= games_number;i++)
 		{
 			//Make sure a game is started on a clean state
 			cleanHistories(&td->ss);
@@ -106,7 +106,7 @@ void datagen(S_ThreadData* td, int games_number)
 			parse_fen(start_position, &td->pos);
 			play_game(td, myfile);
 			if (td->id == 0 && !(i % 1000))
-				std::cout << i << " games completed\n";
+				std::cout << i << " games completed" << std::endl;
 		}
 		myfile.close();
 	}
