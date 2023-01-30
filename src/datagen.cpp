@@ -9,6 +9,7 @@
 #include "threads.h"
 #include "ttable.h"
 #include "History.h"
+#include "time_manager.h"
 int total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
@@ -39,8 +40,8 @@ int search_best_move(S_ThreadData* td)
 	{
 		score = negamax(alpha, beta, current_depth, td, ss);
 
-		// check if we just cleared a depth and more than OptTime passed
-		if (info->timeset && GetTimeMs() > info->stoptimeOpt)
+		// check if we just cleared a depth and we used the nodes we had we stop
+		if (stopEarly(&td->info))
 			info->stopped = true;
 
 		if (info->stopped)
