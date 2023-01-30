@@ -59,6 +59,7 @@ void set_new_game_state(S_ThreadData* td) {
 	info->stopped = 0;
 	info->nodes = 0;
 	info->seldepth = 0;
+	pos->fiftyMove = 0;
 
 	//delete played moves hashes
 	pos->played_positions.clear();
@@ -68,6 +69,24 @@ void set_new_game_state(S_ThreadData* td) {
 	return;
 
 }
+
+//Does an high depth search of a position to confirm that it's sane enough to use for datagen
+int sanity_search(S_ThreadData* td)
+{
+	Search_stack stack[MAXDEPTH], * ss = stack;
+	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
+	int score = 0;
+	//Clean the position and the search info to start search from a clean state 
+	ClearForSearch(td);
+	// define initial alpha beta bounds
+	int alpha = -MAXSCORE;
+	int beta = MAXSCORE;
+	score = negamax(alpha, beta, 10, td, ss);
+
+	return score;
+}
+
+
 
 int search_best_move(S_ThreadData* td)
 {
@@ -143,20 +162,23 @@ void datagen(S_ThreadData* td, int games_number)
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
-		if (td->id == 0) {
+		if (td->id == 0)
 			std::cout << "Datagen started successfully" << std::endl;
-			for (int i = 1;i <= games_number;i++)
+		for (int i = 1;i <= games_number;i++)
+		{
+			//Make sure a game is started on a clean state
+			set_new_game_state(td);
+			//Restart if we get a busted random score
+			if (!play_game(td, myfile))
 			{
-				//Make sure a game is started on a clean state
-				set_new_game_state(td);
-				//Restart if we get a busted random score
-				if (!play_game(td, myfile)) continue;
-				myfile << "\n--------------GAME " << i << " Done-------------\n";
-				if (td->id == 0 && !(i % 1000))
-					std::cout << i << " games completed" << std::endl;
+				i--;
+				continue;
 			}
-			myfile.close();
+			myfile << "\n--------------GAME " << i << " Done-------------\n";
+			if (td->id == 0 && !(i % 1000))
+				std::cout << i << " games completed" << std::endl;
 		}
+		myfile.close();
 	}
 	else std::cout << "Unable to open file";
 	return;
@@ -173,7 +195,7 @@ bool play_game(S_ThreadData* td, std::ofstream& myfile)
 		make_random_move(pos);
 	}
 	//Pre emptively check the position to see if it's to be discarderd
-	int sanity_score = search_best_move(td);
+	int sanity_score = sanity_search(td);
 	if (abs(sanity_score) > 1000) return false;
 	//container to store all the data entries before dumping them to a file
 	std::vector<data_entry> entries;

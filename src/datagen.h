@@ -8,7 +8,7 @@ struct data_entry {
 //Parameters unique to datagen that the user might want to override
 struct Datagen_params
 {
-	int threadnum = 1;
+	int threadnum = 2;
 	//The games are defined per thread and not as a cumulative sum
 	int games = 100;
 };
