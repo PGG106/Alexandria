@@ -48,6 +48,21 @@ a chess engine, and is the recommended way to do so for typical graphical user i
 (GUI) or chess tools. Alexandria implements the majority of its options as described
 in [the UCI protocol](https://www.shredderchess.com/download/div/uci.zip).
 
+## Generate training data using the engine
+Data generation is done with the datagen command, the supported arguments are:
+* #### threads
+    Usage: datagen threads X, sets the number of threads to use for datagen to X.
+    
+* #### nodes
+    Usage: datagen nodes X, makes each search in the datagen process stop after any depth cleared once it used at least the given X amount of nodes.
+
+* #### depth
+    Usage: datagen depth X, makes each search in the datagen process stop after any clearing depth X.
+
+* #### games
+    Usage: datagen games X, sets the number of games to play to X (per thread).
+
+The commands can be chained and don't need a specific order, for example a valid command is: `datagen nodes 2500 games 50000 threads 8`
 ## Participating in the project
 
 Alexandria's improvement is a time consuming effort and any help is extremely appreciated. 
