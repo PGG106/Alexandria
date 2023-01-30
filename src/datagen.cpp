@@ -102,7 +102,6 @@ int search_best_move(S_ThreadData* td)
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-	
 		score = negamax(alpha, beta, current_depth, td, ss);
 
 		// check if we just cleared a depth and we used the nodes we had we stop
@@ -114,7 +113,6 @@ int search_best_move(S_ThreadData* td)
 			break;
 
 	}
-	
 	return score;
 }
 
@@ -173,7 +171,6 @@ void datagen(S_ThreadData* td, int games_number)
 				i--;
 				continue;
 			}
-			myfile << "\n--------------GAME " << i << " Done-------------\n";
 			if (td->id == 0 && !(i % 1000))
 				std::cout << i << " games completed" << std::endl;
 		}
