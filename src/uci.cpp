@@ -208,6 +208,45 @@ bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	return true;
 }
 
+// Stripped down version of parse go that handles fixed depth and/or nodes and sets the desired number of threads and games
+void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& datagen_params) {
+	Reset_info(info);
+	int depth = -1;
+
+	std::vector<std::string> tokens = split_command(line);
+
+	//loop over all the tokens and parse the commands
+	for (size_t i = 1; i < tokens.size();i++)
+	{
+
+		if (tokens.at(i) == "depth") {
+			depth = std::stoi(tokens[i + 1]);
+		}
+
+		if (tokens.at(i) == "nodes") {
+			info->nodeset = true;
+			info->nodeslimit = std::stoi(tokens[i + 1]);
+		}
+
+		if (tokens.at(i) == "threads")
+		{
+			datagen_params.threadnum = std::stoi(tokens[i + 1]);
+		}
+
+		if (tokens.at(i) == "games")
+		{
+			datagen_params.games = std::stoi(tokens[i + 1]);
+		}
+	}
+
+	info->depth = depth;
+
+	if (depth == -1) {
+		info->depth = MAXDEPTH;
+	}
+
+}
+
 // main UCI loop
 void Uci_Loop(char** argv) {
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
@@ -270,13 +309,10 @@ void Uci_Loop(char** argv) {
 
 		else if (tokens[0] == "datagen")
 		{
-			if (!parsed_position) // call parse position function
-			{
-				parse_position("position startpos", &td->pos);
-			}
+			Datagen_params params;
 			//we re-use parse go to read the datagen params
-			parse_go(input, &td->info, &td->pos);
-			datagen(td);
+			parse_datagen(input, &td->info, params);
+			main_search_thread = std::thread(Root_datagen, td, params);
 		}
 
 		else if (tokens[0] == "setoption") {

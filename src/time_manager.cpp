@@ -44,10 +44,17 @@ void optimum(S_SearchINFO* info, int time, int inc) {
 
 }
 
-bool stopEarly(const S_SearchINFO* info) {
+bool stopEarly(const S_SearchINFO* info) 
+{
 	// check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
-	if (((info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt)
-		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+	if ((info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt)
+		return true;
+	else return false;
+}
+
+bool nodesOver(const S_SearchINFO* info) {
+	// check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
+	if (info->nodeset == TRUE && info->nodes > info->nodeslimit)
 		return true;
 	else return false;
 }
@@ -56,8 +63,7 @@ bool timeOver(const S_SearchINFO* info) {
 	// check if more than Maxtime passed and we have to stop
 	if (((info->timeset || info->movetimeset)
 		&& ((info->nodes & 1023) == 1023)
-		&& GetTimeMs() > info->stoptimeMax)
-		|| (info->nodeset == TRUE && info->nodes > info->nodeslimit))
+		&& GetTimeMs() > info->stoptimeMax))
 		return true;
 	else return false;
 }
