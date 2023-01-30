@@ -91,7 +91,6 @@ int sanity_search(S_ThreadData* td)
 int search_best_move(S_ThreadData* td)
 {
 	S_SearchINFO* info = &td->info;
-
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
@@ -103,11 +102,11 @@ int search_best_move(S_ThreadData* td)
 	// Call the negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
+	
 		score = negamax(alpha, beta, current_depth, td, ss);
 
 		// check if we just cleared a depth and we used the nodes we had we stop
-		if (td->id == 0 &&
-			(stopEarly(&td->info) || nodesOver(&td->info)))
+		if (nodesOver(&td->info))
 			info->stopped = true;
 
 		if (info->stopped)
@@ -115,6 +114,7 @@ int search_best_move(S_ThreadData* td)
 			break;
 
 	}
+	
 	return score;
 }
 
@@ -157,7 +157,6 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 
 void datagen(S_ThreadData* td, int games_number)
 {
-
 	//Each thread gets its own file to dump data into
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
@@ -189,7 +188,6 @@ bool play_game(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-
 	for (int i = 0;i < 6; i++)
 	{
 		make_random_move(pos);
