@@ -156,6 +156,7 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 void datagen(S_ThreadData* td, int games_number)
 {
 	//Each thread gets its own file to dump data into
+	auto start_time = GetTimeMs();
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
@@ -171,8 +172,8 @@ void datagen(S_ThreadData* td, int games_number)
 				i--;
 				continue;
 			}
-			if (td->id == 0 && !(i % 500))
-				std::cout << i << " games completed" << std::endl;
+			if (td->id == 0 && !(i % 100))
+				std::cout << i << " games completed total_fens: " << total_fens << " speed: " << total_fens * 1000 / (1 + GetTimeMs() - start_time) << " fens/s" << std::endl;
 		}
 		myfile.close();
 	}
