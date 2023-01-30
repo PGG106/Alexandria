@@ -75,11 +75,11 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < params.threadnum - 1;i++)
 	{
-		threads.emplace_back(std::thread(datagen, &threads_data[i]));
+		threads.emplace_back(std::thread(datagen, &threads_data[i], params.games));
 	}
 
 	//MainThread datagen
-	datagen(td);
+	datagen(td, params.games);
 	//Wait for helper threads to finish
 	stopHelperThreads();
 
@@ -87,15 +87,14 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 }
 
 
-void datagen(S_ThreadData* td)
+void datagen(S_ThreadData* td, int games_number)
 {
 
 	//Each thread gets its own file to dump data into
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
-	auto start_time = GetTimeMs();
 	if (myfile.is_open())
 	{
-		for (int i = 0;i < 10000;i++)
+		for (int i = 0;i < games_number;i++)
 		{
 			//Make sure a game is started on a clean state
 			cleanHistories(&td->ss);
@@ -104,8 +103,8 @@ void datagen(S_ThreadData* td)
 			//Set start_position
 			parse_fen(start_position, &td->pos);
 			play_game(td, myfile);
-			if(td->id==0)
-			std::cout << i << " games completed";
+			if (td->id == 0 && !(i % 1000))
+				std::cout << i << " games completed\n";
 			//Check if we should stop
 			if (td->info.stopped)
 				break;
