@@ -146,6 +146,7 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 
 	//MainThread datagen
 	datagen(td, params.games);
+	std::cout << "Waiting for the other threads to finish\n";
 	//Wait for helper threads to finish
 	stopHelperThreads();
 
