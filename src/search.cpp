@@ -274,8 +274,9 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 	{
 		score = aspiration_window_search(score, current_depth, td);
 
-		// check if we just cleared a depth and more than OptTime passed
-		if (td->id == 0 && stopEarly(&td->info))
+		// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
+		if (td->id == 0 && 
+			(stopEarly(&td->info)||nodesOver(&td->info)))
 		{
 			stopHelperThreads();
 			//Stop mainthread search

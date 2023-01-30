@@ -29,7 +29,6 @@ int search_best_move(S_ThreadData* td)
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
-
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
 	// define initial alpha beta bounds
@@ -41,7 +40,8 @@ int search_best_move(S_ThreadData* td)
 		score = negamax(alpha, beta, current_depth, td, ss);
 
 		// check if we just cleared a depth and we used the nodes we had we stop
-		if (stopEarly(&td->info))
+		if (td->id == 0 &&
+			(stopEarly(&td->info) || nodesOver(&td->info)))
 			info->stopped = true;
 
 		if (info->stopped)
@@ -95,7 +95,8 @@ void datagen(S_ThreadData* td, int games_number)
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
-		std::cout << "Datagen started successfully on thread " << td->id + 1 << std::endl;
+		if (td->id == 0)
+			std::cout << "Datagen started successfully" << std::endl;
 		for (int i = 1;i <= games_number;i++)
 		{
 			//Make sure a game is started on a clean state
