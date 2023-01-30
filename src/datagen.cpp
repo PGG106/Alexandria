@@ -52,13 +52,13 @@ int search_best_move(S_ThreadData* td)
 
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_datagen(S_ThreadData* td, int threadNum)
+void Root_datagen(S_ThreadData* td, Datagen_params params)
 {
 	//Resize TT to an appropriate size
-	InitHashTable(HashTable, 16 * threadNum);
+	InitHashTable(HashTable, 16 * params.threadnum);
 
 	//Init a thread_data object for each helper thread that doesn't have one already
-	for (int i = threads_data.size(); i < threadNum - 1;i++)
+	for (int i = threads_data.size(); i < params.threadnum - 1;i++)
 	{
 		threads_data.emplace_back();
 		threads_data.back().id = i + 1;
@@ -72,31 +72,32 @@ void Root_datagen(S_ThreadData* td, int threadNum)
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 0; i < threadNum - 1;i++)
+	for (int i = 0; i < params.threadnum - 1;i++)
 	{
-		//threads.emplace_back(std::thread(datagen, &threads_data[i]));
+		threads.emplace_back(std::thread(datagen, &threads_data[i], params));
 	}
 
 	//MainThread datagen
-	datagen(td);
+	datagen(td, params);
+	std::cout << "Datagen done!\n";
 }
 
 
-void datagen(S_ThreadData* td, int number_of_games)
+void datagen(S_ThreadData* td, Datagen_params params)
 {
+
 	//Each thread gets its own file to dump data into
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	auto start_time = GetTimeMs();
 	if (myfile.is_open())
 	{
-		for (int i = 0;i < number_of_games;i++)
+		for (int i = 0;i < params.games;i++)
 		{
 			play_game(td, myfile);
 			if (!(i % 1000))
 				std::cout << total_fens << " fens completed" << " current speed is " << total_fens * 1000 / (GetTimeMs() - start_time) << " fens per second\n";
 		}
 		myfile.close();
-		std::cout << "Datagen done!";
 	}
 	else std::cout << "Unable to open file";
 	return;
