@@ -245,6 +245,12 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 		info->depth = MAXDEPTH;
 	}
 
+	if (info->depth == MAXDEPTH && (info->nodeset == false)) 
+	{
+		std::cout << "No datagen limit set, the default of 2500 nodes will be used\n";
+		info->nodeset = true;
+		info->nodeslimit = 2500;
+	}
 }
 
 // main UCI loop
