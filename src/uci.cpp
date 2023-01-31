@@ -315,6 +315,10 @@ void Uci_Loop(char** argv) {
 
 		else if (tokens[0] == "datagen")
 		{
+			stopHelperThreads();
+			//Join previous datagen thread if it exists
+			if (main_search_thread.joinable())
+				main_search_thread.join();
 			Datagen_params params;
 			//we re-use parse go to read the datagen params
 			parse_datagen(input, &td->info, params);
