@@ -1,12 +1,20 @@
 #pragma once
 #include "Board.h"
 
-typedef struct OPTIONS {
+//Uci options
+struct S_UciOptions {
 	uint64_t Hash = 16;
 	int MultiPV = 1;
 	int Threads = 1;
-	bool datagen = false;
-} S_UciOptions;
+};
+
+//Enum of the possible states the main thread can be in
+enum state
+{
+	Idle,
+	Search,
+	Datagen
+};
 //Internal flag to decide if to pretty or ugly print search results
 extern bool print_uci;
 int parse_move(const std::string& move_string, S_Board* pos);

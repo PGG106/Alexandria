@@ -10,7 +10,7 @@
 #include "ttable.h"
 #include "History.h"
 #include "time_manager.h"
-unsigned long total_fens = 0;
+unsigned long long total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
 	S_MOVELIST move_list[1];
@@ -145,7 +145,7 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 	}
 
 	//MainThread datagen
-	datagen(td, params.games);
+	datagen(td, params);
 	std::cout << "Waiting for the other threads to finish\n";
 	//Wait for helper threads to finish
 	stopHelperThreads();
@@ -154,7 +154,7 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 }
 
 
-void datagen(S_ThreadData* td, int games_number)
+void datagen(S_ThreadData* td, Datagen_params params)
 {
 	//Each thread gets its own file to dump data into
 	auto start_time = GetTimeMs();
@@ -163,8 +163,15 @@ void datagen(S_ThreadData* td, int games_number)
 	{
 		if (td->id == 0)
 			std::cout << "Datagen started successfully" << std::endl;
-		for (int i = 1;i <= games_number;i++)
+		for (int i = 1;i <= params.games;i++)
 		{
+			//Allow the user to stop datagen early
+			if (params.stopped) 
+			{
+				if (td->id == 0)
+				std::cout << "Stopping datagen...\n";
+				break;
+			}
 			//Make sure a game is started on a clean state
 			set_new_game_state(td);
 			//Restart if we get a busted random score
@@ -174,7 +181,7 @@ void datagen(S_ThreadData* td, int games_number)
 				continue;
 			}
 			if (td->id == 0 && !(i % 100))
-				std::cout << i << " games completed total_fens: " << total_fens << " speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time))  << " fens/s" << std::endl;
+				std::cout << i * params.threadnum << " games completed total_fens: " << total_fens << " speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) << " fens/s" << std::endl;
 		}
 		myfile.close();
 	}
