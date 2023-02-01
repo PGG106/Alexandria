@@ -141,7 +141,7 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < params.threadnum - 1;i++)
 	{
-		threads.emplace_back(std::thread(datagen, &threads_data[i], params.games));
+		threads.emplace_back(std::thread(datagen, &threads_data[i], params));
 	}
 
 	//MainThread datagen
