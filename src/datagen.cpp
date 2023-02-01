@@ -166,7 +166,7 @@ void datagen(S_ThreadData* td, Datagen_params params)
 		for (int i = 1;i <= params.games;i++)
 		{
 			//Allow the user to stop datagen early
-			if (params.stopped) 
+			if (td->info.stopped) 
 			{
 				if (td->id == 0)
 				std::cout << "Stopping datagen...\n";

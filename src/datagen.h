@@ -11,7 +11,6 @@ struct Datagen_params
 	int threadnum = 6;
 	//The games are defined per thread and not as a cumulative sum
 	int games = 100000;
-	bool stopped = false;
 };
 
 //Root datagen function that handles the start-up of datagen

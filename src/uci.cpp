@@ -254,7 +254,7 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 }
 
 // main UCI loop
-void Uci_Loop(char** argv) 
+void Uci_Loop(char** argv)
 {
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
 		start_bench();
@@ -270,8 +270,6 @@ void Uci_Loop(char** argv)
 	S_ThreadData* td(new ThreadData());
 	//Main thread that will spawn all the other threads and run search or datagen
 	std::thread main_thread;
-	//Keep track of what the main_thread is doing
-	state current_state = Idle;
 	// print engine info
 	printf("id name Alexandria 4.0-dev\n");
 
@@ -304,21 +302,14 @@ void Uci_Loop(char** argv)
 		}
 
 		// parse UCI "go" command
-		else if (tokens[0] == "go") 
+		else if (tokens[0] == "go")
 		{
 
-			if (current_state == Search)
-			{
-				//Stop helper threads
-				stopHelperThreads();
-				//stop main thread search
-				td->info.stopped = true;
-			}
-			else if (current_state == Datagen)
-			{
-				std::cout << "not implemented yet";
-				params.stopped = true;
-			}
+			//Stop helper threads
+			stopHelperThreads();
+			//stop main thread search
+			td->info.stopped = true;
+
 			//Join previous search thread if it exists
 			if (main_thread.joinable())
 				main_thread.join();
@@ -330,32 +321,21 @@ void Uci_Loop(char** argv)
 			// call parse go function
 			bool search = parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
-			if (search) 
-			{
-				current_state = Search;
-				main_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
-			}
+			if (search) main_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 		}
 
 		else if (tokens[0] == "datagen")
 		{
-			if (current_state == Search)
-			{
-				//Stop helper threads
-				stopHelperThreads();
-				//stop main thread search
-				td->info.stopped = true;
-			}
-			else if (current_state == Datagen)
-			{
-				std::cout << "not implemented yet";
-				params.stopped = true;
-			}
+
+			//Stop helper threads
+			stopHelperThreads();
+			//stop main thread search
+			td->info.stopped = true;
+
 			//Join previous datagen thread if it exists
 			if (main_thread.joinable())
 				main_thread.join();
-			//Skip setting the state to idle and go straight to search
-			current_state = Datagen;
+
 			//we re-use parse go to read the datagen params
 			parse_datagen(input, &td->info, params);
 			main_thread = std::thread(Root_datagen, td, params);
@@ -393,37 +373,19 @@ void Uci_Loop(char** argv)
 		// parse UCI "stop" command
 		else if (input == "stop")
 		{
-			if(current_state==Search)
-			{
 			//Stop helper threads
 			stopHelperThreads();
 			//stop main thread search
 			td->info.stopped = true;
-			}
-			else if(current_state == Datagen)
-			{
-				std::cout << "not implemented yet";
-				params.stopped = true;
-			}
-			current_state = Idle;
 		}
 
 		// parse UCI "quit" command
-		else if (input == "quit" || input == "exit") 
+		else if (input == "quit" || input == "exit")
 		{
-			if (current_state == Search)
-			{
-				//Stop helper threads
-				stopHelperThreads();
-				//stop main thread search
-				td->info.stopped = true;
-			}
-			else if (current_state == Datagen)
-			{
-				std::cout << "not implemented yet";
-				params.stopped = true;
-			}
-			current_state = Idle;
+			//Stop helper threads
+			stopHelperThreads();
+			//stop main thread search
+			td->info.stopped = true;
 
 			//Join previous search thread if it exists
 			if (main_thread.joinable())

@@ -8,13 +8,6 @@ struct S_UciOptions {
 	int Threads = 1;
 };
 
-//Enum of the possible states the main thread can be in
-enum state
-{
-	Idle,
-	Search,
-	Datagen
-};
 //Internal flag to decide if to pretty or ugly print search results
 extern bool print_uci;
 int parse_move(const std::string& move_string, S_Board* pos);
