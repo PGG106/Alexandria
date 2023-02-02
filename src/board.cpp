@@ -1,5 +1,5 @@
-#include "Board.h"
-#include "PieceData.h"
+#include "board.h"
+#include "pieceData.h"
 #include "makemove.h"
 #include "misc.h"
 #include <cassert>
