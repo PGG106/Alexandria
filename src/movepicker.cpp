@@ -3,7 +3,7 @@
 void pick_move(S_MOVELIST* move_list, const int moveNum) {
 	S_MOVE temp;
 	int index = 0;
-	int bestScore = 0;
+	int bestScore = -MAXSCORE;
 	int bestNum = moveNum;
 	//starting at the number of the current move and stopping at the end of the list
 	for (index = moveNum; index < move_list->count; ++index) {
