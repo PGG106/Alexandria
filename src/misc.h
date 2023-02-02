@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Board.h"
+#include "board.h"
 #include "search.h"
 #include <string>
 #ifdef _WIN32

@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 #include <map>
 #include <string>
 // convert ASCII character pieces to encoded constants
