@@ -1,10 +1,6 @@
 #include "time_manager.h"
-
 #include "search.h"
-#include "uci.h"
 #include <algorithm>
-#include <cfloat>
-#include <cmath>
 #include "misc.h"
 
 //Calculate how much time to spend on searching a move

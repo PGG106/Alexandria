@@ -1,15 +1,10 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 #include "hashkey.h"
 #include "init.h"
 #include "io.h"
 #include "makemove.h"
-#include "move.h"
 #include "movegen.h"
-#include "search.h"
-#include "stdio.h"
-#include "string.h"
-#include "uci.h"
 
 #define HASH_PCE(pce, sq) (pos->posKey ^= (PieceKeys[(pce)][(sq)]))
 #define HASH_CA (pos->posKey ^= (CastleKeys[(pos->castleperm)]))

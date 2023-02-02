@@ -1,7 +1,5 @@
 #include "Board.h"
-#include "PieceData.h"
 #include "attack.h"
-#include "io.h"
 #include "magic.h"
 #include "random.h"
 #include "stdint.h"
@@ -9,8 +7,7 @@
 #include "misc.h"
 #include "ttable.h"
 #include "threads.h"
-#include <cstring>
-#include "History.h"
+#include "history.h"
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];

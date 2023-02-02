@@ -3,7 +3,6 @@
 #include "makemove.h"
 #include "misc.h"
 #include <cassert>
-#include <iostream>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #include <intrin.h> // Microsoft header for _BitScanForward64()

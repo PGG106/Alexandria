@@ -1,11 +1,7 @@
 #include "movegen.h"
-#include "Board.h"
-#include "PieceData.h"
 #include "attack.h"
 #include "magic.h"
 #include "makemove.h"
-#include "move.h"
-#include "stdint.h"
 
 // is the square given in input attacked by the current given side
 bool is_square_attacked(const S_Board* pos, const int square, const int side) {

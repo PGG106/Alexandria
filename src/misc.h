@@ -2,7 +2,7 @@
 
 #include "Board.h"
 #include "search.h"
-#include "stdio.h"
+#include <string>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -14,7 +14,6 @@
 #include "sys/time.h"
 #include "unistd.h"
 #endif
-#include <string>
 
 long GetTimeMs();
 

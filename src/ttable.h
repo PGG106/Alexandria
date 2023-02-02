@@ -1,6 +1,5 @@
 #pragma once
-#include "Board.h"
-#include "stdlib.h"
+#include "board.h"
 #include <memory>
 
 PACK(struct S_HashEntry {

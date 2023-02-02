@@ -1,9 +1,7 @@
-#include "Board.h"
-#include "search.h"
 #include "ttable.h"
-#include <iostream>
 #include "init.h"
 #include "misc.h"
+#include <iostream>
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[50] = {

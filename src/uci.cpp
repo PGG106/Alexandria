@@ -1,24 +1,16 @@
-#include "Board.h"
 #include "bench.h"
-#include "io.h"
 #include "uci.h"
 #include "makemove.h"
 #include "misc.h"
-#include "move.h"
 #include "types.h"
-#include "movegen.h"
 #include "perft.h"
 #include "search.h"
 #include "time_manager.h"
 #include "ttable.h"
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <thread>
 #include "datagen.h"
 #include "threads.h"
 #include "test_main.h"
+#include <iostream>
 
 bool print_uci = false;
 //convert a move to coordinate notation to internal notation

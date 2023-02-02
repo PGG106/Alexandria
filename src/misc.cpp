@@ -1,6 +1,5 @@
 
 #include "misc.h"
-#include "stdlib.h"
 #include "io.h"
 #include "threads.h"
 #include <iostream>

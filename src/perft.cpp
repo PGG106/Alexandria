@@ -1,18 +1,14 @@
 #include "perft.h"
-#include "Board.h"
-#include "PieceData.h"
+#include "pieceData.h"
 #include "io.h"
 #include "makemove.h"
-#include "math.h"
-#include "move.h"
-#include "movegen.h"
-#include "stdio.h"
+#include "misc.h"
 #ifdef _WIN64
 #include <windows.h>
 #else
 #include <sys/time.h>
 #endif
-#include "misc.h"
+
 
 
 // leaf nodes (number of positions reached during the test of the move generator

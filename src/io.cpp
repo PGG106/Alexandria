@@ -1,14 +1,10 @@
-// print bitboard
-#include "Board.h"
 #include "PieceData.h"
-#include "move.h"
 #include "misc.h"
 #include "threads.h"
 #include "movegen.h"
 #include "io.h"
 #include <iostream>
 #include <sstream>
-#include <algorithm>
 #include <iomanip>
 
 

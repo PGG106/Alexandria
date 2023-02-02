@@ -6,10 +6,10 @@
 #include <iostream>
 #include <fstream>
 #include "misc.h"
-#include "threads.h"
 #include "ttable.h"
-#include "History.h"
+#include "history.h"
 #include "time_manager.h"
+
 unsigned long total_fens = 0;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
