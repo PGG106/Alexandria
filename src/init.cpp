@@ -235,7 +235,15 @@ void InitReductions() {
 	}
 }
 
-void init_all() {
+void init_all() 
+{
+	//Force windows to display colors
+#ifdef _WIN64
+	HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD flags;
+	GetConsoleMode(stdoutHandle, &flags);
+	SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
 	// init leaper pieces attacks
 	init_leapers_attacks();
 

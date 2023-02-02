@@ -19,9 +19,20 @@ long GetTimeMs() {
 #endif
 }
 
+std::string Pick_color(int score)
+{
+	//drawish score, no highlight
+	if (abs(score) < 10) return "\033[38;5;7m";
+	//Good mate score, blue
+	if (score > ISMATE) return "\033[38;5;39m";
+	// positive for us, light green
+	if (score > 10) return "\033[38;5;42m";
+	// negative for us, red
+	if (score < 10) return  "\033[38;5;9m";
+}
+
 //Prints the uci output
 void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const  S_UciOptions* options) {
-
 
 	//This handles the basic console output
 	long  time = GetTimeMs() - td->info.starttime;
@@ -90,7 +101,9 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		// convert score to string
 		std::stringstream score_stream;
 		score_stream << std::fixed << std::setprecision(2) << parsed_score;
-		std::string score_string = score_unit + score_stream.str();
+		std::string score_color = Pick_color(score);
+		std::string color_reset = "\033[0m";
+		std::string score_string = score_color + score_unit + score_stream.str() + color_reset;
 		int node_precision = 0;
 		//convert nodes into string
 		std::string node_unit = "n";
@@ -116,11 +129,12 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
 		std::cout << std::right << std::setw(8) << time_string;
 		std::cout << std::right << std::setw(10) << node_string;
-		std::cout << std::setw(8) << std::right << score_string;
-		std::cout << std::setw(8) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
+		std::cout << std::setw(22) << std::right << score_string;
+		std::cout << std::setw(7) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
 
 		// loop over the moves within a PV line
-		for (int count = 0; count < td->pv_table.pvLength[0]; count++) {
+		for (int count = 0; count < td->pv_table.pvLength[0]; count++)
+		{
 			// print PV move
 			print_move(td->pv_table.pvArray[0][count]);
 			printf(" ");
