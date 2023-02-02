@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 #include "search.h"
 
 extern Bitboard PieceKeys[12][64];
