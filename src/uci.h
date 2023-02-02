@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 
 typedef struct OPTIONS {
 	uint64_t Hash = 16;

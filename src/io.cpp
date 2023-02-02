@@ -1,4 +1,4 @@
-#include "PieceData.h"
+#include "pieceData.h"
 #include "misc.h"
 #include "threads.h"
 #include "movegen.h"

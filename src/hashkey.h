@@ -1,3 +1,3 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 Bitboard GeneratePosKey(const S_Board *pos);

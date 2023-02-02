@@ -1,4 +1,4 @@
-#include "History.h"
+#include "history.h"
 #include <cstring>
 
 void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {

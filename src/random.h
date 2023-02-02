@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 
 // pseudo random number state
 extern unsigned int random_state;

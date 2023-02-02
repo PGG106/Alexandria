@@ -1,4 +1,4 @@
-#include "../src/Board.h"
+#include "../src/board.h"
 #include <iostream>
 void test_get_fen();
 

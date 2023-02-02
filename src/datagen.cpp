@@ -1,4 +1,4 @@
-#include "Board.h"
+#include "board.h"
 #include "movegen.h"
 #include <time.h>
 #include "makemove.h"

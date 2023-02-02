@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
-#include "Board.h"
+#include "board.h"
 #include "move.h"
 #include "search.h"
 

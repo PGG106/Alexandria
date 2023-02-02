@@ -1,4 +1,4 @@
-#include "Board.h"
+#include "board.h"
 #include "attack.h"
 #include "magic.h"
 #include "random.h"
