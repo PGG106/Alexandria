@@ -356,7 +356,7 @@ void Uci_Loop(char** argv)
 				uci_options->Threads = std::stoi(tokens.at(4));
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
 			}
-			else std::cout << "Unknown command: " << input << std::endl;
+			else std::cout << "No such option: " << input << std::endl;
 		}
 
 		// parse UCI "isready" command
