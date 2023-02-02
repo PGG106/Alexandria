@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 #include "move.h"
 
 // is the square given in input attacked by the current given side
