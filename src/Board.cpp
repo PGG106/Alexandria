@@ -1,13 +1,8 @@
 #include "Board.h"
 #include "PieceData.h"
-#include "hashkey.h"
 #include "makemove.h"
-#include "math.h"
-#include "nnue.h"
-#include "string.h"
-#include <cassert>
-#include <stdio.h>
 #include "misc.h"
+#include <cassert>
 #include <iostream>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
