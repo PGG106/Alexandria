@@ -16,7 +16,7 @@
 
 void print_bitboard(const Bitboard bitboard) {
 	// print offset
-	printf("\n");
+	std::cout << std::endl;
 
 	// loop over board ranks
 	for (int rank = 0; rank < 8; rank++) {
@@ -34,7 +34,7 @@ void print_bitboard(const Bitboard bitboard) {
 		}
 
 		// print new line every rank
-		printf("\n");
+		std::cout << std::endl;
 	}
 
 	// print board files
@@ -104,7 +104,7 @@ void print_board(const S_Board* pos) {
 
 // print attacked squares
 void print_attacked_squares(const S_Board* pos, const int side) {
-	printf("\n");
+	std::cout << "\n";
 
 	// loop over board ranks
 	for (int rank = 0; rank < 8; rank++) {
@@ -122,11 +122,11 @@ void print_attacked_squares(const S_Board* pos, const int side) {
 		}
 
 		// print new line every rank
-		printf("\n");
+		std::cout << std::endl;
 	}
 
 	// print files
-	printf("\n     a b c d e f g h\n\n");
+	std::cout << "\n     a b c d e f g h\n\n";
 }
 
 // print move (for UCI purposes)
@@ -159,13 +159,12 @@ void PrintMoveList(const S_MOVELIST* list) {
 	int index = 0;
 	int score = 0;
 	int move = 0;
-	printf("MoveList:%d\n", list->count);
 	for (index = 0; index < list->count; ++index) {
 		move = list->moves[index].move;
 		score = list->moves[index].score;
-		printf("Move:%d > %s (score:%d) \n", index + 1, FormatMove(move), score);
+		std::cout << "Move: " << index + 1 << " >" << FormatMove(move) << " score: " << score << std::endl;
 	}
-	printf("MoveList Total  Moves:%d\n\n", list->count);
+	std::cout << "MoveList Total  Moves:" << "list->count" << "\n\n";
 }
 
 std::string Pick_color(int score)
@@ -211,7 +210,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		}
 
 		// print new line
-		printf("\n");
+		std::cout << std::endl;
 	}
 	else {
 

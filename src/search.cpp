@@ -12,6 +12,7 @@
 #include <cassert>
 #include "datagen.h"
 #include "time_manager.h"
+#include <iostream>
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -248,9 +249,9 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	//MainThread search
 	search_position(1, depth, td, options);
 	//Print final bestmove found
-	printf("bestmove ");
+	std::cout << "bestmove ";
 	print_move(getBestMove(&td->pv_table));
-	printf("\n");
+	std::cout << "\n";
 }
 
 // search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
@@ -271,8 +272,8 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 			PrintUciOutput(score, current_depth, td, options);
 
 		// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
-		if (td->id == 0 && 
-			(stopEarly(&td->info)||nodesOver(&td->info)))
+		if (td->id == 0 &&
+			(stopEarly(&td->info) || nodesOver(&td->info)))
 		{
 			stopHelperThreads();
 			//Stop mainthread search
