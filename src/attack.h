@@ -1,6 +1,6 @@
 #pragma once
 #include "types.h"
-#include "Board.h"
+#include "board.h"
 
 // not A file constant
 extern const Bitboard not_a_file;
