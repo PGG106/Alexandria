@@ -86,11 +86,10 @@ void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int t
 
 int32_t NNUE::output(const NNUE::accumulator& board_accumulator) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
-	int32_t output = 0;
+	int32_t output = outputBias[0];
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		output += relu(board_accumulator[i]) * hiddenWeights[i];
 	}
-	output += outputBias[0];
 	return output / (64 * 256);
 }
 
