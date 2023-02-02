@@ -1,5 +1,5 @@
 #pragma once
-#include "Board.h"
+#include "board.h"
 
 // pawn positional score
 extern const int pawn_score[64];
