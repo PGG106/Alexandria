@@ -1,16 +1,12 @@
 // pvtable.c
 #include "ttable.h"
-#include "Board.h"
 #include "assert.h"
 #include "io.h"
-#include "move.h"
-#include "stdio.h"
-#include "stdlib.h"
 #include <cstring>
+#include <iostream>
 #ifdef _WIN32
 #include "windows.h"
 #endif
-#include <iostream>
 
 S_HashTable HashTable[1];
 

@@ -59,26 +59,26 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
-	int piecetype = GetPieceType(piece);
-	int inputNum = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
+void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) 
+{
+	int inputNum = GetIndex(piece, to);
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] += inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
-	int piecetype = GetPieceType(piece);
-	int inputNum = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
+void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) 
+{
+	int inputNum = GetIndex(piece,from);
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) {
-	int piecetype = GetPieceType(piece);
-	int inputNumFrom = from + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
-	int inputNumTo = to + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
+void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) 
+{
+	int inputNumFrom = GetIndex(piece, from);
+	int inputNumTo = GetIndex(piece, to);
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] = board_accumulator[i] - inputWeights[inputNumFrom * HIDDEN_BIAS + i] + inputWeights[inputNumTo * HIDDEN_BIAS + i];
 	}
@@ -86,11 +86,10 @@ void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int t
 
 int32_t NNUE::output(const NNUE::accumulator& board_accumulator) {
 	//this function takes the net output for the current accumulators and returns the eval of the position according to the net
-	int32_t output = 0;
+	int32_t output = outputBias[0];
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		output += relu(board_accumulator[i]) * hiddenWeights[i];
 	}
-	output += outputBias[0];
 	return output / (64 * 256);
 }
 
@@ -99,4 +98,10 @@ void NNUE::Clear(NNUE::accumulator& board_accumulator) {
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] = 0;
 	}
+}
+
+int NNUE::GetIndex(int piece, int square)
+{
+	int piecetype = GetPieceType(piece);
+	return square + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
 }

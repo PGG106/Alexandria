@@ -1,8 +1,7 @@
 #pragma once
-
-#include "Board.h"
+#include "board.h"
 #include "search.h"
-#include "stdio.h"
+#include <string>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -14,11 +13,8 @@
 #include "sys/time.h"
 #include "unistd.h"
 #endif
-#include <string>
 
 long GetTimeMs();
-
-void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
 
 std::vector<std::string> split_command(const std::string& command);
 

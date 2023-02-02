@@ -1,5 +1,6 @@
 #include "History.h"
 #include <cstring>
+
 void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
 	int scaled_bonus = bonus - getHHScore(pos, ss, move) * std::abs(bonus) / 32768;
 	//Update move score

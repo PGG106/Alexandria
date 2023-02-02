@@ -1,15 +1,4 @@
 ﻿#include "makemove.h"
-#include "Board.h"
-#include "hashkey.h"
-#include "init.h"
-#include "io.h"
-#include "move.h"
-#include "movegen.h"
-#include "search.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "uci.h"
 
 //Remove a piece from a square
 void ClearPiece(const int piece, const int sq, S_Board* pos) {
@@ -80,16 +69,18 @@ int make_move(const int move, S_Board* pos) {
 	// increment fifty move rule counter
 	pos->fiftyMove++;
 	// handle enpassant captures
-	if (enpass) {
+	if (enpass) 
+	{
 		//If it's an enpass we remove the pawn corresponding to the opponent square 
-		if (pos->side == WHITE) {
+		if (pos->side == WHITE) 
+		{
 			ClearPieceNNUE(BP, target_square + 8, pos);
-			pos->fiftyMove = 0;
 		}
 		else {
 			ClearPieceNNUE(WP, target_square - 8, pos);
-			pos->fiftyMove = 0;
+		
 		}
+		pos->fiftyMove = 0;
 	}
 
 	// handling capture moves

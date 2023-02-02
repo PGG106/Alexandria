@@ -1,18 +1,14 @@
 #include "perft.h"
-#include "Board.h"
-#include "PieceData.h"
+#include "pieceData.h"
 #include "io.h"
 #include "makemove.h"
-#include "math.h"
-#include "move.h"
-#include "movegen.h"
-#include "stdio.h"
+#include "misc.h"
 #ifdef _WIN64
 #include <windows.h>
 #else
 #include <sys/time.h>
 #endif
-#include "misc.h"
+
 
 
 // leaf nodes (number of positions reached during the test of the move generator
@@ -98,11 +94,12 @@ unsigned long long perft_test(int depth, S_Board* pos) {
 			old_nodes);
 	}
 
+	auto time = GetTimeMs() - start;
 	// print results
 	printf("\n    Depth: %d\n", depth);
 	printf("    Nodes: %llu\n", nodes);
-	printf("     Time: %ld ms\n\n", GetTimeMs() - start);
-	unsigned long nodes_second = ((nodes / (ceil(GetTimeMs() - start)))) * 1000;
+	printf("     Time: %ld ms\n\n", time);
+	unsigned long nodes_second = (nodes / time + !time) * 1000;
 	printf(" Nodes per second %lu\n\n", nodes_second);
 
 	return nodes;

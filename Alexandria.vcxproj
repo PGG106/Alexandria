@@ -154,10 +154,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\datagen.h" />
-    <ClInclude Include="src\History.h" />
+    <ClInclude Include="src\history.h" />
     <ClInclude Include="src\attack.h" />
     <ClInclude Include="src\bench.h" />
-    <ClInclude Include="src\Board.h" />
+    <ClInclude Include="src\board.h" />
     <ClInclude Include="src\eval.h" />
     <ClInclude Include="src\hashkey.h" />
     <ClInclude Include="src\incbin\incbin.h" />
@@ -171,7 +171,7 @@
     <ClInclude Include="src\move.h" />
     <ClInclude Include="src\movegen.h" />
     <ClInclude Include="src\perft.h" />
-    <ClInclude Include="src\PieceData.h" />
+    <ClInclude Include="src\pieceData.h" />
     <ClInclude Include="src\random.h" />
     <ClInclude Include="src\search.h" />
     <ClInclude Include="src\threads.h" />
@@ -183,10 +183,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\datagen.cpp" />
-    <ClCompile Include="src\History.cpp" />
+    <ClCompile Include="src\history.cpp" />
     <ClCompile Include="src\attack.cpp" />
     <ClCompile Include="src\bench.cpp" />
-    <ClCompile Include="src\Board.cpp" />
+    <ClCompile Include="src\board.cpp" />
     <ClCompile Include="src\eval.cpp" />
     <ClCompile Include="src\hashkey.cpp" />
     <ClCompile Include="src\init.cpp" />
@@ -199,7 +199,7 @@
     <ClCompile Include="src\nnue.cpp" />
     <ClCompile Include="src\movepicker.cpp" />
     <ClCompile Include="src\perft.cpp" />
-    <ClCompile Include="src\PieceData.cpp" />
+    <ClCompile Include="src\pieceData.cpp" />
     <ClCompile Include="src\random.cpp" />
     <ClCompile Include="src\search.cpp" />
     <ClCompile Include="src\threads.cpp" />

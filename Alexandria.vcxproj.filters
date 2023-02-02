@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Board.h">
+    <ClInclude Include="src\board.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="src\hashkey.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="src\PieceData.h">
+    <ClInclude Include="src\pieceData.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="src\init.h">
@@ -81,7 +81,7 @@
     <ClInclude Include="src\movepicker.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="src\History.h">
+    <ClInclude Include="src\history.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="src\types.h">
@@ -93,12 +93,12 @@
     <ClInclude Include="src\threads.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="tests\test_main.h">
+    <ClInclude Include="src\test_main.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Board.cpp">
+    <ClCompile Include="src\board.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\hashkey.cpp">
@@ -119,7 +119,7 @@
     <ClCompile Include="src\random.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="src\PieceData.cpp">
+    <ClCompile Include="src\pieceData.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\eval.cpp">
@@ -161,7 +161,7 @@
     <ClCompile Include="src\movepicker.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="src\History.cpp">
+    <ClCompile Include="src\history.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\datagen.cpp">
@@ -170,7 +170,7 @@
     <ClCompile Include="src\threads.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="tests\test_main.cpp">
+    <ClCompile Include="src\test_main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

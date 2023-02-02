@@ -1,4 +1,6 @@
 #pragma once
+#include "threads.h"
+
 //The internal structure of a "fen" worth of training data, in Cudad format
 struct data_entry {
 	std::string fen;

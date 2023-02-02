@@ -1,8 +1,6 @@
 #include "magic.h"
 #include "attack.h"
 #include "random.h"
-#include "stdio.h"
-#include "string.h"
 
 // get bishop attacks
 Bitboard get_bishop_attacks(const int square, Bitboard occupancy) {

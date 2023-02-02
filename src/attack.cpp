@@ -1,7 +1,6 @@
 
 #include "attack.h"
 #include "magic.h"
-#include "move.h"
 #include <algorithm>
 
 // not A file constant

@@ -1,4 +1,3 @@
-
 #include "PieceData.h"
 #include "types.h"
 #include "eval.h"

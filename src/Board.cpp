@@ -1,14 +1,8 @@
 #include "Board.h"
 #include "PieceData.h"
-#include "hashkey.h"
 #include "makemove.h"
-#include "math.h"
-#include "nnue.h"
-#include "string.h"
-#include <cassert>
-#include <stdio.h>
 #include "misc.h"
-#include <iostream>
+#include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #include <intrin.h> // Microsoft header for _BitScanForward64()

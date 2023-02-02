@@ -1,11 +1,4 @@
 #include "eval.h"
-#include "Board.h"
-#include "PieceData.h"
-#include "attack.h"
-#include "io.h"
-#include "magic.h"
-#include "stdio.h"
-#include "stdlib.h"
 
 // if we don't have enough material to mate consider the position a draw
 int MaterialDraw(const S_Board* pos) {

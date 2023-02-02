@@ -1,9 +1,7 @@
-#include "Board.h"
-#include "search.h"
 #include "ttable.h"
-#include <iostream>
 #include "init.h"
 #include "misc.h"
+#include <iostream>
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[50] = {
@@ -66,13 +64,11 @@ int start_bench() {
 	uint64_t total_nodes = 0;
 	long total_time = 0;
 	InitHashTable(HashTable, 64);
-	setvbuf(stdin, NULL, _IONBF, 0);
-	setvbuf(stdout, NULL, _IONBF, 0);
 
 	for (int positions = 0; positions < 50; positions++) {
 		parse_fen(benchmarkfens[positions], &td->pos);
 
-		printf("\nPosition: %d\n", positions);
+		std::cout << "\nPosition: " << positions + 1 << std::endl;
 
 		Root_search_position(12, td, uci_options);
 

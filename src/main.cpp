@@ -1,7 +1,5 @@
-#include "Board.h"
+#include "board.h"
 #include "init.h"
-#include "search.h"
-#include "ttable.h"
 #include "uci.h"
 
 
