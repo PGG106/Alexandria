@@ -1,5 +1,5 @@
 #include "nnue.h"
-#include "Board.h"
+#include "board.h"
 #include <cstdio>
 #include <cstring>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
