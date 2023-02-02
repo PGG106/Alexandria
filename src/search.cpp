@@ -274,10 +274,6 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 	{
 		score = aspiration_window_search(score, current_depth, td);
 
-		//If it's the main thread print the uci output
-		if (td->id == 0)
-			PrintUciOutput(score, current_depth, td, options);
-
 		// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
 		if (td->id == 0 && 
 			(stopEarly(&td->info)||nodesOver(&td->info)))
@@ -291,6 +287,9 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 		if (td->info.stopped)
 			break;
 
+		//If it's the main thread print the uci output
+		if (td->id == 0)
+			PrintUciOutput(score, current_depth, td, options);
 	}
 
 }
