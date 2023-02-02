@@ -75,7 +75,7 @@ void print_board(const S_Board* pos) {
 		}
 
 		// print new line every rank
-		std::cout<<"\n";
+		std::cout << "\n";
 	}
 
 	// print board files
@@ -279,7 +279,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
 		std::cout << std::right << std::setw(8) << time_string;
 		std::cout << std::right << std::setw(10) << node_string;
-		std::cout << std::setw(22) << std::right << score_string;
+		std::cout << std::setw(7) << std::right << " " << score_string;
 		std::cout << std::setw(7) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
 
 		// loop over the moves within a PV line

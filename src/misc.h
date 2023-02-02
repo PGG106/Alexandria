@@ -18,8 +18,6 @@
 
 long GetTimeMs();
 
-void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
-
 std::vector<std::string> split_command(const std::string& command);
 
 bool contains(std::vector<std::string> tokens, std::string key);
