@@ -1,25 +1,17 @@
 #include "search.h"
-#include "Board.h"
 #include "History.h"
 #include "PieceData.h"
 #include "attack.h"
 #include "eval.h"
-#include "io.h"
 #include "magic.h"
 #include "makemove.h"
 #include "misc.h"
 #include "threads.h"
-#include "move.h"
-#include "movegen.h"
 #include "movepicker.h"
 #include "ttable.h"
 #include <cassert>
-#include <cstring>
-#include <thread>
-#include <vector>
 #include "datagen.h"
 #include "time_manager.h"
-#include <algorithm>
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
