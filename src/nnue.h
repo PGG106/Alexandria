@@ -19,6 +19,7 @@ public:
 	int relu(int x);
 	int32_t output(const NNUE::accumulator& board_accumulator);
 	void Clear(NNUE::accumulator& board_accumulator);
+	int GetIndex(int piece, int square);
 
 	int16_t inputWeights[INPUT_WEIGHTS * HIDDEN_WEIGHTS];
 	int16_t hiddenBias[HIDDEN_BIAS];
