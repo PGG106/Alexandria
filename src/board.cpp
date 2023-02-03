@@ -145,6 +145,7 @@ void Reset_info(S_SearchINFO* info) {
 	info->stopped = false;
 	info->timeset = false;
 	info->movetimeset = false;
+	info->nodeset = false;
 }
 
 int square_distance(int a, int b) {
