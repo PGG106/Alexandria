@@ -9,7 +9,7 @@
 
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
-
+bool print_uci = false;
 void print_bitboard(const Bitboard bitboard) {
 	// print offset
 	std::cout << std::endl;

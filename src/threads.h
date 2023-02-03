@@ -2,7 +2,11 @@
 #include <vector>
 #include <thread>
 #include "search.h"
-
+enum state {
+	Idle,
+	Search,
+	Datagen
+};
 // global vector of search threads
 extern std::vector<std::thread> threads;
 // global vector of thread_datas
