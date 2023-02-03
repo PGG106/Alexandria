@@ -10,7 +10,8 @@
 #include "history.h"
 #include "time_manager.h"
 
-unsigned long total_fens = 0;
+unsigned long long total_fens = 0;
+std::atomic<bool> stop_flag = false;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
 	S_MOVELIST move_list[1];
@@ -165,6 +166,8 @@ void datagen(S_ThreadData* td, int games_number)
 			std::cout << "Datagen started successfully" << std::endl;
 		for (int i = 1;i <= games_number;i++)
 		{
+			if (stop_flag)
+				break;
 			//Make sure a game is started on a clean state
 			set_new_game_state(td);
 			//Restart if we get a busted random score
@@ -174,7 +177,7 @@ void datagen(S_ThreadData* td, int games_number)
 				continue;
 			}
 			if (td->id == 0 && !(i % 100))
-				std::cout << i << " games completed total_fens: " << total_fens << " speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time))  << " fens/s" << std::endl;
+				std::cout << i << " games completed total_fens: " << total_fens << " speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) << " fens/s" << std::endl;
 		}
 		myfile.close();
 	}
