@@ -1,6 +1,7 @@
 #pragma once
 #include "threads.h"
-
+#include <atomic>
+extern std::atomic<bool> stop_flag;
 //The internal structure of a "fen" worth of training data, in Cudad format
 struct data_entry {
 	std::string fen;
@@ -18,7 +19,7 @@ struct Datagen_params
 //Root datagen function that handles the start-up of datagen
 void Root_datagen(S_ThreadData* td, Datagen_params params);
 //Per thread datagen function
-void datagen(S_ThreadData* td, int games_number);
+void datagen(S_ThreadData* td, Datagen_params params);
 //Generates one game worth of fens
 bool play_game(S_ThreadData* td, std::ofstream& myfile);
 

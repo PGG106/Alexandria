@@ -12,7 +12,6 @@
 #include "test_main.h"
 #include <iostream>
 
-bool print_uci = false;
 //convert a move to coordinate notation to internal notation
 int parse_move(const std::string& move_string, S_Board* pos) {
 	// create move list instance
@@ -237,7 +236,7 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 		info->depth = MAXDEPTH;
 	}
 
-	if (info->depth == MAXDEPTH && (info->nodeset == false)) 
+	if (info->depth == MAXDEPTH && (info->nodeset == false))
 	{
 		std::cout << "No datagen limit set, the default of 2500 nodes will be used\n";
 		info->nodeset = true;
@@ -255,7 +254,8 @@ void Uci_Loop(char** argv) {
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
 	S_ThreadData* td(new ThreadData());
-	std::thread main_search_thread;
+	std::thread main_thread;
+	state threads_state = Idle;
 	// print engine info
 	printf("id name Alexandria 4.0-dev\n");
 
@@ -292,8 +292,8 @@ void Uci_Loop(char** argv) {
 
 			stopHelperThreads();
 			//Join previous search thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 
 			if (!parsed_position) // call parse position function
 			{
@@ -302,19 +302,26 @@ void Uci_Loop(char** argv) {
 			// call parse go function
 			bool search = parse_go(input, &td->info, &td->pos);
 			// Start search in a separate thread
-			if (search) main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+			if (search) {
+				threads_state = Search;
+				main_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+			}
 		}
 
 		else if (tokens[0] == "datagen")
 		{
+			stop_flag = true;
+			//Join helper threads
 			stopHelperThreads();
 			//Join previous datagen thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 			Datagen_params params;
 			//we re-use parse go to read the datagen params
 			parse_datagen(input, &td->info, params);
-			main_search_thread = std::thread(Root_datagen, td, params);
+			threads_state = Datagen;
+			stop_flag = false;
+			main_thread = std::thread(Root_datagen, td, params);
 		}
 
 		else if (tokens[0] == "setoption") {
@@ -347,23 +354,43 @@ void Uci_Loop(char** argv) {
 			init_new_game(td);
 		}
 		// parse UCI "stop" command
-		else if (input == "stop") {
-			//Stop helper threads
-			stopHelperThreads();
-			//stop main thread search
-			td->info.stopped = true;
+		else if (input == "stop")
+		{
+			if (threads_state == Search)
+			{
+				//Stop helper threads
+				stopHelperThreads();
+				//stop main thread search
+				td->info.stopped = true;
+			}
+			else if (threads_state == Datagen)
+			{
+				stop_flag = true;
+				//Join helper threads
+				stopHelperThreads();
+			}
+			threads_state = Idle;
 		}
 
 		// parse UCI "quit" command
 		else if (input == "quit" || input == "exit") {
-			//Stop helper threads
-			stopHelperThreads();
-			//stop main thread search
-			td->info.stopped = true;
-
+			if (threads_state == Search)
+			{
+				//Stop helper threads
+				stopHelperThreads();
+				//stop main thread search
+				td->info.stopped = true;
+			}
+			else if (threads_state == Datagen)
+			{
+				stop_flag = true;
+				//Join helper threads
+				stopHelperThreads();
+			}
+			threads_state = Idle;
 			//Join previous search thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 			//free thread data
 			delete td;
 			// quit from the chess engine program execution
