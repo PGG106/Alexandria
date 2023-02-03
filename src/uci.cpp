@@ -254,7 +254,7 @@ void Uci_Loop(char** argv) {
 	bool parsed_position = false;
 	S_UciOptions uci_options[1];
 	S_ThreadData* td(new ThreadData());
-	std::thread main_search_thread;
+	std::thread main_thread;
 	state threads_state = Idle;
 	// print engine info
 	printf("id name Alexandria 4.0-dev\n");
@@ -292,8 +292,8 @@ void Uci_Loop(char** argv) {
 
 			stopHelperThreads();
 			//Join previous search thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 
 			if (!parsed_position) // call parse position function
 			{
@@ -304,21 +304,24 @@ void Uci_Loop(char** argv) {
 			// Start search in a separate thread
 			if (search) {
 				threads_state = Search;
-				main_search_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+				main_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
 			}
 		}
 
 		else if (tokens[0] == "datagen")
 		{
+			stop_flag = true;
+			//Join helper threads
 			stopHelperThreads();
 			//Join previous datagen thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 			Datagen_params params;
 			//we re-use parse go to read the datagen params
 			parse_datagen(input, &td->info, params);
 			threads_state = Datagen;
-			main_search_thread = std::thread(Root_datagen, td, params);
+			stop_flag = false;
+			main_thread = std::thread(Root_datagen, td, params);
 		}
 
 		else if (tokens[0] == "setoption") {
@@ -360,6 +363,13 @@ void Uci_Loop(char** argv) {
 				//stop main thread search
 				td->info.stopped = true;
 			}
+			else if (threads_state == Datagen)
+			{
+				stop_flag = true;
+				//Join helper threads
+				stopHelperThreads();
+			}
+			threads_state = Idle;
 		}
 
 		// parse UCI "quit" command
@@ -371,10 +381,16 @@ void Uci_Loop(char** argv) {
 				//stop main thread search
 				td->info.stopped = true;
 			}
-
+			else if (threads_state == Datagen)
+			{
+				stop_flag = true;
+				//Join helper threads
+				stopHelperThreads();
+			}
+			threads_state = Idle;
 			//Join previous search thread if it exists
-			if (main_search_thread.joinable())
-				main_search_thread.join();
+			if (main_thread.joinable())
+				main_thread.join();
 			//free thread data
 			delete td;
 			// quit from the chess engine program execution
