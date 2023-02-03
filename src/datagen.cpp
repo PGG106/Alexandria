@@ -252,6 +252,10 @@ bool is_game_over(S_Board* pos, std::string& wdl)
 		wdl = in_check ? pos->side == WHITE ? "[0.0]" : "[1.0]" : "[0.5]";
 		return true;
 	}
-
+	//Sanity check if the game somehow gets stuck in a loop
+	if (pos->ply > 1500) {
+		wdl = "[0.5]";
+		return true;
+	}
 	return false;
 }
