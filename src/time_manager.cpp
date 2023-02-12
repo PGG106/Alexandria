@@ -7,7 +7,10 @@
 void optimum(S_SearchINFO* info, int time, int inc) {
 
 	//if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
-	if (info->movetimeset) {
+	if (info->movetimeset) 
+	{
+		int safety_overhead = 50;
+		time -= safety_overhead;
 		info->stoptimeMax = info->starttime + time;
 		info->stoptimeOpt = info->starttime + time;
 	}

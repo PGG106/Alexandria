@@ -188,7 +188,7 @@ bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
 	}
-
+	std::cout << "info ";
 	std::cout << "time: " << time << " ";
 	std::cout << "start: " << info->starttime << " ";
 	std::cout << "stopOpt: " << info->stoptimeOpt << " ";
