@@ -43,6 +43,4 @@ typedef struct {
 
 #define isEnpassant(pos,move) ((get_move_piece(move) == WP || get_move_piece(move) == BP) && (To(move) == pos->enPas))
 
-// move types
-enum { all_moves, only_captures };
 

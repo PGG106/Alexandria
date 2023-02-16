@@ -16,7 +16,7 @@ void make_random_move(S_Board* pos) {
 	srand(time(NULL));
 	S_MOVELIST move_list[1];
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 	//In the extremely rare case that we have mate/stale during the random moves
 	if (move_list->count == 0)
 		return;
@@ -37,7 +37,7 @@ void set_new_game_state(S_ThreadData* td) {
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 
-	cleanHistories(ss);
+	CleanHistories(ss);
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
@@ -66,12 +66,12 @@ void set_new_game_state(S_ThreadData* td) {
 	pos->played_positions.clear();
 
 	// call parse position function
-	parse_position("position startpos", pos);
+	ParsePosition("position startpos", pos);
 	return;
 
 }
 
-//Does an high depth search of a position to confirm that it's sane enough to use for datagen
+//Does an high depth search of a position to confirm that it's sane enough to use for Datagen
 int sanity_search(S_ThreadData* td)
 {
 	Search_stack stack[MAXDEPTH], * ss = stack;
@@ -82,7 +82,7 @@ int sanity_search(S_ThreadData* td)
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
-	score = negamax(alpha, beta, 10, td, ss);
+	score = Negamax(alpha, beta, 10, td, ss);
 
 	return score;
 }
@@ -100,13 +100,13 @@ int search_best_move(S_ThreadData* td)
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
-	// Call the negamax function in an iterative deepening framework
+	// Call the Negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-		score = negamax(alpha, beta, current_depth, td, ss);
+		score = Negamax(alpha, beta, current_depth, td, ss);
 
 		// check if we just cleared a depth and we used the nodes we had we stop
-		if (nodesOver(&td->info))
+		if (NodesOver(&td->info))
 			info->stopped = true;
 
 		if (info->stopped)
@@ -119,7 +119,7 @@ int search_best_move(S_ThreadData* td)
 
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_datagen(S_ThreadData* td, Datagen_params params)
+void RootDatagen(S_ThreadData* td, Datagen_params params)
 {
 	std::cout << "Starting datagen with " << params.threadnum << " threads and an estimated total of " << params.games * params.threadnum << " games" << std::endl;
 	//Resize TT to an appropriate size
@@ -142,20 +142,20 @@ void Root_datagen(S_ThreadData* td, Datagen_params params)
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < params.threadnum - 1;i++)
 	{
-		threads.emplace_back(std::thread(datagen, &threads_data[i], params));
+		threads.emplace_back(std::thread(Datagen, &threads_data[i], params));
 	}
 
-	//MainThread datagen
-	datagen(td, params);
+	//MainThread Datagen
+	Datagen(td, params);
 	std::cout << "Waiting for the other threads to finish\n";
 	//Wait for helper threads to finish
-	stopHelperThreads();
+	StopHelperThreads();
 
 	std::cout << "Datagen done!\n";
 }
 
 
-void datagen(S_ThreadData* td, Datagen_params params)
+void Datagen(S_ThreadData* td, Datagen_params params)
 {
 	//Each thread gets its own file to dump data into
 	auto start_time = GetTimeMs();
@@ -175,7 +175,7 @@ void datagen(S_ThreadData* td, Datagen_params params)
 			//Make sure a game is started on a clean state
 			set_new_game_state(td);
 			//Restart if we get a busted random score
-			if (!play_game(td, myfile))
+			if (!PlayGame(td, myfile))
 			{
 				i--;
 				continue;
@@ -190,7 +190,7 @@ void datagen(S_ThreadData* td, Datagen_params params)
 
 }
 
-bool play_game(S_ThreadData* td, std::ofstream& myfile)
+bool PlayGame(S_ThreadData* td, std::ofstream& myfile)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
@@ -206,18 +206,18 @@ bool play_game(S_ThreadData* td, std::ofstream& myfile)
 	//String for wdl
 	std::string wdl;
 	//if the game is over we also get the wdl to avoid having to check twice
-	while (!is_game_over(pos, wdl))
+	while (!IsGameOver(pos, wdl))
 	{
 		//Get a data entry
 		data_entry entry;
 		//Get position fen
-		entry.fen = get_fen(pos);
+		entry.fen = GetFen(pos);
 		//Get if the position is in check
 		bool in_check = IsInCheck(pos, pos->side);
 		//Search best move and get score
 		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
 		//Get best move
-		int move = getBestMove(pv_table);
+		int move = GetBestMove(pv_table);
 		//play the move
 		make_move(move, pos);
 		//We don't save the position if the best move is a capture
@@ -240,7 +240,7 @@ bool play_game(S_ThreadData* td, std::ofstream& myfile)
 	return true;
 }
 
-bool is_game_over(S_Board* pos, std::string& wdl)
+bool IsGameOver(S_Board* pos, std::string& wdl)
 {
 	//Check for draw
 	if (IsDraw(pos))
@@ -251,7 +251,7 @@ bool is_game_over(S_Board* pos, std::string& wdl)
 	// create move list instance
 	S_MOVELIST move_list[1];
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 	//Check for mate or stalemate
 	if (move_list->count == 0)
 	{

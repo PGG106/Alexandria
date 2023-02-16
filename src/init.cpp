@@ -50,52 +50,52 @@ void initHashKeys() {
 	int Numberindex = 0;
 	for (Typeindex = WP; Typeindex <= BK; ++Typeindex) {
 		for (Numberindex = 0; Numberindex < 64; ++Numberindex) {
-			PieceKeys[Typeindex][Numberindex] = get_random_Bitboard_number();
+			PieceKeys[Typeindex][Numberindex] = GetRandomBitboardNumber();
 		}
 	}
 	// loop over board squares
 	for (int square = 0; square < Board_sq_num; square++)
 		// init random enpassant keys
-		enpassant_keys[square] = get_random_Bitboard_number();
+		enpassant_keys[square] = GetRandomBitboardNumber();
 
 	// loop over castling keys
 	for (int index = 0; index < 16; index++)
 		// init castling keys
-		CastleKeys[index] = get_random_Bitboard_number();
+		CastleKeys[index] = GetRandomBitboardNumber();
 
 	// init random side key
-	SideKey = get_random_Bitboard_number();
+	SideKey = GetRandomBitboardNumber();
 }
 
 // init leaper pieces attacks
-void init_leapers_attacks() {
+void InitLeapersAttacks() {
 	// loop over 64 board squares
 	for (int square = 0; square < Board_sq_num; square++) {
 		// init pawn attacks
-		pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
-		pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, square);
+		pawn_attacks[WHITE][square] = MaskPawnAttacks(WHITE, square);
+		pawn_attacks[BLACK][square] = MaskPawnAttacks(BLACK, square);
 
 		// init knight attacks
-		knight_attacks[square] = mask_knight_attacks(square);
+		knight_attacks[square] = MaskKnightAttacks(square);
 
 		// init king attacks
-		king_attacks[square] = mask_king_attacks(square);
+		king_attacks[square] = MaskKingAttacks(square);
 	}
 }
 
 // init slider piece's attack tables
-void init_sliders_attacks(const int bishop) {
+void InitSlidersAttacks(const int bishop) {
 	// loop over 64 board squares
 	for (int square = 0; square < Board_sq_num; square++) {
 		// init bishop & rook masks
-		bishop_masks[square] = mask_bishop_attacks(square);
-		rook_masks[square] = mask_rook_attacks(square);
+		bishop_masks[square] = MaskBishopAttacks(square);
+		rook_masks[square] = MaskRookAttacks(square);
 
 		// init current mask
 		Bitboard attack_mask = bishop ? bishop_masks[square] : rook_masks[square];
 
 		// init relevant occupancy bit count
-		int relevant_bits_count = count_bits(attack_mask);
+		int relevant_bits_count = CountBits(attack_mask);
 
 		// init occupancy indicies
 		int occupancy_indicies = (1 << relevant_bits_count);
@@ -106,7 +106,7 @@ void init_sliders_attacks(const int bishop) {
 			if (bishop) {
 				// init current occupancy variation
 				Bitboard occupancy =
-					set_occupancy(index, relevant_bits_count, attack_mask);
+					SetOccupancy(index, relevant_bits_count, attack_mask);
 
 				// init magic index
 				uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >>
@@ -114,14 +114,14 @@ void init_sliders_attacks(const int bishop) {
 
 				// init bishop attacks
 				bishop_attacks[square][magic_index] =
-					bishop_attacks_on_the_fly(square, occupancy);
+					BishopAttacksOnTheFly(square, occupancy);
 			}
 
 			// rook
 			else {
 				// init current occupancy variation
 				Bitboard occupancy =
-					set_occupancy(index, relevant_bits_count, attack_mask);
+					SetOccupancy(index, relevant_bits_count, attack_mask);
 
 				// init magic index
 				uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
@@ -129,7 +129,7 @@ void init_sliders_attacks(const int bishop) {
 
 				// init rook attacks
 				rook_attacks[square][magic_index] =
-					rook_attacks_on_the_fly(square, occupancy);
+					RookAttacksOnTheFly(square, occupancy);
 			}
 		}
 	}
@@ -176,18 +176,18 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 		pos->checks++;
 	}
 	if (bishop_mask) {
-		if (count_bits(bishop_mask) > 1)
+		if (CountBits(bishop_mask) > 1)
 			pos->checks++;
 
-		int index = get_ls1b_index(bishop_mask);
+		int index = GetLsbIndex(bishop_mask);
 		checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
 		pos->checks++;
 	}
 	if (rook_mask) {
-		if (count_bits(rook_mask) > 1)
+		if (CountBits(rook_mask) > 1)
 			pos->checks++;
 
-		int index = get_ls1b_index(rook_mask);
+		int index = GetLsbIndex(rook_mask);
 		checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
 		pos->checks++;
 	}
@@ -208,16 +208,16 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 	pos->pinHV = 0ULL;
 
 	while (rook_mask) {
-		int index = get_ls1b_index(rook_mask);
+		int index = GetLsbIndex(rook_mask);
 		Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-		if (count_bits(possible_pin & pos->occupancies[color]) == 1)
+		if (CountBits(possible_pin & pos->occupancies[color]) == 1)
 			rook_pin |= possible_pin;
 		pop_bit(rook_mask, index);
 	}
 	while (bishop_mask) {
-		int index = get_ls1b_index(bishop_mask);
+		int index = GetLsbIndex(bishop_mask);
 		Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-		if (count_bits(possible_pin & pos->occupancies[color]) == 1)
+		if (CountBits(possible_pin & pos->occupancies[color]) == 1)
 			bishop_pin |= possible_pin;
 		pop_bit(bishop_mask, index);
 	}
@@ -232,8 +232,9 @@ void InitReductions() {
 	}
 }
 
-void init_all() 
+void InitAll() 
 {
+	setvbuf(stdout, NULL, _IONBF, 0);
 	//Force windows to display colors
 #ifdef _WIN64
 	HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -242,11 +243,11 @@ void init_all()
 	SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #endif
 	// init leaper pieces attacks
-	init_leapers_attacks();
+	InitLeapersAttacks();
 
 	// init slider pieces attacks
-	init_sliders_attacks(bishop);
-	init_sliders_attacks(rook);
+	InitSlidersAttacks(bishop);
+	InitSlidersAttacks(rook);
 	initializeLookupTables();
 	initHashKeys();
 	InitReductions();
@@ -255,7 +256,7 @@ void init_all()
 	nnue.init("nn.net");
 }
 
-void init_new_game(S_ThreadData* td) {
+void InitNewGame(S_ThreadData* td) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
@@ -263,7 +264,7 @@ void init_new_game(S_ThreadData* td) {
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 
-	cleanHistories(ss);
+	CleanHistories(ss);
 
 	//Clean the Pv array
 	for (int index = 0; index < MAXDEPTH + 1; ++index) {
@@ -290,7 +291,7 @@ void init_new_game(S_ThreadData* td) {
 	ClearHashTable(HashTable);
 
 	//Empty threads and thread data
-	stopHelperThreads();
+	StopHelperThreads();
 
 	threads_data.clear();
 
@@ -298,7 +299,7 @@ void init_new_game(S_ThreadData* td) {
 	pos->played_positions.clear();
 
 	// call parse position function
-	parse_position("position startpos", pos);
+	ParsePosition("position startpos", pos);
 	return;
 
 }

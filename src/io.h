@@ -2,16 +2,16 @@
 #include "board.h"
 #include "search.h"
 
-void print_bitboard(const Bitboard bitboard);
+void PrintBitboard(const Bitboard bitboard);
 
 // print board
-void print_board(const S_Board* pos);
+void PrintBoard(const S_Board* pos);
 
 // print attacked squares
-void print_attacked_squares(const S_Board* pos, const int side);
+void PrintAttackedSquares(const S_Board* pos, const int side);
 
 // print move (for UCI purposes)
-void print_move(const int move);
+void PrintMove(const int move);
 
 // print move list
 void PrintMoveList(const S_MOVELIST* move_list);

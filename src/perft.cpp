@@ -16,12 +16,12 @@
 unsigned long long nodes;
 
 // perft driver
-void perft_driver(int depth, S_Board* pos) {
+void PerftDriver(int depth, S_Board* pos) {
 	// create move list instance
 	S_MOVELIST move_list[1];
 
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 
 	// Bulk Counting
 	if (depth == 1) {
@@ -43,7 +43,7 @@ void perft_driver(int depth, S_Board* pos) {
 		make_move(move, pos);
 
 		// call perft driver recursively
-		perft_driver(depth - 1, pos);
+		PerftDriver(depth - 1, pos);
 
 		// take back
 
@@ -52,7 +52,7 @@ void perft_driver(int depth, S_Board* pos) {
 }
 
 // perft test
-unsigned long long perft_test(int depth, S_Board* pos) {
+unsigned long long PerftTest(int depth, S_Board* pos) {
 	nodes = 0;
 	printf("\n     Performance test\n\n");
 
@@ -60,7 +60,7 @@ unsigned long long perft_test(int depth, S_Board* pos) {
 	S_MOVELIST move_list[1];
 
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 
 	// init start time
 	long start = GetTimeMs();
@@ -75,7 +75,7 @@ unsigned long long perft_test(int depth, S_Board* pos) {
 		long cummulative_nodes = nodes;
 
 		// call perft driver recursively
-		perft_driver(depth - 1, pos);
+		PerftDriver(depth - 1, pos);
 
 		// take back
 

@@ -13,12 +13,12 @@
 #include <iostream>
 
 //convert a move to coordinate notation to internal notation
-int parse_move(const std::string& move_string, S_Board* pos) {
+int ParseMove(const std::string& move_string, S_Board* pos) {
 	// create move list instance
 	S_MOVELIST move_list[1];
 
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 
 	// parse source square
 	const int source_square = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
@@ -77,12 +77,12 @@ int parse_move(const std::string& move_string, S_Board* pos) {
 }
 
 // parse UCI "position" command
-void parse_position(const std::string& command, S_Board* pos) {
+void ParsePosition(const std::string& command, S_Board* pos) {
 
 	// parse UCI "startpos" command
 	if (command.find("startpos") != std::string::npos) {
 		// init chess board with start position
-		parse_fen(start_position, pos);
+		ParseFen(start_position, pos);
 	}
 
 	// parse UCI "fen" command
@@ -91,11 +91,11 @@ void parse_position(const std::string& command, S_Board* pos) {
 		// if a "fen" command is available within command string
 		if (command.find("fen") != std::string::npos) {
 			// init chess board with position from FEN string
-			parse_fen(command.substr(command.find("fen") + 4, std::string::npos), pos);
+			ParseFen(command.substr(command.find("fen") + 4, std::string::npos), pos);
 		}
 		else {
 			// init chess board with start position
-			parse_fen(start_position, pos);
+			ParseFen(start_position, pos);
 		}
 
 	}
@@ -108,7 +108,7 @@ void parse_position(const std::string& command, S_Board* pos) {
 	}
 
 	//Update accumulator state to reflect the new position
-	accumulate(pos->accumulator, pos);
+	Accumulate(pos->accumulator, pos);
 }
 
 /*
@@ -119,8 +119,8 @@ void parse_position(const std::string& command, S_Board* pos) {
 */
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
-bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
-	Reset_info(info);
+bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
+	ResetInfo(info);
 	int depth = -1, movetime = -1;
 	int movestogo;
 	int time = -1, inc = 0;
@@ -136,7 +136,7 @@ bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 		if (tokens.at(1) == "perft") {
 			int perft_depth = std::stoi(tokens[2]);
-			perft_test(perft_depth, pos);
+			PerftTest(perft_depth, pos);
 			return false;
 		}
 
@@ -183,7 +183,7 @@ bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	info->starttime = GetTimeMs();
 	info->depth = depth;
 	//calculate time allocation for the move
-	optimum(info, time, inc);
+	Optimum(info, time, inc);
 
 	if (depth == -1) {
 		info->depth = MAXDEPTH;
@@ -201,7 +201,7 @@ bool parse_go(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
 // Stripped down version of parse go that handles fixed depth and/or nodes and sets the desired number of threads and games
 void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& datagen_params) {
-	Reset_info(info);
+	ResetInfo(info);
 	int depth = -1;
 
 	std::vector<std::string> tokens = split_command(line);
@@ -245,9 +245,9 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 }
 
 // main UCI loop
-void Uci_Loop(char** argv) {
+void UciLoop(char** argv) {
 	if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
-		start_bench();
+		StartBench();
 		return;
 	}
 
@@ -283,28 +283,28 @@ void Uci_Loop(char** argv) {
 		// parse UCI "position" command
 		if (tokens[0] == "position") {
 			// call parse position function
-			parse_position(input, &td->pos);
+			ParsePosition(input, &td->pos);
 			parsed_position = true;
 		}
 
 		// parse UCI "go" command
 		else if (tokens[0] == "go") {
 
-			stopHelperThreads();
+			StopHelperThreads();
 			//Join previous search thread if it exists
 			if (main_thread.joinable())
 				main_thread.join();
 
 			if (!parsed_position) // call parse position function
 			{
-				parse_position("position startpos", &td->pos);
+				ParsePosition("position startpos", &td->pos);
 			}
 			// call parse go function
-			bool search = parse_go(input, &td->info, &td->pos);
+			bool search = ParseGo(input, &td->info, &td->pos);
 			// Start search in a separate thread
 			if (search) {
 				threads_state = Search;
-				main_thread = std::thread(Root_search_position, td->info.depth, td, uci_options);
+				main_thread = std::thread(RootSearch, td->info.depth, td, uci_options);
 			}
 		}
 
@@ -312,16 +312,16 @@ void Uci_Loop(char** argv) {
 		{
 			stop_flag = true;
 			//Join helper threads
-			stopHelperThreads();
-			//Join previous datagen thread if it exists
+			StopHelperThreads();
+			//Join previous Datagen thread if it exists
 			if (main_thread.joinable())
 				main_thread.join();
 			Datagen_params params;
-			//we re-use parse go to read the datagen params
+			//we re-use parse go to read the Datagen params
 			parse_datagen(input, &td->info, params);
-			threads_state = Datagen;
+			threads_state = datagen;
 			stop_flag = false;
-			main_thread = std::thread(Root_datagen, td, params);
+			main_thread = std::thread(RootDatagen, td, params);
 		}
 
 		else if (tokens[0] == "setoption") {
@@ -351,7 +351,7 @@ void Uci_Loop(char** argv) {
 
 		// parse UCI "ucinewgame" command
 		else if (input == "ucinewgame") {
-			init_new_game(td);
+			InitNewGame(td);
 		}
 		// parse UCI "stop" command
 		else if (input == "stop")
@@ -359,15 +359,15 @@ void Uci_Loop(char** argv) {
 			if (threads_state == Search)
 			{
 				//Stop helper threads
-				stopHelperThreads();
+				StopHelperThreads();
 				//stop main thread search
 				td->info.stopped = true;
 			}
-			else if (threads_state == Datagen)
+			else if (threads_state == datagen)
 			{
 				stop_flag = true;
 				//Join helper threads
-				stopHelperThreads();
+				StopHelperThreads();
 			}
 			threads_state = Idle;
 		}
@@ -377,15 +377,15 @@ void Uci_Loop(char** argv) {
 			if (threads_state == Search)
 			{
 				//Stop helper threads
-				stopHelperThreads();
+				StopHelperThreads();
 				//stop main thread search
 				td->info.stopped = true;
 			}
-			else if (threads_state == Datagen)
+			else if (threads_state == datagen)
 			{
 				stop_flag = true;
 				//Join helper threads
-				stopHelperThreads();
+				StopHelperThreads();
 			}
 			threads_state = Idle;
 			//Join previous search thread if it exists
@@ -412,14 +412,14 @@ void Uci_Loop(char** argv) {
 
 		// parse UCI "uci" command
 		else if (input == "d") {
-			print_board(&td->pos);
+			PrintBoard(&td->pos);
 		}
 
 		else if (input == "eval")
 		{// call parse position function
 			if (!parsed_position)
 			{
-				parse_position("position startpos", &td->pos);
+				ParsePosition("position startpos", &td->pos);
 			}
 			// print position eval
 			printf(
@@ -428,11 +428,11 @@ void Uci_Loop(char** argv) {
 		}
 
 		else if (input == "bench") {
-			start_bench();
+			StartBench();
 		}
 
 		else if (input == "tests") {
-			run_tests();
+			RunTests();
 		}
 
 		else if (input == "see") {
@@ -440,7 +440,7 @@ void Uci_Loop(char** argv) {
 			S_MOVELIST move_list[1];
 
 			// generate moves
-			generate_moves(move_list, &td->pos);
+			GenerateMoves(move_list, &td->pos);
 			printf("SEE thresholds\n");
 			for (int i = 0; i < move_list->count;i++) {
 				int move = move_list->moves[i].move;

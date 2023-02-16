@@ -10,7 +10,7 @@
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 bool print_uci = false;
-void print_bitboard(const Bitboard bitboard) {
+void PrintBitboard(const Bitboard bitboard) {
 	// print offset
 	std::cout << std::endl;
 
@@ -41,7 +41,7 @@ void print_bitboard(const Bitboard bitboard) {
 }
 
 // print board
-void print_board(const S_Board* pos) {
+void PrintBoard(const S_Board* pos) {
 	// print offset
 	std::cout << "\n";
 
@@ -99,7 +99,7 @@ void print_board(const S_Board* pos) {
 }
 
 // print attacked squares
-void print_attacked_squares(const S_Board* pos, const int side) {
+void PrintAttackedSquares(const S_Board* pos, const int side) {
 	std::cout << "\n";
 
 	// loop over board ranks
@@ -114,7 +114,7 @@ void print_attacked_squares(const S_Board* pos, const int side) {
 				printf("  %d ", 8 - rank);
 
 			// check whether current square is attacked or not
-			printf(" %d", is_square_attacked(pos, square, side) ? 1 : 0);
+			printf(" %d", IsSquareAttacked(pos, square, side) ? 1 : 0);
 		}
 
 		// print new line every rank
@@ -126,7 +126,7 @@ void print_attacked_squares(const S_Board* pos, const int side) {
 }
 
 // print move (for UCI purposes)
-void print_move(const int move) {
+void PrintMove(const int move) {
 	const char* from = square_to_coordinates[From(move)];
 	const char* to = square_to_coordinates[To(move)];
 	char promoted = get_move_promoted(move);
@@ -181,7 +181,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
 	//This handles the basic console output
 	long  time = GetTimeMs() - td->info.starttime;
-	uint64_t nodes = td->info.nodes + getTotalNodes(options->Threads);
+	uint64_t nodes = td->info.nodes + GetTotalNodes(options->Threads);
 
 	uint64_t nps = nodes / (time + !time) * 1000;
 	if (print_uci)
@@ -201,7 +201,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->pv_table.pvLength[0]; count++) {
 			// print PV move
-			print_move(td->pv_table.pvArray[0][count]);
+			PrintMove(td->pv_table.pvArray[0][count]);
 			printf(" ");
 		}
 
@@ -281,7 +281,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		for (int count = 0; count < td->pv_table.pvLength[0]; count++)
 		{
 			// print PV move
-			print_move(td->pv_table.pvArray[0][count]);
+			PrintMove(td->pv_table.pvArray[0][count]);
 			std::cout << " ";
 		}
 

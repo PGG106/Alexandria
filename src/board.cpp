@@ -54,7 +54,7 @@ const int castling_rights[64] = {
 
 NNUE nnue = NNUE();
 
-int count_bits(Bitboard b) {
+int CountBits(Bitboard b) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
 	return (uint8_t)_mm_popcnt_u64(b);
@@ -66,44 +66,37 @@ int count_bits(Bitboard b) {
 #endif
 }
 
+
+
+int GetLsbIndex(Bitboard bitboard) 
+{
 #if defined(__GNUC__) // GCC, Clang, ICC
-
-int get_ls1b_index(Bitboard b) { return int(__builtin_ctzll(b)); }
-
+	return int(__builtin_ctzll(bitboard));
 #elif defined(_MSC_VER) // MSVC
-
 #ifdef _WIN64 // MSVC, WIN64
-#include <intrin.h>
-// get least significant 1st bit index
-int get_ls1b_index(Bitboard bitboard) {
 	unsigned long idx;
 	_BitScanForward64(&idx, bitboard);
 	return (int)idx;
-}
-
 #else // MSVC, WIN32
-#include <intrin.h>
-int get_ls1b_index(Bitboard b) {
-	assert(b);
+	assert(bitboard);
 	unsigned long idx;
 
 	if (b & 0xffffffff) {
-		_BitScanForward(&idx, int32_t(b));
+		_BitScanForward(&idx, int32_t(bitboard));
 		return int(idx);
 	}
 	else {
-		_BitScanForward(&idx, int32_t(b >> 32));
+		_BitScanForward(&idx, int32_t(bitboard >> 32));
 		return int(idx + 32);
 	}
-}
-
 #endif
-
 #else // Compiler is neither GCC nor MSVC compatible
 
 #error "Compiler not supported."
 
 #endif
+}
+
 
 //Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
@@ -134,7 +127,7 @@ void ResetBoard(S_Board* pos) {
 	pos->accumulatorStack.clear();
 }
 
-void Reset_info(S_SearchINFO* info) {
+void ResetInfo(S_SearchINFO* info) {
 	info->depth = 0;
 	info->nodes = 0;
 	info->starttime = 0;
@@ -148,12 +141,12 @@ void Reset_info(S_SearchINFO* info) {
 	info->nodeset = false;
 }
 
-int square_distance(int a, int b) {
+int SquareDistance(int a, int b) {
 	return std::max(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
 }
 
 // parse FEN string
-void parse_fen(const std::string& command, S_Board* pos) {
+void ParseFen(const std::string& command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
 	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -297,11 +290,11 @@ void parse_fen(const std::string& command, S_Board* pos) {
 	pos->posKey = GeneratePosKey(pos);
 
 	//Update nnue accumulator to reflect board state
-	accumulate(pos->accumulator, pos);
+	Accumulate(pos->accumulator, pos);
 
 }
 
-std::string get_fen(S_Board* pos)
+std::string GetFen(S_Board* pos)
 {
 
 	std::string pos_string;
@@ -384,7 +377,7 @@ void parse_moves(const std::string moves, S_Board* pos)
 	// loop over moves within a move string
 	for (size_t i = 0;i < move_tokens.size();i++) {
 		// parse next move
-		int move = parse_move(move_tokens[i], pos);
+		int move = ParseMove(move_tokens[i], pos);
 		// make move on the chess board
 		make_move_light(move, pos);
 	}
@@ -416,11 +409,11 @@ bool BoardHasNonPawns(const S_Board* pos, const int side) {
 
 //Get on what square of the board the king of color c resides
 int KingSQ(const S_Board* pos, const int c) {
-	return (get_ls1b_index(GetPieceColorBB(pos, KING, c)));
+	return (GetLsbIndex(GetPieceColorBB(pos, KING, c)));
 }
 
 bool IsInCheck(const S_Board* pos, const int side) {
-	return is_square_attacked(pos, KingSQ(pos, side), side ^ 1);
+	return IsSquareAttacked(pos, KingSQ(pos, side), side ^ 1);
 }
 
 int PieceOn(const S_Board* pos, const int square)
@@ -440,24 +433,24 @@ Bitboard Occupancy(const S_Board* pos, int side) {
 	return pos->occupancies[side];
 }
 
-int get_side(const S_Board* pos) {
+int GetSide(const S_Board* pos) {
 	return pos->side;
 }
-int get_ep_square(const S_Board* pos) {
+int GetEpSquare(const S_Board* pos) {
 	return pos->enPas;
 }
-int get_fifty_moves_counter(const S_Board* pos) {
+int Get50mrCounter(const S_Board* pos) {
 	return pos->fiftyMove;
 }
-int get_castleperm(const S_Board* pos) {
+int GetCastlingPerm(const S_Board* pos) {
 	return pos->castleperm;
 }
-int get_poskey(const S_Board* pos) {
+int GetPoskey(const S_Board* pos) {
 	return pos->posKey;
 }
 
 
-void accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
+void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] = nnue.hiddenBias[i];

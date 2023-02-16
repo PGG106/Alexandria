@@ -83,7 +83,7 @@ Bitboard bishop_magic_numbers[64] = {
 	0x4010011029020020ULL };
 
 // generate pawn attacks
-Bitboard mask_pawn_attacks(int side, int square) {
+Bitboard MaskPawnAttacks(int side, int square) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 	// piece bitboard
@@ -111,7 +111,7 @@ Bitboard mask_pawn_attacks(int side, int square) {
 }
 
 // generate knight attacks
-Bitboard mask_knight_attacks(int square) {
+Bitboard MaskKnightAttacks(int square) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 	// piece bitboard
@@ -141,7 +141,7 @@ Bitboard mask_knight_attacks(int square) {
 }
 
 // generate king attacks
-Bitboard mask_king_attacks(int square) {
+Bitboard MaskKingAttacks(int square) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 
@@ -174,7 +174,7 @@ Bitboard mask_king_attacks(int square) {
 }
 
 // mask bishop attacks
-Bitboard mask_bishop_attacks(int square) {
+Bitboard MaskBishopAttacks(int square) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 
@@ -200,7 +200,7 @@ Bitboard mask_bishop_attacks(int square) {
 }
 
 // mask rook attacks
-Bitboard mask_rook_attacks(int square) {
+Bitboard MaskRookAttacks(int square) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 	// init ranks & files
@@ -222,7 +222,7 @@ Bitboard mask_rook_attacks(int square) {
 }
 
 // generate bishop attacks on the fly
-Bitboard bishop_attacks_on_the_fly(int square, Bitboard block) {
+Bitboard BishopAttacksOnTheFly(int square, Bitboard block) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 	// init ranks & files
@@ -259,7 +259,7 @@ Bitboard bishop_attacks_on_the_fly(int square, Bitboard block) {
 }
 
 // generate rook attacks on the fly
-Bitboard rook_attacks_on_the_fly(int square, Bitboard block) {
+Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
 	// result attacks bitboard
 	Bitboard attacks = 0ULL;
 	// init ranks & files
@@ -296,13 +296,13 @@ Bitboard rook_attacks_on_the_fly(int square, Bitboard block) {
 }
 
 // set occupancies
-Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask) {
+Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
 	// occupancy map
 	Bitboard occupancy = 0ULL;
 	// loop over the range of bits within attack mask
 	for (int count = 0; count < bits_in_mask; count++) {
 		// get LS1B index of attacks mask
-		int square = get_ls1b_index(attack_mask);
+		int square = GetLsbIndex(attack_mask);
 		// pop LS1B in attack map
 		clr_bit(attack_mask);
 		// make sure occupancy is on board

@@ -56,9 +56,9 @@ const char* benchmarkfens[50] = {
 	"3br1k1/p1pn3p/1p3n2/5pNq/2P1p3/1PN3PP/P2Q1PB1/4R1K1 w - - 0 23",
 	"2r2b2/5p2/5k2/p1r1pP2/P2pB3/1P3P2/K1P3R1/7R w - - 23 93" };
 
-int start_bench() {
+int StartBench() {
 	// init all
-	init_all();
+	InitAll();
 	S_UciOptions uci_options[1];
 	S_ThreadData* td(new ThreadData());
 	uint64_t total_nodes = 0;
@@ -66,11 +66,11 @@ int start_bench() {
 	InitHashTable(HashTable, 64);
 
 	for (int positions = 0; positions < 50; positions++) {
-		parse_fen(benchmarkfens[positions], &td->pos);
+		ParseFen(benchmarkfens[positions], &td->pos);
 
 		std::cout << "\nPosition: " << positions + 1 << std::endl;
 
-		Root_search_position(12, td, uci_options);
+		RootSearch(12, td, uci_options);
 
 		total_nodes += td->info.nodes;
 		total_time += GetTimeMs() - td->info.starttime;

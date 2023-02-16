@@ -5,13 +5,13 @@
 enum state {
 	Idle,
 	Search,
-	Datagen
+	datagen
 };
 // global vector of search threads
 extern std::vector<std::thread> threads;
 // global vector of thread_datas
 extern std::vector<S_ThreadData> threads_data;
 
-uint64_t getTotalNodes(const int threadcount);
-void stopHelperThreads();
+uint64_t GetTotalNodes(const int threadcount);
+void StopHelperThreads();
 

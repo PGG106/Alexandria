@@ -18,7 +18,7 @@
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
-	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - get_fifty_moves_counter(pos), 0);
+	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - Get50mrCounter(pos), 0);
 		index < static_cast<int>(pos->played_positions.size()); index++)
 		// if we found the same position hashkey as the current position
 		if (pos->played_positions[index] == pos->posKey) {
@@ -145,7 +145,7 @@ bool SEE(const S_Board* pos, const int move,
 			break;
 		}
 		// Remove the used piece from occupied
-		occupied ^= (1ULL << (get_ls1b_index(myAttackers & GetPieceBB(pos, pt))));
+		occupied ^= (1ULL << (GetLsbIndex(myAttackers & GetPieceBB(pos, pt))));
 
 
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
@@ -204,7 +204,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		else {
 			int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
 			int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
-			move_list->moves[i].score = getHHScore(pos, sd, move) + 2 * getCHScore(pos, sd, move, previous_move, previous_previous_move);
+			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(pos, sd, move, previous_move, previous_previous_move);
 			continue;
 		}
 	}
@@ -220,12 +220,12 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int getBestMove(const PvTable* pv_table) {
+int GetBestMove(const PvTable* pv_table) {
 	return pv_table->pvArray[0][0];
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
+void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	for (int i = threads_data.size(); i < options->Threads - 1;i++)
@@ -244,34 +244,34 @@ void Root_search_position(int depth, S_ThreadData* td, S_UciOptions* options) {
 	// Start Threads-1 helper search threads
 	for (int i = 0; i < options->Threads - 1;i++)
 	{
-		threads.emplace_back(std::thread(search_position, 1, depth, &threads_data[i], options));
+		threads.emplace_back(std::thread(SearchPosition, 1, depth, &threads_data[i], options));
 	}
 	//MainThread search
-	search_position(1, depth, td, options);
+	SearchPosition(1, depth, td, options);
 	//Print final bestmove found
 	std::cout << "bestmove ";
-	print_move(getBestMove(&td->pv_table));
+	PrintMove(GetBestMove(&td->pv_table));
 	std::cout << "\n";
 }
 
-// search_position is the actual function that handles the search, it sets up the variables needed for the search , calls the negamax function and handles the console output
-void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
+// SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the Negamax function and handles the console output
+void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
 
-	// Call the negamax function in an iterative deepening framework
+	// Call the Negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
 	{
-		score = aspiration_window_search(score, current_depth, td);
+		score = AspirationWindowSearch(score, current_depth, td);
 
 		// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
 		if (td->id == 0 &&
-			(stopEarly(&td->info) || nodesOver(&td->info)))
+			(StopEarly(&td->info) || NodesOver(&td->info)))
 		{
-			stopHelperThreads();
+			StopHelperThreads();
 			//Stop mainthread search
 			td->info.stopped = true;
 		}
@@ -288,7 +288,7 @@ void search_position(int start_depth, int final_depth, S_ThreadData* td, S_UciOp
 
 }
 
-int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
+int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 
 	Search_stack stack[MAXDEPTH], * ss = stack;
@@ -308,11 +308,11 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = negamax(alpha, beta, depth, td, ss);
+		score = Negamax(alpha, beta, depth, td, ss);
 
 		// check if more than Maxtime passed and we have to stop
-		if (td->id == 0 && timeOver(&td->info)) {
-			stopHelperThreads();
+		if (td->id == 0 && TimeOver(&td->info)) {
+			StopHelperThreads();
 			td->info.stopped = true;
 		}
 
@@ -335,8 +335,8 @@ int aspiration_window_search(int prev_eval, int depth, S_ThreadData* td) {
 	return score;
 }
 
-// negamax alpha beta search
-int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) {
+// Negamax alpha beta search
+int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
@@ -371,8 +371,8 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 	}
 
 	// check if more than Maxtime passed and we have to stop
-	if (td->id == 0 && timeOver(&td->info)) {
-		stopHelperThreads();
+	if (td->id == 0 && TimeOver(&td->info)) {
+		StopHelperThreads();
 		td->info.stopped = true;
 	}
 
@@ -451,7 +451,7 @@ int negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -negamax(-beta, -beta + 1, depth - R, td, ss + 1);
+			Score = -Negamax(-beta, -beta + 1, depth - R, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -482,7 +482,7 @@ moves_loop:
 	S_MOVELIST move_list[1];
 
 	// generate moves
-	generate_moves(move_list, pos);
+	GenerateMoves(move_list, pos);
 	//assign a score to every move based on how promising it is
 	score_moves(pos, sd, ss, move_list, tte.move);
 
@@ -496,7 +496,7 @@ moves_loop:
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
 		//take the most promising move that hasn't been played yet
-		pick_move(move_list, count);
+		PickMove(move_list, count);
 		//get the move with the highest score in the move ordering
 		int move = move_list->moves[count].move;
 		if (move == excludedMove) continue;
@@ -546,7 +546,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMove = tte.move;
-			int singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, td, ss);
+			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, td, ss);
 			ss->excludedMove = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -579,7 +579,7 @@ moves_loop:
 			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
-			Score = -negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
 			//if we failed high on a reduced node we'll search with a reduced window and full depth
 			do_full_search = Score > alpha && depth_reduction != 1;
 		}
@@ -589,11 +589,11 @@ moves_loop:
 		}
 		//Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
 
 		// take move back
 		Unmake_move(move, pos);
@@ -635,8 +635,8 @@ moves_loop:
 						int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
 						sd->CounterMoves[From(previous_move)][To(previous_move)] = move;
 						//Update the history heuristic based on the new best move
-						updateHH(pos, sd, depth, bestmove, &quiet_moves);
-						updateCH(pos, sd, depth, bestmove, previous_move, previous_previous_move, &quiet_moves);
+						UpdateHH(pos, sd, depth, bestmove, &quiet_moves);
+						UpdateCH(pos, sd, depth, bestmove, previous_move, previous_previous_move, &quiet_moves);
 					}
 					// node (move) fails high
 					break;
@@ -674,8 +674,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	int standing_pat = 0;
 
 	// check if more than Maxtime passed and we have to stop
-	if (td->id == 0 && timeOver(&td->info)) {
-		stopHelperThreads();
+	if (td->id == 0 && TimeOver(&td->info)) {
+		StopHelperThreads();
 		td->info.stopped = true;
 	}
 	//Check for the highest depth reached in search to report it to the cli
@@ -716,7 +716,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_MOVELIST move_list[1];
 
 	// generate the captures
-	generate_captures(move_list, pos);
+	GenerateCaptures(move_list, pos);
 
 	//score the generated moves
 	score_moves(pos, sd, ss, move_list, tte.move);
@@ -730,7 +730,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
-		pick_move(move_list, count);
+		PickMove(move_list, count);
 		int move = move_list->moves[count].move;
 		int score = move_list->moves[count].score;
 		// See pruning
