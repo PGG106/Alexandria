@@ -492,7 +492,7 @@ moves_loop:
 	int bestmove = NOMOVE;
 
 	int moves_searched = 0;
-
+	bool SkipQuiets = false;
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
 		//take the most promising move that hasn't been played yet
@@ -501,7 +501,6 @@ moves_loop:
 		int move = move_list->moves[count].move;
 		if (move == excludedMove) continue;
 		bool isQuiet = IsQuiet(move);
-		bool SkipQuiets = false;
 
 		if (isQuiet && SkipQuiets) continue;
 
