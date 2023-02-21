@@ -140,20 +140,20 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 extern NNUE nnue;
 
 // counts how many bits are set in a bitboard
-int count_bits(Bitboard bitboard);
+int CountBits(Bitboard bitboard);
 
 // get least significant 1st bit index
-int get_ls1b_index(Bitboard bitboard);
-int square_distance(int a, int b);
+int GetLsbIndex(Bitboard bitboard);
+int SquareDistance(int a, int b);
 
 // parse FEN string
-void parse_fen(const std::string& command, S_Board* pos);
+void ParseFen(const std::string& command, S_Board* pos);
 //Get fen string from board
-std::string get_fen(S_Board* pos);
+std::string GetFen(S_Board* pos);
 //Parse a string of moves in coordinate format and plays them
 void parse_moves(std::string moves, S_Board* pos);
 
-void Reset_info(S_SearchINFO* info);
+void ResetInfo(S_SearchINFO* info);
 
 //Board state retrieval
 
@@ -182,12 +182,12 @@ int PieceOn(const S_Board* pos, const int square);
 
 //Board state retrieval
 
-int get_side(const S_Board* pos);
-int get_ep_square(const S_Board* pos);
-int get_fifty_moves_counter(const S_Board* pos);
-int get_castleperm(const S_Board* pos);
-int get_poskey(const S_Board* pos);
+int GetSide(const S_Board* pos);
+int GetEpSquare(const S_Board* pos);
+int Get50mrCounter(const S_Board* pos);
+int GetCastlingPerm(const S_Board* pos);
+int GetPoskey(const S_Board* pos);
 
-void accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
+void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
 
 

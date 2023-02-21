@@ -3,9 +3,9 @@
 // if we don't have enough material to mate consider the position a draw
 int MaterialDraw(const S_Board* pos) {
 	//If we only have kings on the board then it's a draw
-	if (count_bits(Occupancy(pos, BOTH)) == 2)
+	if (CountBits(Occupancy(pos, BOTH)) == 2)
 		return TRUE;
-	else if (count_bits(Occupancy(pos, BOTH)) == 3 && ((count_bits(GetPieceBB(pos, KNIGHT)) == 1) || (count_bits(GetPieceBB(pos, BISHOP)) == 1)))
+	else if (CountBits(Occupancy(pos, BOTH)) == 3 && ((CountBits(GetPieceBB(pos, KNIGHT)) == 1) || (CountBits(GetPieceBB(pos, BISHOP)) == 1)))
 		return TRUE;
 
 	return FALSE;

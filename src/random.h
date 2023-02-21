@@ -5,10 +5,10 @@
 extern unsigned int random_state;
 
 // generate 32-bit pseudo legal numbers
-unsigned int get_random_U32_number();
+unsigned int GetRandomU32Number();
 
 // generate 64-bit pseudo legal numbers
-Bitboard get_random_Bitboard_number();
+Bitboard GetRandomBitboardNumber();
 
 // generate magic number candidate
-Bitboard generate_magic_number();
+Bitboard GenerateMagicNumber();

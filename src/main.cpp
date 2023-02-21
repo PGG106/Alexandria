@@ -4,12 +4,12 @@
 
 
 int main([[maybe_unused]] int argc, char** argv) {
-	setvbuf(stdout, NULL, _IONBF, 0);
+	
 	// init all
-	init_all();
+	InitAll();
 
 	// connect to the GUI
-	Uci_Loop(argv);
+	UciLoop(argv);
 	
 	return 0;
 }

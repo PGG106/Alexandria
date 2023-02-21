@@ -18,4 +18,4 @@ long GetTimeMs();
 
 std::vector<std::string> split_command(const std::string& command);
 
-bool contains(std::vector<std::string> tokens, std::string key);
+bool Contains(std::vector<std::string> tokens, std::string key);

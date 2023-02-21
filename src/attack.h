@@ -27,23 +27,23 @@ extern Bitboard rook_magic_numbers[64];
 extern Bitboard bishop_magic_numbers[64];
 
 // generate pawn attacks
-Bitboard mask_pawn_attacks(int side, int square);
+Bitboard MaskPawnAttacks(int side, int square);
 
 // generate knight attacks
-Bitboard mask_knight_attacks(int square);
+Bitboard MaskKnightAttacks(int square);
 // generate king attacks
-Bitboard mask_king_attacks(int square);
+Bitboard MaskKingAttacks(int square);
 
 // mask bishop attacks
-Bitboard mask_bishop_attacks(int square);
+Bitboard MaskBishopAttacks(int square);
 
 // mask rook attacks
-Bitboard mask_rook_attacks(int square);
+Bitboard MaskRookAttacks(int square);
 // generate bishop attacks on the fly
-Bitboard bishop_attacks_on_the_fly(int square, Bitboard block);
+Bitboard BishopAttacksOnTheFly(int square, Bitboard block);
 
 // generate rook attacks on the fly
-Bitboard rook_attacks_on_the_fly(int square, Bitboard block);
+Bitboard RookAttacksOnTheFly(int square, Bitboard block);
 
 // pawn attacks table [side][square]
 extern Bitboard pawn_attacks[2][64];
@@ -67,5 +67,5 @@ extern Bitboard bishop_attacks[64][512];
 extern Bitboard rook_attacks[64][4096];
 
 // set occupancies
-Bitboard set_occupancy(int index, int bits_in_mask, Bitboard attack_mask);
+Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
 
