@@ -34,7 +34,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 //Sets up aspiration windows and starts a Negamax search
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td);
 // Negamax alpha beta search
-int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss);
+int Negamax(int alpha, int beta, int depth, int maxNextDepth, S_ThreadData* td, Search_stack* ss);
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss);
 
