@@ -82,8 +82,8 @@ int sanity_search(S_ThreadData* td)
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;
 	int beta = MAXSCORE;
-	score = Negamax(alpha, beta, 10, td, ss);
-
+	score = Negamax(alpha, beta, 10 ,10, td, ss);
+	
 	return score;
 }
 
@@ -103,8 +103,8 @@ int search_best_move(S_ThreadData* td)
 	// Call the Negamax function in an iterative deepening framework
 	for (int current_depth = 1; current_depth <= info->depth; current_depth++)
 	{
-		score = Negamax(alpha, beta, current_depth, td, ss);
-
+		score = Negamax(alpha, beta, current_depth, current_depth, td, ss);
+		
 		// check if we just cleared a depth and we used the nodes we had we stop
 		if (NodesOver(&td->info))
 			info->stopped = true;
