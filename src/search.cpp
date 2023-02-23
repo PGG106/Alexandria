@@ -158,7 +158,7 @@ bool SEE(const S_Board* pos, const int move,
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list,
+static inline void score_moves(S_Board * pos, Search_data * sd, Search_stack * ss, S_MOVELIST * move_list,
 	int PvMove) {
 	//Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
@@ -220,29 +220,29 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	return  reductions[depth] * reductions[num_moves] + !improving + !pv_node;
 }
 
-int GetBestMove(const PvTable* pv_table) {
+int GetBestMove(const PvTable * pv_table) {
 	return pv_table->pvArray[0][0];
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
+void RootSearch(int depth, S_ThreadData * td, S_UciOptions * options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
-	for (int i = threads_data.size(); i < options->Threads - 1;i++)
+	for (int i = threads_data.size(); i < options->Threads - 1; i++)
 	{
 		threads_data.emplace_back();
 		threads_data.back().id = i + 1;
 	}
 
 	//Init thread_data objects
-	for (size_t i = 0; i < threads_data.size();i++)
+	for (size_t i = 0; i < threads_data.size(); i++)
 	{
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 0; i < options->Threads - 1;i++)
+	for (int i = 0; i < options->Threads - 1; i++)
 	{
 		threads.emplace_back(std::thread(SearchPosition, 1, depth, &threads_data[i], options));
 	}
@@ -255,7 +255,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 }
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the Negamax function and handles the console output
-void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
+void SearchPosition(int start_depth, int final_depth, S_ThreadData * td, S_UciOptions * options) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
@@ -288,7 +288,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 
 }
 
-int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
+int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData * td) {
 	int score = 0;
 
 	Search_stack stack[MAXDEPTH], * ss = stack;
@@ -308,7 +308,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = Negamax(alpha, beta, depth, td, ss);
+		score = Negamax(alpha, beta, depth, depth, td, ss);
 
 		// check if more than Maxtime passed and we have to stop
 		if (td->id == 0 && TimeOver(&td->info)) {
@@ -336,7 +336,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 }
 
 // Negamax alpha beta search
-int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) {
+int Negamax(int alpha, int beta, int depth, int maxNextDepth, S_ThreadData * td, Search_stack * ss) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
@@ -451,7 +451,7 @@ int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -Negamax(-beta, -beta + 1, depth - R, td, ss + 1);
+			Score = -Negamax(-beta, -beta + 1, depth - R, depth + 1 - R, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -545,7 +545,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMove = tte.move;
-			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, td, ss);
+			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, singularDepth + 1, td, ss);
 			ss->excludedMove = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -578,7 +578,7 @@ moves_loop:
 			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
-			Score = -Negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - depth_reduction, newDepth - depth_reduction + 1, td, ss + 1);
 			//if we failed high on a reduced node we'll search with a reduced window and full depth
 			do_full_search = Score > alpha && depth_reduction != 1;
 		}
@@ -588,11 +588,11 @@ moves_loop:
 		}
 		//Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - 1, newDepth, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -Negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-beta, -alpha, std::min(maxNextDepth - 1, newDepth - 1), std::min(maxNextDepth - 1, newDepth - 1) + 1, td, ss + 1);
 
 		// take move back
 		Unmake_move(move, pos);
@@ -612,7 +612,7 @@ moves_loop:
 				alpha = Score;
 				//Update the pv table
 				pv_table->pvArray[pos->ply][pos->ply] = move;
-				for (int next_ply = pos->ply + 1;next_ply < pv_table->pvLength[pos->ply + 1];next_ply++)
+				for (int next_ply = pos->ply + 1; next_ply < pv_table->pvLength[pos->ply + 1]; next_ply++)
 				{
 					pv_table->pvArray[pos->ply][next_ply] = pv_table->pvArray[pos->ply + 1][next_ply];
 				}
@@ -659,7 +659,7 @@ moves_loop:
 }
 
 //Quiescence search to avoid the horizon effect
-int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
+int Quiescence(int alpha, int beta, S_ThreadData * td, Search_stack * ss) {
 
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
