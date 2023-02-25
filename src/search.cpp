@@ -224,6 +224,7 @@ static inline int reduction(bool pv_node, bool improving, int depth, int num_mov
 	depth_reduction += !improving; 
 	//Reduce more if we aren't in a pv node
 	depth_reduction += !pv_node;
+	return depth_reduction;
 }
 
 int GetBestMove(const PvTable* pv_table) {
