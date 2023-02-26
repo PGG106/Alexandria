@@ -15,7 +15,7 @@
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
 
-constexpr int MAXGAMEMOVES = 1024;
+constexpr int MAXPLY = 256;
 constexpr int MAXDEPTH = 128;
 constexpr int Board_sq_num = 64;
 
@@ -51,7 +51,7 @@ constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 
 											  3,  9,  8,  7,  6,  5,  4,  3, 2,  8,  7,  6,  5,
 											  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
-extern int reductions[MAXDEPTH];
+extern int reductions[MAXDEPTH][MAXPLY];
 
 typedef struct Undo {
 	int castlePerm = 15;
