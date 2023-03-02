@@ -235,21 +235,21 @@ int GetBestMove(const PvTable* pv_table) {
 void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 
 	//Init a thread_data object for each helper thread that doesn't have one already
-	for (int i = threads_data.size(); i < options->Threads - 1;i++)
+	for (int i = threads_data.size(); i < options->Threads - 1; i++)
 	{
 		threads_data.emplace_back();
 		threads_data.back().id = i + 1;
 	}
 
 	//Init thread_data objects
-	for (size_t i = 0; i < threads_data.size();i++)
+	for (size_t i = 0; i < threads_data.size(); i++)
 	{
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 0; i < options->Threads - 1;i++)
+	for (int i = 0; i < options->Threads - 1; i++)
 	{
 		threads.emplace_back(std::thread(SearchPosition, 1, depth, &threads_data[i], options));
 	}
@@ -575,7 +575,7 @@ moves_loop:
 		int depth_reduction = 1;
 		bool do_full_search = false;
 		// conditions to consider LMR
-		if (moves_searched >= 5
+		if (moves_searched >= 3 + 2 * pv_node
 			&& depth >= 3
 			&& !in_check
 			&& IsQuiet(move))
@@ -619,7 +619,7 @@ moves_loop:
 				alpha = Score;
 				//Update the pv table
 				pv_table->pvArray[pos->ply][pos->ply] = move;
-				for (int next_ply = pos->ply + 1;next_ply < pv_table->pvLength[pos->ply + 1];next_ply++)
+				for (int next_ply = pos->ply + 1; next_ply < pv_table->pvLength[pos->ply + 1]; next_ply++)
 				{
 					pv_table->pvArray[pos->ply][next_ply] = pv_table->pvArray[pos->ply + 1][next_ply];
 				}
