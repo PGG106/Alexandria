@@ -672,8 +672,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = IsInCheck(pos, pos->side);
-	// Initialize the node
-	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	bool TThit = false;
@@ -701,8 +699,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	TThit = ProbeHashEntry(pos, &tte);
 
 	//If we found a value in the TT we can return it
-	if (!pv_node
-		&& TThit)
+	if (TThit)
 	{
 		if ((tte.flags == HFALPHA && tte.score <= alpha) ||
 			(tte.flags == HFBETA && tte.score >= beta) ||
@@ -777,7 +774,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, standing_pat, flag, 0, pv_node);
+	StoreHashEntry(pos, bestmove, BestScore, standing_pat, flag, 0, false);
 
 	// node (move) fails low
 	return BestScore;
