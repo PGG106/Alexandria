@@ -697,14 +697,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	if (pos->ply > MAXDEPTH - 1) {
 		return in_check ? 0 : EvalPosition(pos);
 	}
-
-	//Get a static evaluation of the position
-	standing_pat = EvalPosition(pos);
-
-	alpha = std::max(alpha, standing_pat);
-
-	if (standing_pat >= beta) return standing_pat;
-
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, &tte);
 
@@ -717,6 +709,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			(tte.flags == HFEXACT))
 			return tte.score;
 	}
+	//Get a static evaluation of the position
+	standing_pat = EvalPosition(pos);
+
+	alpha = std::max(alpha, standing_pat);
+
+	if (standing_pat >= beta) return standing_pat;
 
 	// create move list instance
 	S_MOVELIST move_list[1];
