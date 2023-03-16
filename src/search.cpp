@@ -672,12 +672,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = IsInCheck(pos, pos->side);
-	// Initialize the node
-	bool pv_node = (beta - alpha) > 1;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	bool TThit = false;
-	int standing_pat = 0;
+	int BestScore = -mate_score + pos->ply;
+	int eval;
+	const bool pv_node = alpha != beta - 1;
 
 	// check if more than Maxtime passed and we have to stop
 	if (td->id == 0 && TimeOver(&td->info)) {
@@ -697,14 +697,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	if (pos->ply > MAXDEPTH - 1) {
 		return in_check ? 0 : EvalPosition(pos);
 	}
-
-	//Get a static evaluation of the position
-	standing_pat = EvalPosition(pos);
-
-	alpha = std::max(alpha, standing_pat);
-
-	if (standing_pat >= beta) return standing_pat;
-
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, &tte);
 
@@ -712,11 +704,27 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	if (!pv_node
 		&& TThit)
 	{
-		if ((tte.flags == HFALPHA && tte.score <= alpha) ||
-			(tte.flags == HFBETA && tte.score >= beta) ||
-			(tte.flags == HFEXACT))
+		if ((tte.flags == HFALPHA && tte.score <= alpha)
+			|| (tte.flags == HFBETA && tte.score >= beta)
+			|| (tte.flags == HFEXACT))
 			return tte.score;
 	}
+
+	//If we have a ttHit with a valid eval use that
+	if (TThit)
+	{
+		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+	}
+	else
+	{
+		//If we don't have any useful info in the TT just call Evalpos
+		eval = ss->static_eval = EvalPosition(pos);
+	}
+	BestScore = eval;
+	//Stand pat
+	if (eval >= beta) return eval;
+	//Adjust alpha based on eval
+	alpha = std::max(alpha, eval);
 
 	// create move list instance
 	S_MOVELIST move_list[1];
@@ -727,8 +735,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//score the generated moves
 	score_moves(pos, sd, ss, move_list, tte.move);
 
-	//set up variables needed for the search
-	int BestScore = standing_pat;
 	int bestmove = NOMOVE;
 	int Score = -MAXSCORE;
 
@@ -747,6 +753,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		}
 		ss->move = move;
 		make_move(move, pos);
+		//Speculative prefetch of the TT entry
+		TTPrefetch(pos->posKey);
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
@@ -779,7 +787,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, standing_pat, flag, 0, pv_node);
+	StoreHashEntry(pos, bestmove, BestScore, eval, flag, 0, pv_node);
 
 	// node (move) fails low
 	return BestScore;
