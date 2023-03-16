@@ -27,15 +27,18 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 }
 
 //Update the history heuristics of all the quiet moves passed to the function
-void UpdateCH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const int previous_move, const int previous_previous_move, const S_MOVELIST* quiet_moves) {
+void UpdateCH(const S_Board* pos, Search_data* sd, const int depth, const int bestmove, const Search_stack* ss, const S_MOVELIST* quiet_moves) {
 	int bonus = std::min(16 * depth * depth, 1200);
+	int previous_move=(ss-1)->move;
+	int previous_previous_move= (ss - 2)->move;
+
 	// Score countermove
 	if (pos->ply > 0) {
-		updateCHScore(ss, previous_move, bestmove, bonus);
+		updateCHScore(sd, previous_move, bestmove, bonus);
 		//Score followup
 		if (pos->ply > 1)
 		{
-			updateCHScore(ss, previous_previous_move, bestmove, bonus);
+			updateCHScore(sd, previous_previous_move, bestmove, bonus);
 		}
 	}
 
@@ -43,11 +46,11 @@ void UpdateCH(const S_Board* pos, Search_data* ss, const int depth, const int be
 		int move = quiet_moves->moves[i].move;
 		if (move == bestmove) continue;
 		if (pos->ply > 0) {
-			updateCHScore(ss, previous_move, move, -bonus);
+			updateCHScore(sd, previous_move, move, -bonus);
 			//Score followup
 			if (pos->ply > 1)
 			{
-				updateCHScore(ss, previous_previous_move, move, -bonus);
+				updateCHScore(sd, previous_previous_move, move, -bonus);
 			}
 		}
 

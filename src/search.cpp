@@ -642,7 +642,7 @@ moves_loop:
 						sd->CounterMoves[From(previous_move)][To(previous_move)] = move;
 						//Update the history heuristic based on the new best move
 						UpdateHH(pos, sd, depth, bestmove, &quiet_moves);
-						UpdateCH(pos, sd, depth, bestmove, previous_move, previous_previous_move, &quiet_moves);
+						UpdateCH(pos, sd, depth, bestmove, ss, &quiet_moves);
 					}
 					// node (move) fails high
 					break;
