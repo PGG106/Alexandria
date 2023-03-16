@@ -676,6 +676,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_HashEntry tte;
 	bool TThit = false;
 	int BestScore = -mate_score + pos->ply;
+	int eval;
 	const bool pv_node = alpha != beta - 1;
 
 	// check if more than Maxtime passed and we have to stop
@@ -709,39 +710,27 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			return tte.score;
 	}
 
-	if (in_check)
+	//If we have a ttHit with a valid eval use that
+	if (TThit)
 	{
-		ss->static_eval = value_none;
+		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 	}
 	else
 	{
-		int eval;
-
-		if (TThit) 
-		{
-			eval = ss->static_eval = tte.eval;
-			//If we got the eval from the TT and it was value none we overwrite that with a call to eval position
-			if (eval == value_none)
-				eval = ss->static_eval = EvalPosition(pos);
-		}
-		else
-		{
-			//If we cdon't have any useful info in the TT just call Evalpos
-			eval = ss->static_eval = EvalPosition(pos);
-		}
-
-		//Stand pat
-		if (eval >= beta) return eval;
-		//Adjust alpha based on eval
-		alpha = std::max(alpha, eval);
-		BestScore = eval;
+		//If we don't have any useful info in the TT just call Evalpos
+		eval = ss->static_eval = EvalPosition(pos);
 	}
+	BestScore = eval;
+	//Stand pat
+	if (eval >= beta) return eval;
+	//Adjust alpha based on eval
+	alpha = std::max(alpha, eval);
 
 	// create move list instance
 	S_MOVELIST move_list[1];
 
 	// generate the captures
-	in_check ? GenerateMoves(move_list, pos) : GenerateCaptures(move_list, pos);
+	GenerateCaptures(move_list, pos);
 
 	//score the generated moves
 	score_moves(pos, sd, ss, move_list, tte.move);
@@ -798,7 +787,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
-	StoreHashEntry(pos, bestmove, BestScore, BestScore, flag, 0, pv_node);
+	StoreHashEntry(pos, bestmove, BestScore, eval, flag, 0, pv_node);
 
 	// node (move) fails low
 	return BestScore;
