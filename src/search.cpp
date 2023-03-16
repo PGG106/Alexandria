@@ -707,7 +707,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			return tte.score;
 	}
 	//Get a static evaluation of the position
-	standing_pat = EvalPosition(pos);
+	standing_pat = TThit ? tte.eval : EvalPosition(pos);
 
 	alpha = std::max(alpha, standing_pat);
 
