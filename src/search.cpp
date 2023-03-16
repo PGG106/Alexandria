@@ -709,34 +709,32 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			return tte.score;
 	}
 
-	if (!in_check)
+	if (in_check)
 	{
-		int standing_pat;
-
-		if (TThit) {
-			standing_pat = ss->static_eval = tte.eval;
-			//If we got the eval from the TT and it was value none we overwrite that with a call to eval position
-			if (ss->static_eval == value_none)
-				standing_pat = ss->static_eval = EvalPosition(pos);
-			//If we have a search score from the TT we can use that as a better form of eval
-			standing_pat = tte.score;
-		}
-		else
-		{
-			//If we can get the eval from the TT we get it from there
-			standing_pat = ss->static_eval = EvalPosition(pos);
-		}
-
-		//Stand pat
-		if (standing_pat >= beta) return standing_pat;
-		//Adjust alpha based on eval
-		alpha = std::max(alpha, standing_pat);
-		BestScore = standing_pat;
-
+		ss->static_eval = value_none;
 	}
 	else
 	{
-		ss->static_eval = value_none;
+		int eval;
+
+		if (TThit) 
+		{
+			eval = ss->static_eval = tte.eval;
+			//If we got the eval from the TT and it was value none we overwrite that with a call to eval position
+			if (eval == value_none)
+				eval = ss->static_eval = EvalPosition(pos);
+		}
+		else
+		{
+			//If we cdon't have any useful info in the TT just call Evalpos
+			eval = ss->static_eval = EvalPosition(pos);
+		}
+
+		//Stand pat
+		if (eval >= beta) return eval;
+		//Adjust alpha based on eval
+		alpha = std::max(alpha, eval);
+		BestScore = eval;
 	}
 
 	// create move list instance
