@@ -29,8 +29,8 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 //Update the history heuristics of all the quiet moves passed to the function
 void UpdateCH(const S_Board* pos, Search_data* sd, const int depth, const int bestmove, const Search_stack* ss, const S_MOVELIST* quiet_moves) {
 	int bonus = std::min(16 * depth * depth, 1200);
-	int previous_move=(ss-1)->move;
-	int previous_previous_move= (ss - 2)->move;
+	int previous_move = (ss - 1)->move;
+	int previous_previous_move = (ss - 2)->move;
 
 	// Score countermove
 	if (pos->ply > 0) {
@@ -42,7 +42,7 @@ void UpdateCH(const S_Board* pos, Search_data* sd, const int depth, const int be
 		}
 	}
 
-	for (int i = 0;  i < quiet_moves->count; i++) {
+	for (int i = 0; i < quiet_moves->count; i++) {
 		int move = quiet_moves->moves[i].move;
 		if (move == bestmove) continue;
 		if (pos->ply > 0) {
@@ -62,8 +62,15 @@ int GetHHScore(const S_Board* pos, const Search_data* sd, const int  move) {
 	return sd->searchHistory[pos->pieces[From(move)]][To(move)];
 }
 
+int64_t GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, const Search_stack* ss) {
+	return sd->searchHistory[pos->pieces[From(move)]][To(move)] + GetCHScore(pos, sd, move, ss);
+}
+
 //Returns the history score of a move
-int64_t GetCHScore(const S_Board* pos, const Search_data* sd, const int  move, const int previous_move, const int previous_previous_move) {
+int64_t GetCHScore(const S_Board* pos, const Search_data* sd, const int  move, const Search_stack* ss)
+{
+	int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
+	int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
 	return pos->ply > 0 ? sd->cont_hist[get_move_piece(previous_move)][To(previous_move)]
 		[get_move_piece(move)][To(move)] : 0 +
 		pos->ply > 1 ? sd->cont_hist[get_move_piece(previous_previous_move)][To(previous_previous_move)]
