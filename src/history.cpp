@@ -7,10 +7,20 @@ void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
 	ss->searchHistory[pos->pieces[From(move)]]
 		[To(move)] += scaled_bonus;
 }
-void updateCHScore(Search_data* sd, const int previous_move, const int bestmove, const int bonus) {
+void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int bestmove, const int bonus) {
 	//Update move score
-	sd->cont_hist[get_move_piece(previous_move)][To(previous_move)]
-		[get_move_piece(bestmove)][To(bestmove)] += bonus;
+	if (pos->ply > 0)
+	{
+		sd->cont_hist[get_move_piece((ss - 1)->move)][To((ss - 1)->move)]
+			[get_move_piece(bestmove)][To(bestmove)] += bonus;
+		//Score followup
+		if (pos->ply > 1)
+		{
+			sd->cont_hist[get_move_piece((ss - 2)->move)][To((ss - 2)->move)]
+				[get_move_piece(bestmove)][To(bestmove)] += bonus;
+		}
+	}
+
 }
 //Update the history heuristics of all the quiet moves passed to the function
 void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
@@ -27,35 +37,20 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 }
 
 //Update the history heuristics of all the quiet moves passed to the function
-void UpdateCH(const S_Board* pos, Search_data* sd, const int depth, const int bestmove, const Search_stack* ss, const S_MOVELIST* quiet_moves) {
+void UpdateCH(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves)
+{
 	int bonus = std::min(16 * depth * depth, 1200);
-	int previous_move = (ss - 1)->move;
-	int previous_previous_move = (ss - 2)->move;
 
-	// Score countermove
-	if (pos->ply > 0) {
-		updateCHScore(sd, previous_move, bestmove, bonus);
-		//Score followup
-		if (pos->ply > 1)
-		{
-			updateCHScore(sd, previous_previous_move, bestmove, bonus);
-		}
-	}
+	updateCHScore(pos, sd, ss, bestmove, bonus);
 
-	for (int i = 0; i < quiet_moves->count; i++) {
+	for (int i = 0; i < quiet_moves->count; i++)
+	{
 		int move = quiet_moves->moves[i].move;
 		if (move == bestmove) continue;
-		if (pos->ply > 0) {
-			updateCHScore(sd, previous_move, move, -bonus);
-			//Score followup
-			if (pos->ply > 1)
-			{
-				updateCHScore(sd, previous_previous_move, move, -bonus);
-			}
-		}
-
+		updateCHScore(pos, sd, ss, move, -bonus);
 	}
 }
+
 
 //Returns the history score of a move
 int GetHHScore(const S_Board* pos, const Search_data* sd, const int  move) {

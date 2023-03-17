@@ -635,11 +635,11 @@ moves_loop:
 						}
 
 						//Save CounterMoves
-						if(pos->ply >= 1)
-						sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
+						if (pos->ply >= 1)
+							sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
 						//Update the history heuristic based on the new best move
 						UpdateHH(pos, sd, depth, bestmove, &quiet_moves);
-						UpdateCH(pos, sd, depth, bestmove, ss, &quiet_moves);
+						UpdateCH(pos, sd, ss, depth, bestmove, &quiet_moves);
 					}
 					// node (move) fails high
 					break;
