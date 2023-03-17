@@ -2,6 +2,7 @@
 #include "init.h"
 #include "misc.h"
 #include <iostream>
+#include <chrono>
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[50] = {
@@ -62,9 +63,8 @@ int StartBench() {
 	S_UciOptions uci_options[1];
 	S_ThreadData* td(new ThreadData());
 	uint64_t total_nodes = 0;
-	long total_time = 0;
 	InitHashTable(HashTable, 64);
-
+	auto start = std::chrono::steady_clock::now();
 	for (int positions = 0; positions < 50; positions++) {
 		ParseFen(benchmarkfens[positions], &td->pos);
 
@@ -73,12 +73,11 @@ int StartBench() {
 		RootSearch(12, td, uci_options);
 
 		total_nodes += td->info.nodes;
-		total_time += GetTimeMs() - td->info.starttime;
 	}
-
-	std::cout << "\n"
-		<< total_nodes << " nodes "
-		<< total_nodes / static_cast<uint64_t>(((total_time / 1000) + 1)) << " nps " << std::endl;
+	auto end = std::chrono::steady_clock::now();
+	auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << "\n";
+	std::cout << total_nodes << " nodes " << signed(total_nodes / (total_time + 1) * 1000) << " nps" << std::endl;
 	delete td;
 	return 0;
 }
