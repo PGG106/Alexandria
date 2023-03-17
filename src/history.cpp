@@ -1,7 +1,7 @@
 #include "history.h"
 #include <cstring>
 
-void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) 
+void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus)
 {
 	//Scale bonus to fix it in a [-32768;32768] range
 	int scaled_bonus = bonus - GetHHScore(pos, ss, move) * std::abs(bonus) / 32768;
@@ -12,16 +12,18 @@ void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus)
 
 void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int move, const int bonus)
 {
+	//Scale bonus to fix it in a [-32768;32768] range
+	int scaled_bonus = bonus - GetCHScore(pos, sd, ss, move) * std::abs(bonus) / 32768;
 	//Update move score
 	if (pos->ply > 0)
 	{
 		sd->cont_hist[get_move_piece((ss - 1)->move)][To((ss - 1)->move)]
-			[get_move_piece(move)][To(move)] += bonus;
+			[get_move_piece(move)][To(move)] += scaled_bonus;
 		//Score followup
 		if (pos->ply > 1)
 		{
 			sd->cont_hist[get_move_piece((ss - 2)->move)][To((ss - 2)->move)]
-				[get_move_piece(move)][To(move)] += bonus;
+				[get_move_piece(move)][To(move)] += scaled_bonus;
 		}
 	}
 
@@ -34,7 +36,7 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 	//increase bestmove HH score
 	updateHHScore(pos, ss, bestmove, bonus);
 	//Loop through all the quiet moves
-	for (int i = 0; i < quiet_moves->count; i++) 
+	for (int i = 0; i < quiet_moves->count; i++)
 	{
 		//For all the quiets moves that didn't cause a cut-off decrease the HH score
 		int move = quiet_moves->moves[i].move;
