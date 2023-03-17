@@ -202,7 +202,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		}
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
-			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(pos, sd, move, ss);
+			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(pos, sd, ss, move);
 			continue;
 		}
 	}
