@@ -313,7 +313,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
 
-		score = Negamax(alpha, beta, depth, td, ss);
+		score = Negamax(alpha, beta, depth, false, td, ss);
 
 		// check if more than Maxtime passed and we have to stop
 		if (td->id == 0 && TimeOver(&td->info)) {
@@ -341,7 +341,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 }
 
 // Negamax alpha beta search
-int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) {
+int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Search_stack* ss) {
 
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
@@ -423,7 +423,7 @@ int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (pv_node && depth >= 4 && !tte.move && !excludedMove)
+	if ((pv_node || cutnode) && depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
 	// get static evaluation score
@@ -456,7 +456,7 @@ int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -Negamax(-beta, -beta + 1, depth - R, td, ss + 1);
+			Score = -Negamax(-beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -550,7 +550,7 @@ moves_loop:
 			int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMove = tte.move;
-			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, td, ss);
+			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 			ss->excludedMove = NOMOVE;
 
 			if (singularScore < singularBeta)
@@ -583,7 +583,7 @@ moves_loop:
 			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
-			Score = -Negamax(-alpha - 1, -alpha, newDepth - depth_reduction, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
 			//if we failed high on a reduced node we'll search with a reduced window and full depth
 			do_full_search = Score > alpha && depth_reduction != 1;
 		}
@@ -593,11 +593,11 @@ moves_loop:
 		}
 		//Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax(-alpha - 1, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -Negamax(-beta, -alpha, newDepth - 1, td, ss + 1);
+			Score = -Negamax(-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
 		Unmake_move(move, pos);
