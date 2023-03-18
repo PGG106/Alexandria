@@ -413,18 +413,18 @@ int Negamax(int alpha, int beta, int depth, S_ThreadData* td, Search_stack* ss) 
 			return tte.score;
 	}
 
-	// IIR by Ed Schroder (That i find out about in Berserk source code)
-	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
-	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (pv_node && depth >= 4 && !tte.move && !excludedMove)
-		depth--;
-
 	//If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
 		ss->static_eval = value_none;
 		improving = false;
 		goto moves_loop;
 	}
+
+	// IIR by Ed Schroder (That i find out about in Berserk source code)
+	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
+	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
+	if (pv_node && depth >= 4 && !tte.move && !excludedMove)
+		depth--;
 
 	// get static evaluation score
 	ss->static_eval = eval = ttHit ? tte.eval : EvalPosition(pos);
