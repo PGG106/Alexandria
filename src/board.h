@@ -52,6 +52,8 @@ constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 
 											  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
 extern int reductions[MAXDEPTH][MAXPLY];
+extern int lmp_margin[MAXDEPTH][2];
+extern int see_margin[MAXDEPTH][2];
 
 typedef struct Undo {
 	int castlePerm = 15;

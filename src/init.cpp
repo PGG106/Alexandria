@@ -43,6 +43,8 @@ Bitboard rook_attacks[64][4096];
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
 int reductions[MAXDEPTH][MAXPLY];
+int lmp_margin[MAXDEPTH][2];
+int see_margin[MAXDEPTH][2];
 
 //Initialize the Zobrist keys
 void initHashKeys() {
@@ -231,8 +233,16 @@ void InitReductions() {
 	{
 		for (int j = 0; j < MAXDEPTH; j++)
 		{
-			reductions[i][j] = 1+log(i) * log(j) / 1.58;
+			reductions[i][j] = 1 + log(i) * log(j) / 1.58;
 		}
+	}
+	for (int depth = 0; depth < MAXDEPTH; depth++)
+	{
+		lmp_margin[depth][0] = depth * 8; //Not improving
+		lmp_margin[depth][1] = depth * 8; //improving
+
+		see_margin[depth][1] = -50 * depth; //Quiet moves
+		see_margin[depth][0] = -50 * depth; //Non quiets
 
 	}
 }
