@@ -522,7 +522,8 @@ moves_loop:
 				&& !in_check
 				&& depth < 4
 				&& isQuiet
-				&& (quiet_moves.count > (depth * 8))) {
+				&& quiet_moves.count > lmp_margin[depth][improving])
+			{
 				SkipQuiets = true;
 				continue;
 			}
@@ -530,7 +531,7 @@ moves_loop:
 			// See pruning
 			if (depth <= 8
 				&& moves_searched >= 2
-				&& !SEE(pos, move, -50 * depth))
+				&& !SEE(pos, move, see_margin[depth][isQuiet]))
 			{
 				continue;
 			}
