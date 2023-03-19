@@ -46,6 +46,12 @@ int reductions[MAXDEPTH][MAXPLY];
 int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
 
+int lmp_not_improving_multiplier = 5; //Not improving
+int lmp_improving_multiplier = 9;//improving
+
+int see_margin_quiet_base = -105;
+int see_margin_notquiet_base = -43;
+
 //Initialize the Zobrist keys
 void initHashKeys() {
 	int Typeindex = 0;
@@ -238,11 +244,11 @@ void InitReductions() {
 	}
 	for (int depth = 0; depth < MAXDEPTH; depth++)
 	{
-		lmp_margin[depth][0] = depth * 8; //Not improving
-		lmp_margin[depth][1] = depth * 8; //improving
+		lmp_margin[depth][0] = depth * lmp_not_improving_multiplier; //Not improving
+		lmp_margin[depth][1] = depth * lmp_improving_multiplier; //improving
 
-		see_margin[depth][1] = -50 * depth; //Quiet moves
-		see_margin[depth][0] = -50 * depth; //Non quiets
+		see_margin[depth][1] = see_margin_quiet_base * depth; //Quiet moves
+		see_margin[depth][0] = see_margin_notquiet_base * depth; //Non quiets
 
 	}
 }

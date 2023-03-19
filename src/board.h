@@ -55,6 +55,12 @@ extern int reductions[MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
+extern int lmp_not_improving_multiplier; //Not improving
+extern int lmp_improving_multiplier;//improving
+
+extern int see_margin_quiet_base;
+extern int see_margin_notquiet_base;
+
 typedef struct Undo {
 	int castlePerm = 15;
 	int capture = EMPTY;
