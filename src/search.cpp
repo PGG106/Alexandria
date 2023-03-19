@@ -747,7 +747,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		if (score < goodCaptureScore
 			&& moves_searched >= 1)
 		{
-			continue;
+			break;
 		}
 		ss->move = move;
 		make_move(move, pos);
