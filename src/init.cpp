@@ -47,10 +47,10 @@ int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
 
 int lmp_not_improving_multiplier = 5; //Not improving
-int lmp_improving_multiplier = 9;//improving
+int lmp_improving_multiplier = 8;//improving
 
-int see_margin_quiet_base = -105;
-int see_margin_notquiet_base = -43;
+int see_margin_quiet_base = -80;
+int see_margin_notquiet_base = -30;
 
 //Initialize the Zobrist keys
 void initHashKeys() {
