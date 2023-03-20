@@ -248,7 +248,7 @@ void InitReductions() {
 		lmp_margin[depth][1] = depth * lmp_improving_multiplier; //improving
 
 		see_margin[depth][1] = see_margin_quiet_base * depth; //Quiet moves
-		see_margin[depth][0] = see_margin_notquiet_base * depth; //Non quiets
+		see_margin[depth][0] = see_margin_notquiet_base * depth * depth; //Non quiets
 
 	}
 }
