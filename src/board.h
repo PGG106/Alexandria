@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <cctype>
+#include <cstring>
 #include <string>
 #include "nnue.h"
 #include "stdint.h"
