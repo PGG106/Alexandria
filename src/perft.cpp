@@ -8,6 +8,7 @@
 #else
 #include <sys/time.h>
 #endif
+#include <iostream>
 
 
 
@@ -96,11 +97,11 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
 
 	auto time = GetTimeMs() - start;
 	// print results
-	printf("\n    Depth: %d\n", depth);
-	printf("    Nodes: %llu\n", nodes);
-	printf("     Time: %ld ms\n\n", time);
+	std::cout << "\n    Depth: %d\n", depth;
+	std::cout << "    Nodes: %llu\n", nodes;
+	std::cout << "     Time: %ld ms\n\n", time;
 	unsigned long nodes_second = (nodes / time + !time) * 1000;
-	printf(" Nodes per second %lu\n\n", nodes_second);
+	std::cout << " Nodes per second %lu\n\n", nodes_second;
 
 	return nodes;
 }

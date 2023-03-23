@@ -82,7 +82,7 @@ public:
 	int hisPly = 0; // total number of halfmoves
 	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
 	// unique  hashkey  that encodes a board position
-	PosKey posKey = 0ULL; 
+	PosKey posKey = 0ULL;
 	// stores the state of the board  rollback purposes
 	S_Undo	history[MAXDEPTH];
 	//Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
@@ -110,11 +110,11 @@ extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 //Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct S_SearchINFO {
 	//search start time 
-	long starttime = 0;
+	uint64_t starttime = 0;
 	//search time initial lower bound if present
-	long stoptimeOpt = 0;
+	uint64_t stoptimeOpt = 0;
 	//search time upper bound if present
-	long stoptimeMax = 0;
+	uint64_t stoptimeMax = 0;
 	//max depth to reach for depth limited searches
 	int depth = -1;
 	int seldepth = -1;

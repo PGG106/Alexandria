@@ -577,7 +577,7 @@ moves_loop:
 		if (moves_searched >= 3 + 2 * pv_node
 			&& depth >= 3
 			&& !in_check
-			&& IsQuiet(move))
+			&& isQuiet)
 		{
 			//calculate by how much we should reduce the search depth 
 			depth_reduction = reduction(pv_node, improving, depth, moves_searched);

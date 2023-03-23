@@ -3,6 +3,7 @@
 #include "makemove.h"
 #include "misc.h"
 #include <cassert>
+#include <cstring>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
 #include <intrin.h> // Microsoft header for _BitScanForward64()
@@ -68,7 +69,7 @@ int CountBits(Bitboard b) {
 
 
 
-int GetLsbIndex(Bitboard bitboard) 
+int GetLsbIndex(Bitboard bitboard)
 {
 #if defined(__GNUC__) // GCC, Clang, ICC
 	return int(__builtin_ctzll(bitboard));
@@ -148,10 +149,10 @@ int SquareDistance(int a, int b) {
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos) {
 	// reset board position (pos->pos->bitboards)
-	memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
+	std::memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
 	// reset pos->occupancies (pos->pos->bitboards)
-	memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
+	std::memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
 
 	ResetBoard(pos);
 

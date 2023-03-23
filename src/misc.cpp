@@ -6,21 +6,16 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <chrono>
 
 
-long GetTimeMs() {
-#ifdef WIN32
-	return GetTickCount();
-#else
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	return t.tv_sec * 1000 + t.tv_usec / 1000;
-#endif
+uint64_t GetTimeMs() {
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
 long long int _count, _accumulator;
 
-void dbg_mean_of(int val) { _count++; _accumulator += val; } 
+void dbg_mean_of(int val) { _count++; _accumulator += val; }
 
 void dbg_print() { std::cout << double(_accumulator) / _count << std::endl; }
 
