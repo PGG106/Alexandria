@@ -7,14 +7,9 @@
 #define NOMINMAX
 #endif
 #include "windows.h"
-#else
-#include "string.h"
-#include "sys/select.h"
-#include "sys/time.h"
-#include "unistd.h"
 #endif
 
-long GetTimeMs();
+uint64_t GetTimeMs();
 
 std::vector<std::string> split_command(const std::string& command);
 
