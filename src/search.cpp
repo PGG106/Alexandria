@@ -32,14 +32,12 @@ static int IsRepetition(const S_Board* pos) {
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 bool IsDraw(const S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
-	if (((IsRepetition(pos)) && pos->ply) || (pos->fiftyMove >= 100) ||
-		MaterialDraw(pos)) {
+	if (((IsRepetition(pos)) && pos->ply)
+		|| (pos->fiftyMove >= 100)
+		|| MaterialDraw(pos)) {
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
@@ -363,7 +361,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	int excludedMove = ss->excludedMove;
 
 	pv_table->pvLength[pos->ply] = pos->ply;
-
+	//Prevent dropping into Qsearch if in check and generally extend search by 1
 	if (in_check) depth = std::max(1, depth + 1);
 
 	//Check for the highest depth reached in search to report it to the cli
@@ -566,8 +564,6 @@ moves_loop:
 		ss->move = move;
 		//Play the move
 		make_move(move, pos);
-		//Speculative prefetch of the TT entry
-		TTPrefetch(pos->posKey);
 		// increment nodes count
 		info->nodes++;
 
@@ -751,8 +747,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		}
 		ss->move = move;
 		make_move(move, pos);
-		//Speculative prefetch of the TT entry
-		TTPrefetch(pos->posKey);
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively

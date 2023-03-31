@@ -29,7 +29,7 @@ void AddPiece(const int piece, const int to, S_Board* pos);
 void MovePiece(const int piece, const int from, const int to, S_Board* pos);
 
 // make move on chess board
-int make_move(const int move, S_Board* pos);
+void make_move(const int move, S_Board* pos);
 int make_move_light(const int move, S_Board* pos);
 //Reverts the previously played move
 int Unmake_move(const int move, S_Board* pos);

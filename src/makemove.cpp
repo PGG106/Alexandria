@@ -1,4 +1,5 @@
 ﻿#include "makemove.h"
+#include "ttable.h"
 
 //Remove a piece from a square
 void ClearPiece(const int piece, const int sq, S_Board* pos) {
@@ -46,7 +47,7 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 
 
 // make move on chess board
-int make_move(const int move, S_Board* pos) {
+void make_move(const int move, S_Board* pos) {
 	assert(pos->ply < MAXDEPTH);
 	//Store position variables for rollback purposes
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
@@ -69,16 +70,16 @@ int make_move(const int move, S_Board* pos) {
 	// increment fifty move rule counter
 	pos->fiftyMove++;
 	// handle enpassant captures
-	if (enpass) 
+	if (enpass)
 	{
 		//If it's an enpass we remove the pawn corresponding to the opponent square 
-		if (pos->side == WHITE) 
+		if (pos->side == WHITE)
 		{
 			ClearPieceNNUE(BP, target_square + 8, pos);
 		}
 		else {
 			ClearPieceNNUE(WP, target_square - 8, pos);
-		
+
 		}
 		pos->fiftyMove = 0;
 	}
@@ -170,9 +171,10 @@ int make_move(const int move, S_Board* pos) {
 	// change side
 	pos->side ^= 1;
 	HASH_SIDE;
-	//
 
-	return 1;
+	//Speculative prefetch of the TT entry
+	TTPrefetch(pos->posKey);
+	return;
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
