@@ -62,8 +62,8 @@ void NNUE::init(const char* file) {
         memoryIndex += HIDDEN_SIZE * sizeof(int16_t);
 
         std::memcpy(outputWeights, &gEVALData[memoryIndex],
-                    HIDDEN_SIZE * sizeof(int16_t));
-        memoryIndex += HIDDEN_SIZE * sizeof(int16_t);
+                    HIDDEN_SIZE * sizeof(int16_t) * 2);
+        memoryIndex += HIDDEN_SIZE * sizeof(int16_t) * 2;
         std::memcpy(&outputBias, &gEVALData[memoryIndex], 1 * sizeof(int16_t));
         memoryIndex += 1 * sizeof(int16_t);
     }
