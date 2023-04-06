@@ -55,7 +55,7 @@ void PerftDriver(int depth, S_Board* pos) {
 // perft test
 unsigned long long PerftTest(int depth, S_Board* pos) {
 	nodes = 0;
-	printf("\n     Performance test\n\n");
+	std::cout << ("\n     Performance test\n\n");
 
 	// create move list instance
 	S_MOVELIST move_list[1];

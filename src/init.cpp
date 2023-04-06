@@ -244,8 +244,8 @@ void InitReductions() {
 	}
 	for (int depth = 0; depth < MAXDEPTH; depth++)
 	{
-		lmp_margin[depth][0] = depth * lmp_not_improving_multiplier; //Not improving
-		lmp_margin[depth][1] = depth * lmp_improving_multiplier; //improving
+		lmp_margin[depth][0] = (3 + depth * depth) / 2; //Not improving
+		lmp_margin[depth][1] = 3 + depth * depth; //improving
 
 		see_margin[depth][1] = see_margin_quiet_base * depth; //Quiet moves
 		see_margin[depth][0] = see_margin_notquiet_base * depth * depth; //Non quiets
