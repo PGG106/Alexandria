@@ -452,5 +452,5 @@ PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
 	// change side
 	(newKey ^= (SideKey));
 
-	return OldKey;
+	return newKey;
 }

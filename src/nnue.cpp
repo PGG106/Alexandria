@@ -2,9 +2,9 @@
 #include "board.h"
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #define INCBIN_STYLE INCBIN_STYLE_CAMEL
 #include "incbin/incbin.h"
-#include <iostream>
 #if !defined(_MSC_VER)
 INCBIN(EVAL, EVALFILE);
 #else
@@ -59,7 +59,7 @@ void NNUE::init(const char* file) {
 	}
 }
 
-void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) 
+void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to)
 {
 	int inputNum = GetIndex(piece, to);
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
@@ -67,15 +67,15 @@ void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to)
 	}
 }
 
-void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) 
+void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from)
 {
-	int inputNum = GetIndex(piece,from);
+	int inputNum = GetIndex(piece, from);
 	for (int i = 0; i < HIDDEN_BIAS; i++) {
 		board_accumulator[i] -= inputWeights[inputNum * HIDDEN_BIAS + i];
 	}
 }
 
-void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) 
+void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to)
 {
 	int inputNumFrom = GetIndex(piece, from);
 	int inputNumTo = GetIndex(piece, to);
