@@ -1,5 +1,6 @@
 #include "nnue.h"
-
+#include <algorithm>
+#include "board.h"
 #include <cstdio>
 #include <cstring>
 #include <iostream>

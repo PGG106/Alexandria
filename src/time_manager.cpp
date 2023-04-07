@@ -38,9 +38,6 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 		info->stoptimeMax = info->starttime + maxtime;
 		info->stoptimeOpt = info->starttime + optime;
 	}
-
-
-
 }
 
 bool StopEarly(const S_SearchINFO* info)
