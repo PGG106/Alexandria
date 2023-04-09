@@ -10,7 +10,6 @@
 #include "history.h"
 #include "time_manager.h"
 
-unsigned long long total_fens = 0;
 std::atomic<bool> stop_flag = false;
 void make_random_move(S_Board* pos) {
 	srand(time(NULL));
@@ -64,7 +63,7 @@ void set_new_game_state(S_ThreadData* td) {
 
 	//delete played moves hashes
 	pos->played_positions.clear();
-
+	pos->accumulatorStack.clear();
 	// call parse position function
 	ParsePosition("position startpos", pos);
 	return;
@@ -123,7 +122,7 @@ void RootDatagen(S_ThreadData* td, Datagen_params params)
 {
 	std::cout << "Starting datagen with " << params.threadnum << " threads and an estimated total of " << params.games * params.threadnum << " games" << std::endl;
 	//Resize TT to an appropriate size
-	InitHashTable(HashTable, 32 * params.threadnum);
+	InitHashTable(HashTable, 128 * params.threadnum);
 
 	//Init a thread_data object for each helper thread that doesn't have one already
 	for (int i = threads_data.size(); i < params.threadnum - 1;i++)
@@ -159,12 +158,14 @@ void Datagen(S_ThreadData* td, Datagen_params params)
 {
 	//Each thread gets its own file to dump data into
 	auto start_time = GetTimeMs();
+	uint64_t total_fens = 0;
+	auto threadcount = params.threadnum;
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
 	if (myfile.is_open())
 	{
 		if (td->id == 0)
 			std::cout << "Datagen started successfully" << std::endl;
-		for (int i = 1;i <= params.games;i++)
+		for (uint64_t games = 1;games <= params.games;games++)
 		{
 			if (stop_flag)
 			{
@@ -175,13 +176,16 @@ void Datagen(S_ThreadData* td, Datagen_params params)
 			//Make sure a game is started on a clean state
 			set_new_game_state(td);
 			//Restart if we get a busted random score
-			if (!PlayGame(td, myfile))
+			if (!PlayGame(td, myfile, total_fens))
 			{
-				i--;
+				games--;
 				continue;
 			}
-			if (td->id == 0 && !(i % 100))
-				std::cout << i * params.threadnum << " games completed total_fens: " << total_fens << " speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) << " fens/s" << std::endl;
+			if ((games % 128) == 0 && td->id == 0)
+				std::cout << "Games: " << games * threadcount
+				<< " Fens: " << total_fens * threadcount
+				<< " Speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) * threadcount << " fens/s"
+				<< std::endl;
 		}
 		myfile.close();
 	}
@@ -190,17 +194,17 @@ void Datagen(S_ThreadData* td, Datagen_params params)
 
 }
 
-bool PlayGame(S_ThreadData* td, std::ofstream& myfile)
+bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
 {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-	for (int i = 0;i < 6; i++)
+	for (int i = 0;i < 10; i++)
 	{
 		make_random_move(pos);
 	}
 	//Pre emptively check the position to see if it's to be discarderd
 	int sanity_score = sanity_search(td);
-	if (abs(sanity_score) > 1000) return false;
+	if (abs(sanity_score) > 600) return false;
 	//container to store all the data entries before dumping them to a file
 	std::vector<data_entry> entries;
 	//String for wdl
@@ -226,17 +230,16 @@ bool PlayGame(S_ThreadData* td, std::ofstream& myfile)
 		if (abs(entry.score) > ISMATE) continue;
 		//If we were in check we discard the position
 		if (in_check) continue;
-		//If we are at an early ply skip the position
-		if (pos->hisPly < 8) continue;
 		//Add the entry to the vector waiting for the wdl
 		entries.push_back(entry);
-
 	}
+	//Avoid counting games where we filtered all the moves
+	if (entries.size() < 10) return false;
 	//When the game is over
 	total_fens += entries.size();
 	//Dump to file
 	for (data_entry entry : entries)
-		myfile << entry.fen << " " << wdl << " " << entry.score << "\n";
+		myfile << entry.fen << " | " << entry.score << " | " << wdl << "\n";
 	return true;
 }
 
@@ -245,7 +248,7 @@ bool IsGameOver(S_Board* pos, std::string& wdl)
 	//Check for draw
 	if (IsDraw(pos))
 	{
-		wdl = "[0.5]";
+		wdl = "0.5";
 		return true;
 	}
 	// create move list instance
@@ -256,12 +259,7 @@ bool IsGameOver(S_Board* pos, std::string& wdl)
 	if (move_list->count == 0)
 	{
 		bool in_check = IsInCheck(pos, pos->side);
-		wdl = in_check ? pos->side == WHITE ? "[0.0]" : "[1.0]" : "[0.5]";
-		return true;
-	}
-	//Sanity check if the game somehow gets stuck in a loop
-	if (pos->ply > 1500) {
-		wdl = "[0.5]";
+		wdl = in_check ? pos->side == WHITE ? "0.0" : "1.0" : "0.5";
 		return true;
 	}
 	return false;
