@@ -435,9 +435,10 @@ void UciLoop(char** argv) {
 				ParsePosition("position startpos", &td->pos);
 			}
 			// print position eval
+			bool stm = td->pos.side == WHITE;
 			printf(
 				"the eval of this position according to the neural network is %d\n",
-				nnue.output(td->pos.accumulator));
+				nnue.output(td->pos.accumulator, stm));
 		}
 
 		else if (input == "bench") {
