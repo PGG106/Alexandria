@@ -13,7 +13,7 @@ struct Datagen_params
 {
 	int threadnum = 6;
 	//The games are defined per thread and not as a cumulative sum
-	int games = 100000;
+	uint64_t games = 10000000;
 };
 
 //Root Datagen function that handles the start-up of Datagen
@@ -21,7 +21,7 @@ void RootDatagen(S_ThreadData* td, Datagen_params params);
 //Per thread Datagen function
 void Datagen(S_ThreadData* td, Datagen_params params);
 //Generates one game worth of fens
-bool PlayGame(S_ThreadData* td, std::ofstream& myfile);
+bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens);
 
 //Takes a board as an input and determines if the game is over
 bool IsGameOver(S_Board* pos, std::string& wdl);

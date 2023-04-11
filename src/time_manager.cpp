@@ -5,11 +5,11 @@
 
 //Calculate how much time to spend on searching a move
 void Optimum(S_SearchINFO* info, int time, int inc) {
-
+	//Reserve some time overhead to avoid timing out in the engine-gui communication process
+	int safety_overhead = 50;
 	//if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
 	if (info->movetimeset)
 	{
-		int safety_overhead = 50;
 		time -= safety_overhead;
 		info->stoptimeMax = info->starttime + time;
 		info->stoptimeOpt = info->starttime + time;
@@ -17,7 +17,6 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 	//else If we recieved a movestogo parameter we use total_time/movestogo
 	else if (info->timeset && info->movestogo != -1)
 	{
-		int safety_overhead = 50;
 		time -= safety_overhead;
 		int time_slot = time / info->movestogo;
 		int basetime = (time_slot);
@@ -27,7 +26,6 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 	// else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
 	else if (info->timeset)
 	{
-		int safety_overhead = 50;
 		time -= safety_overhead;
 		int time_slot = time / 20 + inc / 2;
 		int basetime = (time_slot);

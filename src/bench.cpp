@@ -3,6 +3,7 @@
 #include "misc.h"
 #include <iostream>
 #include <chrono>
+#include "eval.h"
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[50] = {
@@ -81,3 +82,32 @@ int StartBench() {
 	delete td;
 	return 0;
 }
+
+void BenchInference() {
+	// init all
+	InitAll();
+	S_UciOptions uci_options[1];
+	S_ThreadData* td(new ThreadData());
+	uint64_t total_nodes = 0;
+	InitHashTable(HashTable, 64);
+
+	int dummy_eval = 0;
+	int64_t sum = 0;
+	int count = 100000000;
+	for (int i = 0; i < count; i++) {
+		auto start = std::chrono::high_resolution_clock::now();
+		dummy_eval = EvalPosition(&td->pos);
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+		sum += duration.count();
+	}
+
+	std::cout << "Average NS: " << (sum / count) << std::endl;
+	std::cout << "Dummy: " << dummy_eval << std::endl;
+
+
+	delete td;
+
+	return;
+}
+
