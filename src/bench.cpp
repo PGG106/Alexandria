@@ -86,9 +86,8 @@ int StartBench() {
 void BenchInference() {
 	// init all
 	InitAll();
-	S_UciOptions uci_options[1];
 	S_ThreadData* td(new ThreadData());
-	uint64_t total_nodes = 0;
+
 	InitHashTable(HashTable, 64);
 
 	int dummy_eval = 0;
@@ -104,7 +103,6 @@ void BenchInference() {
 
 	std::cout << "Average NS: " << (sum / count) << std::endl;
 	std::cout << "Dummy: " << dummy_eval << std::endl;
-
 
 	delete td;
 
