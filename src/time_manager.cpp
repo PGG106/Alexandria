@@ -18,10 +18,16 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 	else if (info->timeset && info->movestogo != -1)
 	{
 		time -= safety_overhead;
-		int time_slot = time / info->movestogo;
-		int basetime = (time_slot);
-		info->stoptimeMax = info->starttime + basetime;
-		info->stoptimeOpt = info->starttime + basetime;
+		//Divide the time you have left for how many moves you have to play
+		auto basetime = time / info->movestogo;
+		//Never use more than 80% of the total time left for a single move
+		auto maxtimeBound = 0.8 * time;
+		//optime is the time we use to stop if we just cleared a depth
+		auto optime = std::min(0.7 * basetime, maxtimeBound);
+		//maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
+		auto maxtime = std::min(3.0 * basetime, maxtimeBound);
+		info->stoptimeMax = info->starttime + maxtime;
+		info->stoptimeOpt = info->starttime + optime;
 	}
 	// else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
 	else if (info->timeset)
