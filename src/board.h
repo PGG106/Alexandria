@@ -97,7 +97,7 @@ public:
 	Bitboard occupancies[3] = { 0ULL };
 	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
-	std::vector<std::array<int16_t, HIDDEN_BIAS>> accumulatorStack = {};
+	std::vector<NNUE::accumulator> accumulatorStack = {};
 
 	int checks = -1;
 };

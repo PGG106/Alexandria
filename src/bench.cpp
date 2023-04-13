@@ -87,6 +87,7 @@ void BenchInference() {
 	// init all
 	InitAll();
 	S_ThreadData* td(new ThreadData());
+
 	InitHashTable(HashTable, 64);
 
 	int dummy_eval = 0;
