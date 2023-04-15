@@ -68,12 +68,12 @@ int GetHHScore(const S_Board* pos, const Search_data* sd, const int  move) {
 	return sd->searchHistory[pos->pieces[From(move)]][To(move)];
 }
 
-int64_t GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, const Search_stack* ss) {
-	return sd->searchHistory[pos->pieces[From(move)]][To(move)] + GetCHScore(pos, sd, ss, move);
+int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, const Search_stack* ss) {
+	return GetHHScore(pos, sd, move) + GetCHScore(pos, sd, ss, move);
 }
 
 //Returns the history score of a move
-int64_t GetCHScore(const S_Board* pos, const Search_data* sd, const Search_stack* ss, const int  move)
+int GetCHScore(const S_Board* pos, const Search_data* sd, const Search_stack* ss, const int  move)
 {
 	int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
 	int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
