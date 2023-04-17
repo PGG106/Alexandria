@@ -294,7 +294,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 
-	Search_stack stack[MAXDEPTH], * ss = stack;
+	Search_stack stack[MAXDEPTH + 2], * ss = stack + 2;
 
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
