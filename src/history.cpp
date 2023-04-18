@@ -17,13 +17,13 @@ void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, 
 	//Update move score
 	if (pos->ply > 0)
 	{
-		sd->cont_hist[get_move_piece((ss - 1)->move)][To((ss - 1)->move)]
-			[get_move_piece(move)][To(move)] += scaled_bonus;
+		sd->cont_hist[Piece((ss - 1)->move)][To((ss - 1)->move)]
+			[Piece(move)][To(move)] += scaled_bonus;
 		//Score followup
 		if (pos->ply > 1)
 		{
-			sd->cont_hist[get_move_piece((ss - 2)->move)][To((ss - 2)->move)]
-				[get_move_piece(move)][To(move)] += scaled_bonus;
+			sd->cont_hist[Piece((ss - 2)->move)][To((ss - 2)->move)]
+				[Piece(move)][To(move)] += scaled_bonus;
 		}
 	}
 
@@ -75,12 +75,10 @@ int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, 
 //Returns the history score of a move
 int GetCHScore(const S_Board* pos, const Search_data* sd, const Search_stack* ss, const int  move)
 {
-	int previous_move = pos->ply >= 1 ? (ss - 1)->move : NOMOVE;
-	int previous_previous_move = pos->ply >= 2 ? (ss - 2)->move : NOMOVE;
-	return pos->ply > 0 ? sd->cont_hist[get_move_piece(previous_move)][To(previous_move)]
-		[get_move_piece(move)][To(move)] : 0 +
-		pos->ply > 1 ? sd->cont_hist[get_move_piece(previous_previous_move)][To(previous_previous_move)]
-		[get_move_piece(move)][To(move)] : 0;
+	int previous_move = (ss - 1)->move;
+	int previous_previous_move = (ss - 2)->move;
+	return previous_move ? sd->cont_hist[Piece(previous_move)][To(previous_move)][Piece(move)][To(move)] : 0 +
+	previous_previous_move ? sd->cont_hist[Piece(previous_previous_move)][To(previous_previous_move)][Piece(move)][To(move)] : 0;
 }
 //Resets the history table
 void CleanHistories(Search_data* ss) {

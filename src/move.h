@@ -32,7 +32,7 @@ typedef struct {
 // extract target square
 #define To(move) ((move & 0xfc0) >> 6)
 // extract piece
-#define get_move_piece(move) ((move & 0xf000) >> 12)
+#define Piece(move) ((move & 0xf000) >> 12)
 // extract promoted piece
 #define get_move_promoted(move) ((move & 0xf0000) >> 16)
 // extract capture flag
@@ -41,6 +41,6 @@ typedef struct {
 
 #define IsQuiet(move) (!get_move_capture(move) && !get_move_promoted(move))
 
-#define isEnpassant(pos,move) ((get_move_piece(move) == WP || get_move_piece(move) == BP) && (To(move) == pos->enPas))
+#define isEnpassant(pos,move) ((Piece(move) == WP || Piece(move) == BP) && (To(move) == pos->enPas))
 
 

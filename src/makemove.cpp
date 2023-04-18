@@ -60,7 +60,7 @@ void make_move(const int move, S_Board* pos) {
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
-	int piece = get_move_piece(move);
+	int piece = Piece(move);
 	int promoted_piece = get_move_promoted(move);
 
 	int capture = get_move_capture(move);
@@ -186,7 +186,7 @@ int make_move_light(const int move, S_Board* pos) {
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
-	int piece = get_move_piece(move);
+	int piece = Piece(move);
 	int promoted_piece = get_move_promoted(move);
 
 	int capture = get_move_capture(move);
@@ -313,7 +313,7 @@ int Unmake_move(const int move, S_Board* pos) {
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
-	int piece = get_move_piece(move);
+	int piece = Piece(move);
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);
 
@@ -425,7 +425,7 @@ PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
-	int piece = get_move_piece(move);
+	int piece = Piece(move);
 	int promoted_piece = get_move_promoted(move);
 	int capture = get_move_capture(move);
 	PosKey newKey = OldKey;
