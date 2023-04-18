@@ -178,7 +178,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
-				mvv_lva[get_move_piece(move)][PieceOn(pos, To(move))] +
+				mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
 				goodCaptureScore * SEE(pos, move, -107);
 			continue;
 		}
@@ -295,7 +295,13 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 
 	Search_stack stack[MAXDEPTH + 2], * ss = stack + 2;
-
+	//Explicitely clean stack
+	for (int i = -2; i <= MAXDEPTH; ++i)
+	{
+		(ss + i)->move = NOMOVE;
+		(ss + i)->static_eval = 0;
+		(ss + i)->excludedMove = NOMOVE;
+	}
 	//We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
 	int delta = 12;
 	// define initial alpha beta bounds
