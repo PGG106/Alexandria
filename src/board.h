@@ -68,6 +68,7 @@ typedef struct Undo {
 	int enPas = 0;
 	int fiftyMove = 0;
 	Bitboard occupancies[3];
+	bool in_check;
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -82,6 +83,7 @@ public:
 	int ply = 0; // number of halfmoves in a search instance
 	int hisPly = 0; // total number of halfmoves
 	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
+	bool in_check = false;
 	// unique  hashkey  that encodes a board position
 	PosKey posKey = 0ULL;
 	// stores the state of the board  rollback purposes

@@ -364,7 +364,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	PvTable* pv_table = &td->pv_table;
 
 	// Initialize the node
-	bool in_check = IsInCheck(pos, pos->side);
+	bool in_check = pos->in_check;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (pos->ply == 0);
@@ -684,7 +684,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
-	bool in_check = IsInCheck(pos, pos->side);
+	bool in_check = pos->in_check;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	bool TThit = false;

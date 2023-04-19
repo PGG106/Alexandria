@@ -53,6 +53,7 @@ void make_move(const int move, S_Board* pos) {
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
 	pos->history[pos->ply].enPas = pos->enPas;
 	pos->history[pos->ply].castlePerm = pos->castleperm;
+	pos->history[pos->ply].in_check = pos->in_check;
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
 
@@ -174,6 +175,9 @@ void make_move(const int move, S_Board* pos) {
 
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
+
+	//Calculate checking pieces
+	pos->in_check = IsInCheck(pos, pos->side);
 	return;
 }
 
@@ -295,7 +299,9 @@ int make_move_light(const int move, S_Board* pos) {
 	// change side
 	pos->side ^= 1;
 	HASH_SIDE;
-	//
+
+	//Calculate checking pieces
+	pos->in_check = IsInCheck(pos, pos->side);
 
 	return 1;
 }
@@ -309,7 +315,7 @@ int Unmake_move(const int move, S_Board* pos) {
 	pos->enPas = pos->history[pos->ply].enPas;
 	pos->fiftyMove = pos->history[pos->ply].fiftyMove;
 	pos->castleperm = pos->history[pos->ply].castlePerm;
-
+	pos->in_check = pos->history[pos->ply].in_check;
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
@@ -396,6 +402,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->history[pos->ply].fiftyMove = pos->fiftyMove;
 	pos->history[pos->ply].enPas = pos->enPas;
 	pos->history[pos->ply].castlePerm = pos->castleperm;
+	pos->history[pos->ply].in_check = pos->in_check;
 	pos->enPas = no_sq;
 
 	pos->side ^= 1;
@@ -403,6 +410,8 @@ void MakeNullMove(S_Board* pos) {
 	pos->hisPly++;
 	HASH_SIDE;
 
+	//Calculate checking pieces
+	pos->in_check = IsInCheck(pos, pos->side);
 	return;
 }
 
@@ -414,6 +423,7 @@ void TakeNullMove(S_Board* pos) {
 	pos->castleperm = pos->history[pos->ply].castlePerm;
 	pos->fiftyMove = pos->history[pos->ply].fiftyMove;
 	pos->enPas = pos->history[pos->ply].enPas;
+	pos->in_check = pos->history[pos->ply].in_check;
 
 	pos->side ^= 1;
 	pos->posKey = pos->played_positions.back();
