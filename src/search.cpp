@@ -166,16 +166,26 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			move_list->moves[i].score = INT32_MAX - 100;
 			continue;
 		}
+		//Sort promotions based on the promoted piece type
 		else if (get_move_promoted(move)) {
-			move_list->moves[i].score = 2000000000 + get_move_promoted(move);
-			continue;
+			switch (GetPieceType(get_move_promoted(move))) {
+			case QUEEN:
+				move_list->moves[i].score = queenPromotionScore;
+				break;
+			case KNIGHT:
+				move_list->moves[i].score = knightPromotionScore;
+				break;
+			case ROOK:
+				move_list->moves[i].score = badPromotionScore;
+				break;
+			case BISHOP:
+				move_list->moves[i].score = badPromotionScore;
+				break;
+			default:
+				break;
+			}
 		}
-		//if the move is an enpassant or a promotion give it a score that a good capture of type pawn-pwan would have
-		else if (isEnpassant(pos, move)) {
-			move_list->moves[i].score = 105 + goodCaptureScore;
-			continue;
-		}
-		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a positive SEE or not 
+		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not 
 		else if (get_move_capture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
@@ -195,12 +205,12 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		//After the killer moves try the Counter moves
 		else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)])
 		{
-			move_list->moves[i].score = 600000000;
+			move_list->moves[i].score = CounterMoveScore;
 			continue;
 		}
 		//if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
-			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(pos, sd, ss, move);
+			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
 			continue;
 		}
 	}

@@ -92,7 +92,11 @@ constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
 					  100, 300, 300, 450, 900, 0,0,0,0 };
 
 enum {
-	goodCaptureScore= 900000000,
+	queenPromotionScore = 2000000001,
+	knightPromotionScore = 2000000000,
+	goodCaptureScore = 900000000,
 	killerMoveScore0 = 800000000,
-	killerMoveScore1 = 700000000
+	killerMoveScore1 = 700000000,
+	CounterMoveScore= 600000000,
+	badPromotionScore = -2000000001
 };
