@@ -62,6 +62,7 @@ void ClearForSearch(S_ThreadData* td) {
 	info->stopped = FALSE;
 	info->nodes = 0;
 	info->seldepth = 0;
+	pos->in_check = IsInCheck(pos, pos->side);
 }
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
@@ -365,6 +366,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	// Initialize the node
 	bool in_check = pos->in_check;
+	assert(in_check == IsInCheck(pos, pos->side));
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (pos->ply == 0);
@@ -685,6 +687,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
 	bool in_check = pos->in_check;
+	assert(in_check == IsInCheck(pos, pos->side));
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	bool TThit = false;

@@ -107,13 +107,12 @@ void ResetBoard(S_Board* pos) {
 	pos->side = BOTH;
 	pos->enPas = no_sq;
 	pos->fiftyMove = 0;
-	pos->ply = 0;        //number of plies in the current search instance
-	pos->hisPly = 0;     // total number of halfmoves
-	pos->castleperm = 0; // integer that represents the castling permission in his
-	// bits (1111) = all castlings allowed (0000) no castling
-	// allowed, (0101) only WKCA and BKCA allowed...
+	pos->ply = 0;
+	pos->hisPly = 0;
+	pos->castleperm = 0;
 	pos->posKey = 0ULL;
 	pos->pinD = 0;
+	pos->in_check = false;
 	pos->pinHV = 0;
 	pos->checkMask = 18446744073709551615ULL;
 	pos->checks = 0;
@@ -121,7 +120,7 @@ void ResetBoard(S_Board* pos) {
 	// set default nnue values
 	for (size_t i = 0; i < HIDDEN_SIZE; i++) {
 		pos->accumulator[0][i] = nnue.featureBias[i];
-        pos->accumulator[1][i] = nnue.featureBias[i];
+		pos->accumulator[1][i] = nnue.featureBias[i];
 	}
 
 	//Reset nnue accumulator stack
@@ -289,7 +288,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
 	pos->occupancies[BOTH] |= pos->occupancies[BLACK];
 
 	pos->posKey = GeneratePosKey(pos);
-
+	pos->in_check = IsInCheck(pos, pos->side);
 	//Update nnue accumulator to reflect board state
 	Accumulate(pos->accumulator, pos);
 

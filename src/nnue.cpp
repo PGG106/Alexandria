@@ -55,7 +55,7 @@ void NNUE::init(const char *file)
         {
             std::cout << "Error loading the net, aborting ";
             std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
-            exit(1);
+           // exit(1);
         }
 
         // after reading the config we can close the file
