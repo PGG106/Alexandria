@@ -572,7 +572,7 @@ moves_loop:
 				extension = 1;
 				// Avoid search explosion by limiting the number of double extensions
 				if (!pv_node
-					&& singularScore < -20
+					&& singularScore < -20 // secret technique
 					&& ss->double_extensions <= 5)
 				{
 					extension = 2;
