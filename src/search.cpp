@@ -561,15 +561,24 @@ moves_loop:
 			&& abs(tte.score) < ISMATE
 			&& tte.depth >= depth - 3)
 		{
-			int singularBeta = tte.score - 3 * depth;
-			int singularDepth = (depth - 1) / 2;
+			const int singularBeta = tte.score - 3 * depth;
+			const int singularDepth = (depth - 1) / 2;
 
 			ss->excludedMove = tte.move;
 			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 			ss->excludedMove = NOMOVE;
 
-			if (singularScore < singularBeta)
+			if (singularScore < singularBeta) {
 				extension = 1;
+				// Avoid search explosion by limiting the number of double extensions
+				if (!pv_node
+					&& singularScore < -20 // secret technique
+					&& ss->double_extensions <= 5)
+				{
+					extension = 2;
+					ss->double_extensions = (ss - 1)->double_extensions + 1;
+				}
+			}
 
 			else if (singularBeta >= beta)
 				return (singularBeta);
@@ -697,9 +706,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		StopHelperThreads();
 		td->info.stopped = true;
 	}
-	//Check for the highest depth reached in search to report it to the cli
-	if (pos->ply > info->seldepth)
-		info->seldepth = pos->ply;
 
 	//If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos)) {
