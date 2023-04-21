@@ -573,10 +573,10 @@ moves_loop:
 				// Avoid search explosion by limiting the number of double extensions
 				if (!pv_node
 					&& singularScore < -20
-					&& ss->double_extentions <= 5)
+					&& ss->double_extensions <= 5)
 				{
 					extension = 2;
-					ss->double_extentions = (ss - 1)->double_extentions + 1;
+					ss->double_extensions = (ss - 1)->double_extensions + 1;
 				}
 			}
 

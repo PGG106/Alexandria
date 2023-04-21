@@ -7,7 +7,7 @@ struct Search_stack {
 	int16_t static_eval = { 0 };
 	int move = { 0 };
 	int searchKillers[2] = { NOMOVE };
-	int double_extentions = 0;
+	int double_extensions = 0;
 };
 
 struct Search_data {
