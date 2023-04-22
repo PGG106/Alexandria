@@ -440,18 +440,23 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		goto moves_loop;
 	}
 
-	// get static evaluation score
-	ss->static_eval = eval = ttHit ? tte.eval : EvalPosition(pos);
+	// get an evaluation of the position:
+	if (ttHit) {
+		//If we have an eval stored in the TT retrieve that
+		eval = ss->static_eval = tte.eval;
+		//If we aren't on a pv node we can also use the tt score as a more accurate form of eval
+		if (!pv_node)
+			eval = tte.score;
+	}
+	else {
+		//If we don't have anything in the TT we have to call evalposition
+		eval = ss->static_eval = EvalPosition(pos);
+	}
 
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
 	improving = (pos->ply >= 2) && (ss->static_eval > (ss - 2)->static_eval || (ss - 2)->static_eval == value_none);
 
 	if (!pv_node) {
-
-		//if we have a TThit we can use the search score as a more accurate form of eval
-		if (ttHit) {
-			eval = tte.score;
-		}
 
 		// Reverse futility pruning 
 		if (depth < 9
@@ -572,7 +577,7 @@ moves_loop:
 				extension = 1;
 				// Avoid search explosion by limiting the number of double extensions
 				if (!pv_node
-					&& singularScore < singularBeta -20
+					&& singularScore < singularBeta - 20
 					&& ss->double_extensions <= 5)
 				{
 					extension = 2;
