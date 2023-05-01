@@ -541,7 +541,7 @@ moves_loop:
 				&& !in_check
 				&& depth < 4
 				&& isQuiet
-				&& quiet_moves.count > lmp_margin[depth][improving])
+				&& moves_searched > lmp_margin[depth][improving])
 			{
 				SkipQuiets = true;
 				continue;
