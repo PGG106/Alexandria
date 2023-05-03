@@ -221,18 +221,6 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 //Calculate a futility margin based on depth and if the search is improving or not
 int futility(int depth, bool improving) { return 66 * (depth - improving); }
 
-//Calculate a reduction margin based on the search depth and the number of moves played
-static inline int reduction(bool pv_node, bool improving, int depth, int num_moves)
-{
-	//Get base reduction value
-	int  depth_reduction = reductions[depth][num_moves];
-	//Reduce more if we aren't improving
-	depth_reduction += !improving;
-	//Reduce more if we aren't in a pv node
-	depth_reduction += !pv_node;
-	return depth_reduction;
-}
-
 int GetBestMove(const PvTable* pv_table) {
 	return pv_table->pvArray[0][0];
 }
@@ -606,15 +594,20 @@ moves_loop:
 		{
 			if (isQuiet) {
 				//calculate by how much we should reduce the search depth 
-				depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+				//Get base reduction value
+				depth_reduction = reductions[depth][moves_searched];
+				//Reduce more if we aren't improving
+				depth_reduction += !improving;
+				//Reduce more if we aren't in a pv node
+				depth_reduction += !pv_node;
 				int movehistory = GetHistoryScore(pos, sd, move, ss);
 				//Decrease the reduction for moves that have a good history score
 				if (movehistory > 16384) depth_reduction--;
 			}
 			//Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
-				//calculate by how much we should reduce the search depth 
-				depth_reduction = reduction(pv_node, improving, depth, moves_searched);
+				//calculate by how much we should reduce the search depth (ideally this needs its own table, but i'm lazy)
+				depth_reduction = reductions[depth][moves_searched];
 			}
 			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
