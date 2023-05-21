@@ -79,13 +79,12 @@ public:
 	int side = -1; // what side has to move
 	int enPas = no_sq; // if enpassant is possible and in which square
 	int fiftyMove = 0; // Counter for the 50 moves rule
-	int ply = 0; // number of halfmoves in a search instance
 	int hisPly = 0; // total number of halfmoves
 	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
 	// unique  hashkey  that encodes a board position
 	PosKey posKey = 0ULL;
 	// stores the state of the board  rollback purposes
-	S_Undo	history[MAXDEPTH];
+	S_Undo	history[5000];
 	//Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
 	std::vector<PosKey> played_positions = {};
 	Bitboard pinHV = 0ULL;

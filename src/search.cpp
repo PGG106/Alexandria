@@ -57,7 +57,6 @@ void ClearForSearch(S_ThreadData* td) {
 	}
 
 	//Reset plies and search info
-	pos->ply = 0;
 	info->starttime = GetTimeMs();
 	info->stopped = FALSE;
 	info->nodes = 0;
