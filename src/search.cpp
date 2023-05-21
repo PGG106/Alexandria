@@ -44,7 +44,6 @@ bool IsDraw(const S_Board* pos) {
 void ClearForSearch(S_ThreadData* td) {
 
 	//Extract data structures from ThreadData
-	S_Board* pos = &td->pos;
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
 
