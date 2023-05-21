@@ -22,39 +22,39 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
 	std::cout << "HashTable init complete with " << numEntries << " entries\n";
 }
 
-bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
-	uint64_t index = Index(pos->posKey);
+bool ProbeHashEntry(const PosKey poskey, const int ply, S_HashEntry* tte) {
+	uint64_t index = Index(poskey);
 
 	*tte = HashTable->pTable[index];
 
 	if (tte->score > ISMATE)
-		tte->score -= pos->ply;
+		tte->score -= ply;
 	else if (tte->score < -ISMATE)
-		tte->score += pos->ply;
+		tte->score += ply;
 
-	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
+	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(poskey));
 }
 
-void StoreHashEntry(const S_Board* pos, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const PosKey poskey, const int ply, const int move, int score, const  int16_t eval, const int flags,
 	const int depth, const bool pv) {
-	uint64_t index = Index(pos->posKey);
+	uint64_t index = Index(poskey);
 
 	if (score > ISMATE)
-		score -= pos->ply;
+		score -= ply;
 	else if (score < -ISMATE)
-		score += pos->ply;
+		score += ply;
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move != NOMOVE || static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key)
+	if (move != NOMOVE || static_cast<TTKey>(poskey) != HashTable->pTable[index].tt_key)
 		HashTable->pTable[index].move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
-		static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key ||
+		static_cast<TTKey>(poskey) != HashTable->pTable[index].tt_key ||
 		depth + 7 + 2 * pv > HashTable->pTable[index].depth - 4)
 	{
-		HashTable->pTable[index].tt_key = static_cast<TTKey>(pos->posKey);
+		HashTable->pTable[index].tt_key = static_cast<TTKey>(poskey);
 		HashTable->pTable[index].flags = static_cast<uint8_t>(flags);
 		HashTable->pTable[index].score = static_cast<int16_t>(score);
 		HashTable->pTable[index].eval = eval;

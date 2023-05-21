@@ -51,13 +51,6 @@ void NNUE::init(const char *file)
         read += fread(outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2, nn);
         read += fread(&outputBias, sizeof(int16_t), 1, nn);
 
-        if (read != objectsExpected)
-        {
-            std::cout << "Error loading the net, aborting ";
-            std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
-            exit(1);
-        }
-
         // after reading the config we can close the file
         fclose(nn);
     }
