@@ -546,37 +546,41 @@ moves_loop:
 		}
 
 		int extension = 0;
-		//Search extension
-		if (!root_node
-			&& depth >= 7
-			&& move == tte.move
-			&& !excludedMove
-			&& (tte.flags & HFBETA)
-			&& abs(tte.score) < ISMATE
-			&& tte.depth >= depth - 3)
+		//Limit Extensions to try and curb search explosions
+		if (pos->ply < info->depth * 2)
 		{
-			const int singularBeta = tte.score - 3 * depth;
-			const int singularDepth = (depth - 1) / 2;
+			//Search extension
+			if (!root_node
+				&& depth >= 7
+				&& move == tte.move
+				&& !excludedMove
+				&& (tte.flags & HFBETA)
+				&& abs(tte.score) < ISMATE
+				&& tte.depth >= depth - 3)
+			{
+				const int singularBeta = tte.score - 3 * depth;
+				const int singularDepth = (depth - 1) / 2;
 
-			ss->excludedMove = tte.move;
-			int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
-			ss->excludedMove = NOMOVE;
+				ss->excludedMove = tte.move;
+				int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
+				ss->excludedMove = NOMOVE;
 
-			if (singularScore < singularBeta) {
-				extension = 1;
-				// Avoid search explosion by limiting the number of double extensions
-				if (!pv_node
-					&& singularScore < singularBeta - 20
-					&& ss->double_extensions <= 5)
-				{
-					extension = 2;
-					ss->double_extensions = (ss - 1)->double_extensions + 1;
+				if (singularScore < singularBeta) {
+					extension = 1;
+					// Avoid search explosion by limiting the number of double extensions
+					if (!pv_node
+						&& singularScore < singularBeta - 20
+						&& ss->double_extensions <= 5)
+					{
+						extension = 2;
+						ss->double_extensions = (ss - 1)->double_extensions + 1;
+					}
 				}
+
+				else if (singularBeta >= beta)
+					return (singularBeta);
+
 			}
-
-			else if (singularBeta >= beta)
-				return (singularBeta);
-
 		}
 		//we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
