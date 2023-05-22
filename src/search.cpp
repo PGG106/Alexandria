@@ -15,19 +15,20 @@
 #include <iostream>
 
 // IsRepetition handles the repetition detection of a position
-static bool IsRepetition(const S_Board* pos) {
+static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
-	for (auto index = std::max<std::size_t>(pos->played_positions.size() - Get50mrCounter(pos), 0);
-		index < pos->played_positions.size(); index++) {
+	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - Get50mrCounter(pos), 0);
+		index < static_cast<int>(pos->played_positions.size()); index++)
 		// if we found the same position hashkey as the current position
 		if (pos->played_positions[index] == pos->posKey) {
 			// we found a repetition
-			return true;
+			return TRUE;
 		}
-	}
-	return false;
+
+	return FALSE;
 }
+
 
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 bool IsDraw(const S_Board* pos) {
