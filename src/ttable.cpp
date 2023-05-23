@@ -27,11 +27,6 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 
 	*tte = HashTable->pTable[index];
 
-	if (tte->score > ISMATE)
-		tte->score -= pos->ply;
-	else if (tte->score < -ISMATE)
-		tte->score += pos->ply;
-
 	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
