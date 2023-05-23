@@ -292,7 +292,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
-
+	td->RootDepth = depth;
 	Search_stack stack[MAXDEPTH + 2], * ss = stack + 2;
 	//Explicitely clean stack
 	for (int i = -2; i < MAXDEPTH; i++)
@@ -547,7 +547,7 @@ moves_loop:
 
 		int extension = 0;
 		//Limit Extensions to try and curb search explosions
-		if (pos->ply < info->depth * 2)
+		if (pos->ply < td->RootDepth * 2)
 		{
 			//Search extension
 			if (!root_node
