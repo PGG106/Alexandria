@@ -23,6 +23,7 @@ typedef struct ThreadData {
 	Search_data ss;
 	S_SearchINFO info;
 	PvTable pv_table;
+	int RootDepth;
 }S_ThreadData;
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
