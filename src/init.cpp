@@ -303,7 +303,6 @@ void InitNewGame(S_ThreadData* td) {
 	}
 
 	//Reset plies and search info
-	pos->ply = 0;
 	info->starttime = GetTimeMs();
 	info->stopped = 0;
 	info->nodes = 0;

@@ -30,28 +30,28 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
-void StoreHashEntry(const S_Board* pos, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const PosKey key, const int ply, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv) {
 	// Adjust mate scores to work with different plies
 	if (score > ISMATE)
-		score -= pos->ply;
+		score -= ply;
 	else if (score < -ISMATE)
-		score += pos->ply;
+		score += ply;
 	//Calculate index based on the position key and get the entry that already fills that index
-	uint64_t index = Index(pos->posKey);
+	uint64_t index = Index(key);
 	S_HashEntry* tte = &HashTable->pTable[index];
 
 	// Replacement strategy taken from Stockfish
 	//  Preserve any existing move for the same position
-	if (move || static_cast<TTKey>(pos->posKey) != HashTable->pTable[index].tt_key)
+	if (move || static_cast<TTKey>(key) != HashTable->pTable[index].tt_key)
 		tte->move = move;
 
 	// Overwrite less valuable entries (cheapest checks first)
 	if (flags == HFEXACT ||
-		static_cast<TTKey>(pos->posKey) != tte->tt_key ||
+		static_cast<TTKey>(key) != tte->tt_key ||
 		depth + 11 + 2 * pv > tte->depth)
 	{
-		tte->tt_key = static_cast<TTKey>(pos->posKey);
+		tte->tt_key = static_cast<TTKey>(key);
 		tte->flags = static_cast<uint8_t>(flags);
 		tte->score = static_cast<int16_t>(score);
 		tte->eval = eval;

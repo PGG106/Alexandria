@@ -54,7 +54,6 @@ void set_new_game_state(S_ThreadData* td) {
 	}
 
 	//Reset plies and search info
-	pos->ply = 0;
 	info->starttime = GetTimeMs();
 	info->stopped = 0;
 	info->nodes = 0;
@@ -73,15 +72,13 @@ void set_new_game_state(S_ThreadData* td) {
 //Does an high depth search of a position to confirm that it's sane enough to use for Datagen
 int sanity_search(S_ThreadData* td)
 {
-	Search_stack stack[MAXDEPTH], * ss = stack;
+
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 	//Clean the position and the search info to start search from a clean state 
 	ClearForSearch(td);
-	// define initial alpha beta bounds
-	int alpha = -MAXSCORE;
-	int beta = MAXSCORE;
-	score = Negamax(alpha, beta, 10, false, td, ss);
+
+	score = AspirationWindowSearch(0, 10, td);
 
 	return score;
 }

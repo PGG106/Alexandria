@@ -15,12 +15,12 @@ void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, 
 	//Scale bonus to fix it in a [-32768;32768] range
 	int scaled_bonus = bonus - GetCHScore( sd, ss, move) * std::abs(bonus) / 32768;
 	//Update move score
-	if (pos->ply > 0)
+	if (ss->ply > 0)
 	{
 		sd->cont_hist[Piece((ss - 1)->move)][To((ss - 1)->move)]
 			[Piece(move)][To(move)] += scaled_bonus;
 		//Score followup
-		if (pos->ply > 1)
+		if (ss->ply > 1)
 		{
 			sd->cont_hist[Piece((ss - 2)->move)][To((ss - 2)->move)]
 				[Piece(move)][To(move)] += scaled_bonus;

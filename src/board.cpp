@@ -107,7 +107,6 @@ void ResetBoard(S_Board* pos) {
 	pos->side = BOTH;
 	pos->enPas = no_sq;
 	pos->fiftyMove = 0;
-	pos->ply = 0;        //number of plies in the current search instance
 	pos->hisPly = 0;     // total number of halfmoves
 	pos->castleperm = 0; // integer that represents the castling permission in his
 	// bits (1111) = all castlings allowed (0000) no castling

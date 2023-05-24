@@ -6,6 +6,7 @@ struct Search_stack {
 	int excludedMove = { NOMOVE };
 	int16_t static_eval = { 0 };
 	int move = { 0 };
+	int ply;
 	int searchKillers[2] = { NOMOVE };
 	int double_extensions = 0;
 };
