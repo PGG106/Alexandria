@@ -289,6 +289,8 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
 	pos->posKey = GeneratePosKey(pos);
 
+	pos->checkers = IsInCheck(pos, pos->side);
+
 	//Update nnue accumulator to reflect board state
 	Accumulate(pos->accumulator, pos);
 
