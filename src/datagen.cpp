@@ -214,7 +214,7 @@ bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
 		//Get position fen
 		entry.fen = GetFen(pos);
 		//Get if the position is in check
-		bool in_check = IsInCheck(pos, pos->side);
+		bool in_check = pos->checkers;
 		//Search best move and get score
 		entry.score = pos->side == WHITE ? search_best_move(td) : -search_best_move(td);
 		//Get best move
@@ -255,7 +255,7 @@ bool IsGameOver(S_Board* pos, std::string& wdl)
 	//Check for mate or stalemate
 	if (move_list->count == 0)
 	{
-		bool in_check = IsInCheck(pos, pos->side);
+		bool in_check = pos->checkers;
 		wdl = in_check ? pos->side == WHITE ? "0.0" : "1.0" : "0.5";
 		return true;
 	}

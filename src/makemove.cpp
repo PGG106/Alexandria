@@ -53,6 +53,7 @@ void make_move(const int move, S_Board* pos) {
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
 
@@ -173,12 +174,18 @@ void make_move(const int move, S_Board* pos) {
 
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
+	pos->checkers = IsInCheck(pos, pos->side);
 	return;
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
 int make_move_light(const int move, S_Board* pos) {
 
+	//Store position variables for rollback purposes
+	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+	pos->history[pos->hisPly].enPas = pos->enPas;
+	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
 
@@ -306,7 +313,7 @@ int Unmake_move(const int move, S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
 	pos->castleperm = pos->history[pos->hisPly].castlePerm;
-
+	pos->checkers = pos->history[pos->hisPly].checkers;
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
@@ -392,6 +399,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 	pos->enPas = no_sq;
 
 	pos->side ^= 1;
@@ -408,6 +416,7 @@ void TakeNullMove(S_Board* pos) {
 	pos->castleperm = pos->history[pos->hisPly].castlePerm;
 	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
 	pos->enPas = pos->history[pos->hisPly].enPas;
+	pos->checkers = pos->history[pos->hisPly].checkers;
 
 	pos->side ^= 1;
 	pos->posKey = pos->played_positions.back();
