@@ -355,7 +355,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	PvTable* pv_table = &td->pv_table;
 
 	// Initialize the node
-	bool in_check = IsInCheck(pos, pos->side);
+	bool in_check = pos->checkers;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
 	int root_node = (ss->ply == 0);
@@ -419,8 +419,8 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
-// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
-// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
+	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
+	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
 	if (depth >= 4 && !tte.move && !excludedMove)
 		depth--;
 
@@ -433,7 +433,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	// get an evaluation of the position:
 	if (ttHit) {
-		//If the value in the TT is valid we use that, otherwise we call evalposition
+		//If the value in the TT is valid we use that, otherwise we call the static evaluation function
 		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		//If we aren't on a pv node we can also use the tt score as a more accurate form of eval
 		if (!pv_node)
@@ -644,7 +644,7 @@ moves_loop:
 		moves_searched++;
 		//If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
-			//Update the best move found and what the best score is
+			//Update what the best score is
 			BestScore = Score;
 
 			// found a better move
@@ -689,12 +689,12 @@ moves_loop:
 		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
 		BestScore = excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
 	}
-	//Set the TT flag based on whether the BestScore is better than beta and if not based on if we changed alpha or not
 
+	//Set the TT flag based on whether the BestScore is better than beta and if not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
 	if (!excludedMove) StoreHashEntry(pos->posKey, ss->ply, bestmove, BestScore, ss->static_eval, flag, depth, pv_node);
-	// node (move) fails low
+	// return best score
 	return BestScore;
 }
 
@@ -704,7 +704,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
-	bool in_check = IsInCheck(pos, pos->side);
+	bool in_check = pos->checkers;
 	//tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	bool TThit = false;
@@ -770,7 +770,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	int moves_searched = 0;
 
-	// loop over moves within a movelist
+	// loop over moves within the movelist
 	for (int count = 0; count < move_list->count; count++) {
 		PickMove(move_list, count);
 		int move = move_list->moves[count].move;
@@ -798,15 +798,15 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 		//If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
-			//Update the best move found and what the best score is
+			//Update  what the best score is
 			BestScore = Score;
 
-			// if the Score is better than alpha update alpha
+			// if the Score is better than alpha update alpha and our best move
 			if (Score > alpha) {
 				alpha = Score;
 				bestmove = move;
 
-				// if the Score is better than beta save the move in the TT and return beta
+				// if the Score is better than or equal to beta break the loop because we failed high 
 				if (Score >= beta) break;
 			}
 		}
@@ -817,7 +817,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	StoreHashEntry(pos->posKey, ss->ply, bestmove, BestScore, eval, flag, 0, pv_node);
 
-	// node (move) fails low
+	// return the best score we got
 	return BestScore;
 }
 

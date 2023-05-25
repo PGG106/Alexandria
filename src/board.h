@@ -67,6 +67,7 @@ typedef struct Undo {
 	int capture = EMPTY;
 	int enPas = 0;
 	int fiftyMove = 0;
+	bool checkers;
 	Bitboard occupancies[3];
 } S_Undo; // stores a move and the state of the game before that move is made
 // for rollback purposes
@@ -97,7 +98,7 @@ public:
 	NNUE::accumulator accumulator = {};
 	//Previous values of the nnue accumulators. always empty at the start of search
 	std::vector<NNUE::accumulator> accumulatorStack = {};
-
+	bool checkers;
 	int checks = -1;
 };
 
