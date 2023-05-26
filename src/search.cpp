@@ -489,7 +489,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		}
 
 		// razoring
-		if (depth <= 3 &&
+		if (depth <= 7 &&
 			eval - 63 + 182 * depth <= alpha)
 		{
 			return Quiescence(alpha, beta, td, ss);
