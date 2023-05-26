@@ -447,6 +447,11 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	//if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
 	improving = (ss->ply >= 2) && (ss->static_eval > (ss - 2)->static_eval || (ss - 2)->static_eval == value_none);
 
+	// clean killers and excluded move for the next ply
+	(ss + 1)->excludedMove = NOMOVE;
+	(ss + 1)->searchKillers[0] = NOMOVE;
+	(ss + 1)->searchKillers[1] = NOMOVE;
+
 	if (!pv_node) {
 
 		// Reverse futility pruning 
