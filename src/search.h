@@ -24,6 +24,7 @@ typedef struct ThreadData {
 	Search_data ss;
 	S_SearchINFO info;
 	PvTable pv_table;
+	uint64_t nodeSpentTable[Board_sq_num][Board_sq_num];
 	int RootDepth;
 }S_ThreadData;
 
