@@ -653,8 +653,9 @@ moves_loop:
 
 		// take move back
 		Unmake_move(move, pos);
-
-		td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodes_before_search;
+		if (td->id == 0
+			&& root_node)
+			td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodes_before_search;
 
 		if (info->stopped)
 			return 0;
