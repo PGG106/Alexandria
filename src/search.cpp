@@ -280,12 +280,14 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 			}
 			// if we don't have to stop use the previous search to adjust some of the time management parameters
 			else {
-				int bestmove = td->pv_table.pvArray[0][0];
-				// Calculate how many nodes were spent on checking the best move
-				auto bestMoveNodesFraction = 1.0 * td->nodeSpentTable[From(bestmove)][To(bestmove)] / td->info.nodes;
-				auto nodeScalingFactor = 1.5 - bestMoveNodesFraction;
-				//Scale the search time based on how many nodes we spent
-				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
+				if (td->RootDepth > 7) {
+					int bestmove = td->pv_table.pvArray[0][0];
+					// Calculate how many nodes were spent on checking the best move
+					auto bestMoveNodesFraction = 1.0 * td->nodeSpentTable[From(bestmove)][To(bestmove)] / td->info.nodes;
+					auto nodeScalingFactor = 1.5 - bestMoveNodesFraction;
+					//Scale the search time based on how many nodes we spent
+					td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
+				}
 			}
 		}
 		// stop calculating and return best move so far
@@ -295,9 +297,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 		//If it's the main thread print the uci output
 		if (td->id == 0)
 			PrintUciOutput(score, current_depth, td, options);
-
 	}
-
 }
 
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
