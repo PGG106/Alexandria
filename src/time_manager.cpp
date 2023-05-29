@@ -27,7 +27,8 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 		//maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
 		auto maxtime = std::min(3.0 * basetime, maxtimeBound);
 		info->stoptimeMax = info->starttime + maxtime;
-		info->stoptimeOpt = info->starttime + optime;
+		info->stoptimeOptBase = info->starttime + optime;
+		info->stoptimeOpt = info->stoptimeOptBase;
 	}
 	// else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
 	else if (info->timeset)
@@ -40,7 +41,8 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 		//maxtime is the absolute maximum time we can spend on a search
 		int maxtime = std::min(time, basetime * 2);
 		info->stoptimeMax = info->starttime + maxtime;
-		info->stoptimeOpt = info->starttime + optime;
+		info->stoptimeOptBase = info->starttime + optime;
+		info->stoptimeOpt = info->stoptimeOptBase;
 	}
 }
 

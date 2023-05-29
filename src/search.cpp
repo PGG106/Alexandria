@@ -284,7 +284,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 				// Calculate how many nodes were spent on checking the best move
 				auto bestMoveNodesFraction = 1.0 * td->nodeSpentTable[From(bestmove)][To(bestmove)] / td->info.nodes;
 				//Scale the search time based on how many nodes we spent
-				td->info.stoptimeMax = td->info + info->goodTimeLim  * bestMoveNodesFraction;
+				td->info.stoptimeOpt = td->info.starttime + td->info.stoptimeOptBase * bestMoveNodesFraction;
 			}
 		}
 		// stop calculating and return best move so far
