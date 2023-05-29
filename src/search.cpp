@@ -283,9 +283,9 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 				int bestmove = td->pv_table.pvArray[0][0];
 				// Calculate how many nodes were spent on checking the best move
 				auto bestMoveNodesFraction = 1.0 * td->nodeSpentTable[From(bestmove)][To(bestmove)] / td->info.nodes;
-				auto nodeScalingFactor = 1.25 - bestMoveNodesFraction;
+				auto nodeScalingFactor = 1.5 - bestMoveNodesFraction;
 				//Scale the search time based on how many nodes we spent
-				td->info.stoptimeOpt = td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor;
+				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
 			}
 		}
 		// stop calculating and return best move so far
