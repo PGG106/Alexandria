@@ -277,7 +277,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 				double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
 				double nodeScalingFactor = (1.5 - bestMoveNodesFraction) * 1.35;
 				//Scale the search time based on how many nodes we spent
-				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
+				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor, td->info.stoptimeMax);
 			}
 
 			// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes

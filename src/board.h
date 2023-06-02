@@ -113,7 +113,7 @@ struct S_SearchINFO {
 	//search start time 
 	uint64_t starttime = 0;
 	//search time initial lower bound if present
-	uint64_t stoptimeOptBase = 0;
+	uint64_t stoptimeBaseOpt = 0;
 	//search time scaled lower bound if present
 	uint64_t stoptimeOpt = 0;
 	//search time upper bound if present
