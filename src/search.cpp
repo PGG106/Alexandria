@@ -55,7 +55,8 @@ void ClearForSearch(S_ThreadData* td) {
 			pv_table->pvArray[index][index2] = NOMOVE;
 		}
 	}
-
+	//Clean the node table
+	std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
 	//Reset plies and search info
 	info->starttime = GetTimeMs();
 	info->stopped = FALSE;
@@ -267,15 +268,26 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 	{
 		score = AspirationWindowSearch(score, current_depth, td);
 
-		// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
-		if (td->id == 0 &&
-			(StopEarly(&td->info) || NodesOver(&td->info)))
-		{
-			StopHelperThreads();
-			//Stop mainthread search
-			td->info.stopped = true;
-		}
+		// Only the main thread handles time related tasks
+		if (td->id == 0) {
+			// use the previous search to adjust some of the time management parameters
+			if (td->RootDepth > 7) {
+				int bestmove = GetBestMove(&td->pv_table);
+				// Calculate how many nodes were spent on checking the best move
+				double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
+				double nodeScalingFactor = (1.5 - bestMoveNodesFraction) * 1.35;
+				//Scale the search time based on how many nodes we spent
+				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor, td->info.stoptimeMax);
+			}
 
+			// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
+			if (StopEarly(&td->info) || NodesOver(&td->info))
+			{
+				StopHelperThreads();
+				//Stop mainthread search
+				td->info.stopped = true;
+			}
+		}
 		// stop calculating and return best move so far
 		if (td->info.stopped)
 			break;
@@ -283,9 +295,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 		//If it's the main thread print the uci output
 		if (td->id == 0)
 			PrintUciOutput(score, current_depth, td, options);
-
 	}
-
 }
 
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
@@ -595,7 +605,7 @@ moves_loop:
 		make_move(move, pos);
 		// increment nodes count
 		info->nodes++;
-
+		uint64_t nodes_before_search = info->nodes;
 		int depth_reduction = 1;
 		bool do_full_search = false;
 		// conditions to consider LMR
@@ -641,6 +651,9 @@ moves_loop:
 
 		// take move back
 		Unmake_move(move, pos);
+		if (td->id == 0
+			&& root_node)
+			td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodes_before_search;
 
 		if (info->stopped)
 			return 0;
