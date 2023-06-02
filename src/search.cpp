@@ -270,6 +270,15 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 
 		// Only the main thread handles time related tasks
 		if (td->id == 0) {
+			// use the previous search to adjust some of the time management parameters
+			if (td->RootDepth > 7) {
+				int bestmove = td->pv_table.pvArray[0][0];
+				// Calculate how many nodes were spent on checking the best move
+				double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
+				double nodeScalingFactor = (1.5 - bestMoveNodesFraction) * 1.35;
+				//Scale the search time based on how many nodes we spent
+				td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
+			}
 
 			// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
 			if (StopEarly(&td->info) || NodesOver(&td->info))
@@ -277,17 +286,6 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 				StopHelperThreads();
 				//Stop mainthread search
 				td->info.stopped = true;
-			}
-			// if we don't have to stop use the previous search to adjust some of the time management parameters
-			else {
-				if (td->RootDepth > 7) {
-					int bestmove = td->pv_table.pvArray[0][0];
-					// Calculate how many nodes were spent on checking the best move
-					double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
-					double nodeScalingFactor = 1.5 - bestMoveNodesFraction;
-					//Scale the search time based on how many nodes we spent
-					td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeOptBase * nodeScalingFactor, td->info.stoptimeMax);
-				}
 			}
 		}
 		// stop calculating and return best move so far
