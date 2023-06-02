@@ -272,7 +272,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 		if (td->id == 0) {
 			// use the previous search to adjust some of the time management parameters
 			if (td->RootDepth > 7) {
-				int bestmove = td->pv_table.pvArray[0][0];
+				int bestmove = GetBestMove(&td->pv_table);
 				// Calculate how many nodes were spent on checking the best move
 				double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
 				double nodeScalingFactor = (1.5 - bestMoveNodesFraction) * 1.35;
