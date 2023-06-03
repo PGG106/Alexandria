@@ -241,7 +241,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		}
 		else {
 			parsed_score = static_cast<float>(score) / 100;
-			if (parsed_score > 0)   score_unit = '+';
+			if (parsed_score >= 0)   score_unit = '+';
 		}
 		// convert score to string
 		std::stringstream score_stream;
@@ -262,6 +262,11 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 				parsed_nodes = parsed_nodes / 1000;
 				node_unit = "Mn";
 			}
+			if (parsed_nodes >= 1000)
+			{
+				parsed_nodes = parsed_nodes / 1000;
+				node_unit = "Gn";
+			}
 		}
 
 		std::stringstream node_stream;
@@ -275,7 +280,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		std::cout << std::right << std::setw(8) << time_string;
 		std::cout << std::right << std::setw(10) << node_string;
 		std::cout << std::setw(7) << std::right << " " << score_string;
-		std::cout << std::setw(7) << std::right << std::fixed << std::setprecision(0) << nps / 1000.0 << "kn/s" << " ";
+		std::cout << std::setw(7) << std::right << std::fixed << static_cast<int>(nps / 1000.0) << "kn/s" << " ";
 
 		// loop over the moves within a PV line
 		for (int count = 0; count < td->pv_table.pvLength[0]; count++)

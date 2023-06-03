@@ -72,7 +72,7 @@ int StartBench() {
 	for (int positions = 0; positions < 52; positions++) {
 		ParseFen(benchmarkfens[positions], &td->pos);
 
-		std::cout << "\nPosition: " << positions + 1 << std::endl;
+		std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
 
 		RootSearch(12, td, uci_options);
 
