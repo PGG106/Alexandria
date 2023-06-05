@@ -32,7 +32,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 	// else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
 	else if (info->timeset)
 	{
-		int basetime = time / 20 + inc / 2;
+		int basetime = time / 20 + inc * 3 / 4;
 		//optime is the time we use to stop if we just cleared a depth
 		int optime = basetime * 0.6;
 		//maxtime is the absolute maximum time we can spend on a search
