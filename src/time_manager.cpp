@@ -51,6 +51,17 @@ bool StopEarly(const S_SearchINFO* info)
 	else return false;
 }
 
+void ScaleTm(S_ThreadData* td) {
+	int bestmove = GetBestMove(&td->pv_table);
+	// Calculate how many nodes were spent on checking the best move
+	double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
+	double nodeScalingFactor = (1.5 - bestMoveNodesFraction) * 1.35;
+	//Scale the search time based on how many nodes we spent
+	td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor, td->info.stoptimeMax);
+	return;
+}
+
+
 bool NodesOver(const S_SearchINFO* info) {
 	// check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
 	if (info->nodeset == TRUE && info->nodes > info->nodeslimit)
