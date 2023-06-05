@@ -83,7 +83,7 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int  move)
 //Resets the history table
 void CleanHistories(Search_data* ss) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
-	for (int index = 0; index < 12; ++index) {
+	for (int index = 0; index < 64; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
 			ss->searchHistory[WHITE][index][index2] = 0;
 			ss->searchHistory[BLACK][index][index2] = 0;
