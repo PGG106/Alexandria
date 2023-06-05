@@ -528,6 +528,8 @@ moves_loop:
 
 		if (isQuiet && SkipQuiets) continue;
 
+		int movehistory = GetHistoryScore(pos, sd, move, ss);
+
 		//if the move isn't a quiet move we update the quiet moves list and counter
 		if (isQuiet) {
 			quiet_moves.moves[quiet_moves.count].move = move;
@@ -616,7 +618,6 @@ moves_loop:
 				depth_reduction += !improving;
 				//Reduce more if we aren't in a pv node
 				depth_reduction += !pv_node;
-				int movehistory = GetHistoryScore(pos, sd, move, ss);
 				//Decrease the reduction for moves that have a good history score
 				if (movehistory > 16384) depth_reduction--;
 			}
