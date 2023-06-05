@@ -6,14 +6,14 @@ void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus)
 	//Scale bonus to fix it in a [-32768;32768] range
 	int scaled_bonus = bonus - GetHHScore(pos, ss, move) * std::abs(bonus) / 32768;
 	//Update move score
-	ss->searchHistory[pos->pieces[From(move)]]
+	ss->searchHistory[pos->side][From(move)]
 		[To(move)] += scaled_bonus;
 }
 
 void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int move, const int bonus)
 {
 	//Scale bonus to fix it in a [-32768;32768] range
-	int scaled_bonus = bonus - GetCHScore( sd, ss, move) * std::abs(bonus) / 32768;
+	int scaled_bonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
 	//Update move score
 	if (ss->ply > 0)
 	{
@@ -65,7 +65,7 @@ void UpdateCH(const S_Board* pos, Search_data* sd, const Search_stack* ss, const
 
 //Returns the history score of a move
 int GetHHScore(const S_Board* pos, const Search_data* sd, const int  move) {
-	return sd->searchHistory[pos->pieces[From(move)]][To(move)];
+	return sd->searchHistory[pos->side][From(move)][To(move)];
 }
 
 int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, const Search_stack* ss) {
@@ -83,9 +83,10 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int  move)
 //Resets the history table
 void CleanHistories(Search_data* ss) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
-	for (int index = 0; index < 12; ++index) {
+	for (int index = 0; index < 64; ++index) {
 		for (int index2 = 0; index2 < 64; ++index2) {
-			ss->searchHistory[index][index2] = 0;
+			ss->searchHistory[WHITE][index][index2] = 0;
+			ss->searchHistory[BLACK][index][index2] = 0;
 		}
 	}
 	std::memset(ss->cont_hist, 0, sizeof(ss->cont_hist));
