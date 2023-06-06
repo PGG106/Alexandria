@@ -620,6 +620,7 @@ moves_loop:
 				depth_reduction += !pv_node;
 				//Decrease the reduction for moves that have a good history score
 				if (movehistory > 16384) depth_reduction--;
+				if (movehistory < -16384) depth_reduction++;
 			}
 			//Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
