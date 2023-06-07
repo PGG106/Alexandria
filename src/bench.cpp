@@ -74,7 +74,7 @@ int StartBench() {
 
 		std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
 
-		RootSearch(12, td, uci_options);
+		RootSearch(14, td, uci_options);
 
 		total_nodes += td->info.nodes;
 	}
