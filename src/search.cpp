@@ -13,6 +13,7 @@
 #include "datagen.h"
 #include "time_manager.h"
 #include <iostream>
+#include <algorithm>
 
 // IsRepetition handles the repetition detection of a position
 static int IsRepetition(const S_Board* pos) {
@@ -618,9 +619,8 @@ moves_loop:
 				depth_reduction += !improving;
 				//Reduce more if we aren't in a pv node
 				depth_reduction += !pv_node;
-				//Decrease the reduction for moves that have a good history score
-				if (movehistory > 16384) depth_reduction--;
-				if (movehistory < -16384) depth_reduction++;
+				//Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
+				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 			}
 			//Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
