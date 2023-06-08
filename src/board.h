@@ -198,7 +198,7 @@ int GetEpSquare(const S_Board* pos);
 int Get50mrCounter(const S_Board* pos);
 int GetCastlingPerm(const S_Board* pos);
 int GetPoskey(const S_Board* pos);
-
+uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
 
 
