@@ -21,9 +21,15 @@ bool MaterialDraw(const S_Board* pos) {
 	return false;
 }
 
+static inline float MaterialScale(const S_Board* pos)
+{
+	return 700 + GetMaterialValue(pos) / 32;
+}
+
 // position evaluation
 int EvalPosition(const S_Board* pos) {
 	bool stm = (pos->side == WHITE);
 	int eval = nnue.output(pos->accumulator, stm);
+	eval = (eval * MaterialScale(pos)) / 1024;
 	return eval;
 }

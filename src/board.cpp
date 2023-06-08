@@ -120,7 +120,7 @@ void ResetBoard(S_Board* pos) {
 	// set default nnue values
 	for (size_t i = 0; i < HIDDEN_SIZE; i++) {
 		pos->accumulator[0][i] = nnue.featureBias[i];
-        pos->accumulator[1][i] = nnue.featureBias[i];
+		pos->accumulator[1][i] = nnue.featureBias[i];
 	}
 
 	//Reset nnue accumulator stack
@@ -450,6 +450,17 @@ int GetCastlingPerm(const S_Board* pos) {
 int GetPoskey(const S_Board* pos) {
 	return pos->posKey;
 }
+
+uint64_t GetMaterialValue(const S_Board* pos) {
+	int pawns = CountBits(GetPieceBB(pos, PAWN));
+	int knights = CountBits(GetPieceBB(pos, KNIGHT));
+	int bishops = CountBits(GetPieceBB(pos, BISHOP));
+	int rooks = CountBits(GetPieceBB(pos, ROOK));
+	int queens = CountBits(GetPieceBB(pos, QUEEN));
+
+	return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishop * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
+}
+
 
 
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
