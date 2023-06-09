@@ -462,7 +462,8 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 		// Reverse futility pruning 
 		if (depth < 9
-			&& eval - futility(depth, improving) >= beta)
+			&& eval - futility(depth, improving) >= beta
+			&& abs(eval) < ISMATE)
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
