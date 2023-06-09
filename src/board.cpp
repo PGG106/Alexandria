@@ -296,7 +296,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
 }
 
-std::string GetFen(S_Board* pos)
+std::string GetFen(const S_Board* pos)
 {
 
 	std::string pos_string;

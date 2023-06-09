@@ -90,11 +90,13 @@ void PrintBoard(const S_Board* pos) {
 		(pos->castleperm & BKCA) ? 'k' : '-',
 		(pos->castleperm & BQCA) ? 'q' : '-');
 
-	std::cout << "position ply: " << std::endl;
+	std::cout << "\n position ply: " << std::endl;
 
 	std::cout << "position hisPly: " << pos->hisPly << std::endl;
 
-	std::cout << "position key: " << pos->posKey << "\n\n";
+	std::cout << "position key: " << pos->posKey << std::endl;
+
+	std::cout << "Fen: " << GetFen(pos) << "\n\n";
 
 }
 
