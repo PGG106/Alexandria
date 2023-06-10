@@ -16,42 +16,6 @@
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
 
-// convert squares to coordinates
-const char* square_to_coordinates[] = {
-	"a8", "b8", "c8", "d8", "e8", "f8","g8","h8",
-	"a7", "b7", "c7","d7", "e7", "f7","g7", "h7",
-	"a6", "b6", "c6", "d6", "e6", "f6","g6","h6",
-	"a5", "b5", "c5", "d5", "e5", "f5","g5","h5",
-	"a4", "b4", "c4", "d4", "e4", "f4","g4","h4",
-	"a3", "b3", "c3", "d3","e3", "f3","g3", "h3",
-	"a2", "b2", "c2", "d2", "e2", "f2","g2","h2",
-	"a1", "b1", "c1", "d1", "e1", "f1","g1","h1",
-};
-
-//Lookup to get the rank of a square
-const int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
-						  6, 6, 6, 6, 6, 6, 6, 6,
-						  5, 5, 5, 5, 5, 5, 5, 5,
-						  4, 4, 4, 4, 4, 4, 4, 4,
-						  3, 3, 3, 3, 3, 3, 3, 3,
-						  2, 2, 2, 2, 2, 2, 2, 2,
-						  1, 1, 1, 1, 1, 1, 1, 1,
-						  0, 0, 0, 0, 0, 0, 0, 0 };
-
-//Lookup to get the color from a piece
-const int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
-					   BLACK, BLACK, BLACK, BLACK, BLACK, BLACK };
-
-const int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
-PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
-
-// castling rights update constants
-const int castling_rights[64] = {
-	7,  15, 15, 15, 3,  15, 15, 11, 15, 15, 15, 15, 15, 15, 15, 15,
-	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-	15, 15, 15, 15, 15, 15, 15, 15, 13, 15, 15, 15, 12, 15, 15, 14 };
-
 NNUE nnue = NNUE();
 
 int CountBits(Bitboard b) {

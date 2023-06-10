@@ -339,19 +339,6 @@ void UciLoop(char** argv) {
 				uci_options->Threads = std::stoi(tokens.at(4));
 				std::cout << "Set Threads to " << uci_options->Threads << "\n";
 			}
-			else if (tokens.at(2) == "lmp_not_improving_multiplier") {
-				lmp_not_improving_multiplier = std::stoi(tokens.at(4));
-			}
-			else if (tokens.at(2) == "lmp_improving_multiplier") {
-				lmp_improving_multiplier = std::stoi(tokens.at(4));
-			}
-			else if (tokens.at(2) == "see_margin_quiet_base") {
-				see_margin_quiet_base = std::stoi(tokens.at(4));
-			}
-			else if (tokens.at(2) == "see_margin_notquiet_base") {
-				see_margin_notquiet_base = std::stoi(tokens.at(4));
-			}
-
 			else std::cout << "Unknown command: " << input << std::endl;
 		}
 

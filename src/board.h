@@ -30,10 +30,15 @@ constexpr int Board_sq_num = 64;
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-// extract rank from a square [square]
-extern const int get_rank[Board_sq_num];
-
-extern const int Color[12];
+//Lookup to get the rank of a square
+constexpr int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
+						  6, 6, 6, 6, 6, 6, 6, 6,
+						  5, 5, 5, 5, 5, 5, 5, 5,
+						  4, 4, 4, 4, 4, 4, 4, 4,
+						  3, 3, 3, 3, 3, 3, 3, 3,
+						  2, 2, 2, 2, 2, 2, 2, 2,
+						  1, 1, 1, 1, 1, 1, 1, 1,
+						  0, 0, 0, 0, 0, 0, 0, 0 };
 
 // extract rank from a square [square]
 constexpr int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7,
@@ -52,15 +57,17 @@ constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 
 											  3,  9,  8,  7,  6,  5,  4,  3, 2,  8,  7,  6,  5,
 											  4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
+//Lookup to get the color from a piece
+constexpr int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
+					   BLACK, BLACK, BLACK, BLACK, BLACK, BLACK };
+
+constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
+PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
+
+
 extern int reductions[MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
-
-extern int lmp_not_improving_multiplier; //Not improving
-extern int lmp_improving_multiplier;//improving
-
-extern int see_margin_quiet_base;
-extern int see_margin_notquiet_base;
 
 typedef struct Undo {
 	int castlePerm = 15;
@@ -136,10 +143,23 @@ struct S_SearchINFO {
 };
 
 // castling rights update constants
-extern const int castling_rights[Board_sq_num];
+constexpr  int castling_rights[64] = {
+	7,  15, 15, 15, 3,  15, 15, 11, 15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15, 13, 15, 15, 15, 12, 15, 15, 14 };
 
 // convert squares to coordinates
-extern const char* square_to_coordinates[];
+constexpr char* square_to_coordinates[]={
+	"a8", "b8", "c8", "d8", "e8", "f8","g8","h8",
+	"a7", "b7", "c7","d7", "e7", "f7","g7", "h7",
+	"a6", "b6", "c6", "d6", "e6", "f6","g6","h6",
+	"a5", "b5", "c5", "d5", "e5", "f5","g5","h5",
+	"a4", "b4", "c4", "d4", "e4", "f4","g4","h4",
+	"a3", "b3", "c3", "d3","e3", "f3","g3", "h3",
+	"a2", "b2", "c2", "d2", "e2", "f2","g2","h2",
+	"a1", "b1", "c1", "d1", "e1", "f1","g1","h1",
+};
 
 constexpr char RankChar[] = "12345678";
 constexpr char FileChar[] = "abcdefgh";

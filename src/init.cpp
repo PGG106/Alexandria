@@ -32,8 +32,6 @@ Bitboard bishop_masks[64];
 // rook attack masks
 Bitboard rook_masks[64];
 
-// rook attack masks Bitboard rook_masks[64];
-
 // bishop attacks table [square][pos->occupancies]
 Bitboard bishop_attacks[64][512];
 
@@ -45,12 +43,6 @@ Bitboard SQUARES_BETWEEN_BB[64][64];
 int reductions[MAXDEPTH][MAXPLY];
 int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
-
-int lmp_not_improving_multiplier = 5; //Not improving
-int lmp_improving_multiplier = 8;//improving
-
-int see_margin_quiet_base = -80;
-int see_margin_notquiet_base = -30;
 
 //Initialize the Zobrist keys
 void initHashKeys() {
@@ -247,8 +239,8 @@ void InitReductions() {
 		lmp_margin[depth][0] = (3 + depth * depth) / 2; //Not improving
 		lmp_margin[depth][1] = 3 + depth * depth; //improving
 
-		see_margin[depth][1] = see_margin_quiet_base * depth; //Quiet moves
-		see_margin[depth][0] = see_margin_notquiet_base * depth * depth; //Non quiets
+		see_margin[depth][1] = -80 * depth; //Quiet moves
+		see_margin[depth][0] = -30 * depth * depth; //Non quiets
 
 	}
 }
