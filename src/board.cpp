@@ -422,7 +422,7 @@ uint64_t GetMaterialValue(const S_Board* pos) {
 	int rooks = CountBits(GetPieceBB(pos, ROOK));
 	int queens = CountBits(GetPieceBB(pos, QUEEN));
 
-	return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + knights * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
+	return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishops * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
 }
 
 
