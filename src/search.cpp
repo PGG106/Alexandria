@@ -623,7 +623,7 @@ moves_loop:
 				//Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
 				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 				//Fuck
-				depth_reduction += cutnode;
+				depth_reduction += 2 * cutnode;
 			}
 			//Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
