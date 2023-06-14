@@ -131,7 +131,7 @@ void PrintAttackedSquares(const S_Board* pos, const int side) {
 void PrintMove(const int move) {
 	const char* from = square_to_coordinates[From(move)];
 	const char* to = square_to_coordinates[To(move)];
-	char promoted = get_move_promoted(move);
+	char promoted = Promoted(move);
 
 	if (promoted)
 		std::cout << from << to << promoted_pieces[promoted];
@@ -143,7 +143,7 @@ char* FormatMove(const int move) {
 	static char Move[6];
 	const char* from = square_to_coordinates[From(move)];
 	const char* to = square_to_coordinates[To(move)];
-	char promoted = get_move_promoted(move);
+	char promoted = Promoted(move);
 
 	if (promoted)
 		snprintf(Move, sizeof(Move), "%s%s%c", from, to, promoted_pieces[promoted]);

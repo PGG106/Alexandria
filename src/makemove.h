@@ -14,7 +14,7 @@
 /// <param name="piece">the piece to be removed</param>
 /// <param name="sq">the square the piece sits on</param>
 /// <param name="pos">the current position</param>
-void ClearPiece(const int piece, const int sq, S_Board* pos);
+void ClearPiece(const int piece, const int from, S_Board* pos);
 /// <summary>
 /// Adds a pice to a square
 /// </summary>

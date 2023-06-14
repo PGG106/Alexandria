@@ -222,7 +222,7 @@ bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
 		//play the move
 		make_move(move, pos);
 		//We don't save the position if the best move is a capture
-		if (get_move_capture(move)) continue;
+		if (IsCapture(move)) continue;
 		//We don't save the position if the score is a mate score
 		if (abs(entry.score) > ISMATE) continue;
 		//If we were in check we discard the position

@@ -2,13 +2,13 @@
 #include "ttable.h"
 
 //Remove a piece from a square
-void ClearPiece(const int piece, const int sq, S_Board* pos) {
+void ClearPiece(const int piece, const int from, S_Board* pos) {
 	int color = Color[piece];
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
+	pos->posKey ^= PieceKeys[piece][from];
+	pop_bit(pos->bitboards[piece], from);
+	pos->pieces[from] = EMPTY;
+	pop_bit(pos->occupancies[BOTH], from);
+	pop_bit(pos->occupancies[color], from);
 }
 
 //Add a piece to a square
@@ -18,7 +18,7 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 	set_bit(pos->occupancies[color], to);
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
+	pos->posKey ^= PieceKeys[piece][to];
 }
 
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
@@ -62,9 +62,9 @@ void make_move(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
+	int promoted_piece = Promoted(move);
 
-	int capture = get_move_capture(move);
+	int capture = IsCapture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -193,9 +193,9 @@ int make_move_light(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
+	int promoted_piece = Promoted(move);
 
-	int capture = get_move_capture(move);
+	int capture = IsCapture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -319,8 +319,8 @@ int Unmake_move(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
+	int promoted_piece = Promoted(move);
+	int capture = IsCapture(move);
 
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -430,8 +430,8 @@ PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
+	int promoted_piece = Promoted(move);
+	int capture = IsCapture(move);
 	PosKey newKey = OldKey;
 	// handling capture moves
 	if (capture) {

@@ -89,8 +89,8 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
 		printf(" %s%s%c: %ld\n",
 			square_to_coordinates[From(move)],
 			square_to_coordinates[To(move)],
-			get_move_promoted(move)
-			? promoted_pieces[get_move_promoted(move)]
+			Promoted(move)
+			? promoted_pieces[Promoted(move)]
 			: ' ',
 			old_nodes);
 	}
