@@ -32,11 +32,7 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 
 void StoreHashEntry(const ZobristKey key, const int ply, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv) {
-	// Adjust mate scores to work with different plies
-	if (score > ISMATE)
-		score -= ply;
-	else if (score < -ISMATE)
-		score += ply;
+
 	//Calculate index based on the position key and get the entry that already fills that index
 	uint64_t index = Index(key);
 	S_HashEntry* tte = &HashTable->pTable[index];

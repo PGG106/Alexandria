@@ -462,7 +462,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 		// Reverse futility pruning 
 		if (depth < 9
-			&& eval - futility(depth, improving) >= beta
+			&& eval - 66 * (depth - improving) >= beta
 			&& abs(eval) < ISMATE)
 			return eval;
 
