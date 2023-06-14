@@ -45,6 +45,15 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 	MovePiece(piece, from, to, pos);
 }
 
+void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
+	// Xor the old castling key from the zobrist key
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
+	// update castling rights
+	pos->castleperm &= castling_rights[source_square];
+	pos->castleperm &= castling_rights[target_square];
+	// Xor the new one
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
+}
 
 // make move on chess board
 void make_move(const int move, S_Board* pos) {
@@ -161,12 +170,8 @@ void make_move(const int move, S_Board* pos) {
 			break;
 		}
 	}
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
-	// update castling rights
-	pos->castleperm &= castling_rights[source_square];
-	pos->castleperm &= castling_rights[target_square];
 
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
+	UpdateCastlingPerms(pos, source_square, target_square);
 
 	// change side
 	ChangeSide(pos);
@@ -292,12 +297,8 @@ int make_move_light(const int move, S_Board* pos) {
 		}
 	}
 
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
-	// update castling rights
-	pos->castleperm &= castling_rights[source_square];
-	pos->castleperm &= castling_rights[target_square];
+	UpdateCastlingPerms(pos, source_square, target_square);
 
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 
 	// change side
 	ChangeSide(pos);
