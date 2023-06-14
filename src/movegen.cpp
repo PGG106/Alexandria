@@ -400,7 +400,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
 			Bitboard moves =
 				LegalPawnMoves(pos, pos->side, source_square) &
-				(Enemy(pos) | 255 | 18374686479671623680ULL);
+				Enemy(pos);
 			while (moves) {
 				// init target square
 				target_square = GetLsbIndex(moves);
