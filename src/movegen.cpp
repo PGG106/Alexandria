@@ -15,13 +15,13 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
 		(pawn_attacks[WHITE][square] & GetPieceColorBB(pos, PAWN, BLACK)))
 		return TRUE;
 	// is the square attacked by queens
-	if (get_queen_attacks(square, occ) & GetPieceColorBB(pos, QUEEN, side))
+	if (GetQueenAttacks(square, occ) & GetPieceColorBB(pos, QUEEN, side))
 		return TRUE;
 	// is the square attacked by rooks
-	if (get_rook_attacks(square, occ) & GetPieceColorBB(pos, ROOK, side))
+	if (GetRookAttacks(square, occ) & GetPieceColorBB(pos, ROOK, side))
 		return TRUE;
 	// is the square attacked by bishops
-	if (get_bishop_attacks(square, occ) & GetPieceColorBB(pos, BISHOP, side))
+	if (GetBishopAttacks(square, occ) & GetPieceColorBB(pos, BISHOP, side))
 		return TRUE;
 	// is the square attacked by knights
 	if (knight_attacks[square] & GetPieceColorBB(pos, KNIGHT, side))
@@ -140,7 +140,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 		ClearPiece(ourPawn, square, pos);
 		ClearPiece(theirPawn, (pos->enPas + offset), pos);
 		AddPiece(ourPawn, pos->enPas, pos);
-		if (!((get_rook_attacks(kSQ, pos->occupancies[2]) &
+		if (!((GetRookAttacks(kSQ, pos->occupancies[2]) &
 			(GetPieceColorBB(pos, ROOK, color ^ 1) |
 				GetPieceColorBB(pos, QUEEN, color ^ 1)))))
 			moves |= (1ULL << pos->enPas);
@@ -162,9 +162,9 @@ static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
 	if (pos->pinHV & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinD & (1ULL << square))
-		return get_bishop_attacks(square, Occupancy(pos, BOTH)) &
+		return GetBishopAttacks(square, Occupancy(pos, BOTH)) &
 		~(Occupancy(pos, color)) & pos->pinD & pos->checkMask;
-	return get_bishop_attacks(square, Occupancy(pos, BOTH)) &
+	return GetBishopAttacks(square, Occupancy(pos, BOTH)) &
 		~(Occupancy(pos, color)) & pos->checkMask;
 }
 
@@ -172,9 +172,9 @@ static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
 	if (pos->pinD & (1ULL << square))
 		return NOMOVE;
 	if (pos->pinHV & (1ULL << square))
-		return get_rook_attacks(square, Occupancy(pos, BOTH)) &
+		return GetRookAttacks(square, Occupancy(pos, BOTH)) &
 		~(Occupancy(pos, color)) & pos->pinHV & pos->checkMask;
-	return get_rook_attacks(square, Occupancy(pos, BOTH)) &
+	return GetRookAttacks(square, Occupancy(pos, BOTH)) &
 		~(Occupancy(pos, color)) & pos->checkMask;
 }
 

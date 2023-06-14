@@ -75,8 +75,8 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 		| (pawn_attacks[BLACK][to] & GetPieceColorBB(pos, PAWN, WHITE))
 		| (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
 		| (king_attacks[to] & GetPieceBB(pos, KING))
-		| (get_bishop_attacks(to, occ) & attackingBishops)
-		| (get_rook_attacks(to, occ) & attackingRooks);
+		| (GetBishopAttacks(to, occ) & attackingBishops)
+		| (GetRookAttacks(to, occ) & attackingRooks);
 
 }
 
@@ -148,9 +148,9 @@ bool SEE(const S_Board* pos, const int move,
 
 
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
-			attackers |= get_bishop_attacks(to, occupied) & bishops;
+			attackers |= GetBishopAttacks(to, occupied) & bishops;
 		if (pt == ROOK || pt == QUEEN)
-			attackers |= get_rook_attacks(to, occupied) & rooks;
+			attackers |= GetRookAttacks(to, occupied) & rooks;
 	}
 
 	return side != Color[attacker];

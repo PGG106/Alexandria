@@ -143,11 +143,11 @@ void initializeLookupTables() {
 			sqs = (1ULL << sq1) | (1ULL << sq2);
 			if (get_file[sq1] == get_file[sq2] || (get_rank[sq1] == get_rank[sq2]))
 				SQUARES_BETWEEN_BB[sq1][sq2] =
-				get_rook_attacks(sq1, sqs) & get_rook_attacks(sq2, sqs);
+				GetRookAttacks(sq1, sqs) & GetRookAttacks(sq2, sqs);
 			else if ((get_diagonal[sq1] == get_diagonal[sq2]) ||
 				(get_antidiagonal(sq1) == get_antidiagonal(sq2)))
 				SQUARES_BETWEEN_BB[sq1][sq2] =
-				get_bishop_attacks(sq1, sqs) & get_bishop_attacks(sq2, sqs);
+				GetBishopAttacks(sq1, sqs) & GetBishopAttacks(sq2, sqs);
 		}
 	}
 }
@@ -162,10 +162,10 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 		pos->bitboards[(color ^ 1) * 6 + 1] & knight_attacks[sq];
 	Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
 		pos->bitboards[(color ^ 1) * 6 + 4]) &
-		get_bishop_attacks(sq, Occ) & ~pos->occupancies[color];
+		GetBishopAttacks(sq, Occ) & ~pos->occupancies[color];
 	Bitboard rook_mask = (pos->bitboards[(color ^ 1) * 6 + 3] |
 		pos->bitboards[(color ^ 1) * 6 + 4]) &
-		get_rook_attacks(sq, Occ) & ~pos->occupancies[color];
+		GetRookAttacks(sq, Occ) & ~pos->occupancies[color];
 	pos->checks = 0;
 	if (pawn_mask) {
 		checks |= pawn_mask;
@@ -198,10 +198,10 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 	Bitboard them = Occupancy(pos, color ^ 1);
 	Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
 		pos->bitboards[(color ^ 1) * 6 + 4]) &
-		get_bishop_attacks(sq, them);
+		GetBishopAttacks(sq, them);
 	Bitboard rook_mask = (pos->bitboards[(color ^ 1) * 6 + 3] |
 		pos->bitboards[0 + (color ^ 1) * 6 + 4]) &
-		get_rook_attacks(sq, them);
+		GetRookAttacks(sq, them);
 	Bitboard rook_pin = 0ULL;
 	Bitboard bishop_pin = 0ULL;
 	pos->pinD = 0ULL;
