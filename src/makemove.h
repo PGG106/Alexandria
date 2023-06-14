@@ -7,9 +7,6 @@
 #include "movegen.h"
 
 #define HASH_PCE(pce, sq) (pos->posKey ^= (PieceKeys[(pce)][(sq)]))
-#define HASH_CA (pos->posKey ^= (CastleKeys[(pos->castleperm)]))
-#define HASH_SIDE (pos->posKey ^= (SideKey))
-#define HASH_EP (pos->posKey ^= (enpassant_keys[(pos->enPas)]))
 
 /// <summary>
 /// Removes a piece from a square

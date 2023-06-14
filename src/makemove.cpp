@@ -110,7 +110,7 @@ void make_move(const int move, S_Board* pos) {
 
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -121,14 +121,14 @@ void make_move(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			HASH_EP;
+			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			HASH_EP;
+			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 		}
 	}
 
@@ -161,16 +161,16 @@ void make_move(const int move, S_Board* pos) {
 			break;
 		}
 	}
-	HASH_CA;
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 	// update castling rights
 	pos->castleperm &= castling_rights[source_square];
 	pos->castleperm &= castling_rights[target_square];
 
-	HASH_CA;
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 
 	// change side
 	pos->side ^= 1;
-	HASH_SIDE;
+	pos->posKey ^= SideKey;
 
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
@@ -239,7 +239,7 @@ int make_move_light(const int move, S_Board* pos) {
 
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -250,14 +250,14 @@ int make_move_light(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			HASH_EP;
+			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			HASH_EP;
+			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 		}
 	}
 
@@ -290,16 +290,17 @@ int make_move_light(const int move, S_Board* pos) {
 			break;
 		}
 	}
-	HASH_CA;
+
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 	// update castling rights
 	pos->castleperm &= castling_rights[source_square];
 	pos->castleperm &= castling_rights[target_square];
 
-	HASH_CA;
+	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 
 	// change side
 	pos->side ^= 1;
-	HASH_SIDE;
+	pos->posKey ^= SideKey;
 	//
 
 	return 1;
@@ -394,7 +395,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
 
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -404,7 +405,7 @@ void MakeNullMove(S_Board* pos) {
 
 	pos->side ^= 1;
 	pos->hisPly++;
-	HASH_SIDE;
+	pos->posKey ^= SideKey;
 
 	return;
 }
