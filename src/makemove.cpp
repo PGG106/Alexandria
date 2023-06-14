@@ -169,7 +169,8 @@ void make_move(const int move, S_Board* pos) {
 	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 
 	// change side
-	pos->side ^= 1;
+	ChangeSide(pos);
+	// Xor the new side into the key
 	pos->posKey ^= SideKey;
 
 	//Speculative prefetch of the TT entry
@@ -299,9 +300,9 @@ int make_move_light(const int move, S_Board* pos) {
 	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
 
 	// change side
-	pos->side ^= 1;
+	ChangeSide(pos);
+	// Xor the new side into the key
 	pos->posKey ^= SideKey;
-	//
 
 	return 1;
 }
@@ -380,10 +381,10 @@ int Unmake_move(const int move, S_Board* pos) {
 	}
 
 	// change side
-	pos->side ^= 1;
+	ChangeSide(pos);
+
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
-
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return 1;
@@ -403,7 +404,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->history[pos->hisPly].checkers = pos->checkers;
 	pos->enPas = no_sq;
 
-	pos->side ^= 1;
+	ChangeSide(pos);
 	pos->hisPly++;
 	pos->posKey ^= SideKey;
 
@@ -419,7 +420,7 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 	pos->checkers = pos->history[pos->hisPly].checkers;
 
-	pos->side ^= 1;
+	ChangeSide(pos);
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return;

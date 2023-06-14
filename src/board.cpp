@@ -415,6 +415,10 @@ int GetPoskey(const S_Board* pos) {
 	return pos->posKey;
 }
 
+void ChangeSide(S_Board* pos) {
+	pos->side ^= 1;
+}
+
 uint64_t GetMaterialValue(const S_Board* pos) {
 	int pawns = CountBits(GetPieceBB(pos, PAWN));
 	int knights = CountBits(GetPieceBB(pos, KNIGHT));
