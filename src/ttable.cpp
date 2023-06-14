@@ -30,7 +30,7 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 	return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
-void StoreHashEntry(const PosKey key, const int ply, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const ZobristKey key, const int ply, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv) {
 	// Adjust mate scores to work with different plies
 	if (score > ISMATE)
@@ -59,7 +59,7 @@ void StoreHashEntry(const PosKey key, const int ply, const int move, int score, 
 	}
 }
 
-uint64_t Index(const PosKey posKey) {
+uint64_t Index(const ZobristKey posKey) {
 	return  (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 32;
 
 }
@@ -73,6 +73,6 @@ void prefetch(const void* addr) {
 #  endif
 }
 
-void TTPrefetch(const PosKey posKey) {
+void TTPrefetch(const ZobristKey posKey) {
 	prefetch(&HashTable->pTable[Index(posKey)]);
 }

@@ -4,7 +4,7 @@
 //Remove a piece from a square
 void ClearPiece(const int piece, const int from, S_Board* pos) {
 	int color = Color[piece];
-	pos->posKey ^= PieceKeys[piece][from];
+	HashKey(pos, PieceKeys[piece][from]);
 	pop_bit(pos->bitboards[piece], from);
 	pos->pieces[from] = EMPTY;
 	pop_bit(pos->occupancies[BOTH], from);
@@ -18,7 +18,7 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 	set_bit(pos->occupancies[color], to);
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
-	pos->posKey ^= PieceKeys[piece][to];
+	HashKey(pos, PieceKeys[piece][to]);
 }
 
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
@@ -47,12 +47,16 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 
 void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
 	// Xor the old castling key from the zobrist key
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
+	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
 	// update castling rights
 	pos->castleperm &= castling_rights[source_square];
 	pos->castleperm &= castling_rights[target_square];
 	// Xor the new one
-	pos->posKey ^= CastleKeys[GetCastlingPerm(pos)];
+	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
+}
+
+void inline HashKey(S_Board* pos, ZobristKey key) {
+	pos->posKey ^= key;
 }
 
 // make move on chess board
@@ -119,7 +123,8 @@ void make_move(const int move, S_Board* pos) {
 
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -130,14 +135,14 @@ void make_move(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 	}
 
@@ -176,7 +181,7 @@ void make_move(const int move, S_Board* pos) {
 	// change side
 	ChangeSide(pos);
 	// Xor the new side into the key
-	pos->posKey ^= SideKey;
+	HashKey(pos, SideKey);
 
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
@@ -242,10 +247,9 @@ int make_move_light(const int move, S_Board* pos) {
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
 	AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -256,14 +260,14 @@ int make_move_light(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 	}
 
@@ -299,11 +303,10 @@ int make_move_light(const int move, S_Board* pos) {
 
 	UpdateCastlingPerms(pos, source_square, target_square);
 
-
 	// change side
 	ChangeSide(pos);
 	// Xor the new side into the key
-	pos->posKey ^= SideKey;
+	HashKey(pos, SideKey);
 
 	return 1;
 }
@@ -397,7 +400,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
-		pos->posKey ^= enpassant_keys[GetEpSquare(pos)];
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -407,7 +410,7 @@ void MakeNullMove(S_Board* pos) {
 
 	ChangeSide(pos);
 	pos->hisPly++;
-	pos->posKey ^= SideKey;
+	HashKey(pos, SideKey);
 
 	return;
 }
@@ -425,40 +428,4 @@ void TakeNullMove(S_Board* pos) {
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return;
-}
-
-PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
-	// parse move
-	int source_square = From(move);
-	int target_square = To(move);
-	int piece = Piece(move);
-	int promoted_piece = Promoted(move);
-	int capture = IsCapture(move);
-	PosKey newKey = OldKey;
-	// handling capture moves
-	if (capture) {
-		int piececap = pos->pieces[target_square];
-		(newKey ^= (PieceKeys[(piececap)][(target_square)]));
-	}
-
-	// move piece
-	(newKey ^= (PieceKeys[(piece)][(source_square)]));
-	(newKey ^= (PieceKeys[(piece)][(target_square)]));
-
-	// handle pawn promotions
-	if (promoted_piece) {
-		if (pos->side == WHITE)
-			(newKey ^= (PieceKeys[(WP)][(target_square)]));
-
-		else
-			(newKey ^= (PieceKeys[(BP)][(target_square)]));
-
-		// set up promoted piece on chess board
-		(newKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
-	}
-
-	// change side
-	(newKey ^= (SideKey));
-
-	return newKey;
 }
