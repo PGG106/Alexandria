@@ -345,7 +345,7 @@ void parse_moves(const std::string moves, S_Board* pos)
 		// parse next move
 		int move = ParseMove(move_tokens[i], pos);
 		// make move on the chess board
-		make_move_light(move, pos);
+		MakeMoveLight(move, pos);
 	}
 }
 
@@ -413,6 +413,10 @@ int GetCastlingPerm(const S_Board* pos) {
 }
 int GetPoskey(const S_Board* pos) {
 	return pos->posKey;
+}
+
+void ChangeSide(S_Board* pos) {
+	pos->side ^= 1;
 }
 
 uint64_t GetMaterialValue(const S_Board* pos) {

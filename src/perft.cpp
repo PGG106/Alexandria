@@ -41,14 +41,14 @@ void PerftDriver(int depth, S_Board* pos) {
 	for (int move_count = 0; move_count < move_list->count; move_count++) {
 		int move = move_list->moves[move_count].move;
 		// make move
-		make_move(move, pos);
+		MakeMove(move, pos);
 
 		// call perft driver recursively
 		PerftDriver(depth - 1, pos);
 
 		// take back
 
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 	}
 }
 
@@ -70,7 +70,7 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
 	for (int move_count = 0; move_count < move_list->count; move_count++) {
 		const int move = move_list->moves[move_count].move;
 		// make move
-		make_move(move, pos);
+		MakeMove(move, pos);
 
 		// cummulative nodes
 		long cummulative_nodes = nodes;
@@ -80,7 +80,7 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
 
 		// take back
 
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 
 		// old nodes
 		long old_nodes = nodes - cummulative_nodes;
@@ -89,8 +89,8 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
 		printf(" %s%s%c: %ld\n",
 			square_to_coordinates[From(move)],
 			square_to_coordinates[To(move)],
-			get_move_promoted(move)
-			? promoted_pieces[get_move_promoted(move)]
+			Promoted(move)
+			? promoted_pieces[Promoted(move)]
 			: ' ',
 			old_nodes);
 	}

@@ -23,7 +23,7 @@ void InitHashTable(S_HashTable* table, uint64_t MB);
 
 bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte);
 
-void StoreHashEntry(const PosKey key, const int ply, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const ZobristKey key, const int ply, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv);
-uint64_t Index(const PosKey posKey);
-void TTPrefetch(const PosKey posKey);
+uint64_t Index(const ZobristKey posKey);
+void TTPrefetch(const ZobristKey posKey);

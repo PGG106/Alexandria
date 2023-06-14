@@ -2,13 +2,13 @@
 #include "ttable.h"
 
 //Remove a piece from a square
-void ClearPiece(const int piece, const int sq, S_Board* pos) {
+void ClearPiece(const int piece, const int from, S_Board* pos) {
 	int color = Color[piece];
-	HASH_PCE(piece, sq);
-	pop_bit(pos->bitboards[piece], sq);
-	pos->pieces[sq] = EMPTY;
-	pop_bit(pos->occupancies[BOTH], sq);
-	pop_bit(pos->occupancies[color], sq);
+	HashKey(pos, PieceKeys[piece][from]);
+	pop_bit(pos->bitboards[piece], from);
+	pos->pieces[from] = EMPTY;
+	pop_bit(pos->occupancies[BOTH], from);
+	pop_bit(pos->occupancies[color], from);
 }
 
 //Add a piece to a square
@@ -18,7 +18,7 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 	set_bit(pos->occupancies[color], to);
 	set_bit(pos->occupancies[BOTH], to);
 	pos->pieces[to] = piece;
-	HASH_PCE(piece, to);
+	HashKey(pos, PieceKeys[piece][to]);
 }
 
 //Remove a piece from a square while also deactivating the nnue weights tied to the piece
@@ -45,9 +45,22 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 	MovePiece(piece, from, to, pos);
 }
 
+void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
+	// Xor the old castling key from the zobrist key
+	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
+	// update castling rights
+	pos->castleperm &= castling_rights[source_square];
+	pos->castleperm &= castling_rights[target_square];
+	// Xor the new one
+	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
+}
+
+void inline HashKey(S_Board* pos, ZobristKey key) {
+	pos->posKey ^= key;
+}
 
 // make move on chess board
-void make_move(const int move, S_Board* pos) {
+void MakeMove(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
@@ -62,9 +75,9 @@ void make_move(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
+	int promoted_piece = Promoted(move);
 
-	int capture = get_move_capture(move);
+	int capture = IsCapture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -107,10 +120,10 @@ void make_move(const int move, S_Board* pos) {
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
 	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -121,14 +134,14 @@ void make_move(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			HASH_EP;
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			HASH_EP;
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 	}
 
@@ -161,16 +174,13 @@ void make_move(const int move, S_Board* pos) {
 			break;
 		}
 	}
-	HASH_CA;
-	// update castling rights
-	pos->castleperm &= castling_rights[source_square];
-	pos->castleperm &= castling_rights[target_square];
 
-	HASH_CA;
+	UpdateCastlingPerms(pos, source_square, target_square);
 
 	// change side
-	pos->side ^= 1;
-	HASH_SIDE;
+	ChangeSide(pos);
+	// Xor the new side into the key
+	HashKey(pos, SideKey);
 
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
@@ -179,7 +189,7 @@ void make_move(const int move, S_Board* pos) {
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
-int make_move_light(const int move, S_Board* pos) {
+int MakeMoveLight(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
@@ -193,9 +203,9 @@ int make_move_light(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
+	int promoted_piece = Promoted(move);
 
-	int capture = get_move_capture(move);
+	int capture = IsCapture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -236,10 +246,9 @@ int make_move_light(const int move, S_Board* pos) {
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
 	AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-
 	//Reset EP square
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 	// reset enpassant square
 	pos->enPas = no_sq;
 
@@ -250,14 +259,14 @@ int make_move_light(const int move, S_Board* pos) {
 			pos->enPas = target_square + 8;
 
 			// hash enpassant
-			HASH_EP;
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 		else {
 			// set enpassant square
 			pos->enPas = target_square - 8;
 
 			// hash enpassant
-			HASH_EP;
+			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 		}
 	}
 
@@ -290,22 +299,18 @@ int make_move_light(const int move, S_Board* pos) {
 			break;
 		}
 	}
-	HASH_CA;
-	// update castling rights
-	pos->castleperm &= castling_rights[source_square];
-	pos->castleperm &= castling_rights[target_square];
 
-	HASH_CA;
+	UpdateCastlingPerms(pos, source_square, target_square);
 
 	// change side
-	pos->side ^= 1;
-	HASH_SIDE;
-	//
+	ChangeSide(pos);
+	// Xor the new side into the key
+	HashKey(pos, SideKey);
 
 	return 1;
 }
 
-int Unmake_move(const int move, S_Board* pos) {
+int UnmakeMove(const int move, S_Board* pos) {
 	// quiet moves
 
 	pos->hisPly--;
@@ -318,8 +323,8 @@ int Unmake_move(const int move, S_Board* pos) {
 	int source_square = From(move);
 	int target_square = To(move);
 	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
+	int promoted_piece = Promoted(move);
+	int capture = IsCapture(move);
 
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
@@ -379,10 +384,10 @@ int Unmake_move(const int move, S_Board* pos) {
 	}
 
 	// change side
-	pos->side ^= 1;
+	ChangeSide(pos);
+
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
-
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return 1;
@@ -394,7 +399,7 @@ void MakeNullMove(S_Board* pos) {
 	pos->played_positions.emplace_back(pos->posKey);
 
 	if (pos->enPas != no_sq)
-		HASH_EP;
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -402,9 +407,9 @@ void MakeNullMove(S_Board* pos) {
 	pos->history[pos->hisPly].checkers = pos->checkers;
 	pos->enPas = no_sq;
 
-	pos->side ^= 1;
+	ChangeSide(pos);
 	pos->hisPly++;
-	HASH_SIDE;
+	HashKey(pos, SideKey);
 
 	return;
 }
@@ -418,44 +423,8 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 	pos->checkers = pos->history[pos->hisPly].checkers;
 
-	pos->side ^= 1;
+	ChangeSide(pos);
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return;
-}
-
-PosKey KeyAfterMove(const S_Board* pos, const PosKey OldKey, const  int move) {
-	// parse move
-	int source_square = From(move);
-	int target_square = To(move);
-	int piece = Piece(move);
-	int promoted_piece = get_move_promoted(move);
-	int capture = get_move_capture(move);
-	PosKey newKey = OldKey;
-	// handling capture moves
-	if (capture) {
-		int piececap = pos->pieces[target_square];
-		(newKey ^= (PieceKeys[(piececap)][(target_square)]));
-	}
-
-	// move piece
-	(newKey ^= (PieceKeys[(piece)][(source_square)]));
-	(newKey ^= (PieceKeys[(piece)][(target_square)]));
-
-	// handle pawn promotions
-	if (promoted_piece) {
-		if (pos->side == WHITE)
-			(newKey ^= (PieceKeys[(WP)][(target_square)]));
-
-		else
-			(newKey ^= (PieceKeys[(BP)][(target_square)]));
-
-		// set up promoted piece on chess board
-		(newKey ^= (PieceKeys[(promoted_piece)][(target_square)]));
-	}
-
-	// change side
-	(newKey ^= (SideKey));
-
-	return newKey;
 }

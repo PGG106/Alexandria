@@ -90,7 +90,7 @@ bool SEE(const S_Board* pos, const int move,
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
-	if (get_move_promoted(move)) return true;
+	if (Promoted(move)) return true;
 
 	if (value < 0)
 		return false;
@@ -168,8 +168,8 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			continue;
 		}
 		//Sort promotions based on the promoted piece type
-		else if (get_move_promoted(move)) {
-			switch (GetPieceType(get_move_promoted(move))) {
+		else if (Promoted(move)) {
+			switch (GetPieceType(Promoted(move))) {
 			case QUEEN:
 				move_list->moves[i].score = queenPromotionScore;
 				break;
@@ -187,7 +187,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			}
 		}
 		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not 
-		else if (get_move_capture(move)) {
+		else if (IsCapture(move)) {
 			move_list->moves[i].score =
 				mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
 				goodCaptureScore * SEE(pos, move, -107);
@@ -601,7 +601,7 @@ moves_loop:
 		int newDepth = depth + extension;
 		ss->move = move;
 		//Play the move
-		make_move(move, pos);
+		MakeMove(move, pos);
 		// increment nodes count
 		info->nodes++;
 		uint64_t nodes_before_search = info->nodes;
@@ -650,7 +650,7 @@ moves_loop:
 			Score = -Negamax(-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 		if (td->id == 0
 			&& root_node)
 			td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodes_before_search;
@@ -799,14 +799,14 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			break;
 		}
 		ss->move = move;
-		make_move(move, pos);
+		MakeMove(move, pos);
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
 		Score = -Quiescence(-beta, -alpha, td, ss + 1);
 
 		// take move back
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 
 		if (info->stopped)
 			return 0;
