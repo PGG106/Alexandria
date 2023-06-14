@@ -601,7 +601,7 @@ moves_loop:
 		int newDepth = depth + extension;
 		ss->move = move;
 		//Play the move
-		make_move(move, pos);
+		MakeMove(move, pos);
 		// increment nodes count
 		info->nodes++;
 		uint64_t nodes_before_search = info->nodes;
@@ -650,7 +650,7 @@ moves_loop:
 			Score = -Negamax(-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 		if (td->id == 0
 			&& root_node)
 			td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodes_before_search;
@@ -799,14 +799,14 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			break;
 		}
 		ss->move = move;
-		make_move(move, pos);
+		MakeMove(move, pos);
 		// increment nodes count
 		info->nodes++;
 		//Call Quiescence search recursively
 		Score = -Quiescence(-beta, -alpha, td, ss + 1);
 
 		// take move back
-		Unmake_move(move, pos);
+		UnmakeMove(move, pos);
 
 		if (info->stopped)
 			return 0;

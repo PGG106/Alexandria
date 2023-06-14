@@ -30,10 +30,10 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square);
 void HashKey(S_Board* pos, ZobristKey key);
 
 // make move on chess board
-void make_move(const int move, S_Board* pos);
-int make_move_light(const int move, S_Board* pos);
+void MakeMove(const int move, S_Board* pos);
+int MakeMoveLight(const int move, S_Board* pos);
 //Reverts the previously played move
-int Unmake_move(const int move, S_Board* pos);
+int UnmakeMove(const int move, S_Board* pos);
 //makes a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos);
 //Reverts the previously played null move

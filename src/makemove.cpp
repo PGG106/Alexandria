@@ -60,7 +60,7 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 }
 
 // make move on chess board
-void make_move(const int move, S_Board* pos) {
+void MakeMove(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
@@ -119,7 +119,6 @@ void make_move(const int move, S_Board* pos) {
 	ClearPieceNNUE(piece, source_square, pos);
 	//Set the piece to the destination square, if it was a promotion we directly set the promoted piece
 	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
-
 
 	//Reset EP square
 	if (pos->enPas != no_sq)
@@ -190,7 +189,7 @@ void make_move(const int move, S_Board* pos) {
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
-int make_move_light(const int move, S_Board* pos) {
+int MakeMoveLight(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
@@ -311,7 +310,7 @@ int make_move_light(const int move, S_Board* pos) {
 	return 1;
 }
 
-int Unmake_move(const int move, S_Board* pos) {
+int UnmakeMove(const int move, S_Board* pos) {
 	// quiet moves
 
 	pos->hisPly--;

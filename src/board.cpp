@@ -345,7 +345,7 @@ void parse_moves(const std::string moves, S_Board* pos)
 		// parse next move
 		int move = ParseMove(move_tokens[i], pos);
 		// make move on the chess board
-		make_move_light(move, pos);
+		MakeMoveLight(move, pos);
 	}
 }
 
