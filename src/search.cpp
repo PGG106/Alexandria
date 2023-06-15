@@ -219,11 +219,20 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 	return;
 }
 
-//Calculate a futility margin based on depth and if the search is improving or not
-int futility(int depth, bool improving) { return 66 * (depth - improving); }
-
 int GetBestMove(const PvTable* pv_table) {
 	return pv_table->pvArray[0][0];
+}
+
+int ScoreToTT(int score, int ply) {
+	if (score > ISMATE) score += ply;
+	else if (score < -ISMATE) score -= ply;
+	return score;
+}
+
+int ScoreFromTT(int score, int ply) {
+	if (score > ISMATE) score -= ply;
+	else if (score < -ISMATE) score += ply;
+	return score;
 }
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -413,15 +422,16 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	//Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
 	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
+	int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	//If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
 		&& ttHit
 		&& tte.depth >= depth)
 	{
-		if ((tte.flags == HFALPHA && tte.score <= alpha)
-			|| (tte.flags == HFBETA && tte.score >= beta)
+		if ((tte.flags == HFALPHA && ttScore <= alpha)
+			|| (tte.flags == HFBETA && ttScore >= beta)
 			|| (tte.flags == HFEXACT))
-			return tte.score;
+			return ttScore;
 	}
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
@@ -443,7 +453,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		//If we aren't on a pv node we can also use the tt score as a more accurate form of eval
 		if (!pv_node)
-			eval = tte.score;
+			eval = ttScore;
 	}
 	else {
 		//If we don't have anything in the TT we have to call evalposition
@@ -462,7 +472,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 		// Reverse futility pruning 
 		if (depth < 9
-			&& eval - futility(depth, improving) >= beta
+			&& eval - 66 * (depth - improving) >= beta
 			&& abs(eval) < ISMATE)
 			return eval;
 
@@ -570,10 +580,10 @@ moves_loop:
 				&& move == tte.move
 				&& !excludedMove
 				&& (tte.flags & HFBETA)
-				&& abs(tte.score) < ISMATE
+				&& abs(ttScore) < ISMATE
 				&& tte.depth >= depth - 3)
 			{
-				const int singularBeta = tte.score - 3 * depth;
+				const int singularBeta = ttScore - 3 * depth;
 				const int singularDepth = (depth - 1) / 2;
 
 				ss->excludedMove = tte.move;
@@ -710,7 +720,7 @@ moves_loop:
 	//Set the TT flag based on whether the BestScore is better than beta and if not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFBETA : (alpha != old_alpha) ? HFEXACT : HFALPHA;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, ss->ply, bestmove, BestScore, ss->static_eval, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node);
 	// return best score
 	return BestScore;
 }
@@ -746,15 +756,15 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 	//TThit is true if and only if we find something in the TT
 	TThit = ProbeHashEntry(pos, &tte);
-
+	int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	//If we found a value in the TT we can return it
 	if (!pv_node
 		&& TThit)
 	{
-		if ((tte.flags == HFALPHA && tte.score <= alpha)
-			|| (tte.flags == HFBETA && tte.score >= beta)
+		if ((tte.flags == HFALPHA && ttScore <= alpha)
+			|| (tte.flags == HFBETA && ttScore >= beta)
 			|| (tte.flags == HFEXACT))
-			return tte.score;
+			return ttScore;
 	}
 
 	//If we have a ttHit with a valid eval use that
@@ -832,7 +842,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
-	StoreHashEntry(pos->posKey, ss->ply, bestmove, BestScore, eval, flag, 0, pv_node);
+	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), eval, flag, 0, pv_node);
 
 	// return the best score we got
 	return BestScore;
