@@ -188,9 +188,16 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		}
 		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not 
 		else if (IsCapture(move)) {
-			move_list->moves[i].score =
-				mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
-				goodCaptureScore * SEE(pos, move, -107);
+			//Good captures get played before most of the stuff
+			if (SEE(pos, move, -107)) {
+				move_list->moves[i].score =
+					mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
+					goodCaptureScore;
+			}
+			else {
+				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][PieceOn(pos, To(move))];
+			}
+
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
