@@ -4,7 +4,7 @@
 #include <array>
 
 constexpr int INPUT_WEIGHTS = 768;
-constexpr int HIDDEN_SIZE = 512;
+constexpr int HIDDEN_SIZE = 768;
 
 class NNUE {
 public:
