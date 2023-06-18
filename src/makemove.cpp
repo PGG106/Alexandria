@@ -83,18 +83,13 @@ void MakeMove(const int move, S_Board* pos) {
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	// increment fifty move rule counter
 	pos->fiftyMove++;
+
+	int NORTH = pos->side == WHITE ? 8 : -8;
+
 	// handle enpassant captures
 	if (enpass)
 	{
-		//If it's an enpass we remove the pawn corresponding to the opponent square 
-		if (pos->side == WHITE)
-		{
-			ClearPieceNNUE(BP, target_square + 8, pos);
-		}
-		else {
-			ClearPieceNNUE(WP, target_square - 8, pos);
-
-		}
+		ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
 		pos->fiftyMove = 0;
 	}
 
@@ -109,8 +104,8 @@ void MakeMove(const int move, S_Board* pos) {
 		pos->fiftyMove = 0;
 	}
 
-	//if a pawn was moves reset the 50 move rule counter
-	if (piece == WP || piece == BP)
+	//if a pawn was moved reset the 50 move rule counter
+	if (GetPieceType(piece) == PAWN)
 		pos->fiftyMove = 0;
 
 	//increment ply counters
@@ -129,20 +124,10 @@ void MakeMove(const int move, S_Board* pos) {
 
 	// handle double pawn push
 	if (double_push) {
-		if (pos->side == WHITE) {
-			// set enpassant square
-			pos->enPas = target_square + 8;
+		pos->enPas = target_square + NORTH;
 
-			// hash enpassant
-			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-		}
-		else {
-			// set enpassant square
-			pos->enPas = target_square - 8;
-
-			// hash enpassant
-			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-		}
+		// hash enpassant
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 	}
 
 	// handle castling moves
@@ -212,17 +197,14 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	// increment fifty move rule counter
 	pos->fiftyMove++;
 
+	int NORTH = pos->side == WHITE ? 8 : -8;
+
 	// handle enpassant captures
 	if (enpass) {
-		//If it's an enpass we remove the pawn corresponding to the opponent square 
-		if (pos->side == WHITE) {
-			ClearPiece(BP, target_square + 8, pos);
-			pos->fiftyMove = 0;
-		}
-		else {
-			ClearPiece(WP, target_square - 8, pos);
-			pos->fiftyMove = 0;
-		}
+
+		ClearPiece(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
+
+		pos->fiftyMove = 0;
 	}
 
 	// handling capture moves
@@ -236,7 +218,7 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	}
 
 	//if a pawn was moves reset the 50 move rule counter
-	if (piece == WP || piece == BP)
+	if (GetPieceType(piece) == PAWN)
 		pos->fiftyMove = 0;
 
 	//increment ply counters
@@ -254,20 +236,11 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
 	// handle double pawn push
 	if (double_push) {
-		if (pos->side == WHITE) {
-			// set enpassant square
-			pos->enPas = target_square + 8;
+		pos->enPas = target_square + NORTH;
 
-			// hash enpassant
-			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-		}
-		else {
-			// set enpassant square
-			pos->enPas = target_square - 8;
+		// hash enpassant
+		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
-			// hash enpassant
-			HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-		}
 	}
 
 	// handle castling moves
@@ -341,11 +314,11 @@ int UnmakeMove(const int move, S_Board* pos) {
 	// move piece
 	MovePiece(piece, target_square, source_square, pos);
 
+	int SOUTH = pos->side == WHITE ? -8 : 8;
+
 	// handle enpassant captures
 	if (enpass) {
-		// erase the pawn depending on side to move
-		(pos->side == BLACK) ? AddPiece(BP, target_square + 8, pos)
-			: AddPiece(WP, target_square - 8, pos);
+		AddPiece(GetPiece(PAWN, pos->side), target_square + SOUTH, pos);
 	}
 
 	// handle castling moves
