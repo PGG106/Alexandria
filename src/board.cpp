@@ -311,22 +311,22 @@ std::string GetFen(const S_Board* pos)
 	//parse player turn
 	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
 	//Parse over castling rights
-	if (pos->boardState.castleperm == 0)
+	if (GetCastlingPerm(pos) == 0)
 		castle_perm = '-';
 	else {
-		if (pos->boardState.castleperm & WKCA)
+		if (GetCastlingPerm(pos) & WKCA)
 			castle_perm += "K";
-		if (pos->boardState.castleperm & WQCA)
+		if (GetCastlingPerm(pos) & WQCA)
 			castle_perm += "Q";
-		if (pos->boardState.castleperm & BKCA)
+		if (GetCastlingPerm(pos) & BKCA)
 			castle_perm += "k";
-		if (pos->boardState.castleperm & BQCA)
+		if (GetCastlingPerm(pos) & BQCA)
 			castle_perm += "q";
 	}
 	// parse enpassant square
-	if (pos->boardState.enPas != no_sq)
+	if (GetEpSquare(pos) != no_sq)
 	{
-		ep_square = square_to_coordinates[pos->boardState.enPas];
+		ep_square = square_to_coordinates[GetEpSquare(pos)];
 	}
 	else {
 		ep_square = "-";
