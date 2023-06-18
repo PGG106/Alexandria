@@ -67,6 +67,7 @@ void MakeMove(const int move, S_Board* pos) {
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].checkers = pos->checkers;
+
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
 
@@ -116,7 +117,7 @@ void MakeMove(const int move, S_Board* pos) {
 	AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
 
 	//Reset EP square
-	if (pos->enPas != no_sq)
+	if (GetEpSquare(pos) != no_sq)
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
 	// reset enpassant square
@@ -229,7 +230,7 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
 
 	//Reset EP square
-	if (pos->enPas != no_sq)
+	if (GetEpSquare(pos) != no_sq)
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 	// reset enpassant square
 	pos->enPas = no_sq;
@@ -292,6 +293,7 @@ int UnmakeMove(const int move, S_Board* pos) {
 	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
 	pos->castleperm = pos->history[pos->hisPly].castlePerm;
 	pos->checkers = pos->history[pos->hisPly].checkers;
+
 	// parse move
 	int source_square = From(move);
 	int target_square = To(move);
@@ -371,13 +373,14 @@ void MakeNullMove(S_Board* pos) {
 
 	pos->played_positions.emplace_back(pos->posKey);
 
-	if (pos->enPas != no_sq)
+	if (GetEpSquare(pos) != no_sq)
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
 	pos->history[pos->hisPly].castlePerm = pos->castleperm;
 	pos->history[pos->hisPly].checkers = pos->checkers;
+
 	pos->enPas = no_sq;
 
 	ChangeSide(pos);

@@ -58,7 +58,6 @@ void set_new_game_state(S_ThreadData* td) {
 	info->stopped = 0;
 	info->nodes = 0;
 	info->seldepth = 0;
-	pos->fiftyMove = 0;
 
 	//delete played moves hashes
 	pos->played_positions.clear();

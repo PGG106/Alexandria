@@ -75,6 +75,7 @@ void ResetBoard(S_Board* pos) {
 	pos->castleperm = 0; // integer that represents the castling permission in his
 	// bits (1111) = all castlings allowed (0000) no castling
 	// allowed, (0101) only WKCA and BKCA allowed...
+	pos->hisPly = 0;
 	pos->posKey = 0ULL;
 	pos->pinD = 0;
 	pos->pinHV = 0;
@@ -307,29 +308,29 @@ std::string GetFen(const S_Board* pos)
 	//parse player turn
 	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
 	//Parse over castling rights
-	if (pos->castleperm == 0)
+	if (GetCastlingPerm(pos) == 0)
 		castle_perm = '-';
 	else {
-		if (pos->castleperm & WKCA)
+		if (GetCastlingPerm(pos) & WKCA)
 			castle_perm += "K";
-		if (pos->castleperm & WQCA)
+		if (GetCastlingPerm(pos) & WQCA)
 			castle_perm += "Q";
-		if (pos->castleperm & BKCA)
+		if (GetCastlingPerm(pos) & BKCA)
 			castle_perm += "k";
-		if (pos->castleperm & BQCA)
+		if (GetCastlingPerm(pos) & BQCA)
 			castle_perm += "q";
 	}
 	// parse enpassant square
-	if (pos->enPas != no_sq)
+	if (GetEpSquare(pos) != no_sq)
 	{
-		ep_square = square_to_coordinates[pos->enPas];
+		ep_square = square_to_coordinates[GetEpSquare(pos)];
 	}
 	else {
 		ep_square = "-";
 	}
 
 	//Parse fifty moves counter
-	fifty_move = std::to_string(pos->fiftyMove);
+	fifty_move = std::to_string(Get50mrCounter(pos));
 	//Parse Hisply moves counter
 	HisPly = std::to_string(pos->hisPly);
 

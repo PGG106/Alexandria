@@ -20,12 +20,12 @@ Bitboard GeneratePosKey(const S_Board* pos) {
 		finalkey ^= SideKey;
 	}
 	//include the ep square in the key
-	if (pos->enPas != no_sq) {
+	if (GetEpSquare(pos) != no_sq) {
 		assert(pos->enPas >= 0 && pos->enPas < 64);
-		finalkey ^= enpassant_keys[pos->enPas];
+		finalkey ^= enpassant_keys[GetEpSquare(pos)];
 	}
 	assert(pos->castleperm >= 0 && pos->castleperm <= 15);
 	//  add to the key the status of the castling permissions
-	finalkey ^= CastleKeys[pos->castleperm];
+	finalkey ^= CastleKeys[GetCastlingPerm(pos)];
 	return finalkey;
 }
