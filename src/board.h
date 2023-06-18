@@ -107,6 +107,23 @@ public:
 	std::vector<NNUE::accumulator> accumulatorStack = {};
 	bool checkers;
 	int checks = -1;
+
+
+	int GetSide() const {
+		return side;
+	}
+
+	int GetPoskey() const {
+		return posKey;
+	}
+
+	int Get50mrCounter() const {
+		return fiftyMove;
+	}
+
+	int GetCastlingPerm() const{
+		return castleperm;
+	}
 };
 
 struct PvTable {
@@ -213,11 +230,7 @@ int PieceOn(const S_Board* pos, const int square);
 
 //Board state retrieval
 
-int GetSide(const S_Board* pos);
 int GetEpSquare(const S_Board* pos);
-int Get50mrCounter(const S_Board* pos);
-int GetCastlingPerm(const S_Board* pos);
-int GetPoskey(const S_Board* pos);
 void ChangeSide(S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);

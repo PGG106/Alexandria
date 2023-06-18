@@ -308,16 +308,16 @@ std::string GetFen(const S_Board* pos)
 	//parse player turn
 	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
 	//Parse over castling rights
-	if (GetCastlingPerm(pos) == 0)
+	if (pos->GetCastlingPerm() == 0)
 		castle_perm = '-';
 	else {
-		if (GetCastlingPerm(pos) & WKCA)
+		if (pos->GetCastlingPerm() & WKCA)
 			castle_perm += "K";
-		if (GetCastlingPerm(pos) & WQCA)
+		if (pos->GetCastlingPerm() & WQCA)
 			castle_perm += "Q";
-		if (GetCastlingPerm(pos) & BKCA)
+		if (pos->GetCastlingPerm() & BKCA)
 			castle_perm += "k";
-		if (GetCastlingPerm(pos) & BQCA)
+		if (pos->GetCastlingPerm() & BQCA)
 			castle_perm += "q";
 	}
 	// parse enpassant square
@@ -330,7 +330,7 @@ std::string GetFen(const S_Board* pos)
 	}
 
 	//Parse fifty moves counter
-	fifty_move = std::to_string(Get50mrCounter(pos));
+	fifty_move = std::to_string(pos->Get50mrCounter());
 	//Parse Hisply moves counter
 	HisPly = std::to_string(pos->hisPly);
 
@@ -400,20 +400,8 @@ Bitboard Occupancy(const S_Board* pos, int side) {
 	return pos->occupancies[side];
 }
 
-int GetSide(const S_Board* pos) {
-	return pos->side;
-}
 int GetEpSquare(const S_Board* pos) {
 	return pos->enPas;
-}
-int Get50mrCounter(const S_Board* pos) {
-	return pos->fiftyMove;
-}
-int GetCastlingPerm(const S_Board* pos) {
-	return pos->castleperm;
-}
-int GetPoskey(const S_Board* pos) {
-	return pos->posKey;
 }
 
 void ChangeSide(S_Board* pos) {

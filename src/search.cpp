@@ -19,7 +19,7 @@
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
-	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - Get50mrCounter(pos), 0);
+	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - pos->Get50mrCounter(), 0);
 		index < static_cast<int>(pos->played_positions.size()); index++)
 		// if we found the same position hashkey as the current position
 		if (pos->played_positions[index] == pos->posKey) {
@@ -35,7 +35,7 @@ static int IsRepetition(const S_Board* pos) {
 bool IsDraw(const S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
 	if (IsRepetition(pos)
-		|| (Get50mrCounter(pos) >= 100)
+		|| (pos->Get50mrCounter() >= 100)
 		|| MaterialDraw(pos)) {
 		return true;
 	}

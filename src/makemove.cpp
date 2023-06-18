@@ -47,12 +47,12 @@ void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) 
 
 void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
 	// Xor the old castling key from the zobrist key
-	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
+	HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 	// update castling rights
 	pos->castleperm &= castling_rights[source_square];
 	pos->castleperm &= castling_rights[target_square];
 	// Xor the new one
-	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
+	HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 }
 
 void inline HashKey(S_Board* pos, ZobristKey key) {

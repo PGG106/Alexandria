@@ -26,6 +26,6 @@ Bitboard GeneratePosKey(const S_Board* pos) {
 	}
 	assert(pos->castleperm >= 0 && pos->castleperm <= 15);
 	//  add to the key the status of the castling permissions
-	finalkey ^= CastleKeys[GetCastlingPerm(pos)];
+	finalkey ^= CastleKeys[pos->GetCastlingPerm()];
 	return finalkey;
 }
