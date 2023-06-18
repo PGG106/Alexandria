@@ -224,7 +224,6 @@ int GetCastlingPerm(const S_Board* pos);
 int GetPoskey(const S_Board* pos);
 void ChangeSide(S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
-bool isEnpassant(S_Board* pos, int move);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
 
 

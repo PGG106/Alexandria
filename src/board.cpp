@@ -448,8 +448,3 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 		nnue.add(board_accumulator, pos->pieces[i], i);
 	}
 }
-
-
-bool isEnpassant(S_Board* pos, int move) {
-	return (GetPieceType(Piece(move)) == PAWN) && (To(move) == pos->boardState.enPas);
-}

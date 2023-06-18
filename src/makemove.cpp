@@ -77,7 +77,7 @@ void MakeMove(const int move, S_Board* pos) {
 
 	int capture = IsCapture(move);
 	int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-	int enpass = (GetPieceType(Piece(move)) == PAWN) && (To(move) == pos->boardState.enPas);         isEnpassant(pos, move);
+	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	// increment fifty move rule counter
 	pos->boardState.fiftyMove++;

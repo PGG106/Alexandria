@@ -37,7 +37,7 @@ struct S_MOVELIST {
 #define Promoted(move) ((move & 0xf0000) >> 16)
 // extract capture flag
 #define IsCapture(move) (move & 0x100000)
-
+#define isEnpassant(pos,move) ((Piece(move) == WP || Piece(move) == BP) && (To(move) == GetEpSquare(pos)))
 
 #define IsQuiet(move) (!IsCapture(move) && !Promoted(move))
 
