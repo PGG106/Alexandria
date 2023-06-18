@@ -69,7 +69,12 @@ void ResetBoard(S_Board* pos) {
 	}
 
 	pos->side = BOTH;
-	ResetBoardState(pos);
+	pos->enPas = no_sq;
+	pos->fiftyMove = 0;
+	pos->hisPly = 0;     // total number of halfmoves
+	pos->castleperm = 0; // integer that represents the castling permission in his
+	// bits (1111) = all castlings allowed (0000) no castling
+	// allowed, (0101) only WKCA and BKCA allowed...
 	pos->hisPly = 0;
 	pos->posKey = 0ULL;
 	pos->pinD = 0;
@@ -99,14 +104,6 @@ void ResetInfo(S_SearchINFO* info) {
 	info->timeset = false;
 	info->movetimeset = false;
 	info->nodeset = false;
-}
-
-void ResetBoardState(S_Board* pos)
-{
-	pos->boardState.enPas = no_sq;
-	pos->boardState.fiftyMove = 0;
-	pos->boardState.piececap = EMPTY;
-	pos->boardState.castleperm = 0;
 }
 
 int SquareDistance(int a, int b) {
@@ -201,16 +198,16 @@ void ParseFen(const std::string& command, S_Board* pos) {
 	for (const char c : castle_perm) {
 		switch (c) {
 		case 'K':
-			(pos->boardState.castleperm) |= WKCA;
+			(pos->castleperm) |= WKCA;
 			break;
 		case 'Q':
-			(pos->boardState.castleperm) |= WQCA;
+			(pos->castleperm) |= WQCA;
 			break;
 		case 'k':
-			(pos->boardState.castleperm) |= BKCA;
+			(pos->castleperm) |= BKCA;
 			break;
 		case 'q':
-			(pos->boardState.castleperm) |= BQCA;
+			(pos->castleperm) |= BQCA;
 			break;
 		case '-':
 			break;
@@ -224,15 +221,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
 		const int rank = 8 - (ep_square[1] - '0');
 
 		// init enpassant square
-		pos->boardState.enPas = rank * 8 + file;
+		pos->enPas = rank * 8 + file;
 	}
 	// no enpassant square
 	else
-		pos->boardState.enPas = no_sq;
+		pos->enPas = no_sq;
 
 	//Read fifty moves counter
 	if (!fifty_move.empty()) {
-		pos->boardState.fiftyMove = std::stoi(fifty_move);
+		pos->fiftyMove = std::stoi(fifty_move);
 	}
 	//Read Hisply moves counter
 	if (!HisPly.empty()) {
@@ -333,7 +330,7 @@ std::string GetFen(const S_Board* pos)
 	}
 
 	//Parse fifty moves counter
-	fifty_move = std::to_string(pos->boardState.fiftyMove);
+	fifty_move = std::to_string(Get50mrCounter(pos));
 	//Parse Hisply moves counter
 	HisPly = std::to_string(pos->hisPly);
 
@@ -407,13 +404,13 @@ int GetSide(const S_Board* pos) {
 	return pos->side;
 }
 int GetEpSquare(const S_Board* pos) {
-	return pos->boardState.enPas;
+	return pos->enPas;
 }
 int Get50mrCounter(const S_Board* pos) {
-	return pos->boardState.fiftyMove;
+	return pos->fiftyMove;
 }
 int GetCastlingPerm(const S_Board* pos) {
-	return pos->boardState.castleperm;
+	return pos->castleperm;
 }
 int GetPoskey(const S_Board* pos) {
 	return pos->posKey;

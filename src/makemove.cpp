@@ -49,8 +49,8 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
 	// Xor the old castling key from the zobrist key
 	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
 	// update castling rights
-	pos->boardState.castleperm &= castling_rights[source_square];
-	pos->boardState.castleperm &= castling_rights[target_square];
+	pos->castleperm &= castling_rights[source_square];
+	pos->castleperm &= castling_rights[target_square];
 	// Xor the new one
 	HashKey(pos, CastleKeys[GetCastlingPerm(pos)]);
 }
@@ -63,7 +63,10 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 void MakeMove(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
-	pos->history[pos->hisPly].boardState = pos->boardState;
+	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+	pos->history[pos->hisPly].enPas = pos->enPas;
+	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
@@ -80,7 +83,7 @@ void MakeMove(const int move, S_Board* pos) {
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	// increment fifty move rule counter
-	pos->boardState.fiftyMove++;
+	pos->fiftyMove++;
 
 	int NORTH = pos->side == WHITE ? 8 : -8;
 
@@ -88,7 +91,7 @@ void MakeMove(const int move, S_Board* pos) {
 	if (enpass)
 	{
 		ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 	}
 
 	// handling capture moves
@@ -97,14 +100,14 @@ void MakeMove(const int move, S_Board* pos) {
 
 		ClearPieceNNUE(piececap, target_square, pos);
 
-		pos->history[pos->hisPly].piececap = piececap;
+		pos->history[pos->hisPly].capture = piececap;
 		//a capture was played so reset 50 move rule counter
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 	}
 
 	//if a pawn was moved reset the 50 move rule counter
 	if (GetPieceType(piece) == PAWN)
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 
 	//increment ply counters
 	pos->hisPly++;
@@ -118,11 +121,11 @@ void MakeMove(const int move, S_Board* pos) {
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
 	// reset enpassant square
-	pos->boardState.enPas = no_sq;
+	pos->enPas = no_sq;
 
 	// handle double pawn push
 	if (double_push) {
-		pos->boardState.enPas = target_square + NORTH;
+		pos->enPas = target_square + NORTH;
 
 		// hash enpassant
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
@@ -175,7 +178,10 @@ void MakeMove(const int move, S_Board* pos) {
 int MakeMoveLight(const int move, S_Board* pos) {
 
 	//Store position variables for rollback purposes
-	pos->history[pos->hisPly].boardState = pos->boardState;
+	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+	pos->history[pos->hisPly].enPas = pos->enPas;
+	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 	//Store position key in the array of searched position
 	pos->played_positions.emplace_back(pos->posKey);
 
@@ -190,7 +196,7 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
 	// increment fifty move rule counter
-	pos->boardState.fiftyMove++;
+	pos->fiftyMove++;
 
 	int NORTH = pos->side == WHITE ? 8 : -8;
 
@@ -199,7 +205,7 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
 		ClearPiece(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
 
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 	}
 
 	// handling capture moves
@@ -209,12 +215,12 @@ int MakeMoveLight(const int move, S_Board* pos) {
 		ClearPiece(piececap, target_square, pos);
 
 		//a capture was played so reset 50 move rule counter
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 	}
 
 	//if a pawn was moves reset the 50 move rule counter
 	if (GetPieceType(piece) == PAWN)
-		pos->boardState.fiftyMove = 0;
+		pos->fiftyMove = 0;
 
 	//increment ply counters
 	pos->hisPly++;
@@ -227,11 +233,11 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	if (GetEpSquare(pos) != no_sq)
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 	// reset enpassant square
-	pos->boardState.enPas = no_sq;
+	pos->enPas = no_sq;
 
 	// handle double pawn push
 	if (double_push) {
-		pos->boardState.enPas = target_square + NORTH;
+		pos->enPas = target_square + NORTH;
 
 		// hash enpassant
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
@@ -283,7 +289,10 @@ int UnmakeMove(const int move, S_Board* pos) {
 
 	pos->hisPly--;
 
-	pos->boardState = pos->history[pos->hisPly].boardState;
+	pos->enPas = pos->history[pos->hisPly].enPas;
+	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+	pos->castleperm = pos->history[pos->hisPly].castlePerm;
+	pos->checkers = pos->history[pos->hisPly].checkers;
 
 	// parse move
 	int source_square = From(move);
@@ -294,7 +303,7 @@ int UnmakeMove(const int move, S_Board* pos) {
 
 	int enpass = isEnpassant(pos, move);
 	int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
-	int piececap = pos->history[pos->hisPly].piececap;
+	int piececap = pos->history[pos->hisPly].capture;
 
 	pos->accumulator = pos->accumulatorStack.back();
 	pos->accumulatorStack.pop_back();
@@ -367,9 +376,12 @@ void MakeNullMove(S_Board* pos) {
 	if (GetEpSquare(pos) != no_sq)
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
-	pos->history[pos->hisPly].boardState = pos->boardState;
+	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+	pos->history[pos->hisPly].enPas = pos->enPas;
+	pos->history[pos->hisPly].castlePerm = pos->castleperm;
+	pos->history[pos->hisPly].checkers = pos->checkers;
 
-	pos->boardState.enPas = no_sq;
+	pos->enPas = no_sq;
 
 	ChangeSide(pos);
 	pos->hisPly++;
@@ -382,7 +394,10 @@ void MakeNullMove(S_Board* pos) {
 void TakeNullMove(S_Board* pos) {
 	pos->hisPly--;
 
-	pos->boardState = pos->history[pos->hisPly].boardState;
+	pos->castleperm = pos->history[pos->hisPly].castlePerm;
+	pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+	pos->enPas = pos->history[pos->hisPly].enPas;
+	pos->checkers = pos->history[pos->hisPly].checkers;
 
 	ChangeSide(pos);
 	pos->posKey = pos->played_positions.back();

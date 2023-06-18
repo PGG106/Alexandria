@@ -69,16 +69,11 @@ extern int reductions[MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-struct State {
-	int enPas = no_sq; // if enpassant is possible and in which square
-	int fiftyMove = 0; // Counter for the 50 moves rule
-	int piececap = EMPTY; // total number of halfmoves
-	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
-};
-
 struct S_Undo {
-	State boardState;
-	int piececap=EMPTY;
+	int castlePerm = 15;
+	int capture = EMPTY;
+	int enPas = 0;
+	int fiftyMove = 0;
 	bool checkers = false;
 	Bitboard occupancies[3];
 }; // stores a move and the state of the game before that move is made
@@ -90,8 +85,10 @@ public:
 	// if there's a piece, or if the square is invalid
 
 	int side = -1; // what side has to move
-	int hisPly = 0;
-	State boardState;
+	int enPas = no_sq; // if enpassant is possible and in which square
+	int fiftyMove = 0; // Counter for the 50 moves rule
+	int hisPly = 0; // total number of halfmoves
+	int castleperm = 0;
 	// unique  hashkey  that encodes a board position
 	ZobristKey posKey = 0ULL;
 	// stores the state of the board  rollback purposes
@@ -188,7 +185,6 @@ std::string GetFen(const S_Board* pos);
 void parse_moves(std::string moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
-void ResetBoardState(S_Board* pos);
 
 //Board state retrieval
 

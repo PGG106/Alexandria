@@ -322,7 +322,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	if (pos->checkMask == 18446744073709551615ULL) {
 		if (pos->side == WHITE) {
 			// king side castling is available
-			if (pos->boardState.castleperm & WKCA) {
+			if (GetCastlingPerm(pos) & WKCA) {
 				// make sure square between king and king's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), f1) &&
 					!get_bit(Occupancy(pos, BOTH), g1)) {
@@ -334,7 +334,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				}
 			}
 
-			if (pos->boardState.castleperm & WQCA) {
+			if (GetCastlingPerm(pos) & WQCA) {
 				// make sure square between king and queen's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), d1) &&
 					!get_bit(Occupancy(pos, BOTH), c1) &&
@@ -349,7 +349,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		}
 
 		else {
-			if (pos->boardState.castleperm & BKCA) {
+			if (GetCastlingPerm(pos) & BKCA) {
 				// make sure square between king and king's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), f8) &&
 					!get_bit(Occupancy(pos, BOTH), g8)) {
@@ -361,7 +361,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				}
 			}
 
-			if (pos->boardState.castleperm & BQCA) {
+			if (GetCastlingPerm(pos) & BQCA) {
 				// make sure square between king and queen's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), d8) &&
 					!get_bit(Occupancy(pos, BOTH), c8) &&

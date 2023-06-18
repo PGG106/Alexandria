@@ -85,10 +85,10 @@ void PrintBoard(const S_Board* pos) {
 		(GetEpSquare(pos) != no_sq) ? square_to_coordinates[GetEpSquare(pos)] : "no");
 
 	// print castling rights
-	printf("     Castling:  %c%c%c%c\n", (pos->boardState.castleperm & WKCA) ? 'K' : '-',
-		(pos->boardState.castleperm & WQCA) ? 'Q' : '-',
-		(pos->boardState.castleperm & BKCA) ? 'k' : '-',
-		(pos->boardState.castleperm & BQCA) ? 'q' : '-');
+	printf("     Castling:  %c%c%c%c\n", (GetCastlingPerm(pos) & WKCA) ? 'K' : '-',
+		(GetCastlingPerm(pos) & WQCA) ? 'Q' : '-',
+		(GetCastlingPerm(pos) & BKCA) ? 'k' : '-',
+		(GetCastlingPerm(pos) & BQCA) ? 'q' : '-');
 
 	std::cout << "\n position ply: " << std::endl;
 
