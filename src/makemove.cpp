@@ -164,7 +164,7 @@ void MakeMove(const int move, S_Board* pos) {
 	UpdateCastlingPerms(pos, source_square, target_square);
 
 	// change side
-	ChangeSide(pos);
+	pos->ChangeSide();
 	// Xor the new side into the key
 	HashKey(pos, SideKey);
 
@@ -277,7 +277,8 @@ int MakeMoveLight(const int move, S_Board* pos) {
 	UpdateCastlingPerms(pos, source_square, target_square);
 
 	// change side
-	ChangeSide(pos);
+	pos->ChangeSide();
+
 	// Xor the new side into the key
 	HashKey(pos, SideKey);
 
@@ -359,7 +360,8 @@ int UnmakeMove(const int move, S_Board* pos) {
 	}
 
 	// change side
-	ChangeSide(pos);
+	pos->ChangeSide();
+
 
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
@@ -383,7 +385,7 @@ void MakeNullMove(S_Board* pos) {
 
 	pos->enPas = no_sq;
 
-	ChangeSide(pos);
+	pos->ChangeSide();
 	pos->hisPly++;
 	HashKey(pos, SideKey);
 
@@ -399,7 +401,7 @@ void TakeNullMove(S_Board* pos) {
 	pos->enPas = pos->history[pos->hisPly].enPas;
 	pos->checkers = pos->history[pos->hisPly].checkers;
 
-	ChangeSide(pos);
+	pos->ChangeSide();
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
 	return;

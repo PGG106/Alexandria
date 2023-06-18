@@ -281,7 +281,7 @@ std::string GetFen(const S_Board* pos)
 		{
 			// init current square
 			const int square = rank * 8 + file;
-			const int potential_piece = PieceOn(pos, square);
+			const int potential_piece = pos->PieceOn(square);
 			//If the piece isn't empty we add the empty squares counter to the fen string and then the piece
 			if (potential_piece != EMPTY)
 			{
@@ -383,11 +383,6 @@ bool IsInCheck(const S_Board* pos, const int side) {
 	return IsSquareAttacked(pos, KingSQ(pos, side), side ^ 1);
 }
 
-int PieceOn(const S_Board* pos, const int square)
-{
-	return pos->pieces[square];
-}
-
 Bitboard Us(const S_Board* pos) {
 	return pos->occupancies[pos->side];
 }
@@ -404,10 +399,6 @@ int GetEpSquare(const S_Board* pos) {
 	return pos->enPas;
 }
 
-void ChangeSide(S_Board* pos) {
-	pos->side ^= 1;
-}
-
 uint64_t GetMaterialValue(const S_Board* pos) {
 	int pawns = CountBits(GetPieceBB(pos, PAWN));
 	int knights = CountBits(GetPieceBB(pos, KNIGHT));
@@ -417,8 +408,6 @@ uint64_t GetMaterialValue(const S_Board* pos) {
 
 	return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishops * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
 }
-
-
 
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 

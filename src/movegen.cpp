@@ -65,7 +65,7 @@ static inline void AddMove(int move, S_MOVELIST* list) {
 }
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
-	int capture = PieceOn(pos, to) != EMPTY;
+	int capture = pos->PieceOn(to) != EMPTY;
 
 	if (pos->side == WHITE) {
 		if (from >= a7 &&
@@ -238,7 +238,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -257,7 +257,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -276,7 +276,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -294,7 +294,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -311,7 +311,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	Bitboard moves = LegalKingMoves(pos, pos->side, source_square);
 	while (moves) {
 		target_square = GetLsbIndex(moves);
-		int capture = PieceOn(pos, target_square) != EMPTY;
+		int capture = pos->PieceOn(target_square) != EMPTY;
 
 		pop_bit(moves, target_square);
 		AddMove(
@@ -419,7 +419,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 			//while we have moves that the knight can play we add them to the list
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(KNIGHT, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -437,7 +437,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(BISHOP, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -455,7 +455,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(ROOK, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),
@@ -473,7 +473,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
 			while (moves) {
 				target_square = GetLsbIndex(moves);
-				int capture = PieceOn(pos, target_square) != EMPTY;
+				int capture = pos->PieceOn(target_square) != EMPTY;
 				int piece = GetPiece(QUEEN, pos->side);
 				AddMove(
 					encode_move(source_square, target_square, piece, 0, capture),

@@ -108,6 +108,10 @@ public:
 	bool checkers;
 	int checks = -1;
 
+	int PieceOn(const int square) const
+	{
+		return pieces[square];
+	}
 
 	int GetSide() const {
 		return side;
@@ -121,9 +125,14 @@ public:
 		return fiftyMove;
 	}
 
-	int GetCastlingPerm() const{
+	int GetCastlingPerm() const {
 		return castleperm;
 	}
+
+	void ChangeSide() {
+		side ^= 1;
+	}
+
 };
 
 struct PvTable {
@@ -226,12 +235,10 @@ bool BoardHasNonPawns(const S_Board* pos, const int side);
 int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
 bool IsInCheck(const S_Board* pos, const int side);
-int PieceOn(const S_Board* pos, const int square);
 
 //Board state retrieval
 
 int GetEpSquare(const S_Board* pos);
-void ChangeSide(S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
 

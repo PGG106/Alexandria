@@ -86,7 +86,7 @@ bool SEE(const S_Board* pos, const int move,
 	int to = To(move);
 	int from = From(move);
 
-	int target = PieceOn(pos, to);
+	int target = pos->PieceOn(to);
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
@@ -95,7 +95,7 @@ bool SEE(const S_Board* pos, const int move,
 	if (value < 0)
 		return false;
 
-	int attacker = PieceOn(pos, from);
+	int attacker = pos->PieceOn(from);
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
 
@@ -191,13 +191,12 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			//Good captures get played before most of the stuff
 			if (SEE(pos, move, -107)) {
 				move_list->moves[i].score =
-					mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
+					mvv_lva[Piece(move)][pos->PieceOn(To(move))] +
 					goodCaptureScore;
 			}
 			else {
-				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][PieceOn(pos, To(move))];
+				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][pos->PieceOn(To(move))];
 			}
-
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
