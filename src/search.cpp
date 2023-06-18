@@ -35,7 +35,7 @@ static int IsRepetition(const S_Board* pos) {
 bool IsDraw(const S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
 	if (IsRepetition(pos)
-		|| (pos->fiftyMove >= 100)
+		|| (Get50mrCounter(pos) >= 100)
 		|| MaterialDraw(pos)) {
 		return true;
 	}

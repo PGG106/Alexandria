@@ -69,14 +69,19 @@ extern int reductions[MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-typedef struct Undo {
-	int castlePerm = 15;
-	int capture = EMPTY;
-	int enPas = 0;
-	int fiftyMove = 0;
-	bool checkers=false;
+struct State {
+	int enPas = no_sq; // if enpassant is possible and in which square
+	int fiftyMove = 0; // Counter for the 50 moves rule
+	int piececap = EMPTY; // total number of halfmoves
+	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
+};
+
+struct S_Undo {
+	State boardState;
+	int piececap=EMPTY;
+	bool checkers = false;
 	Bitboard occupancies[3];
-} S_Undo; // stores a move and the state of the game before that move is made
+}; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
 struct S_Board {
@@ -85,10 +90,8 @@ public:
 	// if there's a piece, or if the square is invalid
 
 	int side = -1; // what side has to move
-	int enPas = no_sq; // if enpassant is possible and in which square
-	int fiftyMove = 0; // Counter for the 50 moves rule
-	int hisPly = 0; // total number of halfmoves
-	int castleperm = 0; // integer that represents the castling permission in its bits (1111) = all castlings allowed (0000) no castling
+	int hisPly = 0;
+	State boardState;
 	// unique  hashkey  that encodes a board position
 	ZobristKey posKey = 0ULL;
 	// stores the state of the board  rollback purposes
@@ -150,7 +153,7 @@ constexpr  int castling_rights[64] = {
 	15, 15, 15, 15, 15, 15, 15, 15, 13, 15, 15, 15, 12, 15, 15, 14 };
 
 // convert squares to coordinates
-const constexpr char* square_to_coordinates[]={
+const constexpr char* square_to_coordinates[] = {
 	"a8", "b8", "c8", "d8", "e8", "f8","g8","h8",
 	"a7", "b7", "c7","d7", "e7", "f7","g7", "h7",
 	"a6", "b6", "c6", "d6", "e6", "f6","g6","h6",
@@ -185,6 +188,7 @@ std::string GetFen(const S_Board* pos);
 void parse_moves(std::string moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
+void ResetBoardState(S_Board* pos);
 
 //Board state retrieval
 
@@ -220,6 +224,7 @@ int GetCastlingPerm(const S_Board* pos);
 int GetPoskey(const S_Board* pos);
 void ChangeSide(S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
+bool isEnpassant(S_Board* pos, int move);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
 
 

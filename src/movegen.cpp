@@ -101,7 +101,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 	// and on the checkmask
 
 	if (pos->pinD & (1ULL << square))
-		return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << pos->enPas));
+		return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
 	// Calculate pawn pushs
 	Bitboard push = PawnPush(color, square) & ~pos->occupancies[2];
 
@@ -118,10 +118,10 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 	Bitboard attacks = pawn_attacks[color][square];
 	// If we are in check and  the en passant square lies on our attackmask and
 	// the en passant piece gives check return the ep mask as a move square
-	if (pos->checkMask != 18446744073709551615ULL && pos->enPas != no_sq &&
-		attacks & (1ULL << pos->enPas) &&
-		pos->checkMask & (1ULL << (pos->enPas + offset)))
-		return (attacks & (1ULL << pos->enPas));
+	if (pos->checkMask != 18446744073709551615ULL && GetEpSquare(pos) != no_sq &&
+		attacks & (1ULL << GetEpSquare(pos)) &&
+		pos->checkMask & (1ULL << (GetEpSquare(pos) + offset)))
+		return (attacks & (1ULL << GetEpSquare(pos)));
 	// If we are in check we can do all moves that are on the checkmask
 	if (pos->checkMask != 18446744073709551615ULL)
 		return ((attacks & enemy) | push) & pos->checkMask;
@@ -132,21 +132,21 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 	// Horizontal rook pins our pawn through another pawn, our pawn can push but
 	// not take enpassant remove both the pawn that made the push and our pawn
 	// that could take in theory and check if that would give check
-	if (pos->enPas != no_sq && SquareDistance(square, pos->enPas) == 1 &&
-		(1ULL << pos->enPas) & attacks) {
+	if (GetEpSquare(pos) != no_sq && SquareDistance(square, GetEpSquare(pos)) == 1 &&
+		(1ULL << GetEpSquare(pos)) & attacks) {
 		int ourPawn = GetPiece(PAWN, color);
 		int theirPawn = GetPiece(PAWN, color ^ 1);
 		int kSQ = KingSQ(pos, color);
 		ClearPiece(ourPawn, square, pos);
-		ClearPiece(theirPawn, (pos->enPas + offset), pos);
-		AddPiece(ourPawn, pos->enPas, pos);
+		ClearPiece(theirPawn, (GetEpSquare(pos) + offset), pos);
+		AddPiece(ourPawn, GetEpSquare(pos), pos);
 		if (!((GetRookAttacks(kSQ, pos->occupancies[2]) &
 			(GetPieceColorBB(pos, ROOK, color ^ 1) |
 				GetPieceColorBB(pos, QUEEN, color ^ 1)))))
-			moves |= (1ULL << pos->enPas);
+			moves |= (1ULL << GetEpSquare(pos));
 		AddPiece(ourPawn, square, pos);
-		AddPiece(theirPawn, pos->enPas + offset, pos);
-		ClearPiece(ourPawn, pos->enPas, pos);
+		AddPiece(theirPawn, GetEpSquare(pos) + offset, pos);
+		ClearPiece(ourPawn, GetEpSquare(pos), pos);
 	}
 	return moves;
 }
@@ -322,7 +322,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	if (pos->checkMask == 18446744073709551615ULL) {
 		if (pos->side == WHITE) {
 			// king side castling is available
-			if (pos->castleperm & WKCA) {
+			if (pos->boardState.castleperm & WKCA) {
 				// make sure square between king and king's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), f1) &&
 					!get_bit(Occupancy(pos, BOTH), g1)) {
@@ -334,7 +334,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				}
 			}
 
-			if (pos->castleperm & WQCA) {
+			if (pos->boardState.castleperm & WQCA) {
 				// make sure square between king and queen's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), d1) &&
 					!get_bit(Occupancy(pos, BOTH), c1) &&
@@ -349,7 +349,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		}
 
 		else {
-			if (pos->castleperm & BKCA) {
+			if (pos->boardState.castleperm & BKCA) {
 				// make sure square between king and king's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), f8) &&
 					!get_bit(Occupancy(pos, BOTH), g8)) {
@@ -361,7 +361,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 				}
 			}
 
-			if (pos->castleperm & BQCA) {
+			if (pos->boardState.castleperm & BQCA) {
 				// make sure square between king and queen's rook are empty
 				if (!get_bit(Occupancy(pos, BOTH), d8) &&
 					!get_bit(Occupancy(pos, BOTH), c8) &&

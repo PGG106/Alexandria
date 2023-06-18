@@ -1,18 +1,18 @@
 #pragma once
 
-typedef struct S_MOVE {
+struct S_MOVE {
 	int move;
 	int score;
-} S_MOVE;
+};
 
 // move list structure
-typedef struct {
+struct S_MOVELIST {
 	// moves
 	S_MOVE moves[256];
 
 	// move count
 	int count;
-} S_MOVELIST;
+};
 
 // encode move
 #define encode_move(source, target, piece, promoted, capture)      \
@@ -41,6 +41,6 @@ typedef struct {
 
 #define IsQuiet(move) (!IsCapture(move) && !Promoted(move))
 
-#define isEnpassant(pos,move) ((Piece(move) == WP || Piece(move) == BP) && (To(move) == pos->enPas))
+
 
 

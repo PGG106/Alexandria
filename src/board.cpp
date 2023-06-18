@@ -69,12 +69,8 @@ void ResetBoard(S_Board* pos) {
 	}
 
 	pos->side = BOTH;
-	pos->enPas = no_sq;
-	pos->fiftyMove = 0;
-	pos->hisPly = 0;     // total number of halfmoves
-	pos->castleperm = 0; // integer that represents the castling permission in his
-	// bits (1111) = all castlings allowed (0000) no castling
-	// allowed, (0101) only WKCA and BKCA allowed...
+	ResetBoardState(pos);
+	pos->hisPly = 0;
 	pos->posKey = 0ULL;
 	pos->pinD = 0;
 	pos->pinHV = 0;
@@ -103,6 +99,14 @@ void ResetInfo(S_SearchINFO* info) {
 	info->timeset = false;
 	info->movetimeset = false;
 	info->nodeset = false;
+}
+
+void ResetBoardState(S_Board* pos)
+{
+	pos->boardState.enPas = no_sq;
+	pos->boardState.fiftyMove = 0;
+	pos->boardState.piececap = EMPTY;
+	pos->boardState.castleperm = 0;
 }
 
 int SquareDistance(int a, int b) {
@@ -197,16 +201,16 @@ void ParseFen(const std::string& command, S_Board* pos) {
 	for (const char c : castle_perm) {
 		switch (c) {
 		case 'K':
-			(pos->castleperm) |= WKCA;
+			(pos->boardState.castleperm) |= WKCA;
 			break;
 		case 'Q':
-			(pos->castleperm) |= WQCA;
+			(pos->boardState.castleperm) |= WQCA;
 			break;
 		case 'k':
-			(pos->castleperm) |= BKCA;
+			(pos->boardState.castleperm) |= BKCA;
 			break;
 		case 'q':
-			(pos->castleperm) |= BQCA;
+			(pos->boardState.castleperm) |= BQCA;
 			break;
 		case '-':
 			break;
@@ -220,15 +224,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
 		const int rank = 8 - (ep_square[1] - '0');
 
 		// init enpassant square
-		pos->enPas = rank * 8 + file;
+		pos->boardState.enPas = rank * 8 + file;
 	}
 	// no enpassant square
 	else
-		pos->enPas = no_sq;
+		pos->boardState.enPas = no_sq;
 
 	//Read fifty moves counter
 	if (!fifty_move.empty()) {
-		pos->fiftyMove = std::stoi(fifty_move);
+		pos->boardState.fiftyMove = std::stoi(fifty_move);
 	}
 	//Read Hisply moves counter
 	if (!HisPly.empty()) {
@@ -307,29 +311,29 @@ std::string GetFen(const S_Board* pos)
 	//parse player turn
 	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
 	//Parse over castling rights
-	if (pos->castleperm == 0)
+	if (pos->boardState.castleperm == 0)
 		castle_perm = '-';
 	else {
-		if (pos->castleperm & WKCA)
+		if (pos->boardState.castleperm & WKCA)
 			castle_perm += "K";
-		if (pos->castleperm & WQCA)
+		if (pos->boardState.castleperm & WQCA)
 			castle_perm += "Q";
-		if (pos->castleperm & BKCA)
+		if (pos->boardState.castleperm & BKCA)
 			castle_perm += "k";
-		if (pos->castleperm & BQCA)
+		if (pos->boardState.castleperm & BQCA)
 			castle_perm += "q";
 	}
 	// parse enpassant square
-	if (pos->enPas != no_sq)
+	if (pos->boardState.enPas != no_sq)
 	{
-		ep_square = square_to_coordinates[pos->enPas];
+		ep_square = square_to_coordinates[pos->boardState.enPas];
 	}
 	else {
 		ep_square = "-";
 	}
 
 	//Parse fifty moves counter
-	fifty_move = std::to_string(pos->fiftyMove);
+	fifty_move = std::to_string(pos->boardState.fiftyMove);
 	//Parse Hisply moves counter
 	HisPly = std::to_string(pos->hisPly);
 
@@ -403,13 +407,13 @@ int GetSide(const S_Board* pos) {
 	return pos->side;
 }
 int GetEpSquare(const S_Board* pos) {
-	return pos->enPas;
+	return pos->boardState.enPas;
 }
 int Get50mrCounter(const S_Board* pos) {
-	return pos->fiftyMove;
+	return pos->boardState.fiftyMove;
 }
 int GetCastlingPerm(const S_Board* pos) {
-	return pos->castleperm;
+	return pos->boardState.castleperm;
 }
 int GetPoskey(const S_Board* pos) {
 	return pos->posKey;
@@ -443,4 +447,9 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 		if (!input) continue;
 		nnue.add(board_accumulator, pos->pieces[i], i);
 	}
+}
+
+
+bool isEnpassant(S_Board* pos, int move) {
+	return (GetPieceType(Piece(move)) == PAWN) && (To(move) == pos->boardState.enPas);
 }
