@@ -350,14 +350,9 @@ void parse_moves(const std::string moves, S_Board* pos)
 	}
 }
 
-
-//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const int color) {
-	return pos->bitboards[piecetype + color * 6];
-}
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const  int piecetype) {
-	return GetPieceColorBB(pos, piecetype, WHITE) | GetPieceColorBB(pos, piecetype, BLACK);
+	return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 //Return a piece based on the type and the color 
 int GetPiece(const int piecetype, const int color) {
@@ -371,12 +366,12 @@ int GetPieceType(const int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
-	return (pos->Occupancy(side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
+	return (pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side)) ^ pos->GetPieceColorBB(KING, side);
 }
 
 //Get on what square of the board the king of color c resides
 int KingSQ(const S_Board* pos, const int c) {
-	return (GetLsbIndex(GetPieceColorBB(pos, KING, c)));
+	return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }
 
 bool IsInCheck(const S_Board* pos, const int side) {

@@ -123,6 +123,11 @@ public:
 		return occupancies[sidex];
 	}
 
+	//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+	Bitboard GetPieceColorBB(const int piecetype, const int color) const {
+		return bitboards[piecetype + color * 6];
+	}
+
 	int PieceCount() const {
 		return CountBits(Occupancy(BOTH));
 	}
@@ -229,8 +234,6 @@ void parse_moves(std::string moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
 
-//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const  int color);
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
 //Return a piece based on the type and the color 

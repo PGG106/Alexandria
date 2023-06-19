@@ -14,7 +14,7 @@ bool MaterialDraw(const S_Board* pos) {
 		if ((CountBits(GetPieceBB(pos, KNIGHT)) == 2))
 			return true;
 		//KB v KB
-		else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(GetPieceColorBB(pos, BISHOP, WHITE)) == 1)
+		else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB( BISHOP, WHITE)) == 1)
 			return true;
 	}
 

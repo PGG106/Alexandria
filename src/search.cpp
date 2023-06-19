@@ -71,8 +71,8 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 	Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
 	Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-	return (pawn_attacks[WHITE][to] & GetPieceColorBB(pos, PAWN, BLACK))
-		| (pawn_attacks[BLACK][to] & GetPieceColorBB(pos, PAWN, WHITE))
+	return (pawn_attacks[WHITE][to] & pos->GetPieceColorBB(PAWN, BLACK))
+		| (pawn_attacks[BLACK][to] & pos->GetPieceColorBB(PAWN, WHITE))
 		| (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
 		| (king_attacks[to] & GetPieceBB(pos, KING))
 		| (GetBishopAttacks(to, occ) & attackingBishops)

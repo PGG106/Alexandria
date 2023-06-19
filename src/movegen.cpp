@@ -8,26 +8,22 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
 	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
 	Bitboard occ = pos->Occupancy(BOTH);
 	// is the square attacked by white pawns
-	if ((side == WHITE) && (pawn_attacks[BLACK][square] & GetPieceColorBB(pos, PAWN, WHITE)))
-		return TRUE;
-	// is the square attacked by black pawns
-	else if ((side == BLACK) &&
-		(pawn_attacks[WHITE][square] & GetPieceColorBB(pos, PAWN, BLACK)))
+	if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
 		return TRUE;
 	// is the square attacked by queens
-	if (GetQueenAttacks(square, occ) & GetPieceColorBB(pos, QUEEN, side))
+	if (GetQueenAttacks(square, occ) & pos->GetPieceColorBB(QUEEN, side))
 		return TRUE;
 	// is the square attacked by rooks
-	if (GetRookAttacks(square, occ) & GetPieceColorBB(pos, ROOK, side))
+	if (GetRookAttacks(square, occ) & pos->GetPieceColorBB(ROOK, side))
 		return TRUE;
 	// is the square attacked by bishops
-	if (GetBishopAttacks(square, occ) & GetPieceColorBB(pos, BISHOP, side))
+	if (GetBishopAttacks(square, occ) & pos->GetPieceColorBB(BISHOP, side))
 		return TRUE;
 	// is the square attacked by knights
-	if (knight_attacks[square] & GetPieceColorBB(pos, KNIGHT, side))
+	if (knight_attacks[square] & pos->GetPieceColorBB(KNIGHT, side))
 		return TRUE;
 	// is the square attacked by kings
-	if (king_attacks[square] & GetPieceColorBB(pos, KING, side))
+	if (king_attacks[square] & pos->GetPieceColorBB(KING, side))
 		return TRUE;
 	// by default return false
 	return FALSE;
@@ -141,8 +137,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 		ClearPiece(theirPawn, (GetEpSquare(pos) + offset), pos);
 		AddPiece(ourPawn, GetEpSquare(pos), pos);
 		if (!((GetRookAttacks(kSQ, pos->occupancies[2]) &
-			(GetPieceColorBB(pos, ROOK, color ^ 1) |
-				GetPieceColorBB(pos, QUEEN, color ^ 1)))))
+			(pos->GetPieceColorBB(ROOK, color ^ 1) |
+				pos->GetPieceColorBB(QUEEN, color ^ 1)))))
 			moves |= (1ULL << GetEpSquare(pos));
 		AddPiece(ourPawn, square, pos);
 		AddPiece(theirPawn, GetEpSquare(pos) + offset, pos);
@@ -211,7 +207,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
-		Bitboard pawns = GetPieceColorBB(pos, PAWN, pos->side);
+		Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
 
 		while (pawns) {
 			// init source square
@@ -230,7 +226,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 		}
 
 		// genarate knight moves
-		Bitboard knights = GetPieceColorBB(pos, KNIGHT, pos->side);
+		Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
 
 		while (knights) {
 			source_square = GetLsbIndex(knights);
@@ -249,7 +245,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 			pop_bit(knights, source_square);
 		}
 
-		Bitboard bishops = GetPieceColorBB(pos, BISHOP, pos->side);
+		Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
 
 		while (bishops) {
 			source_square = GetLsbIndex(bishops);
@@ -268,7 +264,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 			pop_bit(bishops, source_square);
 		}
 
-		Bitboard rooks = GetPieceColorBB(pos, ROOK, pos->side);
+		Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
 
 		while (rooks) {
 			source_square = GetLsbIndex(rooks);
@@ -287,7 +283,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 			pop_bit(rooks, source_square);
 		}
 
-		Bitboard queens = GetPieceColorBB(pos, QUEEN, pos->side);
+		Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
 		while (queens) {
 			source_square = GetLsbIndex(queens);
 			Bitboard moves = LegalQueenMoves(pos, pos->side, source_square);
@@ -388,11 +384,11 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 	init(pos, pos->side, KingSQ(pos, pos->side));
 
 	if (pos->checks < 2) {
-		Bitboard pawn_mask = GetPieceColorBB(pos, PAWN, pos->side);
-		Bitboard knights_mask = GetPieceColorBB(pos, KNIGHT, pos->side);
-		Bitboard bishops_mask = GetPieceColorBB(pos, BISHOP, pos->side);
-		Bitboard rooks_mask = GetPieceColorBB(pos, ROOK, pos->side);
-		Bitboard queens_mask = GetPieceColorBB(pos, QUEEN, pos->side);
+		Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, pos->side);
+		Bitboard knights_mask = pos->GetPieceColorBB(KNIGHT, pos->side);
+		Bitboard bishops_mask = pos->GetPieceColorBB(BISHOP, pos->side);
+		Bitboard rooks_mask = pos->GetPieceColorBB(ROOK, pos->side);
+		Bitboard queens_mask = pos->GetPieceColorBB(QUEEN, pos->side);
 
 		while (pawn_mask) {
 			// init source square
