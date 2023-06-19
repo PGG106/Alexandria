@@ -371,7 +371,7 @@ int GetPieceType(const int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
-	return (Occupancy(pos, side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
+	return (pos->Occupancy(side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
 }
 
 //Get on what square of the board the king of color c resides
@@ -381,18 +381,6 @@ int KingSQ(const S_Board* pos, const int c) {
 
 bool IsInCheck(const S_Board* pos, const int side) {
 	return IsSquareAttacked(pos, KingSQ(pos, side), side ^ 1);
-}
-
-Bitboard Us(const S_Board* pos) {
-	return pos->occupancies[pos->side];
-}
-
-Bitboard Enemy(const S_Board* pos) {
-	return pos->occupancies[pos->side ^ 1];
-}
-
-Bitboard Occupancy(const S_Board* pos, int side) {
-	return pos->occupancies[side];
 }
 
 int GetEpSquare(const S_Board* pos) {

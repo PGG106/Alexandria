@@ -79,6 +79,9 @@ struct S_Undo {
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
+// counts how many bits are set in a bitboard
+int CountBits(Bitboard bitboard);
+
 struct S_Board {
 public:
 	int pieces[Board_sq_num]; // array that stores for every square of the board
@@ -107,6 +110,22 @@ public:
 	std::vector<NNUE::accumulator> accumulatorStack = {};
 	bool checkers;
 	int checks = -1;
+
+	Bitboard Us() const {
+		return occupancies[side];
+	}
+
+	Bitboard Enemy() const {
+		return occupancies[side ^ 1];
+	}
+
+	Bitboard Occupancy(int sidex) const {
+		return occupancies[sidex];
+	}
+
+	int PieceCount() const {
+		return CountBits(Occupancy(BOTH));
+	}
 
 	int PieceOn(const int square) const
 	{
@@ -196,11 +215,9 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 // NNUE
 extern NNUE nnue;
 
-// counts how many bits are set in a bitboard
-int CountBits(Bitboard bitboard);
-
 // get least significant 1st bit index
 int GetLsbIndex(Bitboard bitboard);
+
 int SquareDistance(int a, int b);
 
 // parse FEN string
@@ -211,15 +228,6 @@ std::string GetFen(const S_Board* pos);
 void parse_moves(std::string moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
-
-//Board state retrieval
-
-//Occupancy info retrieval
-Bitboard Us(const S_Board* pos);
-Bitboard Enemy(const S_Board* pos);
-Bitboard Occupancy(const S_Board* pos, const int side);
-
-//Pieces info retrival
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const  int color);
@@ -241,5 +249,3 @@ bool IsInCheck(const S_Board* pos, const int side);
 int GetEpSquare(const S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
-
-

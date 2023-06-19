@@ -103,7 +103,7 @@ bool SEE(const S_Board* pos, const int move,
 		return true;
 
 	// It doesn't matter if the to square is occupied or not
-	Bitboard occupied = Occupancy(pos, BOTH) ^ (1ULL << from) ^ (1ULL << to);
+	Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << to);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
 	Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
@@ -117,12 +117,11 @@ bool SEE(const S_Board* pos, const int move,
 		// Remove used pieces from attackers
 		attackers &= occupied;
 
-		Bitboard myAttackers = attackers & Occupancy(pos, side);
+		Bitboard myAttackers = attackers & pos->Occupancy(side);
 		if (!myAttackers) {
 
 			break;
 		}
-
 
 		// Pick next least valuable piece to capture with
 		int pt;
@@ -138,7 +137,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
-			if (pt == KING && (attackers & Occupancy(pos, side)))
+			if (pt == KING && (attackers & pos->Occupancy(side)))
 				side = !side;
 
 			break;
