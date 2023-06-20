@@ -447,7 +447,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	//If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
-		ss->static_eval = value_none;
+		ss->static_eval = eval = value_none;
 		improving = false;
 		goto moves_loop;
 	}
