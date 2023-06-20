@@ -570,6 +570,7 @@ moves_loop:
 			if (!pv_node
 				&& !in_check
 				&& depth <= 5
+				&& moves_searched > 1
 				&& eval + 150 * depth <= alpha)
 			{
 				SkipQuiets = true;
