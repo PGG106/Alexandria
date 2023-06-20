@@ -7,22 +7,20 @@
 bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
 	//Take the occupancies of both positions, encoding where all the pieces on the board reside
 	Bitboard occ = pos->Occupancy(BOTH);
+	// is the square attacked by pawns
 	if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
-		return TRUE;
-	// is the square attacked by queens
-	if (GetQueenAttacks(square, occ) & pos->GetPieceColorBB(QUEEN, side))
-		return TRUE;
-	// is the square attacked by rooks
-	if (GetRookAttacks(square, occ) & pos->GetPieceColorBB(ROOK, side))
-		return TRUE;
-	// is the square attacked by bishops
-	if (GetBishopAttacks(square, occ) & pos->GetPieceColorBB(BISHOP, side))
 		return TRUE;
 	// is the square attacked by knights
 	if (knight_attacks[square] & pos->GetPieceColorBB(KNIGHT, side))
 		return TRUE;
 	// is the square attacked by kings
 	if (king_attacks[square] & pos->GetPieceColorBB(KING, side))
+		return TRUE;
+	// is the square attacked by bishops
+	if (GetBishopAttacks(square, occ) & (pos->GetPieceColorBB(BISHOP, side) | pos->GetPieceColorBB(QUEEN, side)))
+		return TRUE;
+	// is the square attacked by rooks
+	if (GetRookAttacks(square, occ) & (pos->GetPieceColorBB(ROOK, side) | pos->GetPieceColorBB(QUEEN, side)))
 		return TRUE;
 	// by default return false
 	return FALSE;
