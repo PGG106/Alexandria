@@ -195,7 +195,7 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
 }
 
 void DoPinMask(S_Board* pos, int color, int sq) {
-	Bitboard them = Occupancy(pos, color ^ 1);
+	Bitboard them = pos->Enemy();
 	Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
 		pos->bitboards[(color ^ 1) * 6 + 4]) &
 		GetBishopAttacks(sq, them);

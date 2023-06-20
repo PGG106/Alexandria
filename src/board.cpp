@@ -281,7 +281,7 @@ std::string GetFen(const S_Board* pos)
 		{
 			// init current square
 			const int square = rank * 8 + file;
-			const int potential_piece = PieceOn(pos, square);
+			const int potential_piece = pos->PieceOn(square);
 			//If the piece isn't empty we add the empty squares counter to the fen string and then the piece
 			if (potential_piece != EMPTY)
 			{
@@ -308,16 +308,16 @@ std::string GetFen(const S_Board* pos)
 	//parse player turn
 	(pos->side == WHITE) ? (turn = "w") : (turn = "b");
 	//Parse over castling rights
-	if (GetCastlingPerm(pos) == 0)
+	if (pos->GetCastlingPerm() == 0)
 		castle_perm = '-';
 	else {
-		if (GetCastlingPerm(pos) & WKCA)
+		if (pos->GetCastlingPerm() & WKCA)
 			castle_perm += "K";
-		if (GetCastlingPerm(pos) & WQCA)
+		if (pos->GetCastlingPerm() & WQCA)
 			castle_perm += "Q";
-		if (GetCastlingPerm(pos) & BKCA)
+		if (pos->GetCastlingPerm() & BKCA)
 			castle_perm += "k";
-		if (GetCastlingPerm(pos) & BQCA)
+		if (pos->GetCastlingPerm() & BQCA)
 			castle_perm += "q";
 	}
 	// parse enpassant square
@@ -330,7 +330,7 @@ std::string GetFen(const S_Board* pos)
 	}
 
 	//Parse fifty moves counter
-	fifty_move = std::to_string(Get50mrCounter(pos));
+	fifty_move = std::to_string(pos->Get50mrCounter());
 	//Parse Hisply moves counter
 	HisPly = std::to_string(pos->hisPly);
 
@@ -350,14 +350,9 @@ void parse_moves(const std::string moves, S_Board* pos)
 	}
 }
 
-
-//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceColorBB(const S_Board* pos, const int piecetype, const int color) {
-	return pos->bitboards[piecetype + color * 6];
-}
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const  int piecetype) {
-	return GetPieceColorBB(pos, piecetype, WHITE) | GetPieceColorBB(pos, piecetype, BLACK);
+	return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 //Return a piece based on the type and the color 
 int GetPiece(const int piecetype, const int color) {
@@ -371,53 +366,20 @@ int GetPieceType(const int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
-	return (Occupancy(pos, side) ^ GetPieceColorBB(pos, PAWN, side)) ^ GetPieceColorBB(pos, KING, side);
+	return (pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side)) ^ pos->GetPieceColorBB(KING, side);
 }
 
 //Get on what square of the board the king of color c resides
 int KingSQ(const S_Board* pos, const int c) {
-	return (GetLsbIndex(GetPieceColorBB(pos, KING, c)));
+	return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }
 
 bool IsInCheck(const S_Board* pos, const int side) {
 	return IsSquareAttacked(pos, KingSQ(pos, side), side ^ 1);
 }
 
-int PieceOn(const S_Board* pos, const int square)
-{
-	return pos->pieces[square];
-}
-
-Bitboard Us(const S_Board* pos) {
-	return pos->occupancies[pos->side];
-}
-
-Bitboard Enemy(const S_Board* pos) {
-	return pos->occupancies[pos->side ^ 1];
-}
-
-Bitboard Occupancy(const S_Board* pos, int side) {
-	return pos->occupancies[side];
-}
-
-int GetSide(const S_Board* pos) {
-	return pos->side;
-}
 int GetEpSquare(const S_Board* pos) {
 	return pos->enPas;
-}
-int Get50mrCounter(const S_Board* pos) {
-	return pos->fiftyMove;
-}
-int GetCastlingPerm(const S_Board* pos) {
-	return pos->castleperm;
-}
-int GetPoskey(const S_Board* pos) {
-	return pos->posKey;
-}
-
-void ChangeSide(S_Board* pos) {
-	pos->side ^= 1;
 }
 
 uint64_t GetMaterialValue(const S_Board* pos) {
@@ -429,8 +391,6 @@ uint64_t GetMaterialValue(const S_Board* pos) {
 
 	return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishops * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
 }
-
-
 
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 

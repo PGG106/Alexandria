@@ -19,7 +19,7 @@
 static int IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
-	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - Get50mrCounter(pos), 0);
+	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - pos->Get50mrCounter(), 0);
 		index < static_cast<int>(pos->played_positions.size()); index++)
 		// if we found the same position hashkey as the current position
 		if (pos->played_positions[index] == pos->posKey) {
@@ -35,7 +35,7 @@ static int IsRepetition(const S_Board* pos) {
 bool IsDraw(const S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
 	if (IsRepetition(pos)
-		|| (Get50mrCounter(pos) >= 100)
+		|| (pos->Get50mrCounter() >= 100)
 		|| MaterialDraw(pos)) {
 		return true;
 	}
@@ -71,8 +71,8 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 	Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
 	Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-	return (pawn_attacks[WHITE][to] & GetPieceColorBB(pos, PAWN, BLACK))
-		| (pawn_attacks[BLACK][to] & GetPieceColorBB(pos, PAWN, WHITE))
+	return (pawn_attacks[WHITE][to] & pos->GetPieceColorBB(PAWN, BLACK))
+		| (pawn_attacks[BLACK][to] & pos->GetPieceColorBB(PAWN, WHITE))
 		| (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
 		| (king_attacks[to] & GetPieceBB(pos, KING))
 		| (GetBishopAttacks(to, occ) & attackingBishops)
@@ -86,7 +86,7 @@ bool SEE(const S_Board* pos, const int move,
 	int to = To(move);
 	int from = From(move);
 
-	int target = PieceOn(pos, to);
+	int target = pos->PieceOn(to);
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
 
@@ -95,7 +95,7 @@ bool SEE(const S_Board* pos, const int move,
 	if (value < 0)
 		return false;
 
-	int attacker = PieceOn(pos, from);
+	int attacker = pos->PieceOn(from);
 	// Trivial if we still beat the threshold after losing the piece
 	value -= PieceValue[attacker];
 
@@ -103,7 +103,7 @@ bool SEE(const S_Board* pos, const int move,
 		return true;
 
 	// It doesn't matter if the to square is occupied or not
-	Bitboard occupied = Occupancy(pos, BOTH) ^ (1ULL << from) ^ (1ULL << to);
+	Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << to);
 	Bitboard attackers = AttacksTo(pos, to, occupied);
 
 	Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
@@ -117,12 +117,11 @@ bool SEE(const S_Board* pos, const int move,
 		// Remove used pieces from attackers
 		attackers &= occupied;
 
-		Bitboard myAttackers = attackers & Occupancy(pos, side);
+		Bitboard myAttackers = attackers & pos->Occupancy(side);
 		if (!myAttackers) {
 
 			break;
 		}
-
 
 		// Pick next least valuable piece to capture with
 		int pt;
@@ -138,7 +137,7 @@ bool SEE(const S_Board* pos, const int move,
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 
-			if (pt == KING && (attackers & Occupancy(pos, side)))
+			if (pt == KING && (attackers & pos->Occupancy(side)))
 				side = !side;
 
 			break;
@@ -191,13 +190,12 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			//Good captures get played before most of the stuff
 			if (SEE(pos, move, -107)) {
 				move_list->moves[i].score =
-					mvv_lva[Piece(move)][PieceOn(pos, To(move))] +
+					mvv_lva[Piece(move)][pos->PieceOn(To(move))] +
 					goodCaptureScore;
 			}
 			else {
-				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][PieceOn(pos, To(move))];
+				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][pos->PieceOn(To(move))];
 			}
-
 			continue;
 		}
 		//First  killer move always comes after the TT move,the promotions and the good captures and before anything else
