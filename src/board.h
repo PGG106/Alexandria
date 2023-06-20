@@ -111,49 +111,49 @@ public:
 	bool checkers;
 	int checks = -1;
 
-	Bitboard Us() const {
+	inline Bitboard Us() const {
 		return occupancies[side];
 	}
 
-	Bitboard Enemy() const {
+	inline Bitboard Enemy() const {
 		return occupancies[side ^ 1];
 	}
 
-	Bitboard Occupancy(int sidex) const {
+	inline Bitboard Occupancy(int sidex) const {
 		return occupancies[sidex];
 	}
 
 	//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-	Bitboard GetPieceColorBB(const int piecetype, const int color) const {
+	inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
 		return bitboards[piecetype + color * 6];
 	}
 
-	int PieceCount() const {
+	inline int PieceCount() const {
 		return CountBits(Occupancy(BOTH));
 	}
 
-	int PieceOn(const int square) const
+	inline int PieceOn(const int square) const
 	{
 		return pieces[square];
 	}
 
-	int GetSide() const {
+	inline int GetSide() const {
 		return side;
 	}
 
-	int GetPoskey() const {
+	inline int GetPoskey() const {
 		return posKey;
 	}
 
-	int Get50mrCounter() const {
+	inline int Get50mrCounter() const {
 		return fiftyMove;
 	}
 
-	int GetCastlingPerm() const {
+	inline int GetCastlingPerm() const {
 		return castleperm;
 	}
 
-	void ChangeSide() {
+	inline void ChangeSide() {
 		side ^= 1;
 	}
 
