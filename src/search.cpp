@@ -624,8 +624,7 @@ moves_loop:
 		bool do_full_search = false;
 		// conditions to consider LMR
 		if (moves_searched >= 3 + 2 * pv_node
-			&& depth >= 3
-			&& !in_check)
+			&& depth >= 3)
 		{
 			if (isQuiet) {
 				//calculate by how much we should reduce the search depth 
@@ -639,11 +638,13 @@ moves_loop:
 				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 				//Fuck
 				depth_reduction += 2 * cutnode;
+				if (pos->checkers) depth_reduction -= 1;
 			}
 			//Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
 				//calculate by how much we should reduce the search depth (ideally this needs its own table, but i'm lazy)
 				depth_reduction = reductions[depth][moves_searched];
+				if (pos->checkers) depth_reduction -= 1;
 			}
 			//adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
