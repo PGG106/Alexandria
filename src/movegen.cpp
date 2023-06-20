@@ -5,7 +5,8 @@
 
 // is the square given in input attacked by the current given side
 bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
-	//Take the occupancies of obth positions, encoding where all the pieces on the board reside
+	//Take the occupancies of both positions, encoding where all the pieces on the board reside
+	Bitboard occ = pos->Occupancy(BOTH);
 	if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
 		return TRUE;
 	// is the square attacked by queens
