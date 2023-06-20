@@ -571,7 +571,7 @@ moves_loop:
 				&& !in_check
 				&& depth <= 5
 				&& moves_searched > 1
-				&& eval + 150 * depth <= alpha)
+				&& eval + 70 + 150 * depth <= alpha)
 			{
 				SkipQuiets = true;
 				continue;
