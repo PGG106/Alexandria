@@ -566,6 +566,16 @@ moves_loop:
 				continue;
 			}
 
+			//Futility pruning?
+			if (!pv_node
+				&& !in_check
+				&& depth <= 5
+				&& eval + 150 * depth <= alpha)
+			{
+				SkipQuiets = true;
+				continue;
+			}
+
 			// See pruning
 			if (depth <= 8
 				&& moves_searched >= 2
