@@ -568,11 +568,15 @@ moves_loop:
 
 			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
 
-			if ( !in_check
+			if (!in_check
 				&& moves_searched > 1
 				&& lmrDepth < 12
-				&& eval + 112 + 138 * lmrDepth <= alpha)
+				&& isQuiet
+				&& ss->static_eval + 112 + 138 * lmrDepth <= alpha)
+			{
+				SkipQuiets = true;
 				continue;
+			}
 
 			// See pruning
 			if (depth <= 8
