@@ -566,12 +566,14 @@ moves_loop:
 				continue;
 			}
 
+			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
+
 			//Futility pruning?
 			if (!pv_node
 				&& !in_check
-				&& depth <= 5
-				&& moves_searched > 1
-				&& eval + 70 + 150 * depth <= alpha)
+				&& depth <= 6
+				&& moves_searched > 2
+				&& eval + 70 + 150 * lmrDepth <= alpha)
 			{
 				SkipQuiets = true;
 				continue;
