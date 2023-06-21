@@ -569,6 +569,7 @@ moves_loop:
 			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
 
 			if ( !in_check
+				&& moves_searched > 1
 				&& lmrDepth < 12
 				&& eval + 112 + 138 * lmrDepth <= alpha)
 				continue;
