@@ -447,7 +447,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	//If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
-		ss->static_eval = value_none;
+		ss->static_eval = eval = value_none;
 		improving = false;
 		goto moves_loop;
 	}
@@ -561,6 +561,18 @@ moves_loop:
 				&& depth < 9
 				&& isQuiet
 				&& moves_searched > lmp_margin[depth][improving])
+			{
+				SkipQuiets = true;
+				continue;
+			}
+
+			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
+
+			if (!in_check
+				&& moves_searched > 1
+				&& lmrDepth < 12
+				&& isQuiet
+				&& ss->static_eval + 112 + 138 * lmrDepth <= alpha)
 			{
 				SkipQuiets = true;
 				continue;
