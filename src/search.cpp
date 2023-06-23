@@ -572,7 +572,7 @@ moves_loop:
 				&& moves_searched > 1
 				&& lmrDepth < 12
 				&& isQuiet
-				&& ss->static_eval + 112 + 138 * lmrDepth <= alpha)
+				&& ss->static_eval + 100 + 150 * lmrDepth <= alpha)
 			{
 				SkipQuiets = true;
 				continue;
