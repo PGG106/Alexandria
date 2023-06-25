@@ -73,13 +73,18 @@ int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int  move, 
 }
 
 //Returns the history score of a move
-int GetCHScore(const Search_data* sd, const Search_stack* ss, const int  move)
+int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move)
 {
+	int score = 0;
 	int previous_move = (ss - 1)->move;
 	int previous_previous_move = (ss - 2)->move;
-	return previous_move ? sd->cont_hist[Piece(previous_move)][To(previous_move)][Piece(move)][To(move)] : 0 +
-		previous_previous_move ? sd->cont_hist[Piece(previous_previous_move)][To(previous_previous_move)][Piece(move)][To(move)] : 0;
+	if (previous_move)
+		score += sd->cont_hist[Piece(previous_move)][To(previous_move)][Piece(move)][To(move)];
+	if (previous_previous_move)
+		score += sd->cont_hist[Piece(previous_previous_move)][To(previous_previous_move)][Piece(move)][To(move)];
+	return score;
 }
+
 //Resets the history table
 void CleanHistories(Search_data* ss) {
 	//For every piece [12] moved to every square [64] we reset the searchHistory value
