@@ -788,14 +788,15 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	//If we have a ttHit with a valid eval use that
 	if (TThit)
 	{
-		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+		ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+		eval = BestScore = ttScore;
 	}
 	else
 	{
 		//If we don't have any useful info in the TT just call Evalpos
-		eval = ss->static_eval = EvalPosition(pos);
+		eval = BestScore = ss->static_eval = EvalPosition(pos);
 	}
-	BestScore = eval;
+
 	//Stand pat
 	if (eval >= beta) return eval;
 	//Adjust alpha based on eval
