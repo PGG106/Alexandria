@@ -553,7 +553,9 @@ moves_loop:
 			quiet_moves.count++;
 		}
 
-		if (!root_node)
+		if (!root_node
+			&& BoardHasNonPawns(pos, pos->side)
+			&& moves_searched > 1)
 		{
 			//Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
 			if (!pv_node
@@ -569,7 +571,6 @@ moves_loop:
 			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
 
 			if (!in_check
-				&& moves_searched > 1
 				&& lmrDepth < 12
 				&& isQuiet
 				&& ss->static_eval + 100 + 150 * lmrDepth <= alpha)
@@ -579,8 +580,7 @@ moves_loop:
 			}
 
 			// See pruning
-			if (depth <= 8
-				&& moves_searched >= 2
+			if (depth <= 8	
 				&& !SEE(pos, move, see_margin[depth][isQuiet]))
 			{
 				continue;
