@@ -33,13 +33,13 @@ int32_t NNUE::SCReLU(int16_t x) {
     return wide * wide;
 }
 
-void NNUE::init(const char *file) {
+void NNUE::init(const char* file) {
     // initialize an accumulator for every input of the second layer
     size_t read = 0;
     size_t fileSize = sizeof(NNUE);
     size_t objectsExpected = fileSize / sizeof(int16_t);
     // open the nn file
-    FILE *nn = fopen(file, "rb");
+    FILE* nn = fopen(file, "rb");
 
     // if it's not invalid read the config values from it
     if (nn) {
@@ -71,7 +71,7 @@ void NNUE::init(const char *file) {
     }
 }
 
-void NNUE::add(NNUE::accumulator &board_accumulator, int piece, int to) {
+void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, to);
     auto whiteAdd = &featureWeights[whiteIdx * HIDDEN_SIZE];
     auto blackAdd = &featureWeights[blackIdx * HIDDEN_SIZE];
@@ -83,7 +83,7 @@ void NNUE::add(NNUE::accumulator &board_accumulator, int piece, int to) {
     }
 }
 
-void NNUE::clear(NNUE::accumulator &board_accumulator, int piece, int from) {
+void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, from);
     auto whiteSub = &featureWeights[whiteIdx * HIDDEN_SIZE];
     auto blackSub = &featureWeights[blackIdx * HIDDEN_SIZE];
@@ -95,7 +95,7 @@ void NNUE::clear(NNUE::accumulator &board_accumulator, int piece, int from) {
     }
 }
 
-void NNUE::move(NNUE::accumulator &board_accumulator, int piece, int from, int to) {
+void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) {
     auto [whiteIdxFrom, blackIdxFrom] = GetIndex(piece, from);
     auto [whiteIdxTo, blackIdxTo] = GetIndex(piece, to);
     auto whiteSub = &featureWeights[whiteIdxFrom * HIDDEN_SIZE];
@@ -110,11 +110,11 @@ void NNUE::move(NNUE::accumulator &board_accumulator, int piece, int from, int t
     }
 }
 
-int32_t NNUE::output(const NNUE::accumulator &board_accumulator, bool whiteToMove) {
+int32_t NNUE::output(const NNUE::accumulator& board_accumulator, bool whiteToMove) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
-    const int16_t *us;
-    const int16_t *them;
+    const int16_t* us;
+    const int16_t* them;
     if (whiteToMove) {
         us = board_accumulator[0].data();
         them = board_accumulator[1].data();
