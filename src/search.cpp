@@ -1,6 +1,6 @@
 #include "search.h"
 #include "history.h"
-#include "pieceData.h"
+#include "piece_data.h"
 #include "attack.h"
 #include "eval.h"
 #include "magic.h"

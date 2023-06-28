@@ -1,5 +1,5 @@
 #include "perft.h"
-#include "pieceData.h"
+#include "piece_data.h"
 #include "io.h"
 #include "makemove.h"
 #include "misc.h"
