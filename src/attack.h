@@ -123,4 +123,3 @@ extern Bitboard rook_attacks[64][4096];
 
 // set occupancies
 Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
-

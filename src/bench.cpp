@@ -111,4 +111,3 @@ void BenchInference() {
 
 	return;
 }
-

@@ -15,5 +15,3 @@ std::map<char, int> char_pieces = {
 std::map<int, char> promoted_pieces = {{WQ, 'q'}, {WR, 'r'}, {WB, 'b'},
                                        {WN, 'n'}, {BQ, 'q'}, {BR, 'r'},
                                        {BB, 'b'}, {BN, 'n'}};
-
-

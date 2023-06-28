@@ -40,7 +40,3 @@ struct S_MOVELIST {
 #define isEnpassant(pos,move) ((Piece(move) == WP || Piece(move) == BP) && (To(move) == GetEpSquare(pos)))
 
 #define IsQuiet(move) (!IsCapture(move) && !Promoted(move))
-
-
-
-

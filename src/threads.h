@@ -14,4 +14,3 @@ extern std::vector<S_ThreadData> threads_data;
 
 uint64_t GetTotalNodes(const int threadcount);
 void StopHelperThreads();
-

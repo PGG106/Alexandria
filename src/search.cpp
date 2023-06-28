@@ -866,4 +866,3 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// return the best score we got
 	return BestScore;
 }
-
