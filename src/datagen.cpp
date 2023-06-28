@@ -137,36 +137,38 @@ void RootDatagen(S_ThreadData* td, Datagen_params params) {
 
 void Datagen(S_ThreadData* td, Datagen_params params) {
     std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
-    if (myfile.is_open()) {
-        // Each thread gets its own file to dump data into
-        auto start_time = GetTimeMs();
-        uint64_t total_fens = 0;
-        auto threadcount = params.threadnum;
 
-        if (td->id == 0)
-            std::cout << "Datagen started successfully" << std::endl;
-        for (uint64_t games = 1; games <= params.games; games++) {
-            if (stop_flag) {
-                if (td->id == 0)
-                    std::cout << "Stopping Datagen..\n";
-                break;
-            }
-            // Make sure a game is started on a clean state
-            set_new_game_state(td);
-            // Restart if we get a busted random score
-            if (!PlayGame(td, myfile, total_fens)) {
-                games--;
-                continue;
-            }
-            if ((games % 128) == 0 && td->id == 0)
-                std::cout << "Games: " << games * threadcount
-                << " Fens: " << total_fens * threadcount
-                << " Speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) * threadcount << " fens/s"
-                << std::endl;
-        }
-        myfile.close();
+    if (!myfile.is_open()) {
+        std::cout << "Unable to open file";
+        return;
     }
-    else std::cout << "Unable to open file";
+
+    // Each thread gets its own file to dump data into
+    auto start_time = GetTimeMs();
+    uint64_t total_fens = 0;
+    auto threadcount = params.threadnum;
+
+    if (td->id == 0)
+        std::cout << "Datagen started successfully" << std::endl;
+    for (uint64_t games = 1; games <= params.games; games++) {
+        if (stop_flag) {
+            if (td->id == 0)
+                std::cout << "Stopping Datagen..\n";
+            break;
+        }
+        // Make sure a game is started on a clean state
+        set_new_game_state(td);
+        // Restart if we get a busted random score
+        if (!PlayGame(td, myfile, total_fens)) {
+            games--;
+            continue;
+        }
+        if ((games % 128) == 0 && td->id == 0)
+            std::cout << "Games: " << games * threadcount
+            << " Fens: " << total_fens * threadcount
+            << " Speed: " << (total_fens * 1000 / (1 + GetTimeMs() - start_time)) * threadcount << " fens/s"
+            << std::endl;
+    }
 }
 
 bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens) {
