@@ -1,14 +1,31 @@
+
+NETWORK_NAME = nn.net
 _THIS     := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT     := $(_THIS)
-EVALFILE   = $(_ROOT)/nn.net
+EVALFILE   = $(_ROOT)/$(NETWORK_NAME)
 CXX       := g++
 TARGET    := Alexandria
-CXXFLAGS  :=  -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
+CXXFLAGS  :=  -funroll-loops -O3 -flto -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
 -Wlogical-op -Wunused -Wold-style-cast -Wundef -DNDEBUG
 NATIVE     = -march=native
 
+
 # engine name
 NAME      := Alexandria
+
+TMPDIR = .tmp
+
+# Detect Windows
+ifeq ($(OS), Windows_NT)
+	MKDIR    := mkdir -p
+else
+ifeq ($(COMP), MINGW)
+	MKDIR    := mkdir
+else
+	MKDIR   := mkdir -p
+endif
+endif
+
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
@@ -69,19 +86,25 @@ ifeq ($(build), debug)
 	FLAGS    = -lpthread -lstdc++
 endif
 
-SOURCES := $(wildcard *.cpp)
-OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
-DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
+# Add network name and Evalfile
+CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE)\"
+
+SOURCES := $(wildcard src/*.cpp)
+OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
+DEPENDS := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SOURCES))
 EXE     := $(NAME)$(SUFFIX)
 
-Alexandria: $(TARGET)
+all: $(TARGET)
 clean:
-	rm -rf *.o $(DEPENDS)
+	@rm -rf $(TMPDIR) *.o  $(DEPENDS) *.d
 
 $(TARGET): $(OBJECTS)
-	$(CXX) -o $(EXE) $^ $(CXXFLAGS) $(NATIVE) $(INSTRUCTIONS) $(FLAGS) -flto
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(LDFLAGS)
+
+$(TMPDIR)/%.o: %.cpp | $(TMPDIR)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
+
+$(TMPDIR):
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
 
 -include $(DEPENDS)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(NATIVE) $(INSTRUCTIONS) -funroll-loops -O3 -DEVALFILE=\"$(EVALFILE)\" -flto -MMD -MP -c -o $@ $< $(FLAGS)
