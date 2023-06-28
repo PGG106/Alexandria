@@ -17,7 +17,7 @@ struct S_MOVELIST {
 // encode move
 #define encode_move(source, target, piece, promoted, capture)      \
   (source) | (target << 6) | (piece << 12) | (promoted << 16) |                \
-      (capture << 20)         
+      (capture << 20)
 
 #define NOMOVE 0
 #define mate_score 31000

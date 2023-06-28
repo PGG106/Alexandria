@@ -314,7 +314,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
 
 	if (pos->checkMask == 18446744073709551615ULL) {
 		if (pos->side == WHITE) {
-			// king side castling is available	
+			// king side castling is available
 			if (pos->GetCastlingPerm() & WKCA) {
 				// make sure square between king and king's rook are empty
 				if (!get_bit(pos->Occupancy(BOTH), f1) &&

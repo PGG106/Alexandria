@@ -185,7 +185,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 				break;
 			}
 		}
-		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not 
+		//if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not
 		else if (IsCapture(move)) {
 			//Good captures get played before most of the stuff
 			if (SEE(pos, move, -107)) {
@@ -275,7 +275,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 
-	//Clean the position and the search info to start search from a clean state 
+	//Clean the position and the search info to start search from a clean state
 	ClearForSearch(td);
 
 	// Call the Negamax function in an iterative deepening framework
@@ -475,7 +475,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 
 	if (!pv_node) {
 
-		// Reverse futility pruning 
+		// Reverse futility pruning
 		if (depth < 9
 			&& eval - 66 * (depth - improving) >= beta
 			&& abs(eval) < ISMATE)
@@ -580,7 +580,7 @@ moves_loop:
 			}
 
 			// See pruning
-			if (depth <= 8	
+			if (depth <= 8
 				&& !SEE(pos, move, see_margin[depth][isQuiet]))
 			{
 				continue;
@@ -639,7 +639,7 @@ moves_loop:
 			&& depth >= 3)
 		{
 			if (isQuiet) {
-				//calculate by how much we should reduce the search depth 
+				//calculate by how much we should reduce the search depth
 				//Get base reduction value
 				depth_reduction = reductions[depth][moves_searched];
 				//Reduce more if we aren't improving
@@ -731,7 +731,7 @@ moves_loop:
 
 	// we don't have any legal moves to make in the current postion
 	if (move_list->count == 0) {
-		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
+		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
 		BestScore = excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
 	}
 
@@ -852,7 +852,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 				alpha = Score;
 				bestmove = move;
 
-				// if the Score is better than or equal to beta break the loop because we failed high 
+				// if the Score is better than or equal to beta break the loop because we failed high
 				if (Score >= beta) break;
 			}
 		}

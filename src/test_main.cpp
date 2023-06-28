@@ -7,7 +7,7 @@ void RunTests()
 	test_get_fen();
 }
 
-//Parses a fen and checks that the fen returned by GetFen matches	
+//Parses a fen and checks that the fen returned by GetFen matches
 void test_get_fen()
 {
 	std::cout << "Running test_get_fen\n";

@@ -74,7 +74,7 @@ int sanity_search(S_ThreadData* td)
 
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
-	//Clean the position and the search info to start search from a clean state 
+	//Clean the position and the search info to start search from a clean state
 	ClearForSearch(td);
 
 	score = AspirationWindowSearch(0, 10, td);
@@ -90,7 +90,7 @@ int search_best_move(S_ThreadData* td)
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
-	//Clean the position and the search info to start search from a clean state 
+	//Clean the position and the search info to start search from a clean state
 	ClearForSearch(td);
 	// define initial alpha beta bounds
 	int alpha = -MAXSCORE;

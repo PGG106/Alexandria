@@ -167,7 +167,7 @@ struct PvTable {
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 //Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct S_SearchINFO {
-	//search start time 
+	//search start time
 	uint64_t starttime = 0;
 	//search time initial lower bound if present
 	uint64_t stoptimeBaseOpt = 0;
@@ -236,7 +236,7 @@ void ResetInfo(S_SearchINFO* info);
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
-//Return a piece based on the type and the color 
+//Return a piece based on the type and the color
 int GetPiece(const int piecetype, const int color);
 //Returns the piece_type of a piece
 int GetPieceType(const int piece);

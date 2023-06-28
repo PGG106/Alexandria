@@ -354,12 +354,12 @@ void parse_moves(const std::string moves, S_Board* pos)
 Bitboard GetPieceBB(const S_Board* pos, const  int piecetype) {
 	return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
-//Return a piece based on the type and the color 
+//Return a piece based on the type and the color
 int GetPiece(const int piecetype, const int color) {
 	return piecetype + 6 * color;
 }
 
-//Return a piece based on the type and the color 
+//Return a piece based on the type and the color
 int GetPieceType(const int piece) {
 	return PieceType[piece];
 }
