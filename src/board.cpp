@@ -128,7 +128,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
         fifty_move = tokens.at(4);
         if (tokens.size() >= 6) {
             HisPly = tokens.at(5);
-            HisPly = tokens.at(5);
         }
     }
 
