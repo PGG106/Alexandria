@@ -5,18 +5,18 @@
 #include "uci.h"
 
 struct Search_stack {
-    int excludedMove = { NOMOVE };
-    int16_t static_eval = { 0 };
-    int move = { 0 };
+    int excludedMove = {};
+    int16_t static_eval = {};
+    int move = {};
     int ply;
-    int searchKillers[2] = { NOMOVE };
+    int searchKillers[2] = {};
     int double_extensions = 0;
 };
 
 struct Search_data {
-    int searchHistory[2][Board_sq_num][Board_sq_num] = { 0 };
-    int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
-    int cont_hist[12][64][12][64] = { 0 };
+    int searchHistory[2][Board_sq_num][Board_sq_num] = {};
+    int CounterMoves[Board_sq_num][Board_sq_num] = {};
+    int cont_hist[12][64][12][64] = {};
 };
 
 // a collection of all the data a thread needs to condut a search
@@ -26,7 +26,7 @@ struct S_ThreadData {
     Search_data ss;
     S_SearchINFO info;
     PvTable pv_table;
-    uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = { {0} };
+    uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};
     int RootDepth;
 };
 

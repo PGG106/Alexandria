@@ -16,7 +16,7 @@
 #if !defined(_MSC_VER)
 INCBIN(EVAL, EVALFILE);
 #else
-const unsigned char gEVALData[1] = { 0x0 };
+const unsigned char gEVALData[1] = {};
 const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif

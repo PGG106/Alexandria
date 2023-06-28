@@ -105,8 +105,8 @@ public:
     Bitboard checkMask = 0ULL;
 
     // Occupancies bitboards based on piece and side
-    Bitboard bitboards[12]{ 0ULL };
-    Bitboard occupancies[3] = { 0ULL };
+    Bitboard bitboards[12] = {};
+    Bitboard occupancies[3] = {};
     NNUE::accumulator accumulator = {};
     // Previous values of the nnue accumulators. always empty at the start of search
     std::vector<NNUE::accumulator> accumulatorStack = {};
