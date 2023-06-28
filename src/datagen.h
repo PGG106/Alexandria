@@ -6,16 +6,16 @@
 extern std::atomic<bool> stop_flag;
 //The internal structure of a "fen" worth of training data, in Cudad format
 struct data_entry {
-	std::string fen;
-	int score;
-	std::string wdl;
+    std::string fen;
+    int score;
+    std::string wdl;
 };
 //Parameters unique to Datagen that the user might want to override
 struct Datagen_params
 {
-	int threadnum = 6;
-	//The games are defined per thread and not as a cumulative sum
-	uint64_t games = 10000000;
+    int threadnum = 6;
+    //The games are defined per thread and not as a cumulative sum
+    uint64_t games = 10000000;
 };
 
 //Root Datagen function that handles the start-up of Datagen

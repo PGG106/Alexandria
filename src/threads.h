@@ -5,9 +5,9 @@
 #include "search.h"
 
 enum state {
-	Idle,
-	Search,
-	datagen
+    Idle,
+    Search,
+    datagen
 };
 // global vector of search threads
 extern std::vector<std::thread> threads;

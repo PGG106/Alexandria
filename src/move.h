@@ -1,17 +1,17 @@
 #pragma once
 
 struct S_MOVE {
-	int move;
-	int score;
+    int move;
+    int score;
 };
 
 // move list structure
 struct S_MOVELIST {
-	// moves
-	S_MOVE moves[256];
+    // moves
+    S_MOVE moves[256];
 
-	// move count
-	int count;
+    // move count
+    int count;
 };
 
 // encode move

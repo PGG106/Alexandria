@@ -3,10 +3,10 @@
 #include "board.h"
 
 struct S_UciOptions {
-	uint64_t Hash = 16;
-	int MultiPV = 1;
-	int Threads = 1;
-	bool datagen = false;
+    uint64_t Hash = 16;
+    int MultiPV = 1;
+    int Threads = 1;
+    bool datagen = false;
 };
 //Internal flag to decide if to pretty or ugly print search results
 extern bool print_uci;

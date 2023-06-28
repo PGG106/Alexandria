@@ -4,29 +4,29 @@
 #include "uci.h"
 
 struct Search_stack {
-	int excludedMove = { NOMOVE };
-	int16_t static_eval = { 0 };
-	int move = { 0 };
-	int ply;
-	int searchKillers[2] = { NOMOVE };
-	int double_extensions = 0;
+    int excludedMove = { NOMOVE };
+    int16_t static_eval = { 0 };
+    int move = { 0 };
+    int ply;
+    int searchKillers[2] = { NOMOVE };
+    int double_extensions = 0;
 };
 
 struct Search_data {
-	int searchHistory[2][Board_sq_num][Board_sq_num] = { 0 };
-	int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
-	int cont_hist[12][64][12][64] = { 0 };
+    int searchHistory[2][Board_sq_num][Board_sq_num] = { 0 };
+    int CounterMoves[Board_sq_num][Board_sq_num] = { 0 };
+    int cont_hist[12][64][12][64] = { 0 };
 };
 
 // a collection of all the data a thread needs to condut a search
 struct S_ThreadData {
-	int id = 0;
-	S_Board pos;
-	Search_data ss;
-	S_SearchINFO info;
-	PvTable pv_table;
-	uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = { {0} };
-	int RootDepth;
+    int id = 0;
+    S_Board pos;
+    Search_data ss;
+    S_SearchINFO info;
+    PvTable pv_table;
+    uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = { {0} };
+    int RootDepth;
 };
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
