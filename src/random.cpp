@@ -1,4 +1,5 @@
 #include "random.h"
+
 // pseudo random number state
 unsigned int random_state = 1804289383;
 

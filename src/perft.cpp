@@ -10,8 +10,6 @@
 #endif
 #include <iostream>
 
-
-
 // leaf nodes (number of positions reached during the test of the move generator
 // at a given depth)
 unsigned long long nodes;

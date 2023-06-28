@@ -1,7 +1,9 @@
 #pragma once
+
 #include <vector>
 #include <thread>
 #include "search.h"
+
 enum state {
 	Idle,
 	Search,

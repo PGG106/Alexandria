@@ -1,10 +1,10 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "board.h"
 #include "move.h"
 #include "search.h"
-
 
 //Update the history heuristics of all the quiet moves passed to the function
 void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves);

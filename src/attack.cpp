@@ -1,4 +1,3 @@
-
 #include "attack.h"
 #include "magic.h"
 #include <algorithm>

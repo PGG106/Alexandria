@@ -1,5 +1,7 @@
 #pragma once
+
 #include "board.h"
+
 // perft driver
 void PerftDriver(int depth, S_Board *pos);
 // perft test

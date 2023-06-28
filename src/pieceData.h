@@ -1,7 +1,9 @@
 #pragma once
+
 #include "board.h"
 #include <map>
 #include <string>
+
 // convert ASCII character pieces to encoded constants
 extern std::map<char, int> char_pieces;
 

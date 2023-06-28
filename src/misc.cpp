@@ -1,4 +1,3 @@
-
 #include "misc.h"
 #include "io.h"
 #include "threads.h"
@@ -7,7 +6,6 @@
 #include <algorithm>
 #include <iomanip>
 #include <chrono>
-
 
 uint64_t GetTimeMs() {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();

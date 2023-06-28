@@ -7,8 +7,8 @@
 #include <sstream>
 #include <iomanip>
 
-
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
+
 bool print_uci = false;
 void PrintBitboard(const Bitboard bitboard) {
 	// print offset

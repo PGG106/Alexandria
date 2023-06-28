@@ -1,4 +1,5 @@
 #pragma once
+
 #include "board.h"
 #include "hashkey.h"
 #include "init.h"
