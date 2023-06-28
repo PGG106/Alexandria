@@ -59,7 +59,7 @@ void ScaleTm(S_ThreadData* td) {
 
 bool NodesOver(const S_SearchINFO* info) {
     // check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
-    return info->nodeset == TRUE && info->nodes > info->nodeslimit;
+    return info->nodeset && info->nodes > info->nodeslimit;
 }
 
 bool TimeOver(const S_SearchINFO* info) {

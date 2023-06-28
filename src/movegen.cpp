@@ -9,21 +9,21 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
     Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
     if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
-        return TRUE;
+        return true;
     // is the square attacked by knights
     if (knight_attacks[square] & pos->GetPieceColorBB(KNIGHT, side))
-        return TRUE;
+        return true;
     // is the square attacked by kings
     if (king_attacks[square] & pos->GetPieceColorBB(KING, side))
-        return TRUE;
+        return true;
     // is the square attacked by bishops
     if (GetBishopAttacks(square, occ) & (pos->GetPieceColorBB(BISHOP, side) | pos->GetPieceColorBB(QUEEN, side)))
-        return TRUE;
+        return true;
     // is the square attacked by rooks
     if (GetRookAttacks(square, occ) & (pos->GetPieceColorBB(ROOK, side) | pos->GetPieceColorBB(QUEEN, side)))
-        return TRUE;
+        return true;
     // by default return false
-    return FALSE;
+    return false;
 }
 
 static inline Bitboard PawnPush(int color, int sq) {
@@ -45,10 +45,10 @@ int MoveExists(S_Board* pos, const int move) {
     int MoveNum = 0;
     for (MoveNum = 0; MoveNum < list->count; ++MoveNum) {
         if (list->moves[MoveNum].move == move) {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 // function that adds a move to the move list
 static inline void AddMove(int move, S_MOVELIST* list) {

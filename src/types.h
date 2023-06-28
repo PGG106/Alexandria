@@ -73,11 +73,6 @@ enum {
 };
 
 enum {
-    FALSE,
-    TRUE
-};
-
-enum {
     HFNONE,
     HFALPHA,
     HFBETA,

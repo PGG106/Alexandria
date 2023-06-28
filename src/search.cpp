@@ -24,10 +24,10 @@ static int IsRepetition(const S_Board* pos) {
         // if we found the same position hashkey as the current position
         if (pos->played_positions[index] == pos->posKey) {
             // we found a repetition
-            return TRUE;
+            return true;
         }
 
-    return FALSE;
+    return false;
 }
 
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
@@ -55,7 +55,7 @@ void ClearForSearch(S_ThreadData* td) {
     std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
     //Reset plies and search info
     info->starttime = GetTimeMs();
-    info->stopped = FALSE;
+    info->stopped = false;
     info->nodes = 0;
     info->seldepth = 0;
 }
