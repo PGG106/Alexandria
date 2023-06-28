@@ -99,10 +99,10 @@ clean:
 	@rm -rf $(TMPDIR) *.o  $(DEPENDS) *.d
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
