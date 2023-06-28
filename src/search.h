@@ -19,7 +19,7 @@ struct Search_data {
     int cont_hist[12][64][12][64] = {};
 };
 
-// a collection of all the data a thread needs to condut a search
+// a collection of all the data a thread needs to conduct a search
 struct S_ThreadData {
     int id = 0;
     S_Board pos;
