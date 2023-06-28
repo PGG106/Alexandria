@@ -244,7 +244,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 
     // Start Threads-1 helper search threads
     for (int i = 0; i < options->Threads - 1; i++) {
-        threads.emplace_back(std::thread(SearchPosition, 1, depth, &threads_data[i], options));
+        threads.emplace_back(SearchPosition, 1, depth, &threads_data[i], options);
     }
     // MainThread search
     SearchPosition(1, depth, td, options);

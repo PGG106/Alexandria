@@ -123,7 +123,7 @@ void RootDatagen(S_ThreadData* td, Datagen_params params) {
 
     // Start Threads-1 helper search threads
     for (int i = 0; i < params.threadnum - 1; i++) {
-        threads.emplace_back(std::thread(Datagen, &threads_data[i], params));
+        threads.emplace_back(Datagen, &threads_data[i], params);
     }
 
     // MainThread Datagen
