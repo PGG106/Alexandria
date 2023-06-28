@@ -4,9 +4,6 @@
 #include "io.h"
 #include <cstring>
 #include <iostream>
-#ifdef _WIN32
-#include "windows.h"
-#endif
 
 S_HashTable HashTable[1];
 

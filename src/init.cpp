@@ -8,6 +8,9 @@
 #include "ttable.h"
 #include "threads.h"
 #include "history.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 Bitboard PieceKeys[12][64];
 Bitboard enpassant_keys[64];

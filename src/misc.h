@@ -3,12 +3,6 @@
 #include "board.h"
 #include "search.h"
 #include <string>
-#ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include "windows.h"
-#endif
 
 uint64_t GetTimeMs();
 

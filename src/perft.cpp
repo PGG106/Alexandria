@@ -3,11 +3,6 @@
 #include "io.h"
 #include "makemove.h"
 #include "misc.h"
-#ifdef _WIN64
-#include <windows.h>
-#else
-#include <sys/time.h>
-#endif
 #include <iostream>
 
 // leaf nodes (number of positions reached during the test of the move generator
