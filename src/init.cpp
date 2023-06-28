@@ -48,7 +48,7 @@ int reductions[MAXDEPTH][MAXPLY];
 int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
 
-//Initialize the Zobrist keys
+// Initialize the Zobrist keys
 void initHashKeys() {
     int Typeindex = 0;
     int Numberindex = 0;
@@ -229,7 +229,7 @@ void DoPinMask(S_Board* pos, int color, int sq) {
     pos->pinD = bishop_pin;
 }
 
-//PreCalculate the logarithms used in the reduction calculation
+// PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
     for (int i = 0; i < MAXDEPTH; i++) {
         for (int j = 0; j < MAXDEPTH; j++) {
@@ -237,18 +237,18 @@ void InitReductions() {
         }
     }
     for (int depth = 0; depth < MAXDEPTH; depth++) {
-        lmp_margin[depth][0] = (3 + depth * depth) / 2; //Not improving
-        lmp_margin[depth][1] = 3 + depth * depth; //improving
+        lmp_margin[depth][0] = (3 + depth * depth) / 2; // Not improving
+        lmp_margin[depth][1] = 3 + depth * depth; // improving
 
-        see_margin[depth][1] = -80 * depth; //Quiet moves
-        see_margin[depth][0] = -30 * depth * depth; //Non quiets
+        see_margin[depth][1] = -80 * depth; // Quiet moves
+        see_margin[depth][0] = -30 * depth * depth; // Non quiets
 
     }
 }
 
 void InitAll() {
     setvbuf(stdout, NULL, _IONBF, 0);
-    //Force windows to display colors
+    // Force windows to display colors
 #ifdef _WIN64
     HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD flags;
@@ -264,13 +264,13 @@ void InitAll() {
     initializeLookupTables();
     initHashKeys();
     InitReductions();
-    //Init TT
+    // Init TT
     InitHashTable(HashTable, 16);
     nnue.init("nn.net");
 }
 
 void InitNewGame(S_ThreadData* td) {
-    //Extract data structures from ThreadData
+    // Extract data structures from ThreadData
     S_Board* pos = &td->pos;
     Search_data* ss = &td->ss;
     S_SearchINFO* info = &td->info;
@@ -278,7 +278,7 @@ void InitNewGame(S_ThreadData* td) {
 
     CleanHistories(ss);
 
-    //Clean the Pv array
+    // Clean the Pv array
     for (int index = 0; index < MAXDEPTH + 1; ++index) {
         pv_table->pvLength[index] = 0;
         for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
@@ -286,29 +286,29 @@ void InitNewGame(S_ThreadData* td) {
         }
     }
 
-    //Clean the Counter moves array
+    // Clean the Counter moves array
     for (int index = 0; index < Board_sq_num; ++index) {
         for (int index2 = 0; index2 < Board_sq_num; ++index2) {
             ss->CounterMoves[index][index2] = NOMOVE;
         }
     }
 
-    //Reset plies and search info
+    // Reset plies and search info
     info->starttime = GetTimeMs();
     info->stopped = 0;
     info->nodes = 0;
     info->seldepth = 0;
-    //Reset hash table
+    // Reset hash table
     ClearHashTable(HashTable);
 
-    //Empty threads and thread data
+    // Empty threads and thread data
     StopHelperThreads();
 
     threads_data.clear();
 
-    //delete played moves hashes
+    // delete played moves hashes
     pos->played_positions.clear();
-    //Empty the accumulator stack
+    // Empty the accumulator stack
     pos->accumulatorStack.clear();
     // call parse position function
     ParsePosition("position startpos", pos);

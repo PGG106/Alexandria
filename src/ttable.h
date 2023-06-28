@@ -21,7 +21,7 @@ struct S_HashTable {
 extern S_HashTable HashTable[1];
 
 void ClearHashTable(S_HashTable* table);
-//Initialize an Hashtable of size MB
+// Initialize an Hashtable of size MB
 void InitHashTable(S_HashTable* table, uint64_t MB);
 
 bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte);

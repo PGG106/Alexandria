@@ -16,7 +16,7 @@
 #include "movegen.h"
 #include <iostream>
 
-//convert a move to coordinate notation to internal notation
+// convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& move_string, S_Board* pos) {
     // create move list instance
     S_MOVELIST move_list[1];
@@ -108,7 +108,7 @@ void ParsePosition(const std::string& command, S_Board* pos) {
         parse_moves(moves_substr, pos);
     }
 
-    //Update accumulator state to reflect the new position
+    // Update accumulator state to reflect the new position
     Accumulate(pos->accumulator, pos);
 }
 
@@ -128,7 +128,7 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
     std::vector<std::string> tokens = split_command(line);
 
-    //loop over all the tokens and parse the commands
+    // loop over all the tokens and parse the commands
     for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens.at(1) == "infinite") {
             ;
@@ -181,7 +181,7 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 
     info->starttime = GetTimeMs();
     info->depth = depth;
-    //calculate time allocation for the move
+    // calculate time allocation for the move
     Optimum(info, time, inc);
 
     if (depth == -1) {
@@ -205,7 +205,7 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 
     std::vector<std::string> tokens = split_command(line);
 
-    //loop over all the tokens and parse the commands
+    // loop over all the tokens and parse the commands
     for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens.at(i) == "depth") {
             depth = std::stoi(tokens[i + 1]);
@@ -270,7 +270,7 @@ void UciLoop(char** argv) {
             continue;
         }
 
-        //Split the string into tokens to make it easier to work with
+        // Split the string into tokens to make it easier to work with
         std::vector<std::string> tokens = split_command(input);
 
         // parse UCI "position" command
@@ -283,7 +283,7 @@ void UciLoop(char** argv) {
         // parse UCI "go" command
         else if (tokens[0] == "go") {
             StopHelperThreads();
-            //Join previous search thread if it exists
+            // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
 
@@ -301,13 +301,13 @@ void UciLoop(char** argv) {
 
         else if (tokens[0] == "datagen") {
             stop_flag = true;
-            //Join helper threads
+            // Join helper threads
             StopHelperThreads();
-            //Join previous Datagen thread if it exists
+            // Join previous Datagen thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
             Datagen_params params;
-            //we re-use parse go to read the Datagen params
+            // we re-use parse go to read the Datagen params
             parse_datagen(input, &td->info, params);
             threads_state = datagen;
             stop_flag = false;
@@ -315,7 +315,7 @@ void UciLoop(char** argv) {
         }
 
         else if (tokens[0] == "setoption") {
-            //check tokens for size to see if we have a value
+            // check tokens for size to see if we have a value
             if (tokens.size() < 5) {
                 std::cout << "Invalid setoption format" << "\n";
                 continue;
@@ -346,13 +346,13 @@ void UciLoop(char** argv) {
         // parse UCI "stop" command
         else if (input == "stop") {
             if (threads_state == Search) {
-                //Stop helper threads
+                // Stop helper threads
                 StopHelperThreads();
-                //stop main thread search
+                // stop main thread search
                 td->info.stopped = true;
             } else if (threads_state == datagen) {
                 stop_flag = true;
-                //Join helper threads
+                // Join helper threads
                 StopHelperThreads();
             }
             threads_state = Idle;
@@ -361,21 +361,21 @@ void UciLoop(char** argv) {
         // parse UCI "quit" command
         else if (input == "quit" || input == "exit") {
             if (threads_state == Search) {
-                //Stop helper threads
+                // Stop helper threads
                 StopHelperThreads();
-                //stop main thread search
+                // stop main thread search
                 td->info.stopped = true;
             }
             else if (threads_state == datagen) {
                 stop_flag = true;
-                //Join helper threads
+                // Join helper threads
                 StopHelperThreads();
             }
             threads_state = Idle;
-            //Join previous search thread if it exists
+            // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
-            //free thread data
+            // free thread data
             delete td;
             // quit from the chess engine program execution
             break;
@@ -388,9 +388,9 @@ void UciLoop(char** argv) {
             std::cout << "id author PGG and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 8192 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
-            //printf("option name MultiPV type spin default 1 min 1 max 1\n");
+            // printf("option name MultiPV type spin default 1 min 1 max 1\n");
             std::cout << "uciok\n";
-            //Set uci compatible output mode
+            // Set uci compatible output mode
             print_uci = true;
         }
 

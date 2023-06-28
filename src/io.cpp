@@ -166,9 +166,9 @@ void PrintMoveList(const S_MOVELIST* list) {
 }
 
 std::string Pick_color(int score) {
-    //drawish score, no highlight
+    // drawish score, no highlight
     if (abs(score) <= 10) return "\033[38;5;7m";
-    //Good mate score, blue
+    // Good mate score, blue
     if (score > ISMATE) return "\033[38;5;39m";
     // positive for us, light green
     if (score > 10) return "\033[38;5;42m";
@@ -177,9 +177,9 @@ std::string Pick_color(int score) {
     return "\033[0m";
 }
 
-//Prints the uci output
+// Prints the uci output
 void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options) {
-    //This handles the basic console output
+    // This handles the basic console output
     long time = GetTimeMs() - td->info.starttime;
     uint64_t nodes = td->info.nodes + GetTotalNodes(options->Threads);
 
@@ -208,7 +208,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         std::cout << std::endl;
     }
     else {
-        //Convert time in seconds if possible
+        // Convert time in seconds if possible
         std::string time_unit = "ms";
         float parsed_time = time;
         if (parsed_time >= 1000) {
@@ -225,7 +225,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         time_stream << std::setprecision(3) << parsed_time;
         std::string time_string = time_stream.str() + time_unit;
 
-        //Convert score to a decimal format or to a mate string
+        // Convert score to a decimal format or to a mate string
         float parsed_score = 0;
         std::string score_unit = "";
         if (score > -mate_value && score < -mate_score) {
@@ -247,7 +247,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         std::string color_reset = "\033[0m";
         std::string score_string = score_color + score_unit + score_stream.str() + color_reset;
         int node_precision = 0;
-        //convert nodes into string
+        // convert nodes into string
         std::string node_unit = "n";
         float parsed_nodes = static_cast<float>(nodes);
         if (parsed_nodes >= 1000) {
@@ -268,7 +268,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         node_stream << std::fixed << std::setprecision(node_precision) << parsed_nodes;
         std::string node_string = node_stream.str() + node_unit;
 
-        //Pretty print search info
+        // Pretty print search info
         std::cout << std::setw(3) << depth << "/";
         std::cout << std::left << std::setw(3) << td->info.seldepth;
 

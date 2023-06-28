@@ -7,7 +7,7 @@
 #include "makemove.h"
 #include "movegen.h"
 
-//Remove a piece from a square
+// Remove a piece from a square
 void ClearPiece(const int piece, const int from, S_Board* pos) {
     int color = Color[piece];
     HashKey(pos, PieceKeys[piece][from]);
@@ -17,7 +17,7 @@ void ClearPiece(const int piece, const int from, S_Board* pos) {
     pop_bit(pos->occupancies[color], from);
 }
 
-//Add a piece to a square
+// Add a piece to a square
 void AddPiece(const int piece, const int to, S_Board* pos) {
     int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
@@ -27,25 +27,25 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
     HashKey(pos, PieceKeys[piece][to]);
 }
 
-//Remove a piece from a square while also deactivating the nnue weights tied to the piece
+// Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
     nnue.clear(pos->accumulator, piece, sq);
     ClearPiece(piece, sq, pos);
 }
 
-//Add a piece to a square while also activating the nnue weights tied to the piece
+// Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
     nnue.add(pos->accumulator, piece, to);
     AddPiece(piece, to, pos);
 }
 
-//Move a piece from square to to square from without updating the NNUE weights
+// Move a piece from square to to square from without updating the NNUE weights
 void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
     ClearPiece(piece, from, pos);
     AddPiece(piece, to, pos);
 }
 
-//Move a piece from square to to square from
+// Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
     nnue.move(pos->accumulator, piece, from, to);
     MovePiece(piece, from, to, pos);
@@ -67,13 +67,13 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 
 // make move on chess board
 void MakeMove(const int move, S_Board* pos) {
-    //Store position variables for rollback purposes
+    // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
 
-    //Store position key in the array of searched position
+    // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->accumulatorStack.emplace_back(pos->accumulator);
@@ -105,22 +105,22 @@ void MakeMove(const int move, S_Board* pos) {
         ClearPieceNNUE(piececap, target_square, pos);
 
         pos->history[pos->hisPly].capture = piececap;
-        //a capture was played so reset 50 move rule counter
+        // a capture was played so reset 50 move rule counter
         pos->fiftyMove = 0;
     }
 
-    //if a pawn was moved reset the 50 move rule counter
+    // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    //increment ply counters
+    // increment ply counters
     pos->hisPly++;
-    //Remove the piece fom the square it moved from
+    // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, source_square, pos);
-    //Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-    //Reset EP square
+    // Reset EP square
     if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
@@ -172,19 +172,19 @@ void MakeMove(const int move, S_Board* pos) {
     // Xor the new side into the key
     HashKey(pos, SideKey);
 
-    //Speculative prefetch of the TT entry
+    // Speculative prefetch of the TT entry
     TTPrefetch(pos->posKey);
     pos->checkers = IsInCheck(pos, pos->side);
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
 int MakeMoveLight(const int move, S_Board* pos) {
-    //Store position variables for rollback purposes
+    // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
-    //Store position key in the array of searched position
+    // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
     // parse move
@@ -215,22 +215,22 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
         ClearPiece(piececap, target_square, pos);
 
-        //a capture was played so reset 50 move rule counter
+        // a capture was played so reset 50 move rule counter
         pos->fiftyMove = 0;
     }
 
-    //if a pawn was moves reset the 50 move rule counter
+    // if a pawn was moves reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    //increment ply counters
+    // increment ply counters
     pos->hisPly++;
-    //Remove the piece fom the square it moved from
+    // Remove the piece fom the square it moved from
     ClearPiece(piece, source_square, pos);
-    //Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
 
-    //Reset EP square
+    // Reset EP square
     if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     // reset enpassant square
@@ -369,7 +369,7 @@ int UnmakeMove(const int move, S_Board* pos) {
     return 1;
 }
 
-//MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
+// MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
     pos->played_positions.emplace_back(pos->posKey);
 
@@ -388,7 +388,7 @@ void MakeNullMove(S_Board* pos) {
     HashKey(pos, SideKey);
 }
 
-//Take back a null move
+// Take back a null move
 void TakeNullMove(S_Board* pos) {
     pos->hisPly--;
 

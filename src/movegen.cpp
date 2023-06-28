@@ -8,7 +8,7 @@
 
 // is the square given in input attacked by the current given side
 bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
-    //Take the occupancies of both positions, encoding where all the pieces on the board reside
+    // Take the occupancies of both positions, encoding where all the pieces on the board reside
     Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
     if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
@@ -40,7 +40,7 @@ static inline void init(S_Board* pos, int color, int sq) {
     pos->checkMask = newMask ? newMask : 18446744073709551615ULL;
     DoPinMask(pos, color, sq);
 }
-//Check for move legality by generating the list of legal moves in a position and checking if that move is present
+// Check for move legality by generating the list of legal moves in a position and checking if that move is present
 int MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
     GenerateMoves(list, pos);
@@ -412,7 +412,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             source_square = GetLsbIndex(knights_mask);
             Bitboard moves = LegalKnightMoves(pos, pos->side, source_square) & pos->Enemy();
 
-            //while we have moves that the knight can play we add them to the list
+            // while we have moves that the knight can play we add them to the list
             while (moves) {
                 target_square = GetLsbIndex(moves);
                 int capture = pos->PieceOn(target_square) != EMPTY;

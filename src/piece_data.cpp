@@ -9,7 +9,7 @@ std::map<char, int> char_pieces = {
     {'n', BN}, {'b', BB}, {'r', BR}, {'q', BQ}, {'k', BK}
 };
 
-//Map promoted piece to the corresponding ASCII character
+// Map promoted piece to the corresponding ASCII character
 std::map<int, char> promoted_pieces = {{WQ, 'q'}, {WR, 'r'}, {WB, 'b'},
                                        {WN, 'n'}, {BQ, 'q'}, {BR, 'r'},
                                        {BB, 'b'}, {BN, 'n'}};

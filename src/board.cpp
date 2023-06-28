@@ -57,7 +57,7 @@ int GetLsbIndex(Bitboard bitboard) {
 #endif
 }
 
-//Reset the position to a clean state
+// Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
@@ -83,7 +83,7 @@ void ResetBoard(S_Board* pos) {
         pos->accumulator[1][i] = nnue.featureBias[i];
     }
 
-    //Reset nnue accumulator stack
+    // Reset nnue accumulator stack
     pos->accumulatorStack.clear();
 }
 
@@ -123,7 +123,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
     const std::string ep_square = tokens.at(3);
     std::string fifty_move;
     std::string HisPly;
-    //Keep fifty move and Hisply arguments optional
+    // Keep fifty move and Hisply arguments optional
     if (tokens.size() >= 5) {
         fifty_move = tokens.at(4);
         if (tokens.size() >= 6) {
@@ -186,10 +186,10 @@ void ParseFen(const std::string& command, S_Board* pos) {
         }
     }
 
-    //parse player turn
+    // parse player turn
     pos->side = turn == "w" ? WHITE : BLACK;
 
-    //Parse castling rights
+    // Parse castling rights
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
@@ -222,11 +222,11 @@ void ParseFen(const std::string& command, S_Board* pos) {
     else
         pos->enPas = no_sq;
 
-    //Read fifty moves counter
+    // Read fifty moves counter
     if (!fifty_move.empty()) {
         pos->fiftyMove = std::stoi(fifty_move);
     }
-    //Read Hisply moves counter
+    // Read Hisply moves counter
     if (!HisPly.empty()) {
         pos->hisPly = std::stoi(HisPly);
     }
@@ -249,7 +249,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     pos->checkers = IsInCheck(pos, pos->side);
 
-    //Update nnue accumulator to reflect board state
+    // Update nnue accumulator to reflect board state
     Accumulate(pos->accumulator, pos);
 }
 
@@ -262,14 +262,14 @@ std::string GetFen(const S_Board* pos) {
     std::string HisPly;
 
     int empty_squares = 0;
-    //Parse pieces
+    // Parse pieces
     for (int rank = 0; rank < 8; rank++) {
         // loop over board files
         for (int file = 0; file < 8; file++) {
             // init current square
             const int square = rank * 8 + file;
             const int potential_piece = pos->PieceOn(square);
-            //If the piece isn't empty we add the empty squares counter to the fen string and then the piece
+            // If the piece isn't empty we add the empty squares counter to the fen string and then the piece
             if (potential_piece != EMPTY) {
                 if (empty_squares) {
                     pos_string += std::to_string(empty_squares);
@@ -280,19 +280,19 @@ std::string GetFen(const S_Board* pos) {
                 empty_squares++;
             }
         }
-        //At the end of a file we dump the empty squares
+        // At the end of a file we dump the empty squares
         if (empty_squares) {
             pos_string += std::to_string(empty_squares);
             empty_squares = 0;
         }
-        //skip the last file
+        // skip the last file
         if (rank != 7)
             pos_string += '/';
     }
-    //parse player turn
+    // parse player turn
     turn = pos->side == WHITE ? "w" : "b";
 
-    //Parse over castling rights
+    // Parse over castling rights
     if (pos->GetCastlingPerm() == 0)
         castle_perm = '-';
     else {
@@ -312,9 +312,9 @@ std::string GetFen(const S_Board* pos) {
         ep_square = "-";
     }
 
-    //Parse fifty moves counter
+    // Parse fifty moves counter
     fifty_move = std::to_string(pos->Get50mrCounter());
-    //Parse Hisply moves counter
+    // Parse Hisply moves counter
     HisPly = std::to_string(pos->hisPly);
 
     return pos_string + " " + turn + " " + castle_perm + " " + ep_square + " " + fifty_move + " " + HisPly;
@@ -332,27 +332,27 @@ void parse_moves(const std::string& moves, S_Board* pos) {
     }
 }
 
-//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+// Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
     return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 
-//Return a piece based on the type and the color
+// Return a piece based on the type and the color
 int GetPiece(const int piecetype, const int color) {
     return piecetype + 6 * color;
 }
 
-//Return a piece based on the type and the color
+// Return a piece based on the type and the color
 int GetPieceType(const int piece) {
     return PieceType[piece];
 }
 
-//Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
+// Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
     return pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side) ^ pos->GetPieceColorBB(KING, side);
 }
 
-//Get on what square of the board the king of color c resides
+// Get on what square of the board the king of color c resides
 int KingSQ(const S_Board* pos, const int c) {
     return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }

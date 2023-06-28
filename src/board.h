@@ -33,7 +33,7 @@ constexpr int Board_sq_num = 64;
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-//Lookup to get the rank of a square
+// Lookup to get the rank of a square
 constexpr int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
                           6, 6, 6, 6, 6, 6, 6, 6,
                           5, 5, 5, 5, 5, 5, 5, 5,
@@ -60,7 +60,7 @@ constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10, 9,  8,  7, 13, 
                                               3,  9,  8,  7,  6,  5,  4,  3, 2,  8,  7,  6,  5,
                                               4,  3,  2,  1,  7,  6,  5,  4, 3,  2,  1,  0 };
 
-//Lookup to get the color from a piece
+// Lookup to get the color from a piece
 constexpr int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
                        BLACK, BLACK, BLACK, BLACK, BLACK, BLACK };
 
@@ -98,7 +98,7 @@ public:
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
     S_Undo    history[1024];
-    //Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
+    // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     Bitboard pinHV = 0ULL;
     Bitboard pinD = 0ULL;
@@ -108,7 +108,7 @@ public:
     Bitboard bitboards[12]{ 0ULL };
     Bitboard occupancies[3] = { 0ULL };
     NNUE::accumulator accumulator = {};
-    //Previous values of the nnue accumulators. always empty at the start of search
+    // Previous values of the nnue accumulators. always empty at the start of search
     std::vector<NNUE::accumulator> accumulatorStack = {};
     bool checkers;
     int checks = -1;
@@ -125,7 +125,7 @@ public:
         return occupancies[sidex];
     }
 
-    //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+    // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
     inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
         return bitboards[piecetype + color * 6];
     }
@@ -165,20 +165,20 @@ struct PvTable {
 };
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
-//Hold the data from the uci input to set search parameters and some search data to populate the uci output
+// Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct S_SearchINFO {
-    //search start time
+    // search start time
     uint64_t starttime = 0;
-    //search time initial lower bound if present
+    // search time initial lower bound if present
     uint64_t stoptimeBaseOpt = 0;
-    //search time scaled lower bound if present
+    // search time scaled lower bound if present
     uint64_t stoptimeOpt = 0;
-    //search time upper bound if present
+    // search time upper bound if present
     uint64_t stoptimeMax = 0;
-    //max depth to reach for depth limited searches
+    // max depth to reach for depth limited searches
     int depth = -1;
     int seldepth = -1;
-    //types of search limits
+    // types of search limits
     bool timeset = false;
     bool nodeset = false;
     bool movetimeset = false;
@@ -226,27 +226,27 @@ int SquareDistance(int a, int b);
 
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos);
-//Get fen string from board
+// Get fen string from board
 std::string GetFen(const S_Board* pos);
-//Parse a string of moves in coordinate format and plays them
+// Parse a string of moves in coordinate format and plays them
 void parse_moves(const std::string& moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
 
-//Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+// Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
-//Return a piece based on the type and the color
+// Return a piece based on the type and the color
 int GetPiece(const int piecetype, const int color);
-//Returns the piece_type of a piece
+// Returns the piece_type of a piece
 int GetPieceType(const int piece);
-//Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
+// Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side);
-//Get on what square of the board the king of color c resides
+// Get on what square of the board the king of color c resides
 int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
 bool IsInCheck(const S_Board* pos, const int side);
 
-//Board state retrieval
+// Board state retrieval
 
 int GetEpSquare(const S_Board* pos);
 uint64_t GetMaterialValue(const S_Board* pos);
