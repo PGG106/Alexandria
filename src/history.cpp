@@ -12,7 +12,7 @@ void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
         [To(move)] += scaled_bonus;
 }
 
-void updateCHScore(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
+void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     int scaled_bonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
     // Update move score
@@ -43,17 +43,17 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
 }
 
 // Update the history heuristics of all the quiet moves passed to the function
-void UpdateCH(const S_Board* pos, Search_data* sd, const Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
+void UpdateCH(Search_data* sd, const Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
     // define the conthist bonus
     int bonus = std::min(16 * depth * depth, 1200);
     // increase bestmove CH score
-    updateCHScore(pos, sd, ss, bestmove, bonus);
+    updateCHScore(sd, ss, bestmove, bonus);
     // Loop through all the quiet moves
     for (int i = 0; i < quiet_moves->count; i++) {
         // For all the quiets moves that didn't cause a cut-off decrease the CH score
         int move = quiet_moves->moves[i].move;
         if (move == bestmove) continue;
-        updateCHScore(pos, sd, ss, move, -bonus);
+        updateCHScore(sd, ss, move, -bonus);
     }
 }
 
