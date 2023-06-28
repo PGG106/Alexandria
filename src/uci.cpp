@@ -254,7 +254,7 @@ void UciLoop(char** argv) {
     std::cout << "id name Alexandria 4.0-dev\n";
 
     // main loop
-    while (1) {
+    while (true) {
         // define user / GUI input buffer
         std::string input;
 
