@@ -224,7 +224,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
         // Convert score to a decimal format or to a mate string
         float parsed_score = 0;
-        std::string score_unit = "";
+        std::string score_unit;
         if (score > -mate_value && score < -mate_score) {
             parsed_score = std::abs((score + mate_value) / 2);
             score_unit = "-M";
