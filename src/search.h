@@ -19,7 +19,7 @@ struct Search_data {
 };
 
 // a collection of all the data a thread needs to condut a search
-typedef struct ThreadData {
+struct S_ThreadData {
 	int id = 0;
 	S_Board pos;
 	Search_data ss;
@@ -27,7 +27,7 @@ typedef struct ThreadData {
 	PvTable pv_table;
 	uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = { {0} };
 	int RootDepth;
-}S_ThreadData;
+};
 
 //ClearForSearch handles the cleaning of the thread data from a clean state
 void ClearForSearch(S_ThreadData* td);

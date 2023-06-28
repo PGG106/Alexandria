@@ -3,11 +3,11 @@
 #include "stdint.h"
 
 // define bitboard data type
-typedef uint64_t Bitboard;
+using Bitboard = uint64_t;
 // define poskey data type
-typedef uint16_t TTKey;
+using TTKey = uint16_t;
 // define poskey data type
-typedef uint64_t ZobristKey;
+using ZobristKey = uint64_t;
 
 // board squares
 enum {
