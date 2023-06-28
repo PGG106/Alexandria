@@ -77,7 +77,7 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
     }
 
     // return illegal move
-    return 0;
+    return NOMOVE;
 }
 
 // parse UCI "position" command
