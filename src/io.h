@@ -19,7 +19,7 @@ void PrintAttackedSquares(const S_Board* pos, const int side);
 void PrintMove(const int move);
 
 // print move list
-void PrintMoveList(const S_MOVELIST* move_list);
+void PrintMoveList(const S_MOVELIST* list);
 
 [[nodiscard]] char* FormatMove(const int move);
 

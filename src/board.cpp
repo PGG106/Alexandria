@@ -21,11 +21,11 @@
 
 NNUE nnue = NNUE();
 
-int CountBits(Bitboard b) {
+int CountBits(Bitboard bitboard) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-    return (uint8_t)_mm_popcnt_u64(b);
+    return (uint8_t)_mm_popcnt_u64(bitboard);
 #else // Assumed gcc or compatible compiler
-    return __builtin_popcountll(b);
+    return __builtin_popcountll(bitboard);
 #endif
 }
 
