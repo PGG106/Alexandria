@@ -32,7 +32,7 @@ jobs:
           }
     defaults:
       run:
-        working-directory: ./src
+        working-directory: 
         shell: ${{ matrix.config.shell }}
     steps:
       - uses: actions/checkout@v3
