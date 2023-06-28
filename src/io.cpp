@@ -178,7 +178,7 @@ std::string Pick_color(int score) {
 void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options) {
     // This handles the basic console output
     long time = GetTimeMs() - td->info.starttime;
-    uint64_t nodes = td->info.nodes + GetTotalNodes(options->Threads);
+    uint64_t nodes = td->info.nodes + GetTotalNodes();
 
     uint64_t nps = nodes / (time + !time) * 1000;
     if (print_uci) {
