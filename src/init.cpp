@@ -50,10 +50,8 @@ int see_margin[MAXDEPTH][2];
 
 // Initialize the Zobrist keys
 void initHashKeys() {
-    int Typeindex = 0;
-    int Numberindex = 0;
-    for (Typeindex = WP; Typeindex <= BK; ++Typeindex) {
-        for (Numberindex = 0; Numberindex < 64; ++Numberindex) {
+    for (int Typeindex = WP; Typeindex <= BK; ++Typeindex) {
+        for (int Numberindex = 0; Numberindex < 64; ++Numberindex) {
             PieceKeys[Typeindex][Numberindex] = GetRandomBitboardNumber();
         }
     }

@@ -98,21 +98,18 @@ Bitboard MaskBishopAttacks(int square) {
     // result attacks bitboard
     Bitboard attacks = 0ULL;
 
-    // init ranks & files
-    int r, f;
-
     // init target rank & files
     int tr = square / 8;
     int tf = square % 8;
 
     // mask relevant bishop occupancy bits
-    for (r = tr + 1, f = tf + 1; r <= 6 && f <= 6; r++, f++)
+    for (int r = tr + 1, f = tf + 1; r <= 6 && f <= 6; r++, f++)
         attacks |= (1ULL << (r * 8 + f));
-    for (r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++)
+    for (int r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++)
         attacks |= (1ULL << (r * 8 + f));
-    for (r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--)
+    for (int r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--)
         attacks |= (1ULL << (r * 8 + f));
-    for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
+    for (int r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
         attacks |= (1ULL << (r * 8 + f));
 
     // return attack map
@@ -123,19 +120,17 @@ Bitboard MaskBishopAttacks(int square) {
 Bitboard MaskRookAttacks(int square) {
     // result attacks bitboard
     Bitboard attacks = 0ULL;
-    // init ranks & files
-    int r, f;
     // init target rank & files
     int tr = square / 8;
     int tf = square % 8;
     // mask relevant rook occupancy bits
-    for (r = tr + 1; r <= 6; r++)
+    for (int r = tr + 1; r <= 6; r++)
         attacks |= (1ULL << (r * 8 + tf));
-    for (r = tr - 1; r >= 1; r--)
+    for (int r = tr - 1; r >= 1; r--)
         attacks |= (1ULL << (r * 8 + tf));
-    for (f = tf + 1; f <= 6; f++)
+    for (int f = tf + 1; f <= 6; f++)
         attacks |= (1ULL << (tr * 8 + f));
-    for (f = tf - 1; f >= 1; f--)
+    for (int f = tf - 1; f >= 1; f--)
         attacks |= (1ULL << (tr * 8 + f));
     // return attack map
     return attacks;
@@ -145,31 +140,29 @@ Bitboard MaskRookAttacks(int square) {
 Bitboard BishopAttacksOnTheFly(int square, Bitboard block) {
     // result attacks bitboard
     Bitboard attacks = 0ULL;
-    // init ranks & files
-    int r, f;
     // init target rank & files
     int tr = square / 8;
     int tf = square % 8;
     // generate bishop atacks
-    for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) {
+    for (int r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) {
         attacks |= (1ULL << (r * 8 + f));
         if ((1ULL << (r * 8 + f)) & block)
             break;
     }
 
-    for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) {
+    for (int r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) {
         attacks |= (1ULL << (r * 8 + f));
         if ((1ULL << (r * 8 + f)) & block)
             break;
     }
 
-    for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) {
+    for (int r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) {
         attacks |= (1ULL << (r * 8 + f));
         if ((1ULL << (r * 8 + f)) & block)
             break;
     }
 
-    for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--) {
+    for (int r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--) {
         attacks |= (1ULL << (r * 8 + f));
         if ((1ULL << (r * 8 + f)) & block)
             break;
@@ -182,31 +175,29 @@ Bitboard BishopAttacksOnTheFly(int square, Bitboard block) {
 Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
     // result attacks bitboard
     Bitboard attacks = 0ULL;
-    // init ranks & files
-    int r, f;
     // init target rank & files
     int tr = square / 8;
     int tf = square % 8;
     // generate rook attacks
-    for (r = tr + 1; r <= 7; r++) {
+    for (int r = tr + 1; r <= 7; r++) {
         attacks |= (1ULL << (r * 8 + tf));
         if ((1ULL << (r * 8 + tf)) & block)
             break;
     }
 
-    for (r = tr - 1; r >= 0; r--) {
+    for (int r = tr - 1; r >= 0; r--) {
         attacks |= (1ULL << (r * 8 + tf));
         if ((1ULL << (r * 8 + tf)) & block)
             break;
     }
 
-    for (f = tf + 1; f <= 7; f++) {
+    for (int f = tf + 1; f <= 7; f++) {
         attacks |= (1ULL << (tr * 8 + f));
         if ((1ULL << (tr * 8 + f)) & block)
             break;
     }
 
-    for (f = tf - 1; f >= 0; f--) {
+    for (int f = tf - 1; f >= 0; f--) {
         attacks |= (1ULL << (tr * 8 + f));
         if ((1ULL << (tr * 8 + f)) & block)
             break;

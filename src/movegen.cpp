@@ -45,8 +45,7 @@ int MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
     GenerateMoves(list, pos);
 
-    int MoveNum = 0;
-    for (MoveNum = 0; MoveNum < list->count; ++MoveNum) {
+    for (int MoveNum = 0; MoveNum < list->count; ++MoveNum) {
         if (list->moves[MoveNum].move == move) {
             return true;
         }

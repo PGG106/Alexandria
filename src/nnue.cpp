@@ -34,15 +34,16 @@ int32_t NNUE::SCReLU(int16_t x) {
 }
 
 void NNUE::init(const char* file) {
-    // initialize an accumulator for every input of the second layer
-    size_t read = 0;
-    size_t fileSize = sizeof(NNUE);
-    size_t objectsExpected = fileSize / sizeof(int16_t);
     // open the nn file
     FILE* nn = fopen(file, "rb");
 
     // if it's not invalid read the config values from it
     if (nn) {
+        // initialize an accumulator for every input of the second layer
+        size_t read = 0;
+        size_t fileSize = sizeof(NNUE);
+        size_t objectsExpected = fileSize / sizeof(int16_t);
+
         read += fread(featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
         read += fread(featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
         read += fread(outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2, nn);

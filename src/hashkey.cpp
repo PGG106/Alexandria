@@ -6,11 +6,10 @@
 // Generates zobrist key from scratch
 Bitboard GeneratePosKey(const S_Board* pos) {
     Bitboard finalkey = 0;
-    int piece = WP;
     // for every square
     for (int sq = 0; sq < 64; ++sq) {
         // get piece on that square
-        piece = pos->pieces[sq];
+        int piece = pos->pieces[sq];
         // if it's not empty add that piece to the zobrist key
         if (piece != EMPTY) {
             assert(piece >= WP && piece <= BK);

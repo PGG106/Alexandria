@@ -154,12 +154,9 @@ char* FormatMove(const int move) {
 }
 
 void PrintMoveList(const S_MOVELIST* list) {
-    int index = 0;
-    int score = 0;
-    int move = 0;
-    for (index = 0; index < list->count; ++index) {
-        move = list->moves[index].move;
-        score = list->moves[index].score;
+    for (int index = 0; index < list->count; ++index) {
+        int move = list->moves[index].move;
+        int score = list->moves[index].score;
         std::cout << "Move: " << index + 1 << " >" << FormatMove(move) << " score: " << score << std::endl;
     }
     std::cout << "MoveList Total  Moves:" << "list->count" << "\n\n";

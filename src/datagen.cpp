@@ -136,12 +136,13 @@ void RootDatagen(S_ThreadData* td, Datagen_params params) {
 }
 
 void Datagen(S_ThreadData* td, Datagen_params params) {
-    // Each thread gets its own file to dump data into
-    auto start_time = GetTimeMs();
-    uint64_t total_fens = 0;
-    auto threadcount = params.threadnum;
     std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
     if (myfile.is_open()) {
+        // Each thread gets its own file to dump data into
+        auto start_time = GetTimeMs();
+        uint64_t total_fens = 0;
+        auto threadcount = params.threadnum;
+
         if (td->id == 0)
             std::cout << "Datagen started successfully" << std::endl;
         for (uint64_t games = 1; games <= params.games; games++) {

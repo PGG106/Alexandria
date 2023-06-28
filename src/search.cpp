@@ -599,11 +599,11 @@ moves_loop:
         // increment nodes count
         info->nodes++;
         uint64_t nodes_before_search = info->nodes;
-        int depth_reduction = 1;
         bool do_full_search = false;
         // conditions to consider LMR
-        if (moves_searched >= 3 + 2 * pv_node
-            && depth >= 3) {
+        if (moves_searched >= 3 + 2 * pv_node && depth >= 3) {
+            int depth_reduction = 1;
+
             if (isQuiet) {
                 // calculate by how much we should reduce the search depth
                 // Get base reduction value
@@ -770,7 +770,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     score_moves(pos, sd, ss, move_list, tte.move);
 
     int bestmove = NOMOVE;
-    int Score = -MAXSCORE;
 
     int moves_searched = 0;
 
@@ -788,7 +787,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
-        Score = -Quiescence(-beta, -alpha, td, ss + 1);
+        int Score = -Quiescence(-beta, -alpha, td, ss + 1);
 
         // take move back
         UnmakeMove(move, pos);
