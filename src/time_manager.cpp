@@ -10,14 +10,12 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     int safety_overhead = 50;
     time -= safety_overhead;
     //if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
-    if (info->movetimeset)
-    {
+    if (info->movetimeset) {
         info->stoptimeMax = info->starttime + time;
         info->stoptimeOpt = info->starttime + time;
     }
     //else If we recieved a movestogo parameter we use total_time/movestogo
-    else if (info->timeset && info->movestogo != -1)
-    {
+    else if (info->timeset && info->movestogo != -1) {
         //Divide the time you have left for how many moves you have to play
         auto basetime = time / info->movestogo;
         //Never use more than 80% of the total time left for a single move
@@ -31,8 +29,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
     }
     // else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
-    else if (info->timeset)
-    {
+    else if (info->timeset) {
         int basetime = time / 20 + inc * 3 / 4;
         //optime is the time we use to stop if we just cleared a depth
         int optime = basetime * 0.6;

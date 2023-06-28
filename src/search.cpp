@@ -200,8 +200,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
             continue;
         }
         //After the killer moves try the Counter moves
-        else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)])
-        {
+        else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)]) {
             move_list->moves[i].score = CounterMoveScore;
             continue;
         }
@@ -232,22 +231,19 @@ int ScoreFromTT(int score, int ply) {
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
     //Init a thread_data object for each helper thread that doesn't have one already
-    for (int i = threads_data.size(); i < options->Threads - 1; i++)
-    {
+    for (int i = threads_data.size(); i < options->Threads - 1; i++) {
         threads_data.emplace_back();
         threads_data.back().id = i + 1;
     }
 
     //Init thread_data objects
-    for (size_t i = 0; i < threads_data.size(); i++)
-    {
+    for (size_t i = 0; i < threads_data.size(); i++) {
         threads_data[i].info = td->info;
         threads_data[i].pos = td->pos;
     }
 
     // Start Threads-1 helper search threads
-    for (int i = 0; i < options->Threads - 1; i++)
-    {
+    for (int i = 0; i < options->Threads - 1; i++) {
         threads.emplace_back(std::thread(SearchPosition, 1, depth, &threads_data[i], options));
     }
     //MainThread search
@@ -267,8 +263,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
     ClearForSearch(td);
 
     // Call the Negamax function in an iterative deepening framework
-    for (int current_depth = start_depth; current_depth <= final_depth; current_depth++)
-    {
+    for (int current_depth = start_depth; current_depth <= final_depth; current_depth++) {
         score = AspirationWindowSearch(score, current_depth, td);
 
         // Only the main thread handles time related tasks
@@ -279,8 +274,7 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
             }
 
             // check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
-            if (StopEarly(&td->info) || NodesOver(&td->info))
-            {
+            if (StopEarly(&td->info) || NodesOver(&td->info)) {
                 StopHelperThreads();
                 //Stop mainthread search
                 td->info.stopped = true;
@@ -301,14 +295,12 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
     td->RootDepth = depth;
     Search_stack stack[MAXDEPTH + 2], * ss = stack + 2;
     //Explicitely clean stack
-    for (int i = -2; i < MAXDEPTH; i++)
-    {
+    for (int i = -2; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
         (ss + i)->static_eval = 0;
         (ss + i)->excludedMove = NOMOVE;
     }
-    for (int i = 0; i < MAXDEPTH; i++)
-    {
+    for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
     }
     //We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
@@ -417,8 +409,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
     //If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (!pv_node
         && ttHit
-        && tte.depth >= depth)
-    {
+        && tte.depth >= depth) {
         if ((tte.flags == HFALPHA && ttScore <= alpha)
             || (tte.flags == HFBETA && ttScore >= beta)
             || (tte.flags == HFEXACT))
@@ -486,8 +477,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
                 return 0;
 
             // fail-soft beta cutoff
-            if (Score >= beta)
-            {
+            if (Score >= beta) {
                 //Don't return unproven mates but still return beta
                 if (Score > ISMATE) Score = beta;
                 // node (position) fails high
@@ -496,8 +486,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
         }
 
         // razoring
-        if (eval - 63 + 182 * depth <= alpha)
-        {
+        if (eval - 63 + 182 * depth <= alpha) {
             return Quiescence(alpha, beta, td, ss);
         }
 
@@ -540,15 +529,13 @@ moves_loop:
 
         if (!root_node
             && BoardHasNonPawns(pos, pos->side)
-            && moves_searched > 1)
-        {
+            && moves_searched > 1) {
             //Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
             if (!pv_node
                 && !in_check
                 && depth < 9
                 && isQuiet
-                && moves_searched > lmp_margin[depth][improving])
-            {
+                && moves_searched > lmp_margin[depth][improving]) {
                 SkipQuiets = true;
                 continue;
             }
@@ -558,24 +545,21 @@ moves_loop:
             if (!in_check
                 && lmrDepth < 12
                 && isQuiet
-                && ss->static_eval + 100 + 150 * lmrDepth <= alpha)
-            {
+                && ss->static_eval + 100 + 150 * lmrDepth <= alpha) {
                 SkipQuiets = true;
                 continue;
             }
 
             // See pruning
             if (depth <= 8
-                && !SEE(pos, move, see_margin[depth][isQuiet]))
-            {
+                && !SEE(pos, move, see_margin[depth][isQuiet])) {
                 continue;
             }
         }
 
         int extension = 0;
         //Limit Extensions to try and curb search explosions
-        if (ss->ply < td->RootDepth * 2)
-        {
+        if (ss->ply < td->RootDepth * 2) {
             //Search extension
             if (!root_node
                 && depth >= 7
@@ -583,8 +567,7 @@ moves_loop:
                 && !excludedMove
                 && (tte.flags & HFBETA)
                 && abs(ttScore) < ISMATE
-                && tte.depth >= depth - 3)
-            {
+                && tte.depth >= depth - 3) {
                 const int singularBeta = ttScore - 3 * depth;
                 const int singularDepth = (depth - 1) / 2;
 
@@ -597,8 +580,7 @@ moves_loop:
                     // Avoid search explosion by limiting the number of double extensions
                     if (!pv_node
                         && singularScore < singularBeta - 20
-                        && ss->double_extensions <= 5)
-                    {
+                        && ss->double_extensions <= 5) {
                         extension = 2;
                         ss->double_extensions = (ss - 1)->double_extensions + 1;
                     }
@@ -621,8 +603,7 @@ moves_loop:
         bool do_full_search = false;
         // conditions to consider LMR
         if (moves_searched >= 3 + 2 * pv_node
-            && depth >= 3)
-        {
+            && depth >= 3) {
             if (isQuiet) {
                 //calculate by how much we should reduce the search depth
                 //Get base reduction value
@@ -683,14 +664,12 @@ moves_loop:
                 alpha = Score;
                 //Update the pv table
                 pv_table->pvArray[ss->ply][ss->ply] = move;
-                for (int next_ply = ss->ply + 1; next_ply < pv_table->pvLength[ss->ply + 1]; next_ply++)
-                {
+                for (int next_ply = ss->ply + 1; next_ply < pv_table->pvLength[ss->ply + 1]; next_ply++) {
                     pv_table->pvArray[ss->ply][next_ply] = pv_table->pvArray[ss->ply + 1][next_ply];
                 }
                 pv_table->pvLength[ss->ply] = pv_table->pvLength[ss->ply + 1];
 
-                if (Score >= beta)
-                {
+                if (Score >= beta) {
                     //If the move that caused the beta cutoff is quiet we have a killer move
                     if (IsQuiet(move)) {
                         //Don't update killer moves if it would result in having 2 identical killer moves
@@ -760,9 +739,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     TThit = ProbeHashEntry(pos, &tte);
     int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
     //If we found a value in the TT we can return it
-    if (!pv_node
-        && TThit)
-    {
+    if (!pv_node && TThit) {
         if ((tte.flags == HFALPHA && ttScore <= alpha)
             || (tte.flags == HFBETA && ttScore >= beta)
             || (tte.flags == HFEXACT))
@@ -770,13 +747,10 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     }
 
     //If we have a ttHit with a valid eval use that
-    if (TThit)
-    {
+    if (TThit) {
         ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
         eval = BestScore = ttScore;
-    }
-    else
-    {
+    } else {
         //If we don't have any useful info in the TT just call Evalpos
         eval = BestScore = ss->static_eval = EvalPosition(pos);
     }
@@ -806,9 +780,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         int move = move_list->moves[count].move;
         int score = move_list->moves[count].score;
         // See pruning
-        if (score < goodCaptureScore
-            && moves_searched >= 1)
-        {
+        if (score < goodCaptureScore && moves_searched >= 1) {
             break;
         }
         ss->move = move;

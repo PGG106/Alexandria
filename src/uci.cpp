@@ -206,8 +206,7 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
     std::vector<std::string> tokens = split_command(line);
 
     //loop over all the tokens and parse the commands
-    for (size_t i = 1; i < tokens.size(); i++)
-    {
+    for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens.at(i) == "depth") {
             depth = std::stoi(tokens[i + 1]);
         }
@@ -217,13 +216,11 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
             info->nodeslimit = std::stoi(tokens[i + 1]);
         }
 
-        if (tokens.at(i) == "threads")
-        {
+        if (tokens.at(i) == "threads") {
             datagen_params.threadnum = std::stoi(tokens[i + 1]);
         }
 
-        if (tokens.at(i) == "games")
-        {
+        if (tokens.at(i) == "games") {
             datagen_params.games = std::stoi(tokens[i + 1]);
         }
     }
@@ -234,8 +231,7 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
         info->depth = MAXDEPTH;
     }
 
-    if (info->depth == MAXDEPTH && (info->nodeset == false))
-    {
+    if (info->depth == MAXDEPTH && (info->nodeset == false)) {
         std::cout << "No datagen limit set, the default of 2500 nodes will be used\n";
         info->nodeset = true;
         info->nodeslimit = 2500;
@@ -303,8 +299,7 @@ void UciLoop(char** argv) {
             }
         }
 
-        else if (tokens[0] == "datagen")
-        {
+        else if (tokens[0] == "datagen") {
             stop_flag = true;
             //Join helper threads
             StopHelperThreads();
@@ -349,17 +344,13 @@ void UciLoop(char** argv) {
             InitNewGame(td);
         }
         // parse UCI "stop" command
-        else if (input == "stop")
-        {
-            if (threads_state == Search)
-            {
+        else if (input == "stop") {
+            if (threads_state == Search) {
                 //Stop helper threads
                 StopHelperThreads();
                 //stop main thread search
                 td->info.stopped = true;
-            }
-            else if (threads_state == datagen)
-            {
+            } else if (threads_state == datagen) {
                 stop_flag = true;
                 //Join helper threads
                 StopHelperThreads();
@@ -369,15 +360,13 @@ void UciLoop(char** argv) {
 
         // parse UCI "quit" command
         else if (input == "quit" || input == "exit") {
-            if (threads_state == Search)
-            {
+            if (threads_state == Search) {
                 //Stop helper threads
                 StopHelperThreads();
                 //stop main thread search
                 td->info.stopped = true;
             }
-            else if (threads_state == datagen)
-            {
+            else if (threads_state == datagen) {
                 stop_flag = true;
                 //Join helper threads
                 StopHelperThreads();
@@ -410,10 +399,8 @@ void UciLoop(char** argv) {
             PrintBoard(&td->pos);
         }
 
-        else if (input == "eval")
-        {// call parse position function
-            if (!parsed_position)
-            {
+        else if (input == "eval") {// call parse position function
+            if (!parsed_position) {
                 ParsePosition("position startpos", &td->pos);
             }
             // print position eval

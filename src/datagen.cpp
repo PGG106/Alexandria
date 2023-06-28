@@ -88,8 +88,7 @@ int search_best_move(S_ThreadData* td) {
     int alpha = -MAXSCORE;
     int beta = MAXSCORE;
     // Call the Negamax function in an iterative deepening framework
-    for (int current_depth = 1; current_depth <= info->depth; current_depth++)
-    {
+    for (int current_depth = 1; current_depth <= info->depth; current_depth++) {
         score = Negamax(alpha, beta, current_depth, false, td, ss);
 
         // check if we just cleared a depth and we used the nodes we had we stop
@@ -111,22 +110,19 @@ void RootDatagen(S_ThreadData* td, Datagen_params params) {
     InitHashTable(HashTable, 128 * params.threadnum);
 
     //Init a thread_data object for each helper thread that doesn't have one already
-    for (int i = threads_data.size(); i < params.threadnum - 1; i++)
-    {
+    for (int i = threads_data.size(); i < params.threadnum - 1; i++) {
         threads_data.emplace_back();
         threads_data.back().id = i + 1;
     }
 
     //Init thread_data objects
-    for (size_t i = 0; i < threads_data.size(); i++)
-    {
+    for (size_t i = 0; i < threads_data.size(); i++) {
         threads_data[i].info = td->info;
         threads_data[i].pos = td->pos;
     }
 
     // Start Threads-1 helper search threads
-    for (int i = 0; i < params.threadnum - 1; i++)
-    {
+    for (int i = 0; i < params.threadnum - 1; i++) {
         threads.emplace_back(std::thread(Datagen, &threads_data[i], params));
     }
 

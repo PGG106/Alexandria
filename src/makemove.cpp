@@ -93,8 +93,7 @@ void MakeMove(const int move, S_Board* pos) {
     int NORTH = pos->side == WHITE ? 8 : -8;
 
     // handle enpassant captures
-    if (enpass)
-    {
+    if (enpass) {
         ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
         pos->fiftyMove = 0;
     }

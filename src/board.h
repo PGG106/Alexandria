@@ -134,8 +134,7 @@ public:
         return CountBits(Occupancy(BOTH));
     }
 
-    inline int PieceOn(const int square) const
-    {
+    inline int PieceOn(const int square) const {
         return pieces[square];
     }
 

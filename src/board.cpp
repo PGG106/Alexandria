@@ -229,7 +229,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
     //Read Hisply moves counter
     if (!HisPly.empty()) {
         pos->hisPly = std::stoi(HisPly);
-
     }
 
     // loop over white pieces pos->pos->bitboards
@@ -264,25 +263,20 @@ std::string GetFen(const S_Board* pos) {
 
     int empty_squares = 0;
     //Parse pieces
-    for (int rank = 0; rank < 8; rank++)
-    {
+    for (int rank = 0; rank < 8; rank++) {
         // loop over board files
-        for (int file = 0; file < 8; file++)
-        {
+        for (int file = 0; file < 8; file++) {
             // init current square
             const int square = rank * 8 + file;
             const int potential_piece = pos->PieceOn(square);
             //If the piece isn't empty we add the empty squares counter to the fen string and then the piece
-            if (potential_piece != EMPTY)
-            {
+            if (potential_piece != EMPTY) {
                 if (empty_squares) {
                     pos_string += std::to_string(empty_squares);
                     empty_squares = 0;
                 }
                 pos_string += ascii_pieces[potential_piece];
-            }
-            else
-            {
+            } else {
                 empty_squares++;
             }
         }
@@ -312,11 +306,9 @@ std::string GetFen(const S_Board* pos) {
             castle_perm += "q";
     }
     // parse enpassant square
-    if (GetEpSquare(pos) != no_sq)
-    {
+    if (GetEpSquare(pos) != no_sq) {
         ep_square = square_to_coordinates[GetEpSquare(pos)];
-    }
-    else {
+    } else {
         ep_square = "-";
     }
 

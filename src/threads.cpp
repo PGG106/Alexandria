@@ -15,13 +15,11 @@ uint64_t GetTotalNodes(const int threadcount) {
 
 void StopHelperThreads() {
     //Stop helper threads
-    for (size_t i = 0; i < threads_data.size(); i++)
-    {
+    for (size_t i = 0; i < threads_data.size(); i++) {
         threads_data[i].info.stopped = true;
     }
 
-    for (std::thread& th : threads)
-    {
+    for (std::thread& th : threads) {
         if (th.joinable())
             th.join();
     }

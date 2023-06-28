@@ -184,8 +184,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
     uint64_t nodes = td->info.nodes + GetTotalNodes(options->Threads);
 
     uint64_t nps = nodes / (time + !time) * 1000;
-    if (print_uci)
-    {
+    if (print_uci) {
         if (score > -mate_value && score < -mate_score)
             std::cout << "info score mate " << -(score + mate_value) / 2 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
             " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
@@ -215,8 +214,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         if (parsed_time >= 1000) {
             parsed_time = parsed_time / 1000;
             time_unit = 's';
-            if (parsed_time >= 60)
-            {
+            if (parsed_time >= 60) {
                 parsed_time = parsed_time / 60;
                 time_unit = 'm';
             }
@@ -256,13 +254,11 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
             parsed_nodes = parsed_nodes / 1000;
             node_unit = "Kn";
             node_precision = 2;
-            if (parsed_nodes >= 1000)
-            {
+            if (parsed_nodes >= 1000) {
                 parsed_nodes = parsed_nodes / 1000;
                 node_unit = "Mn";
             }
-            if (parsed_nodes >= 1000)
-            {
+            if (parsed_nodes >= 1000) {
                 parsed_nodes = parsed_nodes / 1000;
                 node_unit = "Gn";
             }
@@ -282,8 +278,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         std::cout << std::setw(7) << std::right << std::fixed << static_cast<int>(nps / 1000.0) << "kn/s" << " ";
 
         // loop over the moves within a PV line
-        for (int count = 0; count < td->pv_table.pvLength[0]; count++)
-        {
+        for (int count = 0; count < td->pv_table.pvLength[0]; count++) {
             // print PV move
             PrintMove(td->pv_table.pvArray[0][count]);
             std::cout << " ";

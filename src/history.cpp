@@ -34,8 +34,7 @@ void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int be
     //increase bestmove HH score
     updateHHScore(pos, ss, bestmove, bonus);
     //Loop through all the quiet moves
-    for (int i = 0; i < quiet_moves->count; i++)
-    {
+    for (int i = 0; i < quiet_moves->count; i++) {
         //For all the quiets moves that didn't cause a cut-off decrease the HH score
         int move = quiet_moves->moves[i].move;
         if (move == bestmove) continue;
@@ -50,8 +49,7 @@ void UpdateCH(const S_Board* pos, Search_data* sd, const Search_stack* ss, const
     //increase bestmove CH score
     updateCHScore(pos, sd, ss, bestmove, bonus);
     //Loop through all the quiet moves
-    for (int i = 0; i < quiet_moves->count; i++)
-    {
+    for (int i = 0; i < quiet_moves->count; i++) {
         //For all the quiets moves that didn't cause a cut-off decrease the CH score
         int move = quiet_moves->moves[i].move;
         if (move == bestmove) continue;
