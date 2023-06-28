@@ -45,9 +45,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
 
 bool StopEarly(const S_SearchINFO* info) {
     // check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
-    if ((info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt)
-        return true;
-    else return false;
+    return (info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt;
 }
 
 void ScaleTm(S_ThreadData* td) {
@@ -61,17 +59,12 @@ void ScaleTm(S_ThreadData* td) {
 
 bool NodesOver(const S_SearchINFO* info) {
     // check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
-    if (info->nodeset == TRUE && info->nodes > info->nodeslimit)
-        return true;
-    else return false;
+    return info->nodeset == TRUE && info->nodes > info->nodeslimit;
 }
 
 bool TimeOver(const S_SearchINFO* info) {
     // check if more than Maxtime passed and we have to stop
-    if (NodesOver(info)) return true;
-    if (((info->timeset || info->movetimeset)
-        && ((info->nodes & 1023) == 1023)
-        && GetTimeMs() > info->stoptimeMax))
-        return true;
-    else return false;
+    return NodesOver(info) || ((info->timeset || info->movetimeset)
+                               && ((info->nodes & 1023) == 1023)
+                               && GetTimeMs() > info->stoptimeMax);
 }

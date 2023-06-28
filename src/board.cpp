@@ -184,7 +184,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
     }
 
     //parse player turn
-    (turn == "w") ? (pos->side = WHITE) : (pos->side = BLACK);
+    pos->side = turn == "w" ? WHITE : BLACK;
 
     //Parse castling rights
     for (const char c : castle_perm) {
@@ -293,7 +293,8 @@ std::string GetFen(const S_Board* pos) {
             pos_string += '/';
     }
     //parse player turn
-    (pos->side == WHITE) ? (turn = "w") : (turn = "b");
+    turn = pos->side == WHITE ? "w" : "b";
+
     //Parse over castling rights
     if (pos->GetCastlingPerm() == 0)
         castle_perm = '-';
@@ -353,7 +354,7 @@ int GetPieceType(const int piece) {
 
 //Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
-    return (pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side)) ^ pos->GetPieceColorBB(KING, side);
+    return pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side) ^ pos->GetPieceColorBB(KING, side);
 }
 
 //Get on what square of the board the king of color c resides

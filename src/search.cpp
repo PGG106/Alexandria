@@ -33,12 +33,9 @@ static int IsRepetition(const S_Board* pos) {
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 bool IsDraw(const S_Board* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
-    if (IsRepetition(pos)
-        || (pos->Get50mrCounter() >= 100)
-        || MaterialDraw(pos)) {
-        return true;
-    }
-    return false;
+    return IsRepetition(pos)
+           || (pos->Get50mrCounter() >= 100)
+           || MaterialDraw(pos);
 }
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
