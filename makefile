@@ -17,7 +17,7 @@ TMPDIR = .tmp
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
-	MKDIR    := mkdir -p
+	MKDIR    := mkdir
 else
 ifeq ($(COMP), MINGW)
 	MKDIR    := mkdir
