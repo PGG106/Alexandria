@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.h"
+struct S_Board;
 
 //Returns if the position is a draw because there isn't enough mating material
 bool MaterialDraw(const S_Board* pos);

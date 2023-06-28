@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.h"
+struct S_Board;
 
 // perft driver
 void PerftDriver(int depth, S_Board *pos);

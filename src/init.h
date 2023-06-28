@@ -1,7 +1,9 @@
 #pragma once
 
-#include "board.h"
-#include "search.h"
+#include "types.h"
+
+struct S_Board;
+struct S_ThreadData;
 
 extern Bitboard PieceKeys[12][64];
 extern Bitboard enpassant_keys[64];

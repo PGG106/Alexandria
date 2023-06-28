@@ -1,7 +1,9 @@
 #pragma once
 
 #include "board.h"
+#include "types.h"
 #include <memory>
+#include <vector>
 
 PACK(struct S_HashEntry {
     int32_t move = NOMOVE;

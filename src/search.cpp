@@ -11,7 +11,9 @@
 #include "ttable.h"
 #include <cassert>
 #include "datagen.h"
+#include "movegen.h"
 #include "time_manager.h"
+#include "io.h"
 #include <iostream>
 #include <algorithm>
 

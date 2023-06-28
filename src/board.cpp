@@ -1,7 +1,10 @@
 #include "board.h"
 #include "piece_data.h"
+#include "hashkey.h"
 #include "makemove.h"
+#include "movegen.h"
 #include "misc.h"
+#include "uci.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used

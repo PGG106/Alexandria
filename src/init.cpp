@@ -5,6 +5,7 @@
 #include "stdint.h"
 #include <cmath>
 #include "misc.h"
+#include "search.h"
 #include "ttable.h"
 #include "threads.h"
 #include "history.h"

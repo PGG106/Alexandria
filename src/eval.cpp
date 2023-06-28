@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "board.h"
 
 // if we don't have enough material to mate consider the position a draw
 bool MaterialDraw(const S_Board* pos) {

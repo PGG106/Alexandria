@@ -1,7 +1,6 @@
 #pragma once
 
-#include "board.h"
-#include <cstdint>
+#include "types.h"
 
 // get bishop attacks
 Bitboard GetBishopAttacks(const int square, Bitboard occupancy);

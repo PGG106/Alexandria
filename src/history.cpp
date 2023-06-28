@@ -1,5 +1,8 @@
 #include "history.h"
 #include <cstring>
+#include "board.h"
+#include "move.h"
+#include "search.h"
 
 void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
     //Scale bonus to fix it in a [-32768;32768] range

@@ -1,8 +1,11 @@
 #include "perft.h"
+#include "board.h"
 #include "piece_data.h"
 #include "io.h"
 #include "makemove.h"
 #include "misc.h"
+#include "movegen.h"
+#include "move.h"
 #include <iostream>
 
 // leaf nodes (number of positions reached during the test of the move generator

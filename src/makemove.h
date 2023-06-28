@@ -1,11 +1,8 @@
 #pragma once
 
-#include "board.h"
-#include "hashkey.h"
-#include "init.h"
-#include "io.h"
-#include "makemove.h"
-#include "movegen.h"
+#include "types.h"
+
+struct S_Board;
 
 #define HASH_PCE(pce, sq) (pos->posKey ^= (PieceKeys[(pce)][(sq)]))
 

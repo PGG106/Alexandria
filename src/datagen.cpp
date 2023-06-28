@@ -1,14 +1,15 @@
+#include "datagen.h"
 #include "board.h"
 #include "movegen.h"
 #include <time.h>
 #include "makemove.h"
-#include "datagen.h"
 #include <iostream>
 #include <fstream>
 #include "misc.h"
 #include "ttable.h"
 #include "history.h"
 #include "time_manager.h"
+#include "threads.h"
 
 std::atomic<bool> stop_flag = false;
 void make_random_move(S_Board* pos) {

@@ -3,6 +3,7 @@
 #include "threads.h"
 #include "movegen.h"
 #include "io.h"
+#include "uci.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>

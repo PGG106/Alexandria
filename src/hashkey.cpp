@@ -1,5 +1,7 @@
-#include "init.h"
+#include "hashkey.h"
 #include <cassert>
+#include "init.h"
+#include "board.h"
 
 //Generates zobrist key from scratch
 Bitboard GeneratePosKey(const S_Board* pos) {

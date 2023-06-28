@@ -1,4 +1,5 @@
 #include "movepicker.h"
+#include "move.h"
 
 void PickMove(S_MOVELIST* move_list, const int moveNum) {
     S_MOVE temp;

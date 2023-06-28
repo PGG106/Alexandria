@@ -7,9 +7,13 @@
 #include "search.h"
 #include "time_manager.h"
 #include "ttable.h"
+#include "init.h"
+#include "io.h"
 #include "datagen.h"
 #include "threads.h"
 #include "test_main.h"
+#include "board.h"
+#include "movegen.h"
 #include <iostream>
 
 //convert a move to coordinate notation to internal notation

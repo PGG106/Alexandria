@@ -1,4 +1,5 @@
 #include "time_manager.h"
+#include "board.h"
 #include "search.h"
 #include <algorithm>
 #include "misc.h"

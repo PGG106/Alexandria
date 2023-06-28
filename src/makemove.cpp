@@ -1,5 +1,11 @@
 #include "makemove.h"
 #include "ttable.h"
+#include "board.h"
+#include "hashkey.h"
+#include "init.h"
+#include "io.h"
+#include "makemove.h"
+#include "movegen.h"
 
 //Remove a piece from a square
 void ClearPiece(const int piece, const int from, S_Board* pos) {

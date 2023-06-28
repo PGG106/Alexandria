@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cstring>
 #include <string>
+#include <vector>
 #include "nnue.h"
 #include "stdint.h"
 #include "move.h"

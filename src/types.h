@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdint.h"
+#include <cstdint>
 
 // define bitboard data type
 using Bitboard = uint64_t;

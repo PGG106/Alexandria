@@ -4,6 +4,8 @@
 #include <iostream>
 #include <chrono>
 #include "eval.h"
+#include "uci.h"
+#include "search.h"
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[52] = {

@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "board.h"
-#include "move.h"
-#include "search.h"
+struct S_Board;
+struct Search_data;
+struct Search_stack;
+struct S_MOVELIST;
 
 //Update the history heuristics of all the quiet moves passed to the function
 void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves);

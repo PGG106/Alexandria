@@ -1,8 +1,6 @@
 #include "piece_data.h"
 #include "types.h"
-#include "eval.h"
 #include <map>
-#include <string>
 
 // convert ASCII character pieces to encoded constants
 

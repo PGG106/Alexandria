@@ -1,6 +1,10 @@
 #pragma once
 
-#include "board.h"
+#include <cstdint>
+#include <string>
+
+struct S_Board;
+struct S_SearchINFO;
 
 struct S_UciOptions {
     uint64_t Hash = 16;

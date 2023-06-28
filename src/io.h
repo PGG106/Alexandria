@@ -1,7 +1,11 @@
 #pragma once
 
-#include "board.h"
-#include "search.h"
+#include "types.h"
+
+struct S_Board;
+struct S_MOVELIST;
+struct S_ThreadData;
+struct S_UciOptions;
 
 void PrintBitboard(const Bitboard bitboard);
 

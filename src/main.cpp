@@ -1,4 +1,3 @@
-#include "board.h"
 #include "init.h"
 #include "uci.h"
 

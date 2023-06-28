@@ -1,7 +1,9 @@
 #pragma once
 
-#include "threads.h"
 #include <atomic>
+
+struct S_ThreadData;
+struct S_Board;
 
 extern std::atomic<bool> stop_flag;
 //The internal structure of a "fen" worth of training data, in Cudad format

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 #include <array>
 
 constexpr int INPUT_WEIGHTS = 768;
