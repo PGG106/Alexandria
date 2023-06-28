@@ -20,5 +20,4 @@ void test_get_fen()
 	std::string fen = GetFen(&pos);
 	assert(fen_to_parse == fen);
 	std::cout << "test_get_fen cleared\n";
-	return;
 }

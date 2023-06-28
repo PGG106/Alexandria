@@ -291,6 +291,4 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		// print new line
 		std::cout << "\n";
 	}
-
-	return;
 }

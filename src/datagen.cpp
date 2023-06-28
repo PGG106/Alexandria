@@ -25,7 +25,6 @@ void make_random_move(S_Board* pos) {
 	assert(r >= 0 && r < move_list->count);
 	int random_move = move_list->moves[r].move;
 	MakeMove(random_move, pos);
-	return;
 }
 
 void set_new_game_state(S_ThreadData* td) {
@@ -63,7 +62,6 @@ void set_new_game_state(S_ThreadData* td) {
 	pos->accumulatorStack.clear();
 	// call parse position function
 	ParsePosition("position startpos", pos);
-	return;
 }
 
 //Does an high depth search of a position to confirm that it's sane enough to use for Datagen
@@ -171,7 +169,6 @@ void Datagen(S_ThreadData* td, Datagen_params params) {
 		myfile.close();
 	}
 	else std::cout << "Unable to open file";
-	return;
 }
 
 bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens) {

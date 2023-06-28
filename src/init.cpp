@@ -308,5 +308,4 @@ void InitNewGame(S_ThreadData* td) {
 	pos->accumulatorStack.clear();
 	// call parse position function
 	ParsePosition("position startpos", pos);
-	return;
 }

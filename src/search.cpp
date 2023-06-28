@@ -212,8 +212,6 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			continue;
 		}
 	}
-
-	return;
 }
 
 int GetBestMove(const PvTable* pv_table) {

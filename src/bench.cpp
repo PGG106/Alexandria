@@ -108,6 +108,4 @@ void BenchInference() {
 	std::cout << "Dummy: " << dummy_eval << std::endl;
 
 	delete td;
-
-	return;
 }

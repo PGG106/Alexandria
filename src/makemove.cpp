@@ -170,7 +170,6 @@ void MakeMove(const int move, S_Board* pos) {
 	//Speculative prefetch of the TT entry
 	TTPrefetch(pos->posKey);
 	pos->checkers = IsInCheck(pos, pos->side);
-	return;
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
@@ -382,8 +381,6 @@ void MakeNullMove(S_Board* pos) {
 	pos->ChangeSide();
 	pos->hisPly++;
 	HashKey(pos, SideKey);
-
-	return;
 }
 
 //Take back a null move
@@ -398,5 +395,4 @@ void TakeNullMove(S_Board* pos) {
 	pos->ChangeSide();
 	pos->posKey = pos->played_positions.back();
 	pos->played_positions.pop_back();
-	return;
 }
