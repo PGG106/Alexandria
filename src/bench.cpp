@@ -63,7 +63,7 @@ const char* benchmarkfens[52] = {
     "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-int StartBench() {
+void StartBench() {
     // init all
     InitAll();
     S_UciOptions uci_options[1];
@@ -85,7 +85,6 @@ int StartBench() {
     std::cout << "\n";
     std::cout << total_nodes << " nodes " << signed(total_nodes / (total_time + 1) * 1000) << " nps" << std::endl;
     delete td;
-    return 0;
 }
 
 void BenchInference() {

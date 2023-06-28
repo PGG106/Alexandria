@@ -220,34 +220,34 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 extern NNUE nnue;
 
 // get least significant 1st bit index
-int GetLsbIndex(Bitboard bitboard);
+[[nodiscard]] int GetLsbIndex(Bitboard bitboard);
 
-int SquareDistance(int a, int b);
+[[nodiscard]] int SquareDistance(int a, int b);
 
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos);
 // Get fen string from board
-std::string GetFen(const S_Board* pos);
+[[nodiscard]] std::string GetFen(const S_Board* pos);
 // Parse a string of moves in coordinate format and plays them
 void parse_moves(const std::string& moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
+[[nodiscard]] Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
 // Return a piece based on the type and the color
-int GetPiece(const int piecetype, const int color);
+[[nodiscard]] int GetPiece(const int piecetype, const int color);
 // Returns the piece_type of a piece
-int GetPieceType(const int piece);
+[[nodiscard]] int GetPieceType(const int piece);
 // Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
-bool BoardHasNonPawns(const S_Board* pos, const int side);
+[[nodiscard]] bool BoardHasNonPawns(const S_Board* pos, const int side);
 // Get on what square of the board the king of color c resides
-int KingSQ(const S_Board* pos, const int c);
+[[nodiscard]] int KingSQ(const S_Board* pos, const int c);
 // returns if the current side is in check
-bool IsInCheck(const S_Board* pos, const int side);
+[[nodiscard]] bool IsInCheck(const S_Board* pos, const int side);
 
 // Board state retrieval
 
-int GetEpSquare(const S_Board* pos);
-uint64_t GetMaterialValue(const S_Board* pos);
+[[nodiscard]] int GetEpSquare(const S_Board* pos);
+[[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);

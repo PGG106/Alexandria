@@ -19,6 +19,6 @@ void InitSlidersAttacks(const int bishop);
 
 void InitAll();
 
-Bitboard DoCheckmask(S_Board* pos, int color, int sq);
+[[nodiscard]] Bitboard DoCheckmask(S_Board* pos, int color, int sq);
 
 void DoPinMask(S_Board* pos, int color, int sq);

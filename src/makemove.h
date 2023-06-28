@@ -29,9 +29,9 @@ void HashKey(S_Board* pos, ZobristKey key);
 
 // make move on chess board
 void MakeMove(const int move, S_Board* pos);
-int MakeMoveLight(const int move, S_Board* pos);
+void MakeMoveLight(const int move, S_Board* pos);
 // Reverts the previously played move
-int UnmakeMove(const int move, S_Board* pos);
+void UnmakeMove(const int move, S_Board* pos);
 // makes a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos);
 // Reverts the previously played null move

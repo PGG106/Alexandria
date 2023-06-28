@@ -178,7 +178,7 @@ void MakeMove(const int move, S_Board* pos) {
 }
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
-int MakeMoveLight(const int move, S_Board* pos) {
+void MakeMoveLight(const int move, S_Board* pos) {
     // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
@@ -281,11 +281,9 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
     // Xor the new side into the key
     HashKey(pos, SideKey);
-
-    return 1;
 }
 
-int UnmakeMove(const int move, S_Board* pos) {
+void UnmakeMove(const int move, S_Board* pos) {
     // quiet moves
 
     pos->hisPly--;
@@ -366,7 +364,6 @@ int UnmakeMove(const int move, S_Board* pos) {
     // moving pieces bacl to their place)
     pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
-    return 1;
 }
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)

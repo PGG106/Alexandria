@@ -25,7 +25,7 @@ void RootDatagen(S_ThreadData* td, Datagen_params params);
 // Per thread Datagen function
 void Datagen(S_ThreadData* td, Datagen_params params);
 // Generates one game worth of fens
-bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens);
+[[nodiscard]] bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens);
 
 // Takes a board as an input and determines if the game is over
-bool IsGameOver(S_Board* pos, std::string& wdl);
+[[nodiscard]] bool IsGameOver(S_Board* pos, std::string& wdl);

@@ -4,4 +4,4 @@
 
 struct S_Board;
 
-Bitboard GeneratePosKey(const S_Board* pos);
+[[nodiscard]] Bitboard GeneratePosKey(const S_Board* pos);
