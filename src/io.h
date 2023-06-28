@@ -19,4 +19,4 @@ void PrintMoveList(const S_MOVELIST* move_list);
 
 char* FormatMove(const int move);
 
-void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
+void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options);

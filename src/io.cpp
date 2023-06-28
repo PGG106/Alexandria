@@ -97,7 +97,6 @@ void PrintBoard(const S_Board* pos) {
 	std::cout << "position key: " << pos->posKey << std::endl;
 
 	std::cout << "Fen: " << GetFen(pos) << "\n\n";
-
 }
 
 // print attacked squares
@@ -165,8 +164,7 @@ void PrintMoveList(const S_MOVELIST* list) {
 	std::cout << "MoveList Total  Moves:" << "list->count" << "\n\n";
 }
 
-std::string Pick_color(int score)
-{
+std::string Pick_color(int score) {
 	//drawish score, no highlight
 	if (abs(score) <= 10) return "\033[38;5;7m";
 	//Good mate score, blue
@@ -174,15 +172,14 @@ std::string Pick_color(int score)
 	// positive for us, light green
 	if (score > 10) return "\033[38;5;42m";
 	// negative for us, red
-	if (score < 10) return  "\033[38;5;9m";
+	if (score < 10) return "\033[38;5;9m";
 	return "\033[0m";
 }
 
 //Prints the uci output
-void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const  S_UciOptions* options) {
-
+void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options) {
 	//This handles the basic console output
-	long  time = GetTimeMs() - td->info.starttime;
+	long time = GetTimeMs() - td->info.starttime;
 	uint64_t nodes = td->info.nodes + GetTotalNodes(options->Threads);
 
 	uint64_t nps = nodes / (time + !time) * 1000;
@@ -211,7 +208,6 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		std::cout << std::endl;
 	}
 	else {
-
 		//Convert time in seconds if possible
 		std::string time_unit = "ms";
 		float parsed_time = time;
@@ -243,7 +239,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 		}
 		else {
 			parsed_score = static_cast<float>(score) / 100;
-			if (parsed_score >= 0)   score_unit = '+';
+			if (parsed_score >= 0) score_unit = '+';
 		}
 		// convert score to string
 		std::stringstream score_stream;

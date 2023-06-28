@@ -30,7 +30,6 @@ static int IsRepetition(const S_Board* pos) {
 	return FALSE;
 }
 
-
 //If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 bool IsDraw(const S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
@@ -44,7 +43,6 @@ bool IsDraw(const S_Board* pos) {
 
 //ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_ThreadData* td) {
-
 	//Extract data structures from ThreadData
 	S_SearchINFO* info = &td->info;
 	PvTable* pv_table = &td->pv_table;
@@ -64,9 +62,9 @@ void ClearForSearch(S_ThreadData* td) {
 	info->nodes = 0;
 	info->seldepth = 0;
 }
+
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
-
 	//For every piece type get a bitboard that encodes the squares occupied by that piece type
 	Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
 	Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
@@ -77,12 +75,10 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 		| (king_attacks[to] & GetPieceBB(pos, KING))
 		| (GetBishopAttacks(to, occ) & attackingBishops)
 		| (GetRookAttacks(to, occ) & attackingRooks);
-
 }
 
 // inspired by the Weiss engine
-bool SEE(const S_Board* pos, const int move,
-	const int threshold) {
+bool SEE(const S_Board* pos, const int move, const int threshold) {
 	int to = To(move);
 	int from = From(move);
 
@@ -113,13 +109,11 @@ bool SEE(const S_Board* pos, const int move,
 
 	// Make captures until one side runs out, or fail to beat threshold
 	while (true) {
-
 		// Remove used pieces from attackers
 		attackers &= occupied;
 
 		Bitboard myAttackers = attackers & pos->Occupancy(side);
 		if (!myAttackers) {
-
 			break;
 		}
 
@@ -136,7 +130,6 @@ bool SEE(const S_Board* pos, const int move,
 
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
-
 			if (pt == KING && (attackers & pos->Occupancy(side)))
 				side = !side;
 
@@ -144,7 +137,6 @@ bool SEE(const S_Board* pos, const int move,
 		}
 		// Remove the used piece from occupied
 		occupied ^= (1ULL << (GetLsbIndex(myAttackers & GetPieceBB(pos, pt))));
-
 
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
 			attackers |= GetBishopAttacks(to, occupied) & bishops;
@@ -242,7 +234,6 @@ int ScoreFromTT(int score, int ply) {
 
 //Starts the search process, this is ideally the point where you can start a multithreaded search
 void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
-
 	//Init a thread_data object for each helper thread that doesn't have one already
 	for (int i = threads_data.size(); i < options->Threads - 1; i++)
 	{
@@ -337,7 +328,6 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 	//Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
-
 		score = Negamax(alpha, beta, depth, false, td, ss);
 
 		// check if more than Maxtime passed and we have to stop
@@ -367,7 +357,6 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 // Negamax alpha beta search
 int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Search_stack* ss) {
-
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
@@ -474,7 +463,6 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	(ss + 1)->searchKillers[1] = NOMOVE;
 
 	if (!pv_node) {
-
 		// Reverse futility pruning
 		if (depth < 9
 			&& eval - 66 * (depth - improving) >= beta
@@ -745,7 +733,6 @@ moves_loop:
 
 //Quiescence search to avoid the horizon effect
 int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
-
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;

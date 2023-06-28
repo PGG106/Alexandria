@@ -1,4 +1,4 @@
-﻿#include "makemove.h"
+#include "makemove.h"
 #include "ttable.h"
 
 //Remove a piece from a square
@@ -61,7 +61,6 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 
 // make move on chess board
 void MakeMove(const int move, S_Board* pos) {
-
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -176,7 +175,6 @@ void MakeMove(const int move, S_Board* pos) {
 
 // make move on chess board that we know won't be reverted (so we can skip storing history information), it also avoid updating nnue
 int MakeMoveLight(const int move, S_Board* pos) {
-
 	//Store position variables for rollback purposes
 	pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
 	pos->history[pos->hisPly].enPas = pos->enPas;
@@ -202,7 +200,6 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
 	// handle enpassant captures
 	if (enpass) {
-
 		ClearPiece(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
 
 		pos->fiftyMove = 0;
@@ -241,7 +238,6 @@ int MakeMoveLight(const int move, S_Board* pos) {
 
 		// hash enpassant
 		HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
 	}
 
 	// handle castling moves
@@ -362,7 +358,6 @@ int UnmakeMove(const int move, S_Board* pos) {
 	// change side
 	pos->ChangeSide();
 
-
 	// restore zobrist key (done at the end to avoid overwriting the value while
 	// moving pieces bacl to their place)
 	pos->posKey = pos->played_positions.back();
@@ -372,7 +367,6 @@ int UnmakeMove(const int move, S_Board* pos) {
 
 //MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
-
 	pos->played_positions.emplace_back(pos->posKey);
 
 	if (GetEpSquare(pos) != no_sq)

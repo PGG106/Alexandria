@@ -21,8 +21,7 @@ bool MaterialDraw(const S_Board* pos) {
 	return false;
 }
 
-static inline float MaterialScale(const S_Board* pos)
-{
+static inline float MaterialScale(const S_Board* pos) {
 	return 700 + GetMaterialValue(pos) / 32;
 }
 

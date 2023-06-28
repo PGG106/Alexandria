@@ -78,7 +78,6 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
 
 // parse UCI "position" command
 void ParsePosition(const std::string& command, S_Board* pos) {
-
 	// parse UCI "startpos" command
 	if (command.find("startpos") != std::string::npos) {
 		// init chess board with start position
@@ -87,7 +86,6 @@ void ParsePosition(const std::string& command, S_Board* pos) {
 
 	// parse UCI "fen" command
 	else {
-
 		// if a "fen" command is available within command string
 		if (command.find("fen") != std::string::npos) {
 			// init chess board with position from FEN string
@@ -97,7 +95,6 @@ void ParsePosition(const std::string& command, S_Board* pos) {
 			// init chess board with start position
 			ParseFen(start_position, pos);
 		}
-
 	}
 
 	// if there are moves to be played in the fen play them
@@ -128,8 +125,7 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 	std::vector<std::string> tokens = split_command(line);
 
 	//loop over all the tokens and parse the commands
-	for (size_t i = 1; i < tokens.size();i++) {
-
+	for (size_t i = 1; i < tokens.size(); i++) {
 		if (tokens.at(1) == "infinite") {
 			;
 		}
@@ -169,7 +165,6 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 			info->movetimeset = true;
 		}
 
-
 		if (tokens.at(i) == "depth") {
 			depth = std::stoi(tokens[i + 1]);
 		}
@@ -207,9 +202,8 @@ void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& 
 	std::vector<std::string> tokens = split_command(line);
 
 	//loop over all the tokens and parse the commands
-	for (size_t i = 1; i < tokens.size();i++)
+	for (size_t i = 1; i < tokens.size(); i++)
 	{
-
 		if (tokens.at(i) == "depth") {
 			depth = std::stoi(tokens[i + 1]);
 		}
@@ -261,7 +255,6 @@ void UciLoop(char** argv) {
 
 	// main loop
 	while (1) {
-
 		// define user / GUI input buffer
 		std::string input;
 
@@ -289,7 +282,6 @@ void UciLoop(char** argv) {
 
 		// parse UCI "go" command
 		else if (tokens[0] == "go") {
-
 			StopHelperThreads();
 			//Join previous search thread if it exists
 			if (main_thread.joinable())
@@ -443,9 +435,9 @@ void UciLoop(char** argv) {
 			// generate moves
 			GenerateMoves(move_list, &td->pos);
 			printf("SEE thresholds\n");
-			for (int i = 0; i < move_list->count;i++) {
+			for (int i = 0; i < move_list->count; i++) {
 				int move = move_list->moves[i].move;
-				for (int j = 1200;j > -1200;j--) {
+				for (int j = 1200; j > -1200; j--) {
 					if (SEE(&td->pos, move, j)) {
 						printf(" move number %d  %s SEE result: %d \n", i + 1, FormatMove(move), j);
 						break;

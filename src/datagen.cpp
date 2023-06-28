@@ -29,7 +29,6 @@ void make_random_move(S_Board* pos) {
 }
 
 void set_new_game_state(S_ThreadData* td) {
-
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
 	Search_data* ss = &td->ss;
@@ -65,13 +64,10 @@ void set_new_game_state(S_ThreadData* td) {
 	// call parse position function
 	ParsePosition("position startpos", pos);
 	return;
-
 }
 
 //Does an high depth search of a position to confirm that it's sane enough to use for Datagen
-int sanity_search(S_ThreadData* td)
-{
-
+int sanity_search(S_ThreadData* td) {
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
 	int score = 0;
 	//Clean the position and the search info to start search from a clean state
@@ -82,10 +78,7 @@ int sanity_search(S_ThreadData* td)
 	return score;
 }
 
-
-
-int search_best_move(S_ThreadData* td)
-{
+int search_best_move(S_ThreadData* td) {
 	S_SearchINFO* info = &td->info;
 	Search_stack stack[MAXDEPTH], * ss = stack;
 	//variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
@@ -112,30 +105,28 @@ int search_best_move(S_ThreadData* td)
 	return score;
 }
 
-
 //Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootDatagen(S_ThreadData* td, Datagen_params params)
-{
+void RootDatagen(S_ThreadData* td, Datagen_params params) {
 	std::cout << "Starting datagen with " << params.threadnum << " threads and an estimated total of " << params.games * params.threadnum << " games" << std::endl;
 	//Resize TT to an appropriate size
 	InitHashTable(HashTable, 128 * params.threadnum);
 
 	//Init a thread_data object for each helper thread that doesn't have one already
-	for (int i = threads_data.size(); i < params.threadnum - 1;i++)
+	for (int i = threads_data.size(); i < params.threadnum - 1; i++)
 	{
 		threads_data.emplace_back();
 		threads_data.back().id = i + 1;
 	}
 
 	//Init thread_data objects
-	for (size_t i = 0; i < threads_data.size();i++)
+	for (size_t i = 0; i < threads_data.size(); i++)
 	{
 		threads_data[i].info = td->info;
 		threads_data[i].pos = td->pos;
 	}
 
 	// Start Threads-1 helper search threads
-	for (int i = 0; i < params.threadnum - 1;i++)
+	for (int i = 0; i < params.threadnum - 1; i++)
 	{
 		threads.emplace_back(std::thread(Datagen, &threads_data[i], params));
 	}
@@ -149,22 +140,17 @@ void RootDatagen(S_ThreadData* td, Datagen_params params)
 	std::cout << "Datagen done!\n";
 }
 
-
-void Datagen(S_ThreadData* td, Datagen_params params)
-{
+void Datagen(S_ThreadData* td, Datagen_params params) {
 	//Each thread gets its own file to dump data into
 	auto start_time = GetTimeMs();
 	uint64_t total_fens = 0;
 	auto threadcount = params.threadnum;
 	std::ofstream myfile("data" + std::to_string(td->id) + ".txt", std::ios_base::app);
-	if (myfile.is_open())
-	{
+	if (myfile.is_open()) {
 		if (td->id == 0)
 			std::cout << "Datagen started successfully" << std::endl;
-		for (uint64_t games = 1;games <= params.games;games++)
-		{
-			if (stop_flag)
-			{
+		for (uint64_t games = 1; games <= params.games; games++) {
+			if (stop_flag) {
 				if (td->id == 0)
 					std::cout << "Stopping Datagen..\n";
 				break;
@@ -172,8 +158,7 @@ void Datagen(S_ThreadData* td, Datagen_params params)
 			//Make sure a game is started on a clean state
 			set_new_game_state(td);
 			//Restart if we get a busted random score
-			if (!PlayGame(td, myfile, total_fens))
-			{
+			if (!PlayGame(td, myfile, total_fens)) {
 				games--;
 				continue;
 			}
@@ -187,15 +172,12 @@ void Datagen(S_ThreadData* td, Datagen_params params)
 	}
 	else std::cout << "Unable to open file";
 	return;
-
 }
 
-bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
-{
+bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens) {
 	S_Board* pos = &td->pos;
 	PvTable* pv_table = &td->pv_table;
-	for (int i = 0;i < 10; i++)
-	{
+	for (int i = 0; i < 10; i++) {
 		make_random_move(pos);
 	}
 	//Pre emptively check the position to see if it's to be discarderd
@@ -206,8 +188,7 @@ bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
 	//String for wdl
 	std::string wdl;
 	//if the game is over we also get the wdl to avoid having to check twice
-	while (!IsGameOver(pos, wdl))
-	{
+	while (!IsGameOver(pos, wdl)) {
 		//Get a data entry
 		data_entry entry;
 		//Get position fen
@@ -239,11 +220,9 @@ bool PlayGame(S_ThreadData* td, std::ofstream& myfile, uint64_t& total_fens)
 	return true;
 }
 
-bool IsGameOver(S_Board* pos, std::string& wdl)
-{
+bool IsGameOver(S_Board* pos, std::string& wdl) {
 	//Check for draw
-	if (IsDraw(pos))
-	{
+	if (IsDraw(pos)) {
 		wdl = "0.5";
 		return true;
 	}
@@ -252,8 +231,7 @@ bool IsGameOver(S_Board* pos, std::string& wdl)
 	// generate moves
 	GenerateMoves(move_list, pos);
 	//Check for mate or stalemate
-	if (move_list->count == 0)
-	{
+	if (move_list->count == 0) {
 		bool in_check = pos->checkers;
 		wdl = in_check ? pos->side == WHITE ? "0.0" : "1.0" : "0.5";
 		return true;

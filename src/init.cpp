@@ -227,15 +227,12 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 
 //PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
-	for (int i = 0; i < MAXDEPTH; i++)
-	{
-		for (int j = 0; j < MAXDEPTH; j++)
-		{
+	for (int i = 0; i < MAXDEPTH; i++) {
+		for (int j = 0; j < MAXDEPTH; j++) {
 			reductions[i][j] = 1 + log(i) * log(j) / 2.00;
 		}
 	}
-	for (int depth = 0; depth < MAXDEPTH; depth++)
-	{
+	for (int depth = 0; depth < MAXDEPTH; depth++) {
 		lmp_margin[depth][0] = (3 + depth * depth) / 2; //Not improving
 		lmp_margin[depth][1] = 3 + depth * depth; //improving
 
@@ -245,8 +242,7 @@ void InitReductions() {
 	}
 }
 
-void InitAll()
-{
+void InitAll() {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	//Force windows to display colors
 #ifdef _WIN64
@@ -270,7 +266,6 @@ void InitAll()
 }
 
 void InitNewGame(S_ThreadData* td) {
-
 	//Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
 	Search_data* ss = &td->ss;
@@ -314,5 +309,4 @@ void InitNewGame(S_ThreadData* td) {
 	// call parse position function
 	ParsePosition("position startpos", pos);
 	return;
-
 }

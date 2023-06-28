@@ -3,7 +3,6 @@
 #include "uci.h"
 
 int main([[maybe_unused]] int argc, char** argv) {
-
 	// init all
 	InitAll();
 

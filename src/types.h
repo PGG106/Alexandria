@@ -32,6 +32,7 @@ enum {
 	FILE_H,
 	FILE_NONE
 };
+
 enum {
 	RANK_1,
 	RANK_2,

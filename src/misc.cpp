@@ -18,15 +18,12 @@ void dbg_mean_of(int val) { _count++; _accumulator += val; }
 void dbg_print() { std::cout << double(_accumulator) / _count << std::endl; }
 
 //splits a string into a vector of tokens and returns it
-std::vector<std::string> split_command(const std::string& command)
-{
-
+std::vector<std::string> split_command(const std::string& command) {
 	std::stringstream stream(command);
 	std::string intermediate;
 	std::vector<std::string> tokens;
 
-	while (std::getline(stream, intermediate, ' '))
-	{
+	while (std::getline(stream, intermediate, ' ')) {
 		tokens.push_back(intermediate);
 	}
 

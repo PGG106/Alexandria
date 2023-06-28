@@ -5,6 +5,7 @@
 
 // get bishop attacks
 Bitboard GetBishopAttacks(const int square, Bitboard occupancy);
+
 // get rook attacks
 Bitboard GetRookAttacks(const int square, Bitboard occupancy);
 

@@ -66,7 +66,6 @@ constexpr int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
-
 extern int reductions[MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
@@ -158,7 +157,6 @@ public:
 	inline void ChangeSide() {
 		side ^= 1;
 	}
-
 };
 
 struct PvTable {
@@ -191,11 +189,10 @@ struct S_SearchINFO {
 	bool infinite = false;
 
 	bool stopped = false;
-
 };
 
 // castling rights update constants
-constexpr  int castling_rights[64] = {
+constexpr int castling_rights[64] = {
 	7,  15, 15, 15, 3,  15, 15, 11, 15, 15, 15, 15, 15, 15, 15, 15,
 	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
 	15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,

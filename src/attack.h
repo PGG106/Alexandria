@@ -87,6 +87,7 @@ Bitboard MaskPawnAttacks(int side, int square);
 
 // generate knight attacks
 Bitboard MaskKnightAttacks(int square);
+
 // generate king attacks
 Bitboard MaskKingAttacks(int square);
 
@@ -95,6 +96,7 @@ Bitboard MaskBishopAttacks(int square);
 
 // mask rook attacks
 Bitboard MaskRookAttacks(int square);
+
 // generate bishop attacks on the fly
 Bitboard BishopAttacksOnTheFly(int square, Bitboard block);
 

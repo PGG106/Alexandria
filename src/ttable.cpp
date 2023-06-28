@@ -32,7 +32,6 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 
 void StoreHashEntry(const ZobristKey key, const int move, int score, int16_t eval, const int flags,
 	const int depth, const bool pv) {
-
 	//Calculate index based on the position key and get the entry that already fills that index
 	uint64_t index = Index(key);
 	S_HashEntry* tte = &HashTable->pTable[index];
@@ -56,17 +55,16 @@ void StoreHashEntry(const ZobristKey key, const int move, int score, int16_t eva
 }
 
 uint64_t Index(const ZobristKey posKey) {
-	return  (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 32;
-
+	return (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 32;
 }
 
 //prefetches the data in the given address in l1/2 cache in a non blocking way.
 void prefetch(const void* addr) {
-#  if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+#if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 	_mm_prefetch((char*)addr, _MM_HINT_T0);
-#  else
+#else
 	__builtin_prefetch(addr);
-#  endif
+#endif
 }
 
 void TTPrefetch(const ZobristKey posKey) {

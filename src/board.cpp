@@ -20,20 +20,13 @@ NNUE nnue = NNUE();
 
 int CountBits(Bitboard b) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-
 	return (uint8_t)_mm_popcnt_u64(b);
-
 #else // Assumed gcc or compatible compiler
-
 	return __builtin_popcountll(b);
-
 #endif
 }
 
-
-
-int GetLsbIndex(Bitboard bitboard)
-{
+int GetLsbIndex(Bitboard bitboard) {
 #if defined(__GNUC__) // GCC, Clang, ICC
 	return int(__builtin_ctzll(bitboard));
 #elif defined(_MSC_VER) // MSVC
@@ -60,7 +53,6 @@ int GetLsbIndex(Bitboard bitboard)
 
 #endif
 }
-
 
 //Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
@@ -182,7 +174,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
 				// increment pointer to FEN string
 				fen_counter++;
-
 			}
 
 			// match rank separator
@@ -191,6 +182,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
 				fen_counter++;
 		}
 	}
+
 	//parse player turn
 	(turn == "w") ? (pos->side = WHITE) : (pos->side = BLACK);
 
@@ -233,7 +225,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
 	}
 	//Read Hisply moves counter
 	if (!HisPly.empty()) {
-
 		pos->hisPly = std::stoi(HisPly);
 
 	}
@@ -258,19 +249,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
 	//Update nnue accumulator to reflect board state
 	Accumulate(pos->accumulator, pos);
-
 }
 
-std::string GetFen(const S_Board* pos)
-{
-
+std::string GetFen(const S_Board* pos) {
 	std::string pos_string;
 	std::string turn;
 	std::string castle_perm;
 	std::string ep_square;
 	std::string fifty_move;
 	std::string HisPly;
-
 
 	int empty_squares = 0;
 	//Parse pieces
@@ -335,14 +322,13 @@ std::string GetFen(const S_Board* pos)
 	HisPly = std::to_string(pos->hisPly);
 
 	return pos_string + " " + turn + " " + castle_perm + " " + ep_square + " " + fifty_move + " " + HisPly;
-
 }
+
 // parses the moves part of a fen string and plays all the moves included
-void parse_moves(const std::string& moves, S_Board* pos)
-{
+void parse_moves(const std::string& moves, S_Board* pos) {
 	std::vector<std::string> move_tokens = split_command(moves);
 	// loop over moves within a move string
-	for (size_t i = 0;i < move_tokens.size();i++) {
+	for (size_t i = 0; i < move_tokens.size(); i++) {
 		// parse next move
 		int move = ParseMove(move_tokens[i], pos);
 		// make move on the chess board
@@ -351,9 +337,10 @@ void parse_moves(const std::string& moves, S_Board* pos)
 }
 
 //Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-Bitboard GetPieceBB(const S_Board* pos, const  int piecetype) {
+Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
 	return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
+
 //Return a piece based on the type and the color
 int GetPiece(const int piecetype, const int color) {
 	return piecetype + 6 * color;
@@ -393,7 +380,6 @@ uint64_t GetMaterialValue(const S_Board* pos) {
 }
 
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
-
 	for (int i = 0; i < HIDDEN_SIZE; i++) {
 		board_accumulator[0][i] = nnue.featureBias[i];
 		board_accumulator[1][i] = nnue.featureBias[i];
