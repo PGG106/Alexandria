@@ -96,7 +96,7 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     std::cout << "\n    Depth: " << depth << "\n";
     std::cout << "    Nodes: " << nodes << "\n";
     std::cout << "     Time: " << time << "\n";
-    unsigned long nodes_second = (nodes / time + !time) * 1000;
+    unsigned long nodes_second = (nodes / (time + !time)) * 1000;
     std::cout << " Nodes per second: " << nodes_second << "\n\n";
 
     return nodes;
