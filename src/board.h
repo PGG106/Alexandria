@@ -232,7 +232,7 @@ void ParseFen(const std::string& command, S_Board* pos);
 //Get fen string from board
 std::string GetFen(const S_Board* pos);
 //Parse a string of moves in coordinate format and plays them
-void parse_moves(std::string moves, S_Board* pos);
+void parse_moves(const std::string& moves, S_Board* pos);
 
 void ResetInfo(S_SearchINFO* info);
 

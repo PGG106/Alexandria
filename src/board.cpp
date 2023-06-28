@@ -338,7 +338,7 @@ std::string GetFen(const S_Board* pos)
 
 }
 // parses the moves part of a fen string and plays all the moves included
-void parse_moves(const std::string moves, S_Board* pos)
+void parse_moves(const std::string& moves, S_Board* pos)
 {
 	std::vector<std::string> move_tokens = split_command(moves);
 	// loop over moves within a move string
