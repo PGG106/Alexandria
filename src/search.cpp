@@ -802,9 +802,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 
 	//Stand pat
-	if (eval >= beta) return eval;
+	if (BestScore >= beta) return eval;
 	//Adjust alpha based on eval
-	alpha = std::max(alpha, eval);
+	alpha = std::max(alpha, BestScore);
 
 	// create move list instance
 	S_MOVELIST move_list[1];
