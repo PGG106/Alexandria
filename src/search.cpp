@@ -580,7 +580,7 @@ moves_loop:
 			}
 
 			// See pruning
-			if (depth <= 8	
+			if (depth <= 8
 				&& !SEE(pos, move, see_margin[depth][isQuiet]))
 			{
 				continue;
@@ -785,8 +785,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			return ttScore;
 	}
 
+	if (in_check) {
+		ss->static_eval = eval = value_none;
+		BestScore = -MAXSCORE;
+	}
 	//If we have a ttHit with a valid eval use that
-	if (TThit)
+	else if (TThit)
 	{
 		ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		eval = BestScore = ttScore;
