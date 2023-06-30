@@ -864,6 +864,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		}
 	}
 
+	// we don't have any legal moves to make in the current postion
+	if (move_list->count == 0) {
+		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate 
+		BestScore = in_check ? (-mate_value + ss->ply) : 0;
+	}
+
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
