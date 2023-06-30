@@ -808,9 +808,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	// create move list instance
 	S_MOVELIST move_list[1];
-
-	// generate the captures
-	GenerateCaptures(move_list, pos);
+	if (!in_check)
+		// generate the captures
+		GenerateCaptures(move_list, pos);
+	else
+		GenerateMoves(move_list, pos);
 
 	//score the generated moves
 	score_moves(pos, sd, ss, move_list, tte.move);
