@@ -1,11 +1,12 @@
 #pragma once
-#include "board.h"
-#include <cstdint>
+
+#include "types.h"
 
 // get bishop attacks
-Bitboard GetBishopAttacks(const int square, Bitboard occupancy);
+[[nodiscard]] Bitboard GetBishopAttacks(const int square, Bitboard occupancy);
+
 // get rook attacks
-Bitboard GetRookAttacks(const int square, Bitboard occupancy);
+[[nodiscard]] Bitboard GetRookAttacks(const int square, Bitboard occupancy);
 
 // get queen attacks
-Bitboard GetQueenAttacks(const int square, Bitboard occupancy);
+[[nodiscard]] Bitboard GetQueenAttacks(const int square, Bitboard occupancy);

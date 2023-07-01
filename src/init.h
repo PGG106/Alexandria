@@ -1,6 +1,9 @@
 #pragma once
-#include "board.h"
-#include "search.h"
+
+#include "types.h"
+
+struct S_Board;
+struct S_ThreadData;
 
 extern Bitboard PieceKeys[12][64];
 extern Bitboard enpassant_keys[64];
@@ -16,6 +19,6 @@ void InitSlidersAttacks(const int bishop);
 
 void InitAll();
 
-Bitboard DoCheckmask(S_Board* pos, int color, int sq);
+[[nodiscard]] Bitboard DoCheckmask(S_Board* pos, int color, int sq);
 
 void DoPinMask(S_Board* pos, int color, int sq);

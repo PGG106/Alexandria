@@ -1,6 +1,11 @@
 #pragma once
-#include "board.h"
-#include "search.h"
+
+#include "types.h"
+
+struct S_Board;
+struct S_MOVELIST;
+struct S_ThreadData;
+struct S_UciOptions;
 
 void PrintBitboard(const Bitboard bitboard);
 
@@ -14,8 +19,8 @@ void PrintAttackedSquares(const S_Board* pos, const int side);
 void PrintMove(const int move);
 
 // print move list
-void PrintMoveList(const S_MOVELIST* move_list);
+void PrintMoveList(const S_MOVELIST* list);
 
-char* FormatMove(const int move);
+[[nodiscard]] char* FormatMove(const int move);
 
-void PrintUciOutput(const int score, const int depth, const  S_ThreadData* td, const S_UciOptions* options);
+void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options);

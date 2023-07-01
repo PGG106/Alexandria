@@ -1,7 +1,7 @@
 #pragma once
-#include "board.h"
+
 #include <map>
-#include <string>
+
 // convert ASCII character pieces to encoded constants
 extern std::map<char, int> char_pieces;
 
@@ -24,4 +24,3 @@ constexpr int mvv_lva[12][12] = {
     101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
     100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
-

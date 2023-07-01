@@ -1,23 +1,23 @@
 #pragma once
 
 struct S_MOVE {
-	int move;
-	int score;
+    int move;
+    int score;
 };
 
 // move list structure
 struct S_MOVELIST {
-	// moves
-	S_MOVE moves[256];
+    // moves
+    S_MOVE moves[256];
 
-	// move count
-	int count;
+    // move count
+    int count;
 };
 
 // encode move
 #define encode_move(source, target, piece, promoted, capture)      \
   (source) | (target << 6) | (piece << 12) | (promoted << 16) |                \
-      (capture << 20)         
+      (capture << 20)
 
 #define NOMOVE 0
 #define mate_score 31000
@@ -40,7 +40,3 @@ struct S_MOVELIST {
 #define isEnpassant(pos,move) ((Piece(move) == WP || Piece(move) == BP) && (To(move) == GetEpSquare(pos)))
 
 #define IsQuiet(move) (!IsCapture(move) && !Promoted(move))
-
-
-
-
