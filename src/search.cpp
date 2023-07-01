@@ -864,6 +864,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		}
 	}
 
+	if (move_list->count == 0 && in_check) {
+		// return mate score (assuming closest distance to mating position)
+		BestScore = (-mate_value + ss->ply);
+	}
+
 	//Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
