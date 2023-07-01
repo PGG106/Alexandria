@@ -171,7 +171,7 @@
     <ClInclude Include="src\move.h" />
     <ClInclude Include="src\movegen.h" />
     <ClInclude Include="src\perft.h" />
-    <ClInclude Include="src\pieceData.h" />
+    <ClInclude Include="src\piece_data.h" />
     <ClInclude Include="src\random.h" />
     <ClInclude Include="src\search.h" />
     <ClInclude Include="src\threads.h" />
@@ -199,7 +199,7 @@
     <ClCompile Include="src\nnue.cpp" />
     <ClCompile Include="src\movepicker.cpp" />
     <ClCompile Include="src\perft.cpp" />
-    <ClCompile Include="src\pieceData.cpp" />
+    <ClCompile Include="src\piece_data.cpp" />
     <ClCompile Include="src\random.cpp" />
     <ClCompile Include="src\search.cpp" />
     <ClCompile Include="src\threads.cpp" />

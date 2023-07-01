@@ -21,9 +21,6 @@
     <ClInclude Include="src\hashkey.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="src\pieceData.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
     <ClInclude Include="src\init.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
@@ -96,6 +93,9 @@
     <ClInclude Include="src\test_main.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="src\piece_data.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\board.cpp">
@@ -117,9 +117,6 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\random.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pieceData.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\eval.cpp">
@@ -171,6 +168,9 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\test_main.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\piece_data.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
