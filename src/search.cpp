@@ -745,9 +745,13 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             || (tte.flags == HFEXACT))
             return ttScore;
     }
-
+    
+    if (in_check) {
+		ss->static_eval = eval = value_none;
+		BestScore = -MAXSCORE;
+	  }
     // If we have a ttHit with a valid eval use that
-    if (TThit) {
+    else if (TThit) {
         ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
         eval = BestScore = ttScore;
     } else {
@@ -812,7 +816,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             }
         }
     }
-
+  
+    if (move_list->count == 0 && in_check) {
+		// return mate score (assuming closest distance to mating position)
+		BestScore = (-mate_value + ss->ply);
+	  }
+  
     // Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
     int flag = BestScore >= beta ? HFBETA : HFALPHA;
 
