@@ -433,9 +433,8 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
     if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
-        // If we aren't on a pv node we can also use the tt score as a more accurate form of eval
-        if (!pv_node)
-            eval = ttScore;
+        // We can also use the tt score as a more accurate form of eval
+        eval = ttScore;
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
