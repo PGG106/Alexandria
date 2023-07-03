@@ -81,7 +81,7 @@ ifeq ($(build), x86-64-bmi2)
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS = -g3 -fno-omit-frame-pointer -std=gnu++2a
+	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
 	FLAGS    = -lpthread -lstdc++
 endif
