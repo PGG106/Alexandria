@@ -507,6 +507,8 @@ moves_loop:
 
     int moves_searched = 0;
     bool SkipQuiets = false;
+    bool Skipmoves = false;
+
     // loop over moves within a movelist
     for (int count = 0; count < move_list->count; count++) {
         // take the most promising move that hasn't been played yet
@@ -516,6 +518,7 @@ moves_loop:
         if (move == excludedMove) continue;
         bool isQuiet = IsQuiet(move);
 
+        if (Skipmoves) break;
         if (isQuiet && SkipQuiets) continue;
 
         int movehistory = GetHistoryScore(pos, sd, move, ss);
@@ -535,7 +538,7 @@ moves_loop:
                 && depth < 9
                 && isQuiet
                 && moves_searched > lmp_margin[depth][improving]) {
-                SkipQuiets = true;
+                Skipmoves = true;
                 continue;
             }
 
