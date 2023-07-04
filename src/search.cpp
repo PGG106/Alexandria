@@ -531,7 +531,7 @@ moves_loop:
 		if (!root_node
 			&& BoardHasNonPawns(pos, pos->side)
 			&& moves_searched > 1) {
-			// Movecount pruning: if we searched enough quiet moves and we are not in check we skip the others
+			// Movecount pruning: if we searched enough moves and we are not in check we skip the rest
 			if (!pv_node
 				&& !in_check
 				&& depth < 9
