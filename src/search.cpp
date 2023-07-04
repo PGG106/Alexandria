@@ -78,14 +78,14 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold) {
+	if (Promoted(move)) return true;
+
 	int to = To(move);
 	int from = From(move);
 
 	int target = pos->PieceOn(to);
 	// Making the move and not losing it must beat the threshold
 	int value = PieceValue[target] - threshold;
-
-	if (Promoted(move)) return true;
 
 	if (value < 0)
 		return false;
@@ -123,19 +123,19 @@ bool SEE(const S_Board* pos, const int move, const int threshold) {
 				break;
 		}
 
-		side = !side;
+		side ^= 1;
 
 		value = -value - 1 - PieceValue[pt];
 
 		// Value beats threshold, or can't beat threshold (negamaxed)
 		if (value >= 0) {
 			if (pt == KING && (attackers & pos->Occupancy(side)))
-				side = !side;
+				side ^= 1;
 
 			break;
 		}
 		// Remove the used piece from occupied
-		occupied ^= (1ULL << (GetLsbIndex(myAttackers & GetPieceBB(pos, pt))));
+		occupied ^= (1ULL << (GetLsbIndex(myAttackers & pos->GetPieceColorBB( pt,side^1))));
 
 		if (pt == PAWN || pt == BISHOP || pt == QUEEN)
 			attackers |= GetBishopAttacks(to, occupied) & bishops;
@@ -505,7 +505,6 @@ moves_loop:
 
 	int moves_searched = 0;
 	bool SkipQuiets = false;
-	bool Skipmoves = false;
 
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
