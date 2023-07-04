@@ -366,8 +366,6 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	int excludedMove = ss->excludedMove;
 
 	pv_table->pvLength[ss->ply] = ss->ply;
-	// Prevent dropping into Qsearch if in check and generally extend search by 1
-	if (in_check) depth = std::max(1, depth + 1);
 
 	// Check for the highest depth reached in search to report it to the cli
 	if (ss->ply > info->seldepth)
@@ -590,6 +588,9 @@ moves_loop:
 					return (singularBeta);
 
 			}
+
+			else if (pos->checkers && depth > 8)
+				extension = 1;
 		}
 		// we adjust the search depth based on potential extensions
 		int newDepth = depth + extension;
