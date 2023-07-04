@@ -535,7 +535,8 @@ moves_loop:
 				&& depth < 9
 				&& isQuiet
 				&& moves_searched > lmp_margin[depth][improving]) {
-				break;
+				SkipQuiets = true;
+				continue;
 			}
 
 			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
