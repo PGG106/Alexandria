@@ -589,7 +589,7 @@ moves_loop:
 
 			}
 
-			else if (pos->checkers && depth > 8)
+			else if (pos->checkers)
 				extension = 1;
 		}
 		// we adjust the search depth based on potential extensions
