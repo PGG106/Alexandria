@@ -153,7 +153,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\datagen.h" />
     <ClInclude Include="src\history.h" />
     <ClInclude Include="src\attack.h" />
     <ClInclude Include="src\bench.h" />
@@ -182,7 +181,6 @@
     <ClInclude Include="src\test_main.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\datagen.cpp" />
     <ClCompile Include="src\history.cpp" />
     <ClCompile Include="src\attack.cpp" />
     <ClCompile Include="src\bench.cpp" />

@@ -59,32 +59,16 @@ int GetLsbIndex(Bitboard bitboard) {
 
 // Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
+    // reset board position (pos->pos->bitboards)
+    std::memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
+
+    // reset pos->occupancies (pos->pos->bitboards)
+    std::memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
+
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
     }
-
-    pos->side = BOTH;
-    pos->enPas = no_sq;
-    pos->fiftyMove = 0;
-    pos->hisPly = 0;     // total number of halfmoves
-    pos->castleperm = 0; // integer that represents the castling permission in his
-    // bits (1111) = all castlings allowed (0000) no castling
-    // allowed, (0101) only WKCA and BKCA allowed...
-    pos->hisPly = 0;
-    pos->posKey = 0ULL;
-    pos->pinD = 0;
-    pos->pinHV = 0;
-    pos->checkMask = 18446744073709551615ULL;
-    pos->checks = 0;
-
-    // set default nnue values
-    for (size_t i = 0; i < HIDDEN_SIZE; i++) {
-        pos->accumulator[0][i] = nnue.featureBias[i];
-        pos->accumulator[1][i] = nnue.featureBias[i];
-    }
-
-    // Reset nnue accumulator stack
-    pos->accumulatorStack.clear();
+    pos->castleperm = 0; 
 }
 
 void ResetInfo(S_SearchINFO* info) {
@@ -107,11 +91,8 @@ int SquareDistance(int a, int b) {
 
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos) {
-    // reset board position (pos->pos->bitboards)
-    std::memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
-
-    // reset pos->occupancies (pos->pos->bitboards)
-    std::memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
+    // Reset nnue accumulator stack
+    pos->accumulatorStack.clear();
 
     ResetBoard(pos);
 
@@ -225,9 +206,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
     if (!fifty_move.empty()) {
         pos->fiftyMove = std::stoi(fifty_move);
     }
+    else {
+        pos->fiftyMove = 0;
+    }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
         pos->hisPly = std::stoi(HisPly);
+    }
+    else {
+        pos->hisPly = 0;
     }
 
     // loop over white pieces pos->pos->bitboards

@@ -9,7 +9,6 @@
 #include "ttable.h"
 #include "init.h"
 #include "io.h"
-#include "datagen.h"
 #include "threads.h"
 #include "test_main.h"
 #include "board.h"
@@ -198,46 +197,6 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
     return true;
 }
 
-// Stripped down version of parse go that handles fixed depth and/or nodes and sets the desired number of threads and games
-void parse_datagen(const std::string& line, S_SearchINFO* info, Datagen_params& datagen_params) {
-    ResetInfo(info);
-    int depth = -1;
-
-    std::vector<std::string> tokens = split_command(line);
-
-    // loop over all the tokens and parse the commands
-    for (size_t i = 1; i < tokens.size(); i++) {
-        if (tokens.at(i) == "depth") {
-            depth = std::stoi(tokens[i + 1]);
-        }
-
-        if (tokens.at(i) == "nodes") {
-            info->nodeset = true;
-            info->nodeslimit = std::stoi(tokens[i + 1]);
-        }
-
-        if (tokens.at(i) == "threads") {
-            datagen_params.threadnum = std::stoi(tokens[i + 1]);
-        }
-
-        if (tokens.at(i) == "games") {
-            datagen_params.games = std::stoi(tokens[i + 1]);
-        }
-    }
-
-    info->depth = depth;
-
-    if (depth == -1) {
-        info->depth = MAXDEPTH;
-    }
-
-    if (info->depth == MAXDEPTH && (info->nodeset == false)) {
-        std::cout << "No datagen limit set, the default of 2500 nodes will be used\n";
-        info->nodeset = true;
-        info->nodeslimit = 2500;
-    }
-}
-
 // main UCI loop
 void UciLoop(char** argv) {
     if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
@@ -299,21 +258,6 @@ void UciLoop(char** argv) {
             }
         }
 
-        else if (tokens[0] == "datagen") {
-            stop_flag = true;
-            // Join helper threads
-            StopHelperThreads();
-            // Join previous Datagen thread if it exists
-            if (main_thread.joinable())
-                main_thread.join();
-            Datagen_params params;
-            // we re-use parse go to read the Datagen params
-            parse_datagen(input, &td->info, params);
-            threads_state = datagen;
-            stop_flag = false;
-            main_thread = std::thread(RootDatagen, td, params);
-        }
-
         else if (tokens[0] == "setoption") {
             // check tokens for size to see if we have a value
             if (tokens.size() < 5) {
@@ -350,11 +294,7 @@ void UciLoop(char** argv) {
                 StopHelperThreads();
                 // stop main thread search
                 td->info.stopped = true;
-            } else if (threads_state == datagen) {
-                stop_flag = true;
-                // Join helper threads
-                StopHelperThreads();
-            }
+            } 
             threads_state = Idle;
         }
 
@@ -365,11 +305,6 @@ void UciLoop(char** argv) {
                 StopHelperThreads();
                 // stop main thread search
                 td->info.stopped = true;
-            }
-            else if (threads_state == datagen) {
-                stop_flag = true;
-                // Join helper threads
-                StopHelperThreads();
             }
             threads_state = Idle;
             // Join previous search thread if it exists
