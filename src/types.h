@@ -74,8 +74,8 @@ enum {
 
 enum {
     HFNONE,
-    HFALPHA,
-    HFBETA,
+    HFUPPER,
+    HFLOWER,
     HFEXACT
 };
 
