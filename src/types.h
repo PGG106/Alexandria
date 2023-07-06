@@ -97,3 +97,9 @@ enum {
     CounterMoveScore= 600000000,
     badPromotionScore = -2000000001
 };
+
+constexpr int  NOMOVE = 0;
+constexpr int mate_value = 32000;
+constexpr int mate_score = 31872;
+constexpr int value_none = 32001;
+constexpr int MAXSCORE = 32670;

@@ -193,6 +193,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\makemove.cpp" />
     <ClCompile Include="src\misc.cpp" />
+    <ClCompile Include="src\move.cpp" />
     <ClCompile Include="src\movegen.cpp" />
     <ClCompile Include="src\nnue.cpp" />
     <ClCompile Include="src\movepicker.cpp" />

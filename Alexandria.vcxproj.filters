@@ -84,9 +84,6 @@
     <ClInclude Include="src\types.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="src\datagen.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
     <ClInclude Include="src\threads.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
@@ -161,9 +158,6 @@
     <ClCompile Include="src\history.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="src\datagen.cpp">
-      <Filter>File di origine</Filter>
-    </ClCompile>
     <ClCompile Include="src\threads.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
@@ -171,6 +165,9 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\piece_data.cpp">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\move.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
