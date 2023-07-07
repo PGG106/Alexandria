@@ -2,7 +2,7 @@
 NETWORK_NAME = nn.net
 _THIS     := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT     := $(_THIS)
-EVALFILE   = $(_ROOT)/$(NETWORK_NAME)
+EVALFILE   = $(NETWORK_NAME)
 CXX       := g++
 TARGET    := Alexandria
 CXXFLAGS  :=  -funroll-loops -O3 -flto -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
