@@ -537,7 +537,7 @@ moves_loop:
 				continue;
 			}
 
-			int lmrDepth = std::max(0, depth - reductions[depth][moves_searched]);
+			int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][moves_searched]);
 
 			if (!in_check
 				&& lmrDepth < 12
@@ -607,7 +607,7 @@ moves_loop:
 			if (isQuiet) {
 				// calculate by how much we should reduce the search depth
 				// Get base reduction value
-				depth_reduction = reductions[depth][moves_searched];
+				depth_reduction = reductions[isQuiet][depth][moves_searched];
 				// Reduce more if we aren't improving
 				depth_reduction += !improving;
 				// Reduce more if we aren't in a pv node
@@ -621,7 +621,7 @@ moves_loop:
 			// Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
 				// calculate by how much we should reduce the search depth (ideally this needs its own table, but i'm lazy)
-				depth_reduction = reductions[depth][moves_searched];
+				depth_reduction = reductions[isQuiet][depth][moves_searched];
 				if (pos->checkers) depth_reduction -= 1;
 			}
 			// adjust the reduction so that we can't drop into Qsearch and to prevent extensions

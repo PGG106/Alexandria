@@ -44,7 +44,7 @@ Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
-int reductions[MAXDEPTH][MAXPLY];
+int reductions[2][MAXDEPTH][MAXPLY];
 int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
 
@@ -231,7 +231,8 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 void InitReductions() {
     for (int i = 0; i < MAXDEPTH; i++) {
         for (int j = 0; j < MAXDEPTH; j++) {
-            reductions[i][j] = 1 + log(i) * log(j) / 2.00;
+            reductions[0][i][j] = 1 + log(i) * log(j) / 2.00;
+            reductions[1][i][j] = 1 + log(i) * log(j) / 2.00;
         }
     }
     for (int depth = 0; depth < MAXDEPTH; depth++) {

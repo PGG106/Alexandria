@@ -67,7 +67,7 @@ constexpr int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
-extern int reductions[MAXDEPTH][MAXPLY];
+extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
