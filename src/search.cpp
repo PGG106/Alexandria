@@ -16,8 +16,8 @@
 #include <iostream>
 #include <algorithm>
 
-// IsRepetition handles the repetition detection of a position
-static int IsRepetition(const S_Board* pos) {
+// Returns true if the position an istance of 2-fold repetition, false otherwise
+static bool IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
 	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - pos->Get50mrCounter(), 0);
@@ -33,7 +33,7 @@ static int IsRepetition(const S_Board* pos) {
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
 bool IsDraw(const S_Board* pos) {
-	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board then it's a draw
+	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
 	return IsRepetition(pos)
 		|| (pos->Get50mrCounter() >= 100)
 		|| MaterialDraw(pos);
@@ -46,12 +46,8 @@ void ClearForSearch(S_ThreadData* td) {
 	PvTable* pv_table = &td->pv_table;
 
 	// Clean the Pv array
-	for (int index = 0; index < MAXDEPTH + 1; ++index) {
-		pv_table->pvLength[index] = 0;
-		for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-			pv_table->pvArray[index][index2] = NOMOVE;
-		}
-	}
+	std::memset(pv_table, 0, sizeof(pv_table));
+
 	// Clean the node table
 	std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
 	// Reset plies and search info
@@ -63,7 +59,6 @@ void ClearForSearch(S_ThreadData* td) {
 
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
-	// For every piece type get a bitboard that encodes the squares occupied by that piece type
 	Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
 	Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
@@ -146,8 +141,7 @@ bool SEE(const S_Board* pos, const int move, const int threshold) {
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list,
-	int PvMove) {
+static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, int PvMove) {
 	// Loop through all the move in the movelist
 	for (int i = 0; i < move_list->count; i++) {
 		int move = move_list->moves[i].move;
@@ -175,16 +169,16 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 				break;
 			}
 		}
-		// if the move is a capture sum the mvv-lva score to a variable that depends on whether the capture has a good SEE or not
 		else if (IsCapture(move)) {
-			// Good captures get played before most of the stuff
+			// Good captures get played before any move that isn't a promotion or a TT move
 			if (SEE(pos, move, -107)) {
 				move_list->moves[i].score =
 					mvv_lva[Piece(move)][pos->PieceOn(To(move))] +
 					goodCaptureScore;
 			}
+			// Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
 			else {
-				move_list->moves[i].score = -100000 + mvv_lva[Piece(move)][pos->PieceOn(To(move))];
+				move_list->moves[i].score = badCaptureScore + mvv_lva[Piece(move)][pos->PieceOn(To(move))];
 			}
 			continue;
 		}
@@ -200,7 +194,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		}
 		// After the killer moves try the Counter moves
 		else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)]) {
-			move_list->moves[i].score = CounterMoveScore;
+			move_list->moves[i].score = counterMoveScore;
 			continue;
 		}
 		// if the move isn't in any of the previous categories score it according to the history heuristic
@@ -216,14 +210,14 @@ int GetBestMove(const PvTable* pv_table) {
 }
 
 int ScoreToTT(int score, int ply) {
-	if (score > ISMATE) score += ply;
-	else if (score < -ISMATE) score -= ply;
+	if (score > mate_score) score += ply;
+	else if (score < -mate_score) score -= ply;
 	return score;
 }
 
 int ScoreFromTT(int score, int ply) {
-	if (score > ISMATE) score -= ply;
-	else if (score < -ISMATE) score += ply;
+	if (score > mate_score) score -= ply;
+	else if (score < -mate_score) score += ply;
 	return score;
 }
 
@@ -253,9 +247,9 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 	std::cout << "\n";
 }
 
-// SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the Negamax function and handles the console output
+// SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the AspirationWindowSearch function and handles the console output
 void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
-	// variable used to store the score of the best move found by the search (while the move itself can be retrieved from the TT)
+	// variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular pv table)
 	int score = 0;
 
 	// Clean the position and the search info to start search from a clean state
@@ -318,26 +312,28 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	while (true) {
 		score = Negamax(alpha, beta, depth, false, td, ss);
 
-		// check if more than Maxtime passed and we have to stop
+		// Check if more than Maxtime passed and we have to stop
 		if (td->id == 0 && TimeOver(&td->info)) {
 			StopHelperThreads();
 			td->info.stopped = true;
+			break;
 		}
 
-		// stop calculating and return best move so far
+		// Stop calculating and return best move so far
 		if (td->info.stopped) break;
 
-		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
+		// We fell outside the window, so try again with a bigger window, since we failed low we can adjust beta to decrease the total window size
 		if ((score <= alpha)) {
 			beta = (alpha + beta) / 2;
 			alpha = std::max(-MAXSCORE, score - delta);
 		}
 
-		// we fell outside the window, so try again with a bigger window, if we still fail after we just search with a full window
+		// We fell outside the window, so try again with a bigger window
 		else if ((score >= beta)) {
 			beta = std::min(score + delta, MAXSCORE);
 		}
 		else break;
+		// Progressively increase how much the windows are increased by at each fail
 		delta *= 1.44;
 	}
 	return score;
@@ -352,17 +348,17 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	PvTable* pv_table = &td->pv_table;
 
 	// Initialize the node
-	bool in_check = pos->checkers;
+	const bool in_check = pos->checkers;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
-	int root_node = (ss->ply == 0);
+	const int root_node = (ss->ply == 0);
 	int eval;
 	bool improving;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
-	int pv_node = (beta - alpha) > 1;
+	const bool pv_node = alpha != beta - 1;
 
-	int excludedMove = ss->excludedMove;
+	const int excludedMove = ss->excludedMove;
 
 	pv_table->pvLength[ss->ply] = ss->ply;
 
@@ -450,7 +446,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		// Reverse futility pruning
 		if (depth < 9
 			&& eval - 66 * (depth - improving) >= beta
-			&& abs(eval) < ISMATE)
+			&& abs(eval) < mate_score)
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
@@ -475,7 +471,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 			// fail-soft beta cutoff
 			if (Score >= beta) {
 				// Don't return unproven mates but still return beta
-				if (Score > ISMATE) Score = beta;
+				if (Score > mate_score) Score = beta;
 				// node (position) fails high
 				return Score;
 			}
@@ -523,7 +519,6 @@ moves_loop:
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
-
 		if (!root_node
 			&& BoardHasNonPawns(pos, pos->side)
 			&& moves_searched > 1) {
@@ -537,8 +532,10 @@ moves_loop:
 				continue;
 			}
 
+			// lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
 			int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][moves_searched]);
 
+			// Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
 			if (!in_check
 				&& lmrDepth < 12
 				&& isQuiet
@@ -547,7 +544,7 @@ moves_loop:
 				continue;
 			}
 
-			// See pruning
+			// See pruning: prune all the moves that have a SEE score that is lower than our threshold
 			if (depth <= 8
 				&& !SEE(pos, move, see_margin[depth][isQuiet])) {
 				continue;
@@ -563,7 +560,7 @@ moves_loop:
 				&& move == tte.move
 				&& !excludedMove
 				&& (tte.flags & HFLOWER)
-				&& abs(ttScore) < ISMATE
+				&& abs(ttScore) < mate_score
 				&& tte.depth >= depth - 3) {
 				const int singularBeta = ttScore - 3 * depth;
 				const int singularDepth = (depth - 1) / 2;
@@ -616,12 +613,14 @@ moves_loop:
 				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 				// Fuck
 				depth_reduction += 2 * cutnode;
+				// Decrease the reduction for moves that give check
 				if (pos->checkers) depth_reduction -= 1;
 			}
 			// Reduce tacticals too but only if we aren't on a pv node
 			else if (!pv_node) {
-				// calculate by how much we should reduce the search depth (ideally this needs its own table, but i'm lazy)
+				// calculate by how much we should reduce the search depth
 				depth_reduction = reductions[isQuiet][depth][moves_searched];
+				// Decrease the reduction for moves that give check
 				if (pos->checkers) depth_reduction -= 1;
 			}
 			// adjust the reduction so that we can't drop into Qsearch and to prevent extensions
@@ -693,13 +692,13 @@ moves_loop:
 		}
 	}
 
-	// we don't have any legal moves to make in the current postion
-	if (move_list->count == 0) {
-		// if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
-		BestScore = excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
-	}
+		// We don't have any legal moves to make in the current postion
+		if (move_list->count == 0) {
+			// If we are veryfing a singular move return alpha else if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
+			BestScore = excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
+		}
 
-	// Set the TT flag based on whether the BestScore is better than beta and if not based on if we changed alpha or not
+	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
 	if (!excludedMove) StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node);
@@ -712,10 +711,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
-	bool in_check = pos->checkers;
+	const bool in_check = pos->checkers;
 	// tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
-	bool TThit = false;
 	int BestScore = -mate_score + ss->ply;
 	int eval;
 	const bool pv_node = alpha != beta - 1;
@@ -736,7 +734,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		return in_check ? 0 : EvalPosition(pos);
 	}
 	// TThit is true if and only if we find something in the TT
-	TThit = ProbeHashEntry(pos, &tte);
+	const bool TThit = ProbeHashEntry(pos, &tte);
 	int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	// If we found a value in the TT we can return it
 	if (!pv_node && TThit) {
@@ -755,8 +753,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		eval = BestScore = ttScore;
 	}
+	// If we don't have any useful info in the TT just call Evalpos
 	else {
-		// If we don't have any useful info in the TT just call Evalpos
 		eval = BestScore = ss->static_eval = EvalPosition(pos);
 	}
 
@@ -767,8 +765,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	// create move list instance
 	S_MOVELIST move_list[1];
+	// If we aren't in check we generate just the captures, otherwise we generate all the moves
 	if (!in_check)
-		// generate the captures
 		GenerateCaptures(move_list, pos);
 	else
 		GenerateMoves(move_list, pos);

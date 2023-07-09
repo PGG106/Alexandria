@@ -9,6 +9,15 @@ using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 
+constexpr int MAXPLY = 128;
+constexpr int MAXDEPTH = MAXPLY;
+constexpr int Board_sq_num = 64;
+constexpr int NOMOVE = 0;
+constexpr int mate_value = 32000;
+constexpr int mate_score = mate_value - MAXPLY;
+constexpr int value_none = 32001;
+constexpr int MAXSCORE = 32670;
+
 // board squares
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
@@ -94,12 +103,7 @@ enum {
     goodCaptureScore = 900000000,
     killerMoveScore0 = 800000000,
     killerMoveScore1 = 700000000,
-    CounterMoveScore= 600000000,
+    counterMoveScore= 600000000,
+    badCaptureScore = -100000,
     badPromotionScore = -2000000001
 };
-
-constexpr int  NOMOVE = 0;
-constexpr int mate_value = 32000;
-constexpr int mate_score = 31872;
-constexpr int value_none = 32001;
-constexpr int MAXSCORE = 32670;

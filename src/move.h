@@ -25,4 +25,3 @@ bool IsCapture(const int move);
 bool isEnpassant(const S_Board* pos, const int move);
 bool IsQuiet(const int move);
 
-#define ISMATE (mate_value - MAXDEPTH)

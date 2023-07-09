@@ -166,7 +166,7 @@ std::string Pick_color(int score) {
     // drawish score, no highlight
     if (abs(score) <= 10) return "\033[38;5;7m";
     // Good mate score, blue
-    if (score > ISMATE) return "\033[38;5;39m";
+    if (score > mate_score) return "\033[38;5;39m";
     // positive for us, light green
     if (score > 10) return "\033[38;5;42m";
     // negative for us, red

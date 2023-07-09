@@ -19,10 +19,6 @@
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
 
-constexpr int MAXPLY = 256;
-constexpr int MAXDEPTH = 128;
-constexpr int Board_sq_num = 64;
-
 // set/get/pop bit macros
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
