@@ -705,7 +705,7 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node);
+	if (!excludedMove) StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node,ttpv);
 	// return best score
 	return BestScore;
 }
@@ -721,6 +721,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	int BestScore = -mate_score + ss->ply;
 	int eval;
 	const bool pv_node = alpha != beta - 1;
+	bool ttpv = pv_node;
 
 	// check if more than Maxtime passed and we have to stop
 	if (td->id == 0 && TimeOver(&td->info)) {
@@ -747,6 +748,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			|| (tte.flags == HFEXACT))
 			return ttScore;
 	}
+
+	if (TThit)
+		ttpv = pv_node || tte.wasPv;
 
 	if (in_check) {
 		ss->static_eval = eval = value_none;
@@ -830,7 +834,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFLOWER : HFUPPER;
 
-	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), eval, flag, 0, pv_node);
+	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), eval, flag, 0, pv_node, ttpv);
 
 	// return the best score we got
 	return BestScore;
