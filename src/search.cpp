@@ -356,7 +356,8 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	bool improving;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
-	bool pv_node = alpha != beta - 1;
+	const bool pv_node = alpha != beta - 1;
+	bool ttpv = pv_node;
 
 	const int excludedMove = ss->excludedMove;
 
@@ -410,7 +411,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	}
 
 	if (ttHit)
-		pv_node |= tte.wasPv;
+		ttpv = pv_node || tte.wasPv;
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
@@ -611,7 +612,7 @@ moves_loop:
 				// Reduce more if we aren't improving
 				depth_reduction += !improving;
 				// Reduce more if we aren't in a pv node
-				depth_reduction += !pv_node;
+				depth_reduction += !ttpv;
 				// Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
 				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 				// Fuck
