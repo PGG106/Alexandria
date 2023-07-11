@@ -356,7 +356,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	bool improving;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
-	const bool pv_node = alpha != beta - 1;
+	bool pv_node = alpha != beta - 1;
 
 	const int excludedMove = ss->excludedMove;
 
@@ -408,6 +408,9 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 			|| (tte.flags == HFEXACT))
 			return ttScore;
 	}
+
+	if (ttHit)
+		pv_node |= tte.wasPv;
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120

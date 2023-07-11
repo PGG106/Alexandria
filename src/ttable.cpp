@@ -45,6 +45,7 @@ void StoreHashEntry(const ZobristKey key, const int move, int score, int16_t eva
         tte->score = static_cast<int16_t>(score);
         tte->eval = eval;
         tte->depth = static_cast<uint8_t>(depth);
+        tte->wasPv = pv;
     }
 }
 

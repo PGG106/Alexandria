@@ -12,6 +12,7 @@ PACK(struct S_HashEntry {
     TTKey tt_key = 0;
     uint8_t depth = 0;
     uint8_t flags = HFNONE;
+    bool wasPv = false;
 });
 
 struct S_HashTable {
