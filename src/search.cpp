@@ -621,7 +621,7 @@ moves_loop:
 				if (pos->checkers) depth_reduction -= 1;
 			}
 			// Reduce tacticals too but only if we aren't on a pv node
-			else if (!pv_node) {
+			else if (!ttpv) {
 				// calculate by how much we should reduce the search depth
 				depth_reduction = reductions[isQuiet][depth][moves_searched];
 				// Decrease the reduction for moves that give check
