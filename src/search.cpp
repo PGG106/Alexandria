@@ -427,7 +427,10 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		// If the value in the TT is valid we use that, otherwise we call the static evaluation function
 		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		// We can also use the tt score as a more accurate form of eval
-		eval = ttScore;
+		if ((tte.flags == HFUPPER && ttScore < eval)
+			|| (tte.flags == HFLOWER && ttScore > eval)
+			|| (tte.flags == HFEXACT))
+			eval = ttScore;
 	}
 	else {
 		// If we don't have anything in the TT we have to call evalposition
@@ -750,8 +753,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 	// If we have a ttHit with a valid eval use that
 	else if (TThit) {
-		ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
-		eval = BestScore = ttScore;
+		ss->static_eval = eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+		if ((tte.flags == HFUPPER && ttScore < eval)
+			|| (tte.flags == HFLOWER && ttScore > eval)
+			|| (tte.flags == HFEXACT))
+			eval = BestScore = ttScore;
 	}
 	// If we don't have any useful info in the TT just call Evalpos
 	else {
