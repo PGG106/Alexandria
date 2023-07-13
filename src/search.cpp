@@ -515,7 +515,7 @@ moves_loop:
 
 		if (isQuiet && SkipQuiets) continue;
 
-		int movehistory = GetHistoryScore(pos, sd, move, ss);
+		int movehistory = isQuiet ? GetHistoryScore(pos, sd, move, ss) : 0;
 
 		// if the move isn't a quiet move we update the quiet moves list and counter
 		if (isQuiet) {
@@ -604,7 +604,7 @@ moves_loop:
 		if (moves_searched >= 3 + 2 * pv_node && depth >= 3) {
 			int depth_reduction = 1;
 
-			if (isQuiet) {
+			if (isQuiet || !pv_node) {
 				// calculate by how much we should reduce the search depth
 				// Get base reduction value
 				depth_reduction = reductions[isQuiet][depth][moves_searched];
@@ -616,13 +616,6 @@ moves_loop:
 				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
 				// Fuck
 				depth_reduction += 2 * cutnode;
-				// Decrease the reduction for moves that give check
-				if (pos->checkers) depth_reduction -= 1;
-			}
-			// Reduce tacticals too but only if we aren't on a pv node
-			else if (!pv_node) {
-				// calculate by how much we should reduce the search depth
-				depth_reduction = reductions[isQuiet][depth][moves_searched];
 				// Decrease the reduction for moves that give check
 				if (pos->checkers) depth_reduction -= 1;
 			}
