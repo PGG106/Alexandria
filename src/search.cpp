@@ -441,7 +441,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		eval = ss->static_eval = EvalPosition(pos);
 	}
 
-	// improving is a very important modifier to a lot of heuristic, in short it just checks if out curren static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
+	// improving is a very important modifier to a lot of heuristic, in short it just checks if our current static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
 	// We look for the irst ply we weren't in check in between 2 and 4 plies ago, if we found one we check if the static eval increased, if we don't we just assume we have improved
 	if ((ss - 2)->static_eval != value_none) {
 		if (ss->static_eval > (ss - 2)->static_eval)
