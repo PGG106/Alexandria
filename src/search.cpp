@@ -353,7 +353,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	quiet_moves.count = 0;
 	const int root_node = (ss->ply == 0);
 	int eval;
-	bool improving;
+	bool improving = false;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
 	const bool pv_node = alpha != beta - 1;
@@ -442,9 +442,17 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	}
 
 	// if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (ss - 2)->static_eval != value_none ? ss->static_eval > (ss - 2)->static_eval
-		: (ss - 4)->static_eval != value_none ? ss->static_eval > (ss - 4)->static_eval : true;
-
+	if ((ss - 2)->static_eval != value_none) {
+		if (ss->static_eval > (ss - 2)->static_eval)
+			improving = true;
+	}
+	else if ((ss - 4)->static_eval != value_none) {
+		if (ss->static_eval > (ss - 4)->static_eval)
+			improving = true;
+	}
+	else
+		improving = true;
+	
 	// clean killers and excluded move for the next ply
 	(ss + 1)->excludedMove = NOMOVE;
 	(ss + 1)->searchKillers[0] = NOMOVE;
