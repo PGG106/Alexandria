@@ -326,11 +326,13 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 		if ((score <= alpha)) {
 			beta = (alpha + beta) / 2;
 			alpha = std::max(-MAXSCORE, score - delta);
+			depth = td->RootDepth;
 		}
 
 		// We fell outside the window, so try again with a bigger window
 		else if ((score >= beta)) {
 			beta = std::min(score + delta, MAXSCORE);
+			depth = std::max(depth - 1, td->RootDepth - 5);
 		}
 		else break;
 		// Progressively increase how much the windows are increased by at each fail
