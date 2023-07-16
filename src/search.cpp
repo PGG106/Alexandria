@@ -286,9 +286,9 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 	int score = 0;
 	td->RootDepth = depth;
-	Search_stack stack[MAXDEPTH + 2], * ss = stack + 2;
+	Search_stack stack[MAXDEPTH + 4], * ss = stack + 4;
 	// Explicitely clean stack
-	for (int i = -2; i < MAXDEPTH; i++) {
+	for (int i = -4; i < MAXDEPTH; i++) {
 		(ss + i)->move = NOMOVE;
 		(ss + i)->static_eval = 0;
 		(ss + i)->excludedMove = NOMOVE;
@@ -353,7 +353,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	quiet_moves.count = 0;
 	const int root_node = (ss->ply == 0);
 	int eval;
-	bool improving;
+	bool improving = false;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
 	const bool pv_node = alpha != beta - 1;
@@ -441,9 +441,19 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		eval = ss->static_eval = EvalPosition(pos);
 	}
 
-	// if we aren't in check and the eval of this position is better than the position of 2 plies ago (or we were in check 2 plies ago), it means that the position is "improving" this is later used in some forms of pruning
-	improving = (ss->ply >= 2) && (ss->static_eval > (ss - 2)->static_eval || (ss - 2)->static_eval == value_none);
-
+	// improving is a very important modifier to a lot of heuristic, in short it just checks if our current static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
+	// We look for the irst ply we weren't in check in between 2 and 4 plies ago, if we found one we check if the static eval increased, if we don't we just assume we have improved
+	if ((ss - 2)->static_eval != value_none) {
+		if (ss->static_eval > (ss - 2)->static_eval)
+			improving = true;
+	}
+	else if ((ss - 4)->static_eval != value_none) {
+		if (ss->static_eval > (ss - 4)->static_eval)
+			improving = true;
+	}
+	else
+		improving = true;
+	
 	// clean killers and excluded move for the next ply
 	(ss + 1)->excludedMove = NOMOVE;
 	(ss + 1)->searchKillers[0] = NOMOVE;
