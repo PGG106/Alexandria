@@ -1,43 +1,23 @@
-## Features
-* Engine
-  * Bitboard representation
-  * Zobrist hashing
-* Search
-  * Negamax framework
-  * Aspiration Window
-  * Alpha-Beta pruning
-  * Reverse Futility pruning
-  * Late-move reduction
-  * Late-move pruning
-  * Null-move pruning
-  * Razoring
-  * IIR
-  * SE
-  * SEE pruning
-  * Check extension
-  * PVS
-  * Quiescence search
-  * Transposition Table
-  * Repetition detection
-  * killer move, history
-  * MVV-LVA capture ordering
-  
-* Evaluation
-  * NNUE Evaluation (Big thanks to Luecx)
-
 ## Things i might try in the future
-* Evaluation
-  * Improve the nnue using a better architecture and generating more data
-* Search
-   * All the histories i don't comprehend at the time of writing (mostly FUH)
-* TT
-   * Get Buckets working
+* 16 bit moves
+* staged movegen
+* nnue tryharding
+* tt buckets
+* lazy updates
+* bestmove stability tm
+* TBs
+* capt hist
+* Probcut
+* Delta pruning
+* all the SE stuff that SF does
+* hist pruning
+
    
  ## Building
 
 ```bash
 $ git clone https://github.com/PGG106/Alexandria
-$ cd alexandria/src
+$ cd alexandria
 $ make 
 $ ./Alexandria
 ```
@@ -48,21 +28,6 @@ a chess engine, and is the recommended way to do so for typical graphical user i
 (GUI) or chess tools. Alexandria implements the majority of its options as described
 in [the UCI protocol](https://www.shredderchess.com/download/div/uci.zip).
 
-## Generate training data using the engine
-Data generation is done with the datagen command, the supported arguments are:
-* #### threads
-    Usage: datagen threads X, sets the number of threads to use for datagen to X.
-    
-* #### nodes
-    Usage: datagen nodes X, makes each search in the datagen process stop after any depth cleared once it used at least the given X amount of nodes.
-
-* #### depth
-    Usage: datagen depth X, makes each search in the datagen process stop after any clearing depth X.
-
-* #### games
-    Usage: datagen games X, sets the number of games to play to X (per thread).
-
-The commands can be chained and don't need a specific order, for example a valid command is: `datagen nodes 2500 games 50000 threads 8`
 ## Participating in the project
 
 Alexandria's improvement is a time consuming effort and any help is extremely appreciated. 
@@ -72,7 +37,7 @@ If you like the project and what to help it out the following are the preferred 
 
 If you want to donate hardware that will go towards testing patches for the engine, you can donate
 your hardware resources by getting a client file for [OpenBench](https://github.com/AndyGrant/OpenBench)
-and creating a profile on alexandria's OB instance [here](https://pgg106.pythonanywhere.com/).
+and creating a profile on alexandria's OB instance [here](https://chess.swehosting.se/).
 
 ### Improving the code
 Alexandria is open to external PRs and code contributions are highly encouraged and appreciated, just abide by a few rules:
