@@ -91,8 +91,6 @@ void PrintBoard(const S_Board* pos) {
         (pos->GetCastlingPerm() & BKCA) ? 'k' : '-',
         (pos->GetCastlingPerm() & BQCA) ? 'q' : '-');
 
-    std::cout << "\n position ply: " << std::endl;
-
     std::cout << "position hisPly: " << pos->hisPly << std::endl;
 
     std::cout << "position key: " << pos->posKey << std::endl;

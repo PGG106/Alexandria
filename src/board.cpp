@@ -318,22 +318,22 @@ void parse_moves(const std::string& moves, S_Board* pos) {
     }
 }
 
-// Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
+// Returns the bitboard of a piecetype
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
     return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 
-// Return a piece based on the type and the color
+// Return a piece based on the piecetype and the color
 int GetPiece(const int piecetype, const int color) {
     return piecetype + 6 * color;
 }
 
-// Return a piece based on the type and the color
+// Returns the piecetype of a piece
 int GetPieceType(const int piece) {
     return PieceType[piece];
 }
 
-// Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
+// Returns true if side has at least one piece on the board that isn't a pawn or the king, false otherwise
 bool BoardHasNonPawns(const S_Board* pos, const int side) {
     return pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side) ^ pos->GetPieceColorBB(KING, side);
 }
