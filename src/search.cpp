@@ -199,7 +199,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		}
 		// if the move isn't in any of the previous categories score it according to the history heuristic
 		else {
-			move_list->moves[i].score = GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
+			move_list->moves[i].score = GetHistoryScore(pos, sd, move, ss);
 			continue;
 		}
 	}
@@ -628,7 +628,7 @@ moves_loop:
 				// Reduce more if we aren't in a pv node
 				depth_reduction += !ttpv;
 				// Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-				depth_reduction -= std::clamp(movehistory / 16384, -1, 1);
+				depth_reduction -= std::clamp(movehistory / 16384, -2, 2);
 				// Fuck
 				depth_reduction += 2 * cutnode;
 				// Decrease the reduction for moves that give check

@@ -63,7 +63,7 @@ int GetHHScore(const S_Board* pos, const Search_data* sd, const int move) {
 }
 
 int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
-    return GetHHScore(pos, sd, move) + GetCHScore(sd, ss, move);
+    return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
 }
 
 // Returns the history score of a move
