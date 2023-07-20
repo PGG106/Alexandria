@@ -844,7 +844,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFLOWER : HFUPPER;
 
-	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), eval, flag, 0, pv_node, ttpv);
+	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pv_node, ttpv);
 
 	// return the best score we got
 	return BestScore;
