@@ -82,7 +82,7 @@ void MakeMove(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-
+    // parse move flag
     bool capture = IsCapture(move);
     bool double_push = isDP(move);
     bool enpass = isEnpassant(move);
@@ -192,7 +192,7 @@ void MakeMoveLight(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-
+    // parse move flag
     bool capture = IsCapture(move);
     bool double_push = isDP(move);
     bool enpass = isEnpassant(move);
@@ -299,14 +299,13 @@ void UnmakeMove(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-
+    // parse move flag
     bool capture = IsCapture(move);
     bool double_push = isDP(move);
     bool enpass = isEnpassant(move);
     bool castling = IsCastle(move);
     bool promotion = isPromo(move);
   
-
     pos->accumulator = pos->accumulatorStack.back();
     pos->accumulatorStack.pop_back();
 
