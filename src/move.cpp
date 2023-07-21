@@ -46,5 +46,5 @@ bool IsCastle(const int move) {
 }
 
 bool IsQuiet(const int move) {
-    return !IsCapture(move) && !Promoted(move);
+    return !IsCapture(move) && !isPromo(move);
 }

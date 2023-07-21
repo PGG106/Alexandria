@@ -72,7 +72,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold) {
-	if (Promoted(move)) return true;
+	if (isPromo(move) || IsCastle(move) || isDP(move)) return true;
 
 	int to = To(move);
 	int from = From(move);
@@ -151,7 +151,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			continue;
 		}
 		// Sort promotions based on the promoted piece type
-		else if (Promoted(move)) {
+		else if (isPromo(move)) {
 			switch (GetPieceType(Promoted(move))) {
 			case QUEEN:
 				move_list->moves[i].score = queenPromotionScore;
