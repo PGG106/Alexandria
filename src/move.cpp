@@ -29,14 +29,22 @@ bool IsCapture(const int move) {
     return GetMovetype(move) & static_cast<int>(Movetype::Capture);
 }
 
-bool isEnpassant(const S_Board* pos, const int move) {
-    return (PieceType[Piece(move)] == PAWN)  && (To(move) == GetEpSquare(pos));
+bool isEnpassant(const int move) {
+    return GetMovetype(move) == static_cast<int>(Movetype::enPassant);
 }
 
-bool IsQuiet(const int move) {
-    return !IsCapture(move) && !Promoted(move);
+bool isDP(const int move) {
+    return GetMovetype(move) == static_cast<int>(Movetype::doublePush);
+}
+
+bool isPromo(const int move) {
+    return GetMovetype(move) == static_cast<int>(Movetype::queenCapturePromo);
 }
 
 bool IsCastle(const int move) {
     return (GetMovetype(move) == static_cast<int>(Movetype::KSCastle)) || (GetMovetype(move) == static_cast<int>(Movetype::QSCastle));
+}
+
+bool IsQuiet(const int move) {
+    return !IsCapture(move) && !Promoted(move);
 }

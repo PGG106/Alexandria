@@ -61,8 +61,8 @@ static inline void AddMove(int move, S_MOVELIST* list) {
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
     Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-    if (!(abs(to - from) - 16)) movetype = movetype | Movetype::doublePush;
-    if( !(to - pos->enPas)) movetype = movetype | Movetype::enPassant;
+    if (!(abs(to - from) - 16)) movetype = Movetype::doublePush;
+    else if(!(to - pos->enPas)) movetype = Movetype::enPassant;
 
     if (pos->side == WHITE) {
         if (from >= a7 &&

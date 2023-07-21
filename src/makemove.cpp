@@ -85,7 +85,7 @@ void MakeMove(const int move, S_Board* pos) {
 
     int capture = IsCapture(move);
     int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-    int enpass = isEnpassant(pos, move);
+    int enpass = isEnpassant(move);
     int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
     // increment fifty move rule counter
     pos->fiftyMove++;
@@ -97,11 +97,10 @@ void MakeMove(const int move, S_Board* pos) {
         ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
         pos->fiftyMove = 0;
     }
-
     // handling capture moves
     else if (capture) {
         int piececap = pos->pieces[target_square];
-
+        assert(piececap != EMPTY);
         ClearPieceNNUE(piececap, target_square, pos);
 
         pos->history[pos->hisPly].capture = piececap;
@@ -194,8 +193,8 @@ void MakeMoveLight(const int move, S_Board* pos) {
     int promoted_piece = Promoted(move);
 
     bool capture = IsCapture(move);
-    bool double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-    bool enpass = isEnpassant(pos, move);
+    bool double_push = isDP(move);
+    bool enpass = isEnpassant(move);
     bool castling = IsCastle(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
@@ -300,7 +299,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     int promoted_piece = Promoted(move);
     int capture = IsCapture(move);
 
-    int enpass = isEnpassant(pos, move);
+    int enpass = isEnpassant(move);
     int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
     int piececap = pos->history[pos->hisPly].capture;
 

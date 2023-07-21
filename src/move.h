@@ -19,11 +19,11 @@ struct S_MOVELIST {
 enum class Movetype {
     Quiet, doublePush, KSCastle,
     QSCastle, Capture, enPassant,
-    knightPromo, bishopPromo, rookPromo, queenPromo,
-    knightCapturePromo = 12, bishopCapturePromo, rookCapturePromo, queenCapturePromo
+    knightPromo=8, bishopPromo, rookPromo, queenPromo,
+    knightCapturePromo, bishopCapturePromo, rookCapturePromo, queenCapturePromo
 };
 
-Movetype operator | (Movetype& first, Movetype& second){
+inline Movetype operator | (Movetype first, Movetype second){
     Movetype cong = static_cast<Movetype>((static_cast<int>(first) | static_cast<int>(second)));
     return cong;
 }
@@ -33,8 +33,10 @@ int From(const int move);
 int To(const int move);
 int Piece(const int move);
 int Promoted(const int move);
+int GetMovetype(const int move);
 bool IsCapture(const int move);
-bool isEnpassant(const S_Board* pos, const int move);
+bool isEnpassant(const int move);
+bool isDP(const int move);
 bool IsQuiet(const int move);
 bool IsCastle(const int move);
 
