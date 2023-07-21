@@ -1,8 +1,8 @@
 #include "move.h"
 #include "board.h"
 
-int encode_move(const int source, const int target, const int piece, const int promoted, const int capture) {
-    return (source) | (target << 6) | (piece << 12) | (promoted << 16) | (capture << 20);
+int encode_move(const int source, const int target, const int piece, const int promoted, const Movetype movetype) {
+    return (source) | (target << 6) | (piece << 12) | (promoted << 16) | (static_cast<int>(movetype) << 20);
 }
 
 int From(const int move) {
@@ -21,8 +21,12 @@ int Promoted(const int move) {
     return ((move & 0xf0000) >> 16);
 }
 
+int GetMovetype(const int move) {
+    return ((move & 0xf00000) >> 20);
+}
+
 bool IsCapture(const int move) {
-    return (move & 0x100000);
+    return GetMovetype(move) & static_cast<int>(Movetype::Capture);
 }
 
 bool isEnpassant(const S_Board* pos, const int move) {

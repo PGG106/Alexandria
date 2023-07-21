@@ -16,7 +16,14 @@ struct S_MOVELIST {
     int count;
 };
 
-int encode_move(const int source, const int target, const int piece, const int promoted, const int capture);
+enum class Movetype {
+    Quiet, doublePush, KSCastle,
+    QSCastle, Capture, enPassant,
+    knightPromo, bishopPromo, rookPromo, queenPromo,
+    knightCapturePromo = 12, bishopCapturePromo, rookCapturePromo, queenCapturePromo
+};
+
+int encode_move(const int source, const int target, const int piece, const int promoted, const Movetype movetype);
 int From(const int move);
 int To(const int move);
 int Piece(const int move);
