@@ -36,3 +36,7 @@ bool isEnpassant(const S_Board* pos, const int move) {
 bool IsQuiet(const int move) {
     return !IsCapture(move) && !Promoted(move);
 }
+
+bool IsCastle(const int move) {
+    return (GetMovetype(move) == static_cast<int>(Movetype::KSCastle)) || (GetMovetype(move) == static_cast<int>(Movetype::QSCastle));
+}

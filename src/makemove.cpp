@@ -193,10 +193,10 @@ void MakeMoveLight(const int move, S_Board* pos) {
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
 
-    int capture = IsCapture(move);
-    int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-    int enpass = isEnpassant(pos, move);
-    int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
+    bool capture = IsCapture(move);
+    bool double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
+    bool enpass = isEnpassant(pos, move);
+    bool castling = IsCastle(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
 

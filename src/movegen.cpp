@@ -61,14 +61,16 @@ static inline void AddMove(int move, S_MOVELIST* list) {
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
     Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+    if (!(abs(to - from) - 16)) movetype = movetype | Movetype::doublePush;
+    if( !(to - pos->enPas)) movetype = movetype | Movetype::enPassant;
 
     if (pos->side == WHITE) {
         if (from >= a7 &&
             from <= h7) { // if the piece is moving from the 7th to the 8th rank
-            AddMove(encode_move(from, to, WP, WQ, movetype), list);
-            AddMove(encode_move(from, to, WP, WR, movetype), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, WP, WB, movetype), list);
-            AddMove(encode_move(from, to, WP, WN, movetype), list);
+            AddMove(encode_move(from, to, WP, WQ, (Movetype::queenPromo | movetype)), list);
+            AddMove(encode_move(from, to, WP, WR, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
+            AddMove(encode_move(from, to, WP, WB, (Movetype::bishopPromo | movetype)), list);
+            AddMove(encode_move(from, to, WP, WN, (Movetype::knightPromo | movetype)), list);
         }
         else { // else do not include possible promotions
             AddMove(encode_move(from, to, WP, 0, movetype), list);
@@ -78,10 +80,10 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
     else {
         if (from >= a2 &&
             from <= h2) { // if the piece is moving from the 2nd to the 1st rank
-            AddMove(encode_move(from, to, BP, BQ, movetype), list);
-            AddMove(encode_move(from, to, BP, BR, movetype), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, BP, BB, movetype), list);
-            AddMove(encode_move(from, to, BP, BN, movetype), list);
+            AddMove(encode_move(from, to, BP, BQ, (Movetype::queenPromo | movetype)), list);
+            AddMove(encode_move(from, to, BP, BR, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
+            AddMove(encode_move(from, to, BP, BB, (Movetype::bishopPromo | movetype)), list);
+            AddMove(encode_move(from, to, BP, BN, (Movetype::knightPromo | movetype)), list);
         }
         else { // else do not include possible promotions
             AddMove(encode_move(from, to, BP, 0, movetype), list);
@@ -122,11 +124,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
         return ((attacks & enemy) | push) & pos->checkMask;
 
     Bitboard moves = ((attacks & enemy) | push) & pos->checkMask;
-    // We need to make extra sure that ep moves dont leave the king in check
-    // 7k/8/8/K1Pp3r/8/8/8/8 w - d6 0 1
-    // Horizontal rook pins our pawn through another pawn, our pawn can push but
-    // not take enpassant remove both the pawn that made the push and our pawn
-    // that could take in theory and check if that would give check
+
     if (GetEpSquare(pos) != no_sq && SquareDistance(square, GetEpSquare(pos)) == 1 &&
         (1ULL << GetEpSquare(pos)) & attacks) {
         int ourPawn = GetPiece(PAWN, color);
