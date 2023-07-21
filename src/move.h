@@ -38,6 +38,7 @@ bool IsCapture(const int move);
 bool isEnpassant(const int move);
 bool isDP(const int move);
 bool IsQuiet(const int move);
+bool isPromo(const int move);
 bool IsCastle(const int move);
 
 

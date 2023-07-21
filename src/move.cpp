@@ -38,7 +38,7 @@ bool isDP(const int move) {
 }
 
 bool isPromo(const int move) {
-    return GetMovetype(move) == static_cast<int>(Movetype::queenCapturePromo);
+    return GetMovetype(move) & 8;
 }
 
 bool IsCastle(const int move) {
