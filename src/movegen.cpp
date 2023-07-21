@@ -234,12 +234,8 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
             while (moves) {
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(KNIGHT, pos->side);
-                if (pos->PieceOn(target_square) != EMPTY) {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
-                }
-                else {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Quiet), move_list);
-                }
+                Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(knights, source_square);
@@ -254,12 +250,8 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
             while (moves) {
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(BISHOP, pos->side);
-                if (pos->PieceOn(target_square) != EMPTY) {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
-                }
-                else {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Quiet), move_list);
-                }
+                Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(bishops, source_square);
@@ -274,12 +266,8 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
             while (moves) {
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(ROOK, pos->side);
-                if (pos->PieceOn(target_square) != EMPTY) {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
-                }
-                else {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Quiet), move_list);
-                }
+                Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
                 pop_bit(moves, target_square);
             }
 
@@ -294,12 +282,8 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
             while (moves) {
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(QUEEN, pos->side);
-                if (pos->PieceOn(target_square) != EMPTY) {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
-                }
-                else {
-                    AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Quiet), move_list);
-                }
+                Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(queens, source_square);
@@ -311,14 +295,9 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     Bitboard moves = LegalKingMoves(pos, pos->side, source_square);
     while (moves) {
         target_square = GetLsbIndex(moves);
-
+        Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+        AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
         pop_bit(moves, target_square);
-        if (pos->PieceOn(target_square) != EMPTY) {
-            AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
-        }
-        else {
-            AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Quiet), move_list);
-        }
     }
 
     if (pos->checkMask == 18446744073709551615ULL) {
@@ -419,9 +398,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             // while we have moves that the knight can play we add them to the list
             while (moves) {
                 target_square = GetLsbIndex(moves);
-                AddMove(
-                    encode_move(source_square, target_square, piece, 0, Movetype::Capture),
-                    move_list);
+                AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(knights_mask, source_square);
