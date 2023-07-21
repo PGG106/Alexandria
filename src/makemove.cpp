@@ -82,11 +82,12 @@ void MakeMove(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-
-    int capture = IsCapture(move);
-    int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-    int enpass = isEnpassant(pos, move);
-    int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
+    // parse move flag
+    bool capture = IsCapture(move);
+    bool double_push = isDP(move);
+    bool enpass = isEnpassant(move);
+    bool castling = IsCastle(move);
+    bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
 
@@ -97,11 +98,10 @@ void MakeMove(const int move, S_Board* pos) {
         ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), target_square + NORTH, pos);
         pos->fiftyMove = 0;
     }
-
     // handling capture moves
     else if (capture) {
         int piececap = pos->pieces[target_square];
-
+        assert(piececap != EMPTY);
         ClearPieceNNUE(piececap, target_square, pos);
 
         pos->history[pos->hisPly].capture = piececap;
@@ -118,7 +118,7 @@ void MakeMove(const int move, S_Board* pos) {
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, source_square, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(promoted_piece ? promoted_piece : piece, target_square, pos);
+    AddPieceNNUE(promotion ? promoted_piece : piece, target_square, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
@@ -192,11 +192,12 @@ void MakeMoveLight(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-
-    int capture = IsCapture(move);
-    int double_push = !(abs(target_square - source_square) - 16) && ((piece == WP) || (piece == BP));
-    int enpass = isEnpassant(pos, move);
-    int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
+    // parse move flag
+    bool capture = IsCapture(move);
+    bool double_push = isDP(move);
+    bool enpass = isEnpassant(move);
+    bool castling = IsCastle(move);
+    bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
 
@@ -228,7 +229,7 @@ void MakeMoveLight(const int move, S_Board* pos) {
     // Remove the piece fom the square it moved from
     ClearPiece(piece, source_square, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promoted_piece ? promoted_piece : piece, target_square, pos);
+    AddPiece(promotion ? promoted_piece : piece, target_square, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
@@ -298,17 +299,18 @@ void UnmakeMove(const int move, S_Board* pos) {
     int target_square = To(move);
     int piece = Piece(move);
     int promoted_piece = Promoted(move);
-    int capture = IsCapture(move);
-
-    int enpass = isEnpassant(pos, move);
-    int castling = (((piece == WK) || (piece == BK)) && (abs(target_square - source_square) == 2));
-    int piececap = pos->history[pos->hisPly].capture;
-
+    // parse move flag
+    bool capture = IsCapture(move);
+    bool double_push = isDP(move);
+    bool enpass = isEnpassant(move);
+    bool castling = IsCastle(move);
+    bool promotion = isPromo(move);
+  
     pos->accumulator = pos->accumulatorStack.back();
     pos->accumulatorStack.pop_back();
 
     // handle pawn promotions
-    if (promoted_piece) {
+    if (promotion) {
         ClearPiece(promoted_piece, target_square, pos);
     }
 
@@ -354,6 +356,8 @@ void UnmakeMove(const int move, S_Board* pos) {
 
     // handling capture moves
     if (capture && !enpass) {
+        // Retrieve the captured piece we have to restore
+        int piececap = pos->history[pos->hisPly].capture;
         AddPiece(piececap, target_square, pos);
     }
 
