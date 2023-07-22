@@ -21,6 +21,10 @@ int Promoted(const int move) {
     return ((move & 0xf0000) >> 16);
 }
 
+int getPromotedPiecetype(const int move) {
+    return (GetMovetype(move) & 3) + 1;
+}
+
 int GetMovetype(const int move) {
     return ((move & 0xf00000) >> 20);
 }

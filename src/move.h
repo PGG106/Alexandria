@@ -33,6 +33,7 @@ int From(const int move);
 int To(const int move);
 int Piece(const int move);
 int Promoted(const int move);
+int getPromotedPiecetype(const int move);
 int GetMovetype(const int move);
 bool IsCapture(const int move);
 bool isEnpassant(const int move);
