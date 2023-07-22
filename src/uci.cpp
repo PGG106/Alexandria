@@ -74,7 +74,7 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
             return move;
         }
     }
-
+    std::cout << "Illegal move parsed: " << move_string;
     // return illegal move
     return NOMOVE;
 }
