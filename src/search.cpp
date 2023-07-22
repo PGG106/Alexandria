@@ -72,7 +72,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 
 // inspired by the Weiss engine
 bool SEE(const S_Board* pos, const int move, const int threshold) {
-	if (isPromo(move) || IsCastle(move) || isDP(move)) return true;
+	if (isPromo(move)) return true;
 
 	int to = To(move);
 	int from = From(move);
