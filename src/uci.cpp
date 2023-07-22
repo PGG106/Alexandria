@@ -38,30 +38,30 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
         if (source_square == From(move) &&
             target_square == To(move)) {
             // init promoted piece
-            const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side);
+            const int promoted_piece = getPromotedPiecetype(move);
 
             // promoted piece is available
-            if (promoted_piece) {
+            if (isPromo(move)) {
                 // promoted to queen
-                if ((promoted_piece == WQ || promoted_piece == BQ) &&
+                if ((promoted_piece == QUEEN) &&
                     move_string[4] == 'q')
                     // return legal move
                     return move;
 
                 // promoted to rook
-                else if ((promoted_piece == WR || promoted_piece == BR) &&
+                else if ((promoted_piece == ROOK) &&
                     move_string[4] == 'r')
                     // return legal move
                     return move;
 
                 // promoted to bishop
-                else if ((promoted_piece == WB || promoted_piece == BB) &&
+                else if ((promoted_piece == BISHOP) &&
                     move_string[4] == 'b')
                     // return legal move
                     return move;
 
                 // promoted to knight
-                else if ((promoted_piece == WN || promoted_piece == BN) &&
+                else if ((promoted_piece == KNIGHT) &&
                     move_string[4] == 'n')
                     // return legal move
                     return move;
