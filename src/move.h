@@ -28,11 +28,10 @@ inline Movetype operator | (Movetype first, Movetype second){
     return cong;
 }
 
-int encode_move(const int source, const int target, const int piece, const int promoted, const Movetype movetype);
+int encode_move(const int source, const int target, const int piece, const Movetype movetype);
 int From(const int move);
 int To(const int move);
 int Piece(const int move);
-int Promoted(const int move);
 int getPromotedPiecetype(const int move);
 int GetMovetype(const int move);
 bool IsCapture(const int move);

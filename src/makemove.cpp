@@ -78,16 +78,16 @@ void MakeMove(const int move, S_Board* pos) {
 
     pos->accumulatorStack.emplace_back(pos->accumulator);
     // parse move
-    int source_square = From(move);
-    int target_square = To(move);
-    int piece = Piece(move);
-    int promoted_piece = Promoted(move);
+    const int source_square = From(move);
+    const int target_square = To(move);
+    const int piece = Piece(move);
+    const int promoted_piece = GetPiece(getPromotedPiecetype(move),pos->side);
     // parse move flag
-    bool capture = IsCapture(move);
-    bool double_push = isDP(move);
-    bool enpass = isEnpassant(move);
-    bool castling = IsCastle(move);
-    bool promotion = isPromo(move);
+    const bool capture = IsCapture(move);
+    const bool double_push = isDP(move);
+    const bool enpass = isEnpassant(move);
+    const bool castling = IsCastle(move);
+    const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
 
@@ -191,7 +191,7 @@ void MakeMoveLight(const int move, S_Board* pos) {
     int source_square = From(move);
     int target_square = To(move);
     int piece = Piece(move);
-    int promoted_piece = Promoted(move);
+    int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     bool capture = IsCapture(move);
     bool double_push = isDP(move);
@@ -298,7 +298,6 @@ void UnmakeMove(const int move, S_Board* pos) {
     int source_square = From(move);
     int target_square = To(move);
     int piece = Piece(move);
-    int promoted_piece = Promoted(move);
     // parse move flag
     bool capture = IsCapture(move);
     bool double_push = isDP(move);
@@ -311,6 +310,7 @@ void UnmakeMove(const int move, S_Board* pos) {
 
     // handle pawn promotions
     if (promotion) {
+        int promoted_piece = GetPiece(getPromotedPiecetype(move),pos->side^1);
         ClearPiece(promoted_piece, target_square, pos);
     }
 

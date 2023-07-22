@@ -67,26 +67,26 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
     if (pos->side == WHITE) {
         if (from >= a7 &&
             from <= h7) { // if the piece is moving from the 7th to the 8th rank
-            AddMove(encode_move(from, to, WP, WQ, (Movetype::queenPromo | movetype)), list);
-            AddMove(encode_move(from, to, WP, WR, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, WP, WB, (Movetype::bishopPromo | movetype)), list);
-            AddMove(encode_move(from, to, WP, WN, (Movetype::knightPromo | movetype)), list);
+            AddMove(encode_move(from, to, WP, (Movetype::queenPromo | movetype)), list);
+            AddMove(encode_move(from, to, WP, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
+            AddMove(encode_move(from, to, WP, (Movetype::bishopPromo | movetype)), list);
+            AddMove(encode_move(from, to, WP, (Movetype::knightPromo | movetype)), list);
         }
         else { // else do not include possible promotions
-            AddMove(encode_move(from, to, WP, 0, movetype), list);
+            AddMove(encode_move(from, to, WP,  movetype), list);
         }
     }
 
     else {
         if (from >= a2 &&
             from <= h2) { // if the piece is moving from the 2nd to the 1st rank
-            AddMove(encode_move(from, to, BP, BQ, (Movetype::queenPromo | movetype)), list);
-            AddMove(encode_move(from, to, BP, BR, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, BP, BB, (Movetype::bishopPromo | movetype)), list);
-            AddMove(encode_move(from, to, BP, BN, (Movetype::knightPromo | movetype)), list);
+            AddMove(encode_move(from, to, BP, (Movetype::queenPromo | movetype)), list);
+            AddMove(encode_move(from, to, BP, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
+            AddMove(encode_move(from, to, BP, (Movetype::bishopPromo | movetype)), list);
+            AddMove(encode_move(from, to, BP, (Movetype::knightPromo | movetype)), list);
         }
         else { // else do not include possible promotions
-            AddMove(encode_move(from, to, BP, 0, movetype), list);
+            AddMove(encode_move(from, to, BP, movetype), list);
         }
     }
 }
@@ -233,7 +233,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(KNIGHT, pos->side);
                 Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
+                AddMove(encode_move(source_square, target_square, piece, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(knights, source_square);
@@ -249,7 +249,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(BISHOP, pos->side);
                 Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
+                AddMove(encode_move(source_square, target_square, piece, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(bishops, source_square);
@@ -265,7 +265,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(ROOK, pos->side);
                 Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
+                AddMove(encode_move(source_square, target_square, piece, movetype), move_list);
                 pop_bit(moves, target_square);
             }
 
@@ -281,7 +281,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 target_square = GetLsbIndex(moves);
                 int piece = GetPiece(QUEEN, pos->side);
                 Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
+                AddMove(encode_move(source_square, target_square, piece, movetype), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(queens, source_square);
@@ -294,7 +294,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     while (moves) {
         target_square = GetLsbIndex(moves);
         Movetype movetype = pos->PieceOn(target_square) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-        AddMove(encode_move(source_square, target_square, piece, 0, movetype), move_list);
+        AddMove(encode_move(source_square, target_square, piece, movetype), move_list);
         pop_bit(moves, target_square);
     }
 
@@ -309,7 +309,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     if (!IsSquareAttacked(pos, e1, BLACK) &&
                         !IsSquareAttacked(pos, f1, BLACK) &&
                         !IsSquareAttacked(pos, g1, BLACK))
-                        AddMove(encode_move(e1, g1, WK, 0, Movetype::KSCastle), move_list);
+                        AddMove(encode_move(e1, g1, WK, Movetype::KSCastle), move_list);
                 }
             }
 
@@ -322,7 +322,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     if (!IsSquareAttacked(pos, e1, BLACK) &&
                         !IsSquareAttacked(pos, d1, BLACK) &&
                         !IsSquareAttacked(pos, c1, BLACK))
-                        AddMove(encode_move(e1, c1, WK, 0, Movetype::QSCastle), move_list);
+                        AddMove(encode_move(e1, c1, WK, Movetype::QSCastle), move_list);
                 }
             }
         }
@@ -336,7 +336,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     if (!IsSquareAttacked(pos, e8, WHITE) &&
                         !IsSquareAttacked(pos, f8, WHITE) &&
                         !IsSquareAttacked(pos, g8, WHITE))
-                        AddMove(encode_move(e8, g8, BK, 0, Movetype::KSCastle), move_list);
+                        AddMove(encode_move(e8, g8, BK, Movetype::KSCastle), move_list);
                 }
             }
 
@@ -349,7 +349,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     if (!IsSquareAttacked(pos, e8, WHITE) &&
                         !IsSquareAttacked(pos, d8, WHITE) &&
                         !IsSquareAttacked(pos, c8, WHITE))
-                        AddMove(encode_move(e8, c8, BK, 0, Movetype::QSCastle), move_list);
+                        AddMove(encode_move(e8, c8, BK, Movetype::QSCastle), move_list);
                 }
             }
         }
@@ -396,7 +396,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             // while we have moves that the knight can play we add them to the list
             while (moves) {
                 target_square = GetLsbIndex(moves);
-                AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
+                AddMove(encode_move(source_square, target_square, piece, Movetype::Capture), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(knights_mask, source_square);
@@ -408,7 +408,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             int piece = GetPiece(BISHOP, pos->side);
             while (moves) {
                 target_square = GetLsbIndex(moves);
-                AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
+                AddMove(encode_move(source_square, target_square, piece, Movetype::Capture), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(bishops_mask, source_square);
@@ -421,7 +421,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             int piece = GetPiece(ROOK, pos->side);
             while (moves) {
                 target_square = GetLsbIndex(moves);
-                AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
+                AddMove(encode_move(source_square, target_square, piece, Movetype::Capture), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(rooks_mask, source_square);
@@ -433,7 +433,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
             int piece = GetPiece(QUEEN, pos->side);
             while (moves) {
                 target_square = GetLsbIndex(moves);
-                AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
+                AddMove(encode_move(source_square, target_square, piece, Movetype::Capture), move_list);
                 pop_bit(moves, target_square);
             }
             pop_bit(queens_mask, source_square);
@@ -447,6 +447,6 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     while (king_moves) {
         target_square = GetLsbIndex(king_moves);
         pop_bit(king_moves, target_square);
-        AddMove(encode_move(source_square, target_square, piece, 0, Movetype::Capture), move_list);
+        AddMove(encode_move(source_square, target_square, piece, Movetype::Capture), move_list);
     }
 }

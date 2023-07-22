@@ -38,7 +38,7 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
         if (source_square == From(move) &&
             target_square == To(move)) {
             // init promoted piece
-            const int promoted_piece = Promoted(move);
+            const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side);
 
             // promoted piece is available
             if (promoted_piece) {

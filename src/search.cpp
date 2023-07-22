@@ -152,7 +152,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		}
 		// Sort promotions based on the promoted piece type
 		else if (isPromo(move)) {
-			switch (GetPieceType(Promoted(move))) {
+			switch (getPromotedPiecetype(move)) {
 			case QUEEN:
 				move_list->moves[i].score = queenPromotionScore;
 				break;

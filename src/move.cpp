@@ -1,8 +1,8 @@
 #include "move.h"
 #include "board.h"
 
-int encode_move(const int source, const int target, const int piece, const int promoted, const Movetype movetype) {
-    return (source) | (target << 6) | (piece << 12) | (promoted << 16) | (static_cast<int>(movetype) << 20);
+int encode_move(const int source, const int target, const int piece, const Movetype movetype) {
+    return (source) | (target << 6) | (piece << 12) | (static_cast<int>(movetype) << 16);
 }
 
 int From(const int move) {
@@ -17,16 +17,8 @@ int Piece(const int move) {
     return ((move & 0xf000) >> 12);
 }
 
-int Promoted(const int move) {
-    return ((move & 0xf0000) >> 16);
-}
-
-int getPromotedPiecetype(const int move) {
-    return (GetMovetype(move) & 3) + 1;
-}
-
 int GetMovetype(const int move) {
-    return ((move & 0xf00000) >> 20);
+    return ((move & 0xf0000) >> 16);
 }
 
 bool IsCapture(const int move) {
@@ -47,6 +39,10 @@ bool isPromo(const int move) {
 
 bool IsCastle(const int move) {
     return (GetMovetype(move) == static_cast<int>(Movetype::KSCastle)) || (GetMovetype(move) == static_cast<int>(Movetype::QSCastle));
+}
+
+int getPromotedPiecetype(const int move) {
+    return (GetMovetype(move) & 3) + 1;
 }
 
 bool IsQuiet(const int move) {
