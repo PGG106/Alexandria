@@ -565,7 +565,7 @@ moves_loop:
 			// Search extension
 			if (!root_node
 				&& depth >= 7
-				&& move == tte.move
+				&& move == ttmove
 				&& !excludedMove
 				&& (tte.flags & HFLOWER)
 				&& abs(ttScore) < mate_score
