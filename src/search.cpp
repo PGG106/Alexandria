@@ -573,7 +573,7 @@ moves_loop:
 				const int singularBeta = ttScore - 3 * depth;
 				const int singularDepth = (depth - 1) / 2;
 
-				ss->excludedMove = tte.move;
+				ss->excludedMove = ttmove;
 				int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 				ss->excludedMove = NOMOVE;
 
