@@ -2,7 +2,7 @@
 #include "board.h"
 
 int encode_move(const int source, const int target, const int piece, const Movetype movetype) {
-    return (source) | (target << 6) | (piece << 12) | (static_cast<int>(movetype) << 16);
+    return (source) | (target << 6) | (static_cast<int>(movetype) << 12) | (piece << 16) ;
 }
 
 int From(const int move) {
@@ -13,11 +13,11 @@ int To(const int move) {
     return ((move & 0xfc0) >> 6);
 }
 
-int Piece(const int move) {
+int GetMovetype(const int move) {
     return ((move & 0xf000) >> 12);
 }
 
-int GetMovetype(const int move) {
+int Piece(const int move) {
     return ((move & 0xf0000) >> 16);
 }
 

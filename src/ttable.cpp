@@ -27,7 +27,7 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
     return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
 }
 
-void StoreHashEntry(const ZobristKey key, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
     const int depth, const bool pv, const bool wasPv) {
     // Calculate index based on the position key and get the entry that already fills that index
     uint64_t index = Index(key);
@@ -64,4 +64,25 @@ void prefetch(const void* addr) {
 
 void TTPrefetch(const ZobristKey posKey) {
     prefetch(&HashTable->pTable[Index(posKey)]);
+}
+
+
+int ScoreToTT(int score, int ply) {
+    if (score > mate_score) score += ply;
+    else if (score < -mate_score) score -= ply;
+    return score;
+}
+
+int ScoreFromTT(int score, int ply) {
+    if (score > mate_score) score -= ply;
+    else if (score < -mate_score) score += ply;
+    return score;
+}
+
+int16_t MoveToTT(int move) {
+    return (move & 0xffff);
+}
+
+int MoveFromTT(int16_t packed_move, int piece) {
+    return (packed_move |(piece << 16));
 }
