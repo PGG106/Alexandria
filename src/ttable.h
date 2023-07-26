@@ -6,7 +6,7 @@
 #include <vector>
 
 PACK(struct S_HashEntry {
-    int32_t move = NOMOVE;
+    int16_t move = NOMOVE;
     int16_t score = 0;
     int16_t eval = 0;
     TTKey tt_key = 0;
@@ -27,7 +27,14 @@ void InitHashTable(S_HashTable* table, uint64_t MB);
 
 [[nodiscard]] bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte);
 
-void StoreHashEntry(const ZobristKey key, const int move, int score, int16_t eval, const int flags,
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
     const int depth, const bool pv, const bool wasPv);
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
 void TTPrefetch(const ZobristKey posKey);
+int ScoreToTT(int score, int ply);
+
+int ScoreFromTT(int score, int ply);
+
+int16_t MoveToTT(int move);
+
+int MoveFromTT(int16_t packed_move, int piece);

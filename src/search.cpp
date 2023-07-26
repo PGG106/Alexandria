@@ -209,18 +209,6 @@ int GetBestMove(const PvTable* pv_table) {
 	return pv_table->pvArray[0][0];
 }
 
-int ScoreToTT(int score, int ply) {
-	if (score > mate_score) score += ply;
-	else if (score < -mate_score) score -= ply;
-	return score;
-}
-
-int ScoreFromTT(int score, int ply) {
-	if (score > mate_score) score -= ply;
-	else if (score < -mate_score) score += ply;
-	return score;
-}
-
 // Starts the search process, this is ideally the point where you can start a multithreaded search
 void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 	// Init a thread_data object for each helper thread that doesn't have one already
@@ -400,8 +388,9 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	}
 
 	// Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-	bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
-	int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
+	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttmove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
 		&& ttHit
@@ -510,7 +499,7 @@ moves_loop:
 	// generate moves
 	GenerateMoves(move_list, pos);
 	// assign a score to every move based on how promising it is
-	score_moves(pos, sd, ss, move_list, tte.move);
+	score_moves(pos, sd, ss, move_list, ttmove);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -576,7 +565,7 @@ moves_loop:
 			// Search extension
 			if (!root_node
 				&& depth >= 7
-				&& move == tte.move
+				&& move == ttmove
 				&& !excludedMove
 				&& (tte.flags & HFLOWER)
 				&& abs(ttScore) < mate_score
@@ -584,7 +573,7 @@ moves_loop:
 				const int singularBeta = ttScore - 3 * depth;
 				const int singularDepth = (depth - 1) / 2;
 
-				ss->excludedMove = tte.move;
+				ss->excludedMove = ttmove;
 				int singularScore = Negamax(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 				ss->excludedMove = NOMOVE;
 
@@ -712,7 +701,7 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node,ttpv);
+	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node,ttpv);
 	// return best score
 	return BestScore;
 }
@@ -747,7 +736,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 	// TThit is true if and only if we find something in the TT
 	const bool TThit = ProbeHashEntry(pos, &tte);
-	int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttmove = TThit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	// If we found a value in the TT we can return it
 	if (!pv_node && TThit) {
 		if ((tte.flags == HFUPPER && ttScore <= alpha)
@@ -790,7 +780,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		GenerateMoves(move_list, pos);
 
 	// score the generated moves
-	score_moves(pos, sd, ss, move_list, tte.move);
+	score_moves(pos, sd, ss, move_list, ttmove);
 
 	int bestmove = NOMOVE;
 
@@ -844,7 +834,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFLOWER : HFUPPER;
 
-	StoreHashEntry(pos->posKey, bestmove, ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pv_node, ttpv);
+	StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pv_node, ttpv);
 
 	// return the best score we got
 	return BestScore;
