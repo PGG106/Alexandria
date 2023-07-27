@@ -210,7 +210,7 @@ void UciLoop(char** argv) {
     std::thread main_thread;
     state threads_state = Idle;
     // print engine info
-    std::cout << "id name Alexandria 4.0-dev\n";
+    std::cout << "id name Alexandria 4.0\n";
 
     // main loop
     while (true) {
