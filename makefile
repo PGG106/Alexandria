@@ -69,14 +69,12 @@ ifeq ($(build), x86-64-modern)
 endif
 
 ifeq ($(build), x86-64-avx2)
-	NATIVE       = -mtune=znver3
-	INSTRUCTIONS = -m64 -msse -msse3 -mpopcnt -mavx -mavx2 -mssse3 -msse2
+	NATIVE       = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
 	ARCH         = -x86-64-avx2
 endif
 
 ifeq ($(build), x86-64-bmi2)
-	NATIVE       = -mtune=znver3
-	INSTRUCTIONS = -m64 -msse -msse3 -mpopcnt -mavx -mavx2 -msse4.1 -mssse3 -msse2 -mbmi -mbmi2
+	NATIVE       = -march=haswell
 	ARCH         = -x86-64-bmi2
 endif
 
