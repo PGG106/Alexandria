@@ -210,7 +210,7 @@ void UciLoop(char** argv) {
     std::thread main_thread;
     state threads_state = Idle;
     // print engine info
-    std::cout << "id name Alexandria 4.0\n";
+    std::cout << NAME << "\n";
 
     // main loop
     while (true) {
@@ -319,7 +319,7 @@ void UciLoop(char** argv) {
         // parse UCI "uci" command
         else if (input == "uci") {
             // print engine info
-            std::cout << "id name Alexandria 4.0-dev\n";
+            std::cout << NAME << "\n";
             std::cout << "id author PGG and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 8192 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
