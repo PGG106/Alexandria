@@ -494,13 +494,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 			&& ss->ply
 			&& (ss - 1)->move != NOMOVE
 			&& depth >= 3
+			&& ss->ply >= td->nmpPlies
 			&& BoardHasNonPawns(pos, pos->side)) {
 			ss->move = NOMOVE;
 			MakeNullMove(pos);
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -Negamax<false>(-beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
+			int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -508,11 +509,21 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 				return 0;
 
 			// fail-soft beta cutoff
-			if (Score >= beta) {
+			if (nmpScore >= beta) {
 				// Don't return unproven mates but still return beta
-				if (Score > mate_score) Score = beta;
-				// node (position) fails high
-				return Score;
+				if (nmpScore > mate_score) nmpScore = beta;
+
+				// If we don't have to do a verification search just return the score
+				if (td->nmpPlies || depth < 15) {
+					return nmpScore;
+				}
+				// Verification search to avoid zugzwangs: if we are at an high enough depth we perform another reduced search without nmp for at least nmpPlies
+				td->nmpPlies = ss->ply + (depth - R) * 3/4;
+				int verification_score = Negamax( beta - 1, beta,  depth - R, false, td,ss);
+				td->nmpPlies = 0;
+
+				// If the verification search holds return the score
+				if (verification_score >= beta) return nmpScore;
 			}
 		}
 

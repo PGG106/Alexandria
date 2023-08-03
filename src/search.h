@@ -28,6 +28,7 @@ struct S_ThreadData {
     PvTable pv_table;
     uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};
     int RootDepth;
+    int nmpPlies;
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state
