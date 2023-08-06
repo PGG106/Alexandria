@@ -430,6 +430,11 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	else {
 		// If we don't have anything in the TT we have to call evalposition
 		eval = ss->static_eval = EvalPosition(pos);
+        if (!excludedMove)
+        {
+            // Save the eval into the TT
+            StoreHashEntry(pos->posKey, NOMOVE, value_none, eval, HFNONE, 0, pv_node, ttpv);
+        }
 	}
 
 	// improving is a very important modifier to a lot of heuristic, in short it just checks if our current static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
