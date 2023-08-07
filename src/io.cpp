@@ -219,6 +219,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         std::string time_string = time_stream.str() + time_unit;
 
         // Convert score to a decimal format or to a mate string
+        int score_precision = 0;
         float parsed_score = 0;
         std::string score_unit;
         if (score > -mate_value && score < -mate_score) {
@@ -232,15 +233,16 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         else {
             parsed_score = static_cast<float>(score) / 100;
             if (parsed_score >= 0) score_unit = '+';
+            score_precision = 2;
         }
         // convert score to string
         std::stringstream score_stream;
-        score_stream << std::fixed << std::setprecision(2) << parsed_score;
+        score_stream << std::fixed << std::setprecision(score_precision) << parsed_score;
         std::string score_color = Pick_color(score);
         std::string color_reset = "\033[0m";
         std::string score_string = score_color + score_unit + score_stream.str() + color_reset;
-        int node_precision = 0;
         // convert nodes into string
+        int node_precision = 0;
         std::string node_unit = "n";
         float parsed_nodes = static_cast<float>(nodes);
         if (parsed_nodes >= 1000) {
