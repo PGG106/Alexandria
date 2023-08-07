@@ -16,7 +16,7 @@
 #include <iostream>
 #include <algorithm>
 
-// Returns true if the position an istance of 2-fold repetition, false otherwise
+// Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const S_Board* pos) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	// we only need to check for repetition the moves since the last 50mr reset
@@ -31,11 +31,26 @@ static bool IsRepetition(const S_Board* pos) {
 	return false;
 }
 
+// Returns true if the position is a draw via the 50mr rule
+static bool Is50MrDraw(S_Board* pos) {
+	if(pos->Get50mrCounter() >= 100){
+	// If there's no risk we are being checkmated return true
+	if (!pos->checkers)
+		return true;
+	// if we are in check make sure it's not checkmate 
+	S_MOVELIST move_list[1];
+	// generate moves
+	GenerateMoves(move_list, pos);
+	return move_list->count > 0;
+	}
+	return false;
+}
+
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(const S_Board* pos) {
+bool IsDraw(S_Board* pos) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
 	return IsRepetition(pos)
-		|| (pos->Get50mrCounter() >= 100)
+		|| Is50MrDraw(pos)
 		|| MaterialDraw(pos);
 }
 

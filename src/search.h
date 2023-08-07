@@ -49,4 +49,4 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 // inspired by the Weiss engine
 [[nodiscard]] bool SEE(const S_Board* pos, const int move, const int threshold);
 // Checks if the current position is a draw
-[[nodiscard]] bool IsDraw(const S_Board* pos);
+[[nodiscard]] bool IsDraw(S_Board* pos);
