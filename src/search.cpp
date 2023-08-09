@@ -590,7 +590,7 @@ moves_loop:
 				&& (tte.flags & HFLOWER)
 				&& abs(ttScore) < mate_score
 				&& tte.depth >= depth - 3) {
-				const int singularBeta = ttScore - 2 * depth;
+				const int singularBeta = ttScore - depth;
 				const int singularDepth = (depth - 1) / 2;
 
 				ss->excludedMove = ttmove;
