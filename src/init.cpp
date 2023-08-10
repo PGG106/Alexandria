@@ -229,12 +229,17 @@ void DoPinMask(S_Board* pos, int color, int sq) {
 
 // PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
-    for (int i = 0; i < MAXDEPTH; i++) {
-        for (int j = 0; j < MAXDEPTH; j++) {
+    // Avoid log(0) because it's bad
+    reductions[0][0][0] = 0;
+    reductions[1][0][0] = 0;
+
+    for (int i = 1; i < MAXDEPTH; i++) {
+        for (int j = 1; j < MAXDEPTH; j++) {
             reductions[0][i][j] = 1 + log(i) * log(j) / 2.00;
             reductions[1][i][j] = 1 + log(i) * log(j) / 2.00;
         }
     }
+
     for (int depth = 0; depth < MAXDEPTH; depth++) {
         lmp_margin[depth][0] = (3 + depth * depth) / 2; // Not improving
         lmp_margin[depth][1] = 3 + depth * depth; // improving
