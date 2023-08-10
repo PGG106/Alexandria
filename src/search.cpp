@@ -189,7 +189,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			if (SEE(pos, move, -107)) {
 				int captured_piece = isEnpassant(move) ? PAWN : pos->PieceOn(To(move));
 				move_list->moves[i].score =
-					mvv_lva[Piece(move)][move] +
+					mvv_lva[Piece(move)][captured_piece] +
 					goodCaptureScore;
 			}
 			// Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
