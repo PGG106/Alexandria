@@ -187,13 +187,15 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 		else if (IsCapture(move)) {
 			// Good captures get played before any move that isn't a promotion or a TT move
 			if (SEE(pos, move, -107)) {
+				int captured_piece = isEnpassant(move) ? PAWN : pos->PieceOn(To(move));
 				move_list->moves[i].score =
-					mvv_lva[Piece(move)][pos->PieceOn(To(move))] +
+					mvv_lva[Piece(move)][move] +
 					goodCaptureScore;
 			}
 			// Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
 			else {
-				move_list->moves[i].score = badCaptureScore + mvv_lva[Piece(move)][pos->PieceOn(To(move))];
+				int captured_piece = isEnpassant(move) ? PAWN : pos->PieceOn(To(move));
+				move_list->moves[i].score = badCaptureScore + mvv_lva[Piece(move)][captured_piece];
 			}
 			continue;
 		}

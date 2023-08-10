@@ -98,7 +98,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
     // and on the checkmask
 
     if (pos->pinD & (1ULL << square))
-        return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
+        return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (GetEpSquare(pos) != no_sq ? (1ULL << GetEpSquare(pos)) : 0ULL));
     // Calculate pawn pushs
     Bitboard push = PawnPush(color, square) & ~pos->occupancies[2];
 
