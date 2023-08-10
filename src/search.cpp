@@ -61,7 +61,7 @@ void ClearForSearch(S_ThreadData* td) {
 	PvTable* pv_table = &td->pv_table;
 
 	// Clean the Pv array
-	std::memset(pv_table, 0, sizeof(pv_table));
+	std::memset(pv_table, 0, sizeof(td->pv_table));
 
 	// Clean the node table
 	std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
