@@ -51,7 +51,7 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
 
 uint64_t Index(const ZobristKey posKey) {
 #ifdef __SIZEOF_INT128__
-    return static_cast<uint64_t>(((static_cast<__int128>(posKey) * static_cast<__int128>(HashTable->pTable.size())) >> 64));
+    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(HashTable->pTable.size())) >> 64));
 #else 
     return posKey % HashTable->pTable.size();
 #endif
