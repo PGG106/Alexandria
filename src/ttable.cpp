@@ -50,7 +50,7 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
 }
 
 uint64_t Index(const ZobristKey posKey) {
-    return (static_cast<uint32_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 32;
+    return (static_cast<uint64_t>(posKey) * static_cast<uint64_t>(HashTable->pTable.size())) >> 64;
 }
 
 // prefetches the data in the given address in l1/2 cache in a non blocking way.
