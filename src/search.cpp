@@ -410,7 +410,7 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 	const int ttmove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
-		&& ttHit
+		&& ttScore != value_none
 		&& tte.depth >= depth) {
 		if ((tte.flags == HFUPPER && ttScore <= alpha)
 			|| (tte.flags == HFLOWER && ttScore >= beta)
@@ -439,9 +439,10 @@ int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Sear
 		// If the value in the TT is valid we use that, otherwise we call the static evaluation function
 		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		// We can also use the tt score as a more accurate form of eval
-		if ((tte.flags == HFUPPER && ttScore < eval)
+		if (ttScore != value_none
+		    && ((tte.flags == HFUPPER && ttScore < eval)
 			|| (tte.flags == HFLOWER && ttScore > eval)
-			|| (tte.flags == HFEXACT))
+			|| (tte.flags == HFEXACT)))
 			eval = ttScore;
 	}
 	else {
@@ -761,7 +762,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	const int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	const int ttmove = TThit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	// If we found a value in the TT we can return it
-	if (!pv_node && TThit) {
+	if (!pv_node && ttScore != value_none) {
 		if ((tte.flags == HFUPPER && ttScore <= alpha)
 			|| (tte.flags == HFLOWER && ttScore >= beta)
 			|| (tte.flags == HFEXACT))
@@ -778,9 +779,10 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// If we have a ttHit with a valid eval use that
 	else if (TThit) {
 		ss->static_eval = eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
-		if ((tte.flags == HFUPPER && ttScore < eval)
+		if (ttScore != value_none && 
+		    ((tte.flags == HFUPPER && ttScore < eval)
 			|| (tte.flags == HFLOWER && ttScore > eval)
-			|| (tte.flags == HFEXACT))
+			|| (tte.flags == HFEXACT)))
 			eval = BestScore = ttScore;
 	}
 	// If we don't have any useful info in the TT just call Evalpos
