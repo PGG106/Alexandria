@@ -315,7 +315,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 	// Stay at current depth if we fail high/low because of the aspiration windows
 	while (true) {
-		score = Negamax(true, alpha, beta, depth, false, td, ss);
+		score = Negamax<true>(alpha, beta, depth, false, td, ss);
 
 		// Check if more than Maxtime passed and we have to stop
 		if (td->id == 0 && TimeOver(&td->info)) {
@@ -347,7 +347,8 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 }
 
 // Negamax alpha beta search
-int Negamax(const bool pv_node, int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td, Search_stack* ss) {
+template <bool pv_node>
+int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td, Search_stack* ss) {
 	// Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
@@ -375,7 +376,7 @@ int Negamax(const bool pv_node, int alpha, int beta, int depth, const bool cutno
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence(pv_node, alpha, beta, td, ss);
+		return Quiescence<pv_node>alpha, beta, td, ss);
 	}
 
 	// check if more than Maxtime passed and we have to stop
@@ -491,7 +492,7 @@ int Negamax(const bool pv_node, int alpha, int beta, int depth, const bool cutno
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			Score = -Negamax(false, -beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
+			Score = -Negamax<false>(-beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -509,7 +510,7 @@ int Negamax(const bool pv_node, int alpha, int beta, int depth, const bool cutno
 
 		// razoring
 		if (eval - 63 + 182 * depth <= alpha) {
-			return Quiescence(false, alpha, beta, td, ss);
+			return Quiescence<false>(alpha, beta, td, ss);
 		}
 
 	}
@@ -596,7 +597,7 @@ moves_loop:
 				const int singularDepth = (depth - 1) / 2;
 
 				ss->excludedMove = ttmove;
-				int singularScore = Negamax(false, singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
+				int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 				ss->excludedMove = NOMOVE;
 
 				if (singularScore < singularBeta) {
@@ -648,7 +649,7 @@ moves_loop:
 			// adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
-			Score = -Negamax(false, -alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
+			Score = -Negamax<false>-alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
 			// if we failed high on a reduced node we'll search with a reduced window and full depth
 			do_full_search = Score > alpha && depth_reduction != 1;
 		}
@@ -658,11 +659,11 @@ moves_loop:
 		}
 		// Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax(false, -alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
+			Score = -Negamax<false>-alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -Negamax(true, -beta, -alpha, newDepth - 1, false, td, ss + 1);
+			Score = -Negamax<true>-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
@@ -729,7 +730,8 @@ moves_loop:
 }
 
 // Quiescence search to avoid the horizon effect
-int Quiescence(const bool pv_node, int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
+template <bool pv_node>
+int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
 	S_SearchINFO* info = &td->info;
@@ -822,7 +824,7 @@ int Quiescence(const bool pv_node, int alpha, int beta, S_ThreadData* td, Search
 		// increment nodes count
 		info->nodes++;
 		// Call Quiescence search recursively
-		int Score = -Quiescence(pv_node, -beta, -alpha, td, ss + 1);
+		int Score = -Quiescence<pv_node>-beta, -alpha, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
