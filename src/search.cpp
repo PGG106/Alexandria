@@ -376,7 +376,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence<pv_node>alpha, beta, td, ss);
+		return Quiescence<pv_node>(alpha, beta, td, ss);
 	}
 
 	// check if more than Maxtime passed and we have to stop
@@ -649,7 +649,7 @@ moves_loop:
 			// adjust the reduction so that we can't drop into Qsearch and to prevent extensions
 			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
 			// search current move with reduced depth:
-			Score = -Negamax<false>-alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
+			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
 			// if we failed high on a reduced node we'll search with a reduced window and full depth
 			do_full_search = Score > alpha && depth_reduction != 1;
 		}
@@ -659,11 +659,11 @@ moves_loop:
 		}
 		// Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax<false>-alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
+			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -Negamax<true>-beta, -alpha, newDepth - 1, false, td, ss + 1);
+			Score = -Negamax<true>(-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
@@ -824,7 +824,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		// increment nodes count
 		info->nodes++;
 		// Call Quiescence search recursively
-		int Score = -Quiescence<pv_node>-beta, -alpha, td, ss + 1);
+		int Score = -Quiescence<pv_node>(-beta, -alpha, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
