@@ -40,8 +40,10 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 // Sets up aspiration windows and starts a Negamax search
 [[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td);
 // Negamax alpha beta search
-[[nodiscard]] int Negamax(int alpha, int beta, int depth, bool cutnode, S_ThreadData* td, Search_stack* ss);
+template <bool pv_node>
+[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td, Search_stack* ss);
 // Quiescence search to avoid the horizon effect
+template <bool pv_node>
 [[nodiscard]] int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss);
 
 [[nodiscard]] int GetBestMove(const PvTable* pv_table);
