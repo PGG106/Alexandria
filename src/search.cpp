@@ -17,15 +17,17 @@
 #include <algorithm>
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const S_Board* pos) {
+static bool IsRepetition(const S_Board* pos, const bool pv_node) {
 	assert(pos->hisPly >= pos->fiftyMove);
+	int counter = 1;
 	// we only need to check for repetition the moves since the last 50mr reset
 	for (int index = std::max(static_cast<int>(pos->played_positions.size()) - pos->Get50mrCounter(), 0);
 		index < static_cast<int>(pos->played_positions.size()); index++)
 		// if we found the same position hashkey as the current position
 		if (pos->played_positions[index] == pos->posKey) {
 			// we found a repetition
-			return true;
+			counter++;
+			if(counter >= 2 + pv_node) return true;
 		}
 
 	return false;
@@ -47,9 +49,9 @@ static bool Is50MrDraw(S_Board* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(S_Board* pos) {
+bool IsDraw(S_Board* pos, const bool pv_node) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
-	return IsRepetition(pos)
+	return IsRepetition(pos, pv_node)
 		|| Is50MrDraw(pos)
 		|| MaterialDraw(pos);
 }
@@ -388,7 +390,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	// Check for early return conditions
 	if (!root_node) {
 		// If position is a draw return a randomized draw score to avoid 3-fold blindness
-		if (IsDraw(pos)) {
+		if (IsDraw(pos, pv_node)) {
 			return 8 - (info->nodes & 7);
 		}
 
@@ -749,7 +751,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 
 	// If position is a draw return a randomized draw score to avoid 3-fold blindness
-	if (IsDraw(pos)) {
+	if (IsDraw(pos, pv_node)) {
 		return 1 - (info->nodes & 2);
 	}
 
