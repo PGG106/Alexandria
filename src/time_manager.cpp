@@ -6,6 +6,8 @@
 
 // Calculate how much time to spend on searching a move
 void Optimum(S_SearchINFO* info, int time, int inc) {
+    // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
+    if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
     int safety_overhead = 100;
     time -= safety_overhead;
