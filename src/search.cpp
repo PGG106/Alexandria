@@ -69,9 +69,14 @@ void ClearForSearch(S_ThreadData* td) {
 	std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
 	// Reset plies and search info
 	info->starttime = GetTimeMs();
-	info->stopped = false;
 	info->nodes = 0;
 	info->seldepth = 0;
+	// Main thread only unpauses any eventual search thread
+	if (td->id == 0) {
+		for (auto& td : threads_data) {
+			td.info.stopped = false;
+		}
+	}
 }
 
 // returns a bitboard of all the attacks to a specific square
