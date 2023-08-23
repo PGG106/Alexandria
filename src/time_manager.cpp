@@ -7,7 +7,7 @@
 // Calculate how much time to spend on searching a move
 void Optimum(S_SearchINFO* info, int time, int inc) {
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
-    int safety_overhead = 50;
+    int safety_overhead = 100;
     time -= safety_overhead;
     // if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
@@ -19,7 +19,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
         // Divide the time you have left for how many moves you have to play
         auto basetime = time / info->movestogo;
         // Never use more than 80% of the total time left for a single move
-        auto maxtimeBound = 0.8 * time;
+        auto maxtimeBound = 0.75 * time;
         // optime is the time we use to stop if we just cleared a depth
         auto optime = std::min(0.7 * basetime, maxtimeBound);
         // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)

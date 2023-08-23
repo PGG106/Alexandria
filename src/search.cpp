@@ -248,6 +248,8 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 	}
 	// MainThread search
 	SearchPosition(1, depth, td, options);
+	// Stop helper threads before returning the best move
+	StopHelperThreads();
 	// Print final bestmove found
 	std::cout << "bestmove ";
 	PrintMove(GetBestMove(&td->pv_table));
@@ -275,7 +277,6 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 
 			// check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
 			if (StopEarly(&td->info) || NodesOver(&td->info)) {
-				StopHelperThreads();
 				// Stop mainthread search
 				td->info.stopped = true;
 			}
