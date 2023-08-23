@@ -74,7 +74,7 @@ void ClearForSearch(S_ThreadData* td) {
 	// Main thread only unpauses any eventual search thread
 	if (td->id == 0) {
 		for (auto& td : threads_data) {
-			td.info.stopped = true;
+			td.info.stopped = false;
 		}
 	}
 }
