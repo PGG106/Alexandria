@@ -622,6 +622,9 @@ moves_loop:
 				else if (singularBeta >= beta)
 					return (singularBeta);
 
+				// If we didn't successfully extend and our eval is above beta reduce the search depth
+				else if (ttScore >= beta)
+					extension = -2;
 			}
 
 			else if (pos->checkers)
