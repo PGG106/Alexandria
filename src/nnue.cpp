@@ -23,7 +23,7 @@ const unsigned int gEVALSize = 1;
 
 Network net;
 
-// Thanks to Disservin for having me look at his code and Lucex for the
+// Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
 int32_t NNUE::SCReLU(int16_t x) {
