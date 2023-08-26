@@ -6,6 +6,15 @@
 constexpr int INPUT_WEIGHTS = 768;
 constexpr int HIDDEN_SIZE = 768;
 
+struct  Network {
+     int16_t featureWeights[INPUT_WEIGHTS * HIDDEN_SIZE];
+     int16_t featureBias[HIDDEN_SIZE];
+     int16_t outputWeights[HIDDEN_SIZE * 2];
+     int16_t outputBias;
+};
+
+extern Network net;
+
 class NNUE {
 public:
     using accumulator = std::array<std::array<int16_t, HIDDEN_SIZE>, 2>;
@@ -18,9 +27,4 @@ public:
     [[nodiscard]] int32_t output(const NNUE::accumulator& board_accumulator, bool whiteToMove);
     void Clear(NNUE::accumulator& board_accumulator);
     [[nodiscard]] std::pair<std::size_t, std::size_t> GetIndex(int piece, int square);
-
-    int16_t featureWeights[INPUT_WEIGHTS * HIDDEN_SIZE];
-    int16_t featureBias[HIDDEN_SIZE];
-    int16_t outputWeights[HIDDEN_SIZE * 2];
-    int16_t outputBias;
 };

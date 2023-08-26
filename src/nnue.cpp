@@ -21,6 +21,8 @@ const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
+Network net;
+
 // Thanks to Disservin for having me look at his code and Lucex for the
 // invaluable help and the immense patience
 
@@ -41,13 +43,13 @@ void NNUE::init(const char* file) {
     if (nn) {
         // initialize an accumulator for every input of the second layer
         size_t read = 0;
-        size_t fileSize = sizeof(NNUE);
+        size_t fileSize = sizeof(Network);
         size_t objectsExpected = fileSize / sizeof(int16_t);
 
-        read += fread(featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
-        read += fread(featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
-        read += fread(outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2, nn);
-        read += fread(&outputBias, sizeof(int16_t), 1, nn);
+        read += fread(net.featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
+        read += fread(net.featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
+        read += fread(net.outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2, nn);
+        read += fread(&net.outputBias, sizeof(int16_t), 1, nn);
 
         if (read != objectsExpected) {
             std::cout << "Error loading the net, aborting ";
@@ -60,21 +62,21 @@ void NNUE::init(const char* file) {
     } else {
         // if we don't find the nnue file we use the net embedded in the exe
         uint64_t memoryIndex = 0;
-        std::memcpy(featureWeights, &gEVALData[memoryIndex], INPUT_WEIGHTS * HIDDEN_SIZE * sizeof(int16_t));
+        std::memcpy(net.featureWeights, &gEVALData[memoryIndex], INPUT_WEIGHTS * HIDDEN_SIZE * sizeof(int16_t));
         memoryIndex += INPUT_WEIGHTS * HIDDEN_SIZE * sizeof(int16_t);
-        std::memcpy(featureBias, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t));
+        std::memcpy(net.featureBias, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t));
         memoryIndex += HIDDEN_SIZE * sizeof(int16_t);
 
-        std::memcpy(outputWeights, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t) * 2);
+        std::memcpy(net.outputWeights, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t) * 2);
         memoryIndex += HIDDEN_SIZE * sizeof(int16_t) * 2;
-        std::memcpy(&outputBias, &gEVALData[memoryIndex], 1 * sizeof(int16_t));
+        std::memcpy(&net.outputBias, &gEVALData[memoryIndex], 1 * sizeof(int16_t));
     }
 }
 
 void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, to);
-    auto whiteAdd = &featureWeights[whiteIdx * HIDDEN_SIZE];
-    auto blackAdd = &featureWeights[blackIdx * HIDDEN_SIZE];
+    auto whiteAdd = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
+    auto blackAdd = &net.featureWeights[blackIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] += whiteAdd[i];
     }
@@ -85,8 +87,8 @@ void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
 
 void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, from);
-    auto whiteSub = &featureWeights[whiteIdx * HIDDEN_SIZE];
-    auto blackSub = &featureWeights[blackIdx * HIDDEN_SIZE];
+    auto whiteSub = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
+    auto blackSub = &net.featureWeights[blackIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] -= whiteSub[i];
     }
@@ -98,13 +100,13 @@ void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
 void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) {
     auto [whiteIdxFrom, blackIdxFrom] = GetIndex(piece, from);
     auto [whiteIdxTo, blackIdxTo] = GetIndex(piece, to);
-    auto whiteSub = &featureWeights[whiteIdxFrom * HIDDEN_SIZE];
-    auto whiteAdd = &featureWeights[whiteIdxTo * HIDDEN_SIZE];
+    auto whiteSub = &net.featureWeights[whiteIdxFrom * HIDDEN_SIZE];
+    auto whiteAdd = &net.featureWeights[whiteIdxTo * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] = board_accumulator[0][i] - whiteSub[i] + whiteAdd[i];
     }
-    auto blackSub = &featureWeights[blackIdxFrom * HIDDEN_SIZE];
-    auto blackAdd = &featureWeights[blackIdxTo * HIDDEN_SIZE];
+    auto blackSub = &net.featureWeights[blackIdxFrom * HIDDEN_SIZE];
+    auto blackAdd = &net.featureWeights[blackIdxTo * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[1][i] = board_accumulator[1][i] - blackSub[i] + blackAdd[i];
     }
@@ -124,12 +126,12 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, bool whiteToMov
     }
     int32_t output = 0;
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += SCReLU(us[i]) * static_cast<int32_t>(outputWeights[i]);
+        output += SCReLU(us[i]) * static_cast<int32_t>(net.outputWeights[i]);
     }
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += SCReLU(them[i]) * static_cast<int32_t>(outputWeights[HIDDEN_SIZE + i]);
+        output += SCReLU(them[i]) * static_cast<int32_t>(net.outputWeights[HIDDEN_SIZE + i]);
     }
-    int32_t unsquared = output / 255 + outputBias;
+    int32_t unsquared = output / 255 + net.outputBias;
     return unsquared * 400 / (64 * 255);
 }
 
