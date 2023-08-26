@@ -363,8 +363,8 @@ uint64_t GetMaterialValue(const S_Board* pos) {
 
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[0][i] = nnue.featureBias[i];
-        board_accumulator[1][i] = nnue.featureBias[i];
+        board_accumulator[0][i] = net.featureBias[i];
+        board_accumulator[1][i] = net.featureBias[i];
     }
 
     for (int i = 0; i < 64; i++) {

@@ -73,8 +73,8 @@ void ClearForSearch(S_ThreadData* td) {
 	info->seldepth = 0;
 	// Main thread only unpauses any eventual search thread
 	if (td->id == 0) {
-		for (auto& td : threads_data) {
-			td.info.stopped = false;
+		for (auto& helper_thread : threads_data) {
+			helper_thread.info.stopped = false;
 		}
 	}
 }
