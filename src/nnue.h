@@ -6,11 +6,11 @@
 constexpr int INPUT_WEIGHTS = 768;
 constexpr int HIDDEN_SIZE = 768;
 
-struct  Network {
-     int16_t featureWeights[INPUT_WEIGHTS * HIDDEN_SIZE];
-     int16_t featureBias[HIDDEN_SIZE];
-     int16_t outputWeights[HIDDEN_SIZE * 2];
-     int16_t outputBias;
+struct Network {
+    int16_t featureWeights[INPUT_WEIGHTS * HIDDEN_SIZE];
+    int16_t featureBias[HIDDEN_SIZE];
+    int16_t outputWeights[HIDDEN_SIZE * 2];
+    int16_t outputBias;
 };
 
 extern Network net;
