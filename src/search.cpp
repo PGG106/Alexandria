@@ -514,7 +514,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 				if (nmpScore > mate_score) nmpScore = beta;
 
 				// If we don't have to do a verification search just return the score
-				if (td->nmpPlies || depth < 12) {
+				if (td->nmpPlies || depth < 15) {
 					return nmpScore;
 				}
 				// Verification search to avoid zugzwangs: if we are at an high enough depth we perform another reduced search without nmp for at least nmpPlies
