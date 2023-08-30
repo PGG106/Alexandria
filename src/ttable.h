@@ -11,8 +11,7 @@ PACK(struct S_HashEntry {
     int16_t eval = 0;
     TTKey tt_key = 0;
     uint8_t depth = 0;
-    uint8_t flags = HFNONE;
-    bool wasPv = false;
+    uint8_t wasPv_flags = HFNONE;
 });
 
 struct S_HashTable {

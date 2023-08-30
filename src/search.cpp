@@ -416,23 +416,24 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	const bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
 	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	const int ttmove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
+	const uint8_t ttFlag = tte.wasPv_flags & 3;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
 		&& ttScore != value_none
 		&& tte.depth >= depth) {
-		if ((tte.flags == HFUPPER && ttScore <= alpha)
-			|| (tte.flags == HFLOWER && ttScore >= beta)
-			|| (tte.flags == HFEXACT))
+		if ((ttFlag == HFUPPER && ttScore <= alpha)
+			|| (ttFlag == HFLOWER && ttScore >= beta)
+			|| (ttFlag == HFEXACT))
 			return ttScore;
 	}
 
 	if (ttHit)
-		ttpv = pv_node || tte.wasPv;
+		ttpv = pv_node || (tte.wasPv_flags >> 2);
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && (!ttHit || tte.flags == HFNONE) && !excludedMove)
+	if (depth >= 4 && (!ttHit || ttFlag == HFNONE) && !excludedMove)
 		depth--;
 
 	// If we are in check or searching a singular extension we avoid pruning before the move loop
@@ -448,9 +449,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		// We can also use the tt score as a more accurate form of eval
 		if (ttScore != value_none
-		    && ((tte.flags == HFUPPER && ttScore < eval)
-			|| (tte.flags == HFLOWER && ttScore > eval)
-			|| (tte.flags == HFEXACT)))
+		    && ((ttFlag == HFUPPER && ttScore < eval)
+			|| (ttFlag == HFLOWER && ttScore > eval)
+			|| (ttFlag == HFEXACT)))
 			eval = ttScore;
 	}
 	else {
@@ -603,7 +604,7 @@ moves_loop:
 				&& depth >= 7
 				&& move == ttmove
 				&& !excludedMove
-				&& (tte.flags & HFLOWER)
+				&& (ttFlag & HFLOWER)
 				&& abs(ttScore) < mate_score
 				&& tte.depth >= depth - 3) {
 				const int singularBeta = ttScore - depth;
@@ -777,16 +778,17 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	const bool TThit = ProbeHashEntry(pos, &tte);
 	const int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	const int ttmove = TThit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
+	const uint8_t ttFlag = tte.wasPv_flags & 3;
 	// If we found a value in the TT we can return it
 	if (!pv_node && ttScore != value_none) {
-		if ((tte.flags == HFUPPER && ttScore <= alpha)
-			|| (tte.flags == HFLOWER && ttScore >= beta)
-			|| (tte.flags == HFEXACT))
+		if ((ttFlag == HFUPPER && ttScore <= alpha)
+			|| (ttFlag == HFLOWER && ttScore >= beta)
+			|| (ttFlag == HFEXACT))
 			return ttScore;
 	}
 
 	if (TThit)
-		ttpv = pv_node || tte.wasPv;
+		ttpv = pv_node || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
 		ss->static_eval = eval = value_none;
@@ -796,9 +798,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	else if (TThit) {
 		ss->static_eval = eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		if (ttScore != value_none && 
-		    ((tte.flags == HFUPPER && ttScore < eval)
-			|| (tte.flags == HFLOWER && ttScore > eval)
-			|| (tte.flags == HFEXACT)))
+		    ((ttFlag == HFUPPER && ttScore < eval)
+			|| (ttFlag == HFLOWER && ttScore > eval)
+			|| (ttFlag == HFEXACT)))
 			eval = BestScore = ttScore;
 	}
 	// If we don't have any useful info in the TT just call Evalpos
