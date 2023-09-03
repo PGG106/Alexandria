@@ -824,8 +824,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	int bestmove = NOMOVE;
 
-	int moves_searched = 0;
-
 	// loop over moves within the movelist
 	for (int count = 0; count < move_list->count; count++) {
 		PickMove(move_list, count);
@@ -848,8 +846,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 		if (info->stopped)
 			return 0;
-
-		moves_searched++;
 
 		// If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
