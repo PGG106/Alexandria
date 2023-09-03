@@ -526,15 +526,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 				if (verification_score >= beta) return nmpScore;
 			}
 		}
-
-		// razoring
-		if (eval + 182 * depth <= alpha
-			&& depth < 5) {
-			int rscore = Quiescence<false>(alpha, beta, td, ss);
-			if (rscore < alpha)
-				return rscore;
-		}
-
 	}
 
 moves_loop:
