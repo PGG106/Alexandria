@@ -631,7 +631,7 @@ moves_loop:
 				else if (ttScore >= beta)
 					extension = -2;
 			}
-
+			// Check extension
 			else if (pos->checkers)
 				extension = 1;
 		}
