@@ -1,5 +1,6 @@
 #include "eval.h"
 #include "board.h"
+#include <algorithm>
 
 // if we don't have enough material to mate consider the position a draw
 bool MaterialDraw(const S_Board* pos) {
@@ -31,5 +32,7 @@ int EvalPosition(const S_Board* pos) {
     bool stm = (pos->side == WHITE);
     int eval = nnue.output(pos->accumulator, stm);
     eval = (eval * MaterialScale(pos)) / 1024;
+    // Clamp eval to avoid it somehow being a mate score
+    eval = std::clamp(eval, -mate_score + 1, mate_score - 1);
     return eval;
 }

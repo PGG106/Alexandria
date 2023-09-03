@@ -526,12 +526,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 				if (verification_score >= beta) return nmpScore;
 			}
 		}
-
-		// razoring
-		if (eval - 63 + 182 * depth <= alpha) {
-			return Quiescence<false>(alpha, beta, td, ss);
-		}
-
 	}
 
 moves_loop:
@@ -637,7 +631,7 @@ moves_loop:
 				else if (ttScore >= beta)
 					extension = -2;
 			}
-
+			// Check extension
 			else if (pos->checkers)
 				extension = 1;
 		}
@@ -740,7 +734,7 @@ moves_loop:
 		// We don't have any legal moves to make in the current postion
 		if (move_list->count == 0) {
 			// If we are veryfing a singular move return alpha else if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
-			BestScore = excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
+			return excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
 		}
 
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
@@ -830,15 +824,14 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	int bestmove = NOMOVE;
 
-	int moves_searched = 0;
-
 	// loop over moves within the movelist
 	for (int count = 0; count < move_list->count; count++) {
 		PickMove(move_list, count);
 		int move = move_list->moves[count].move;
 		int score = move_list->moves[count].score;
 		// See pruning
-		if (score < goodCaptureScore && moves_searched >= 1) {
+		if (score < goodCaptureScore 
+			&& BestScore > -mate_score) {
 			break;
 		}
 		ss->move = move;
@@ -853,8 +846,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 		if (info->stopped)
 			return 0;
-
-		moves_searched++;
 
 		// If the Score of the current move is the best we've found until now
 		if (Score > BestScore) {
@@ -874,7 +865,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	if (move_list->count == 0 && in_check) {
 		// return mate score (assuming closest distance to mating position)
-		BestScore = (-mate_value + ss->ply);
+		return (-mate_value + ss->ply);
 	}
 
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
