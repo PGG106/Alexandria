@@ -832,7 +832,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		int move = move_list->moves[count].move;
 		int score = move_list->moves[count].score;
 		// See pruning
-		if (score < goodCaptureScore && moves_searched >= 1) {
+		if (score < goodCaptureScore 
+			&& BestScore > -mate_score) {
 			break;
 		}
 		ss->move = move;
