@@ -755,7 +755,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	const bool in_check = pos->checkers;
 	// tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
-	int BestScore = -mate_score + ss->ply;
+	int BestScore;
 	bool ttpv = pv_node;
 
 	// check if more than Maxtime passed and we have to stop
