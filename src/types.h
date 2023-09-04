@@ -2,12 +2,12 @@
 
 #include <cstdint>
 
-#define NAME "Alexandria-4.0.26"
+#define NAME "Alexandria-4.0.27"
 
 // define bitboard data type
 using Bitboard = uint64_t;
 // define poskey data type
-using TTKey = uint16_t;
+using TTKey = uint32_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 
