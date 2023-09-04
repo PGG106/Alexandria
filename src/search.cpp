@@ -756,7 +756,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	int BestScore = -mate_score + ss->ply;
-	int eval;
 	bool ttpv = pv_node;
 
 	// check if more than Maxtime passed and we have to stop
@@ -791,25 +790,25 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		ttpv = pv_node || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
-		ss->static_eval = eval = value_none;
+		ss->static_eval = value_none;
 		BestScore = -MAXSCORE;
 	}
 	// If we have a ttHit with a valid eval use that
 	else if (TThit) {
-		ss->static_eval = eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+		ss->static_eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		if (ttScore != value_none && 
-		    ((ttFlag == HFUPPER && ttScore < eval)
-			|| (ttFlag == HFLOWER && ttScore > eval)
+		    ((ttFlag == HFUPPER && ttScore < ss->static_eval)
+			|| (ttFlag == HFLOWER && ttScore > ss->static_eval)
 			|| (ttFlag == HFEXACT)))
-			eval = BestScore = ttScore;
+			BestScore = ttScore;
 	}
 	// If we don't have any useful info in the TT just call Evalpos
 	else {
-		eval = BestScore = ss->static_eval = EvalPosition(pos);
+		BestScore = ss->static_eval = EvalPosition(pos);
 	}
 
 	// Stand pat
-	if (BestScore >= beta) return eval;
+	if (BestScore >= beta) return BestScore;
 	// Adjust alpha based on eval
 	alpha = std::max(alpha, BestScore);
 
