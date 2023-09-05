@@ -777,7 +777,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	const bool TThit = ProbeHashEntry(pos, &tte);
 	const int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	const int ttmove = TThit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-	const uint8_t ttFlag = tte.wasPv_flags & 3;
+	const uint8_t ttFlag = TThit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT we can return it
 	if (!pv_node && ttScore != value_none) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
