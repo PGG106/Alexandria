@@ -414,12 +414,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 
 	// Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
 	const bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
-	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
 	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
-		&& ttScore != value_none
+		&& ttScore != score_none
 		&& tte.depth >= depth) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
 			|| (ttFlag == HFLOWER && ttScore >= beta)
@@ -438,7 +438,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 
 	// If we are in check or searching a singular extension we avoid pruning before the move loop
 	if (in_check || excludedMove) {
-		ss->static_eval = eval = value_none;
+		ss->static_eval = eval = score_none;
 		improving = false;
 		goto moves_loop;
 	}
@@ -446,9 +446,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	// get an evaluation of the position:
 	if (ttHit) {
 		// If the value in the TT is valid we use that, otherwise we call the static evaluation function
-		eval = ss->static_eval = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
+		eval = ss->static_eval = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
 		// We can also use the tt score as a more accurate form of eval
-		if (ttScore != value_none
+		if (ttScore != score_none
 		    && ((ttFlag == HFUPPER && ttScore < eval)
 			|| (ttFlag == HFLOWER && ttScore > eval)
 			|| (ttFlag == HFEXACT)))
@@ -460,17 +460,17 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 		if (!excludedMove)
 		{
 	    	// Save the eval into the TT
-	    	StoreHashEntry(pos->posKey, NOMOVE, value_none, eval, HFNONE, 0, pv_node, ttpv);
+	    	StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pv_node, ttpv);
 		}
 	}
 
 	// improving is a very important modifier to a lot of heuristic, in short it just checks if our current static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
 	// We look for the irst ply we weren't in check in between 2 and 4 plies ago, if we found one we check if the static eval increased, if we don't we just assume we have improved
-	if ((ss - 2)->static_eval != value_none) {
+	if ((ss - 2)->static_eval != score_none) {
 		if (ss->static_eval > (ss - 2)->static_eval)
 			improving = true;
 	}
-	else if ((ss - 4)->static_eval != value_none) {
+	else if ((ss - 4)->static_eval != score_none) {
 		if (ss->static_eval > (ss - 4)->static_eval)
 			improving = true;
 	}
@@ -775,11 +775,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 	// ttHit is true if and only if we find something in the TT
 	const bool ttHit = ProbeHashEntry(pos, &tte);
-	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
 	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT we can return it
-	if (!pv_node && ttScore != value_none) {
+	if (!pv_node && ttScore != score_none) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
 			|| (ttFlag == HFLOWER && ttScore >= beta)
 			|| (ttFlag == HFEXACT))
@@ -790,13 +790,13 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		ttpv = pv_node || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
-		ss->static_eval = value_none;
+		ss->static_eval = score_none;
 		BestScore = -MAXSCORE;
 	}
 	// If we have a ttHit with a valid eval use that
 	else if (ttHit) {
-		ss->static_eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
-		if (ttScore != value_none && 
+		ss->static_eval = BestScore = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
+		if (ttScore != score_none && 
 		    ((ttFlag == HFUPPER && ttScore < ss->static_eval)
 			|| (ttFlag == HFLOWER && ttScore > ss->static_eval)
 			|| (ttFlag == HFEXACT)))
