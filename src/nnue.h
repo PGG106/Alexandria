@@ -4,7 +4,7 @@
 #include <array>
 
 constexpr int INPUT_WEIGHTS = 768;
-constexpr int HIDDEN_SIZE = 768;
+constexpr int HIDDEN_SIZE = 1024;
 
 struct Network {
     int16_t featureWeights[INPUT_WEIGHTS * HIDDEN_SIZE];
