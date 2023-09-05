@@ -406,8 +406,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 		}
 
 		// Mate distance pruning
-		alpha = std::max(alpha, -mate_value + ss->ply);
-		beta = std::min(beta, mate_value - ss->ply - 1);
+		alpha = std::max(alpha, -mate_score + ss->ply);
+		beta = std::min(beta, mate_score - ss->ply - 1);
 		if (alpha >= beta)
 			return alpha;
 	}
@@ -486,7 +486,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 		// Reverse futility pruning
 		if (depth < 9
 			&& eval - 66 * (depth - improving) >= beta
-			&& abs(eval) < mate_score)
+			&& abs(eval) < mate_found)
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
@@ -512,7 +512,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 			// fail-soft beta cutoff
 			if (nmpScore >= beta) {
 				// Don't return unproven mates but still return beta
-				if (nmpScore > mate_score) nmpScore = beta;
+				if (nmpScore > mate_found) nmpScore = beta;
 
 				// If we don't have to do a verification search just return the score
 				if (td->nmpPlies || depth < 15) {
@@ -566,7 +566,7 @@ moves_loop:
 		}
 		if (!root_node
 			&& BoardHasNonPawns(pos, pos->side)
-			&& BestScore > -mate_score) {
+			&& BestScore > -mate_found) {
 			// Movecount pruning: if we searched enough moves and we are not in check we skip the rest
 			if (!pv_node
 				&& !in_check
@@ -605,7 +605,7 @@ moves_loop:
 				&& move == ttMove
 				&& !excludedMove
 				&& (ttFlag & HFLOWER)
-				&& abs(ttScore) < mate_score
+				&& abs(ttScore) < mate_found
 				&& tte.depth >= depth - 3) {
 				const int singularBeta = ttScore - depth;
 				const int singularDepth = (depth - 1) / 2;
@@ -735,7 +735,7 @@ moves_loop:
 		// We don't have any legal moves to make in the current postion
 		if (move_list->count == 0) {
 			// If we are veryfing a singular move return alpha else if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
-			return excludedMove ? alpha : in_check ? (-mate_value + ss->ply) : 0;
+			return excludedMove ? alpha : in_check ? (-mate_score + ss->ply) : 0;
 		}
 
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
@@ -832,7 +832,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		int score = move_list->moves[count].score;
 		// See pruning
 		if (score < goodCaptureScore 
-			&& BestScore > -mate_score) {
+			&& BestScore > -mate_found) {
 			break;
 		}
 		ss->move = move;
@@ -866,7 +866,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	if (move_list->count == 0 && in_check) {
 		// return mate score (assuming closest distance to mating position)
-		return (-mate_value + ss->ply);
+		return (-mate_score + ss->ply);
 	}
 
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
