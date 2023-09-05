@@ -416,7 +416,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	const bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
 	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
 	const int ttmove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-	const uint8_t ttFlag = tte.wasPv_flags & 3;
+	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
 		&& ttScore != value_none
@@ -433,7 +433,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && (!ttHit || ttFlag == HFNONE) && !excludedMove)
+	if (depth >= 4 && ttFlag == HFNONE && !excludedMove)
 		depth--;
 
 	// If we are in check or searching a singular extension we avoid pruning before the move loop
