@@ -372,7 +372,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 	bool improving = false;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
-	bool ttpv = pvNode;
+	bool ttPv = pvNode;
 
 	const int excludedMove = ss->excludedMove;
 
@@ -428,7 +428,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 	}
 
 	if (ttHit)
-		ttpv = pvNode || (tte.wasPv_flags >> 2);
+		ttPv = pvNode || (tte.wasPv_flags >> 2);
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
@@ -460,7 +460,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 		if (!excludedMove)
 		{
 	    	// Save the eval into the TT
-	    	StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pvNode, ttpv);
+	    	StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pvNode, ttPv);
 		}
 	}
 
@@ -648,14 +648,14 @@ moves_loop:
 		// conditions to consider LMR
 		if (moves_searched >= 2 + 2 * pvNode && depth >= 3) {
 			int depth_reduction = 1;
-			if (isQuiet || !ttpv) {
+			if (isQuiet || !ttPv) {
 				// calculate by how much we should reduce the search depth
 				// Get base reduction value
 				depth_reduction = reductions[isQuiet][depth][moves_searched];
 				// Reduce more if we aren't improving
 				depth_reduction += !improving;
 				// Reduce more if we aren't in a pv node
-				depth_reduction += !ttpv;
+				depth_reduction += !ttPv;
 				// Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
 				depth_reduction -= std::clamp(movehistory / 16384, -2, 2);
 				// Fuck
@@ -741,7 +741,7 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode,ttpv);
+	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode,ttPv);
 	// return best score
 	return BestScore;
 }
@@ -756,7 +756,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	int BestScore;
-	bool ttpv = pvNode;
+	bool ttPv = pvNode;
 
 	// check if more than Maxtime passed and we have to stop
 	if (td->id == 0 && TimeOver(&td->info)) {
@@ -787,7 +787,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 
 	if (ttHit)
-		ttpv = pvNode || (tte.wasPv_flags >> 2);
+		ttPv = pvNode || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
 		ss->static_eval = score_none;
@@ -872,7 +872,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFLOWER : HFUPPER;
 
-	StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pvNode, ttpv);
+	StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pvNode, ttPv);
 
 	// return the best score we got
 	return BestScore;
