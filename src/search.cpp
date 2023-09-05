@@ -17,7 +17,7 @@
 #include <algorithm>
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const S_Board* pos, const bool pv_node) {
+static bool IsRepetition(const S_Board* pos, const bool pvNode) {
 	assert(pos->hisPly >= pos->fiftyMove);
 	int counter = 1;
 	// we only need to check for repetition the moves since the last 50mr reset
@@ -27,7 +27,7 @@ static bool IsRepetition(const S_Board* pos, const bool pv_node) {
 		if (pos->played_positions[index] == pos->posKey) {
 			// we found a repetition
 			counter++;
-			if(counter >= 2 + pv_node) return true;
+			if(counter >= 2 + pvNode) return true;
 		}
 
 	return false;
@@ -49,9 +49,9 @@ static bool Is50MrDraw(S_Board* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(S_Board* pos, const bool pv_node) {
+bool IsDraw(S_Board* pos, const bool pvNode) {
 	// if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
-	return IsRepetition(pos, pv_node)
+	return IsRepetition(pos, pvNode)
 		|| Is50MrDraw(pos)
 		|| MaterialDraw(pos);
 }
@@ -355,8 +355,8 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 }
 
 // Negamax alpha beta search
-template <bool pv_node>
-int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td, Search_stack* ss) {
+template <bool pvNode>
+int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, Search_stack* ss) {
 	// Extract data structures from ThreadData
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
@@ -372,7 +372,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	bool improving = false;
 	int Score = -MAXSCORE;
 	S_HashEntry tte;
-	bool ttpv = pv_node;
+	bool ttpv = pvNode;
 
 	const int excludedMove = ss->excludedMove;
 
@@ -384,7 +384,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 
 	// recursion escape condition
 	if (depth <= 0) {
-		return Quiescence<pv_node>(alpha, beta, td, ss);
+		return Quiescence<pvNode>(alpha, beta, td, ss);
 	}
 
 	// check if more than Maxtime passed and we have to stop
@@ -396,7 +396,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	// Check for early return conditions
 	if (!root_node) {
 		// If position is a draw return a randomized draw score to avoid 3-fold blindness
-		if (IsDraw(pos, pv_node)) {
+		if (IsDraw(pos, pvNode)) {
 			return 8 - (info->nodes & 7);
 		}
 
@@ -418,7 +418,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
-	if (!pv_node
+	if (!pvNode
 		&& ttScore != score_none
 		&& tte.depth >= depth) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
@@ -428,7 +428,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	}
 
 	if (ttHit)
-		ttpv = pv_node || (tte.wasPv_flags >> 2);
+		ttpv = pvNode || (tte.wasPv_flags >> 2);
 
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
@@ -460,7 +460,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 		if (!excludedMove)
 		{
 	    	// Save the eval into the TT
-	    	StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pv_node, ttpv);
+	    	StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pvNode, ttpv);
 		}
 	}
 
@@ -482,7 +482,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	(ss + 1)->searchKillers[0] = NOMOVE;
 	(ss + 1)->searchKillers[1] = NOMOVE;
 
-	if (!pv_node) {
+	if (!pvNode) {
 		// Reverse futility pruning
 		if (depth < 9
 			&& eval - 66 * (depth - improving) >= beta
@@ -502,7 +502,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 			int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
 			/* search moves with reduced depth to find beta cutoffs
 			   depth - 1 - R where R is a reduction limit */
-			int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, !cutnode, td, ss + 1);
+			int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, !cutNode, td, ss + 1);
 
 			TakeNullMove(pos);
 
@@ -568,7 +568,7 @@ moves_loop:
 			&& BoardHasNonPawns(pos, pos->side)
 			&& BestScore > -mate_found) {
 			// Movecount pruning: if we searched enough moves and we are not in check we skip the rest
-			if (!pv_node
+			if (!pvNode
 				&& !in_check
 				&& depth < 9
 				&& isQuiet
@@ -611,13 +611,13 @@ moves_loop:
 				const int singularDepth = (depth - 1) / 2;
 
 				ss->excludedMove = ttMove;
-				int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
+				int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutNode, td, ss);
 				ss->excludedMove = NOMOVE;
 
 				if (singularScore < singularBeta) {
 					extension = 1;
 					// Avoid search explosion by limiting the number of double extensions
-					if (!pv_node
+					if (!pvNode
 						&& singularScore < singularBeta - 17
 						&& ss->double_extensions <= 11) {
 						extension = 2;
@@ -646,7 +646,7 @@ moves_loop:
 		uint64_t nodes_before_search = info->nodes;
 		bool do_full_search = false;
 		// conditions to consider LMR
-		if (moves_searched >= 2 + 2 * pv_node && depth >= 3) {
+		if (moves_searched >= 2 + 2 * pvNode && depth >= 3) {
 			int depth_reduction = 1;
 			if (isQuiet || !ttpv) {
 				// calculate by how much we should reduce the search depth
@@ -659,7 +659,7 @@ moves_loop:
 				// Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
 				depth_reduction -= std::clamp(movehistory / 16384, -2, 2);
 				// Fuck
-				depth_reduction += 2 * cutnode;
+				depth_reduction += 2 * cutNode;
 				// Decrease the reduction for moves that give check
 				if (pos->checkers) depth_reduction -= 1;
 			}
@@ -672,14 +672,14 @@ moves_loop:
 		}
 		else {
 			// If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
-			do_full_search = !pv_node || moves_searched > 0;
+			do_full_search = !pvNode || moves_searched > 0;
 		}
 		// Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - 1, !cutnode, td, ss + 1);
+			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - 1, !cutNode, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
-		if (pv_node && (moves_searched == 0 || (Score > alpha && Score < beta)))
+		if (pvNode && (moves_searched == 0 || (Score > alpha && Score < beta)))
 			Score = -Negamax<true>(-beta, -alpha, newDepth - 1, false, td, ss + 1);
 
 		// take move back
@@ -741,13 +741,13 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pv_node,ttpv);
+	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode,ttpv);
 	// return best score
 	return BestScore;
 }
 
 // Quiescence search to avoid the horizon effect
-template <bool pv_node>
+template <bool pvNode>
 int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	S_Board* pos = &td->pos;
 	Search_data* sd = &td->ss;
@@ -756,7 +756,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// tte is an hashtable entry, it will store the values fetched from the TT
 	S_HashEntry tte;
 	int BestScore;
-	bool ttpv = pv_node;
+	bool ttpv = pvNode;
 
 	// check if more than Maxtime passed and we have to stop
 	if (td->id == 0 && TimeOver(&td->info)) {
@@ -765,7 +765,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 
 	// If position is a draw return a randomized draw score to avoid 3-fold blindness
-	if (IsDraw(pos, pv_node)) {
+	if (IsDraw(pos, pvNode)) {
 		return 1 - (info->nodes & 2);
 	}
 
@@ -779,7 +779,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT we can return it
-	if (!pv_node && ttScore != score_none) {
+	if (!pvNode && ttScore != score_none) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
 			|| (ttFlag == HFLOWER && ttScore >= beta)
 			|| (ttFlag == HFEXACT))
@@ -787,7 +787,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	}
 
 	if (ttHit)
-		ttpv = pv_node || (tte.wasPv_flags >> 2);
+		ttpv = pvNode || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
 		ss->static_eval = score_none;
@@ -840,7 +840,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		// increment nodes count
 		info->nodes++;
 		// Call Quiescence search recursively
-		int Score = -Quiescence<pv_node>(-beta, -alpha, td, ss + 1);
+		int Score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
@@ -872,7 +872,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	// Set the TT flag based on whether the BestScore is better than beta, for qsearch we never use the exact flag
 	int flag = BestScore >= beta ? HFLOWER : HFUPPER;
 
-	StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pv_node, ttpv);
+	StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, 0, pvNode, ttpv);
 
 	// return the best score we got
 	return BestScore;
