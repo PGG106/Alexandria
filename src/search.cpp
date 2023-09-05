@@ -415,7 +415,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutnode, S_ThreadData* td
 	// Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
 	const bool ttHit = excludedMove ? false : ProbeHashEntry(pos, &tte);
 	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
-	const int ttmove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
+	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
 	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
 	if (!pv_node
@@ -536,7 +536,7 @@ moves_loop:
 	// generate moves
 	GenerateMoves(move_list, pos);
 	// assign a score to every move based on how promising it is
-	score_moves(pos, sd, ss, move_list, ttmove);
+	score_moves(pos, sd, ss, move_list, ttMove);
 
 	// old value of alpha
 	int old_alpha = alpha;
@@ -602,7 +602,7 @@ moves_loop:
 			// Search extension
 			if (!root_node
 				&& depth >= 7
-				&& move == ttmove
+				&& move == ttMove
 				&& !excludedMove
 				&& (ttFlag & HFLOWER)
 				&& abs(ttScore) < mate_score
@@ -610,7 +610,7 @@ moves_loop:
 				const int singularBeta = ttScore - depth;
 				const int singularDepth = (depth - 1) / 2;
 
-				ss->excludedMove = ttmove;
+				ss->excludedMove = ttMove;
 				int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutnode, td, ss);
 				ss->excludedMove = NOMOVE;
 
@@ -773,11 +773,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 	if (ss->ply >= MAXDEPTH - 1) {
 		return in_check ? 0 : EvalPosition(pos);
 	}
-	// TThit is true if and only if we find something in the TT
-	const bool TThit = ProbeHashEntry(pos, &tte);
-	const int ttScore = TThit ? ScoreFromTT(tte.score, ss->ply) : value_none;
-	const int ttmove = TThit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-	const uint8_t ttFlag = TThit ? tte.wasPv_flags & 3 : HFNONE;
+	// ttHit is true if and only if we find something in the TT
+	const bool ttHit = ProbeHashEntry(pos, &tte);
+	const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : value_none;
+	const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
+	const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
 	// If we found a value in the TT we can return it
 	if (!pv_node && ttScore != value_none) {
 		if ((ttFlag == HFUPPER && ttScore <= alpha)
@@ -786,7 +786,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			return ttScore;
 	}
 
-	if (TThit)
+	if (ttHit)
 		ttpv = pv_node || (tte.wasPv_flags >> 2);
 
 	if (in_check) {
@@ -794,7 +794,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		BestScore = -MAXSCORE;
 	}
 	// If we have a ttHit with a valid eval use that
-	else if (TThit) {
+	else if (ttHit) {
 		ss->static_eval = BestScore = (tte.eval != value_none) ? tte.eval : EvalPosition(pos);
 		if (ttScore != value_none && 
 		    ((ttFlag == HFUPPER && ttScore < ss->static_eval)
@@ -821,7 +821,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 		GenerateMoves(move_list, pos);
 
 	// score the generated moves
-	score_moves(pos, sd, ss, move_list, ttmove);
+	score_moves(pos, sd, ss, move_list, ttMove);
 
 	int bestmove = NOMOVE;
 
