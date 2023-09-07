@@ -7,8 +7,8 @@
 
 PACK(struct S_HashEntry {
     int16_t move = NOMOVE;
-    int16_t score = 0;
-    int16_t eval = 0;
+    int16_t score = score_none;
+    int16_t eval = score_none;
     TTKey tt_key = 0;
     uint8_t depth = 0;
     uint8_t wasPv_flags = HFNONE;

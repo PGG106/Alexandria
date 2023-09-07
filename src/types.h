@@ -15,9 +15,9 @@ constexpr int MAXPLY = 128;
 constexpr int MAXDEPTH = MAXPLY;
 constexpr int Board_sq_num = 64;
 constexpr int NOMOVE = 0;
-constexpr int mate_value = 32000;
-constexpr int mate_score = mate_value - MAXPLY;
-constexpr int value_none = 32001;
+constexpr int mate_score = 32000;
+constexpr int mate_found = mate_score - MAXPLY;
+constexpr int score_none = 32001;
 constexpr int MAXSCORE = 32670;
 
 // board squares
