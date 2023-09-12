@@ -490,8 +490,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 			return eval;
 
 		// null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-		if (ss->static_eval >= beta
-			&& eval >= beta
+		if (eval >= ss->static_eval
+			&& ss->static_eval >= beta
 			&& ss->ply
 			&& (ss - 1)->move != NOMOVE
 			&& depth >= 3
