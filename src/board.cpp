@@ -217,19 +217,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
         pos->hisPly = 0;
     }
 
-    // loop over white pieces pos->pos->bitboards
     for (int piece = WP; piece <= WK; piece++)
         // populate white occupancy bitboard
         pos->occupancies[WHITE] |= pos->bitboards[piece];
 
-    // loop over black pieces pos->pos->bitboards
     for (int piece = BP; piece <= BK; piece++)
         // populate white occupancy bitboard
         pos->occupancies[BLACK] |= pos->bitboards[piece];
 
-    // init all pos->occupancies
-    pos->occupancies[BOTH] |= pos->occupancies[WHITE];
-    pos->occupancies[BOTH] |= pos->occupancies[BLACK];
+    pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 
     pos->posKey = GeneratePosKey(pos);
 
