@@ -265,7 +265,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options) {
 	// variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular pv table)
 	int score = 0;
-	int average_score = 0;
+	int average_score = score_none;
 
 	// Clean the position and the search info to start search from a clean state
 	ClearForSearch(td);
@@ -273,7 +273,8 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 	// Call the Negamax function in an iterative deepening framework
 	for (int current_depth = start_depth; current_depth <= final_depth; current_depth++) {
 		score = AspirationWindowSearch(average_score, current_depth, td);
-		average_score = (average_score + score) / 2;
+		if (average_score == score_none) average_score = score;
+		else average_score = (average_score + score) / 2;
 		// Only the main thread handles time related tasks
 		if (td->id == 0) {
 			// use the previous search to adjust some of the time management parameters
