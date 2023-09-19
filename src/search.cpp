@@ -639,7 +639,8 @@ moves_loop:
 				extension = 1;
 		}
 		// we adjust the search depth based on potential extensions
-		int newDepth = depth + extension;
+		int newDepth = depth - 1 + extension;
+		int depth_reduction = 0;
 		ss->move = move;
 		// Play the move
 		MakeMove(move, pos);
@@ -649,7 +650,6 @@ moves_loop:
 		bool do_full_search = false;
 		// conditions to consider LMR
 		if (moves_searched >= 2 + 2 * pvNode && depth >= 3) {
-			int depth_reduction = 1;
 			if (isQuiet || !ttPv) {
 				// calculate by how much we should reduce the search depth
 				// Get base reduction value
@@ -666,11 +666,11 @@ moves_loop:
 				if (pos->checkers) depth_reduction -= 1;
 			}
 			// adjust the reduction so that we can't drop into Qsearch and to prevent extensions
-			depth_reduction = std::min(depth - 1, std::max(depth_reduction, 1));
+			depth_reduction = std::clamp(depth_reduction, 0, newDepth - 1);
 			// search current move with reduced depth:
 			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - depth_reduction, true, td, ss + 1);
 			// if we failed high on a reduced node we'll search with a reduced window and full depth
-			do_full_search = Score > alpha && depth_reduction != 1;
+			do_full_search = Score > alpha && depth_reduction;
 		}
 		else {
 			// If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
@@ -678,11 +678,11 @@ moves_loop:
 		}
 		// Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
 		if (do_full_search)
-			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth - 1, !cutNode, td, ss + 1);
+			Score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !cutNode, td, ss + 1);
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
 		if (pvNode && (moves_searched == 0 || (Score > alpha && Score < beta)))
-			Score = -Negamax<true>(-beta, -alpha, newDepth - 1, false, td, ss + 1);
+			Score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
 		// take move back
 		UnmakeMove(move, pos);
