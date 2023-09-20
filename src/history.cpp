@@ -23,6 +23,11 @@ void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, cons
         if (ss->ply > 1) {
             sd->cont_hist[Piece((ss - 2)->move)][To((ss - 2)->move)]
                 [Piece(move)][To(move)] += scaled_bonus;
+
+            if (ss->ply > 3) {
+                sd->cont_hist[Piece((ss - 4)->move)][To((ss - 4)->move)]
+                    [Piece(move)][To(move)] += scaled_bonus;
+            }
         }
     }
 }
@@ -71,10 +76,13 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move) {
     int score = 0;
     int previous_move = (ss - 1)->move;
     int previous_previous_move = (ss - 2)->move;
+    int previous_previous_previous_previous_move = (ss - 4)->move;
     if (previous_move)
         score += sd->cont_hist[Piece(previous_move)][To(previous_move)][Piece(move)][To(move)];
     if (previous_previous_move)
         score += sd->cont_hist[Piece(previous_previous_move)][To(previous_previous_move)][Piece(move)][To(move)];
+    if (previous_previous_previous_previous_move)
+        score += sd->cont_hist[Piece(previous_previous_previous_previous_move)][To(previous_previous_previous_previous_move)][Piece(move)][To(move)];
     return score;
 }
 
