@@ -642,7 +642,7 @@ moves_loop:
 					extension = -2;
 			}
 			// Check extension
-			else if (pos->checkers)
+			else if (in_check)
 				extension = 1;
 		}
 		// we adjust the search depth based on potential extensions
