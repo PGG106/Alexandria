@@ -369,7 +369,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 	const bool in_check = pos->checkers;
 	S_MOVELIST quiet_moves;
 	quiet_moves.count = 0;
-	const int root_node = (ss->ply == 0);
+	const bool root_node = (ss->ply == 0);
 	int eval;
 	bool improving = false;
 	int Score = -MAXSCORE;
