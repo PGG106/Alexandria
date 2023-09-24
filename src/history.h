@@ -13,3 +13,5 @@ void UpdateCH(Search_data* sd, const Search_stack* ss, const int depth, const in
 [[nodiscard]] int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move);
 [[nodiscard]] int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss);
 void CleanHistories(Search_data* ss);
+// Updates the continuation history score for a single move
+void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus);
