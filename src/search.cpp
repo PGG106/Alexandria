@@ -696,7 +696,7 @@ moves_loop:
 		}
 
 		// PVS Search: Search the first move and every move that is within bounds with full depth and a full window
-		if (pvNode && (moves_searched == 0 || (Score > alpha && Score < beta)))
+		if (pvNode && (moves_searched == 0 || Score > alpha))
 			Score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
 		// take move back
