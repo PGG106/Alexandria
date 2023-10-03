@@ -399,7 +399,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 	if (!root_node) {
 		// If position is a draw return a randomized draw score to avoid 3-fold blindness
 		if (IsDraw(pos, pvNode)) {
-			return 8 - (info->nodes & 7);
+			return 0;
 		}
 
 		// If we reached maxdepth we return a static evaluation of the position
@@ -783,7 +783,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
 	// If position is a draw return a randomized draw score to avoid 3-fold blindness
 	if (IsDraw(pos, pvNode)) {
-		return 1 - (info->nodes & 2);
+		return 0;
 	}
 
 	// If we reached maxdepth we return a static evaluation of the position
