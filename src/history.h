@@ -6,9 +6,7 @@ struct Search_stack;
 struct S_MOVELIST;
 
 // Functions used to update the history heuristics
-void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves);
-void UpdateCapthist(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* noisy_moves);
-void UpdateCH(Search_data* sd, const Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves);
+void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves, const S_MOVELIST* noisy_moves);
 // Getters for the history heuristics
 [[nodiscard]] int GetHHScore(const S_Board* pos, const Search_data* sd, const int move);
 [[nodiscard]] int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move);

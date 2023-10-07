@@ -195,14 +195,14 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			// Good captures get played before any move that isn't a promotion or a TT move
 			if (SEE(pos, move, -107)) {
 				int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-				// Use mmv-lva to determine the best captures and use capthist to sort between moves with the same mvv-lva score
-				move_list->moves[i].score = mvv_lva[GetPieceType(Piece(move))][captured_piece] * 1000 + GetCapthistScore(pos, sd, move) + goodCaptureScore;
+				// Sort by most valuable victim and capthist, with LVA as tiebreaks
+				move_list->moves[i].score = mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move) + goodCaptureScore;
 			}
 			// Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
 			else {
 				int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-				// Use mmv-lva to determine the best captures and use capthist to sort between moves with the same mvv-lva score
-				move_list->moves[i].score = badCaptureScore + mvv_lva[GetPieceType(Piece(move))][captured_piece] * 1000 + GetCapthistScore(pos, sd, move);
+				// Sort by most valuable victim and capthist, with LVA as tiebreaks
+				move_list->moves[i].score = badCaptureScore + mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move);
 			}
 			continue;
 		}
@@ -744,13 +744,10 @@ moves_loop:
 						// Save CounterMoves
 						if (ss->ply >= 1)
 							sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
-						// Update the history heuristic based on the new best move
-						UpdateHH(pos, sd, depth, bestmove, &quiet_moves);
-						UpdateCH(sd, ss, depth, bestmove, &quiet_moves);
 					}
-					else {
-						UpdateCapthist(pos, sd, depth, bestmove, &noisy_moves);
-					}
+                    // Update the history heuristics based on the new best move
+					UpdateHistories(pos, sd, ss, depth, bestmove, &quiet_moves, &noisy_moves);
+
 					// node (move) fails high
 					break;
 				}
