@@ -195,14 +195,14 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
 			// Good captures get played before any move that isn't a promotion or a TT move
 			if (SEE(pos, move, -107)) {
 				int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-				move_list->moves[i].score =
-					mvv_lva[GetPieceType(Piece(move))][captured_piece] +
-					goodCaptureScore;
+				// Sort by most valuable victim and capthist, with LVA as tiebreaks
+				move_list->moves[i].score = mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move) + goodCaptureScore;
 			}
 			// Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
 			else {
 				int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-				move_list->moves[i].score = badCaptureScore + mvv_lva[GetPieceType(Piece(move))][captured_piece];
+				// Sort by most valuable victim and capthist, with LVA as tiebreaks
+				move_list->moves[i].score = badCaptureScore + mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move);
 			}
 			continue;
 		}
@@ -367,8 +367,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
 	// Initialize the node
 	const bool in_check = pos->checkers;
-	S_MOVELIST quiet_moves;
-	quiet_moves.count = 0;
 	const bool root_node = (ss->ply == 0);
 	int eval;
 	bool improving = false;
@@ -555,6 +553,10 @@ moves_loop:
 	int moves_searched = 0;
 	bool SkipQuiets = false;
 
+	// Keep track of the played quiet and noisy moves
+	S_MOVELIST quiet_moves, noisy_moves;
+	quiet_moves.count = 0, noisy_moves.count = 0;
+
 	// loop over moves within a movelist
 	for (int count = 0; count < move_list->count; count++) {
 		// take the most promising move that hasn't been played yet
@@ -572,6 +574,10 @@ moves_loop:
 		if (isQuiet) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
+		}
+		else {
+			noisy_moves.moves[noisy_moves.count].move = move;
+			noisy_moves.count++;
 		}
 		if (!root_node
 			&& BoardHasNonPawns(pos, pos->side)
@@ -738,10 +744,10 @@ moves_loop:
 						// Save CounterMoves
 						if (ss->ply >= 1)
 							sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
-						// Update the history heuristic based on the new best move
-						UpdateHH(pos, sd, depth, bestmove, &quiet_moves);
-						UpdateCH(sd, ss, depth, bestmove, &quiet_moves);
 					}
+                    // Update the history heuristics based on the new best move
+					UpdateHistories(pos, sd, ss, depth, bestmove, &quiet_moves, &noisy_moves);
+
 					// node (move) fails high
 					break;
 				}

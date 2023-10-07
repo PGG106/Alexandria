@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#define NAME "Alexandria-5.0.4"
+#define NAME "Alexandria-5.0.5"
 
 // define bitboard data type
 using Bitboard = uint64_t;
@@ -106,6 +106,6 @@ enum {
     killerMoveScore0 = 800000000,
     killerMoveScore1 = 700000000,
     counterMoveScore= 600000000,
-    badCaptureScore = -100000,
+    badCaptureScore = -1000000,
     badPromotionScore = -2000000001
 };
