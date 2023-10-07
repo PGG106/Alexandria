@@ -15,6 +15,8 @@ struct Search_stack {
 
 struct Search_data {
     int searchHistory[2][Board_sq_num][Board_sq_num] = {};
+    // Piece, To, Captured
+    int captHist[12][Board_sq_num][12] = {};
     int CounterMoves[Board_sq_num][Board_sq_num] = {};
     int cont_hist[12][64][12][64] = {};
 };

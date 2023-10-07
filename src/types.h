@@ -106,6 +106,6 @@ enum {
     killerMoveScore0 = 800000000,
     killerMoveScore1 = 700000000,
     counterMoveScore= 600000000,
-    badCaptureScore = -100000,
+    badCaptureScore = -1000000,
     badPromotionScore = -2000000001
 };

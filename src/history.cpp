@@ -4,12 +4,38 @@
 #include "move.h"
 #include "search.h"
 
+/* History updating works in the same way for all histories, we have 3 methods:
+updateScore: this updates the score of a specific entry of <History-name> type
+Update<History-name> : this performs a general update of the heuristic, giving the bonus to the best move and a malus to all the other
+GetScore: this is simply a getter for a specific entry of the history table
+*/
+
 void updateHHScore(const S_Board* pos, Search_data* ss, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     int scaled_bonus = bonus - GetHHScore(pos, ss, move) * std::abs(bonus) / 32768;
     // Update move score
     ss->searchHistory[pos->side][From(move)]
         [To(move)] += scaled_bonus;
+}
+
+// Update the history heuristics of all the quiet moves passed to the function
+void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
+    // define the history bonus
+    int bonus = std::min(16 * depth * depth, 1200);
+    // increase bestmove HH score
+    updateHHScore(pos, ss, bestmove, bonus);
+    // Loop through all the quiet moves
+    for (int i = 0; i < quiet_moves->count; i++) {
+        // For all the quiets moves that didn't cause a cut-off decrease the HH score
+        int move = quiet_moves->moves[i].move;
+        if (move == bestmove) continue;
+        updateHHScore(pos, ss, move, -bonus);
+    }
+}
+
+// Returns the history score of a move
+int GetHHScore(const S_Board* pos, const Search_data* sd, const int move) {
+    return sd->searchHistory[pos->side][From(move)][To(move)];
 }
 
 void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
@@ -33,21 +59,6 @@ void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, cons
 }
 
 // Update the history heuristics of all the quiet moves passed to the function
-void UpdateHH(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
-    // define the history bonus
-    int bonus = std::min(16 * depth * depth, 1200);
-    // increase bestmove HH score
-    updateHHScore(pos, ss, bestmove, bonus);
-    // Loop through all the quiet moves
-    for (int i = 0; i < quiet_moves->count; i++) {
-        // For all the quiets moves that didn't cause a cut-off decrease the HH score
-        int move = quiet_moves->moves[i].move;
-        if (move == bestmove) continue;
-        updateHHScore(pos, ss, move, -bonus);
-    }
-}
-
-// Update the history heuristics of all the quiet moves passed to the function
 void UpdateCH(Search_data* sd, const Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves) {
     // define the conthist bonus
     int bonus = std::min(16 * depth * depth, 1200);
@@ -60,15 +71,6 @@ void UpdateCH(Search_data* sd, const Search_stack* ss, const int depth, const in
         if (move == bestmove) continue;
         updateCHScore(sd, ss, move, -bonus);
     }
-}
-
-// Returns the history score of a move
-int GetHHScore(const S_Board* pos, const Search_data* sd, const int move) {
-    return sd->searchHistory[pos->side][From(move)][To(move)];
-}
-
-int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
-    return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
 }
 
 // Returns the history score of a move
@@ -86,8 +88,38 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move) {
     return score;
 }
 
-// Resets the history table
+void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
+    // Scale bonus to fix it in a [-32768;32768] range
+    int scaled_bonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / 32768;
+    // Update move score
+    sd->captHist[Piece(move)][To(move)][pos->PieceOn(To(move))] += scaled_bonus;
+}
+
+// Update the history heuristics of all the quiet moves passed to the function
+void UpdateCapthist(const S_Board* pos, Search_data* ss, const int depth, const int bestmove, const S_MOVELIST* noisy_moves) {
+    // define the history bonus
+    int bonus = std::min(16 * depth * depth, 1200);
+    updateCapthistScore(pos, ss, bestmove, bonus);
+    // Loop through all the quiet moves
+    for (int i = 0; i < noisy_moves->count; i++) {
+        int move = noisy_moves->moves[i].move;
+        if (move == bestmove) continue;
+        updateCapthistScore(pos, ss, move, -bonus);
+    }
+}
+
+// Returns the history score of a move
+int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move) {
+    return sd->captHist[Piece(move)][To(move)][pos->PieceOn(To(move))];
+}
+
+int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
+    return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
+}
+
+// Resets the history tables
 void CleanHistories(Search_data* ss) {
     std::memset(ss->searchHistory, 0, sizeof(ss->searchHistory));
     std::memset(ss->cont_hist, 0, sizeof(ss->cont_hist));
+    std::memset(ss->captHist, 0, sizeof(ss->captHist));
 }
