@@ -575,7 +575,7 @@ moves_loop:
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
-		else {
+		else if(IsCapture(move)){
 			noisy_moves.moves[noisy_moves.count].move = move;
 			noisy_moves.count++;
 		}

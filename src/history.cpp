@@ -67,7 +67,7 @@ void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, cons
     else {
         updateCapthistScore(pos, sd, bestmove, bonus);
     }
-    // Loop through all the quiet moves
+    // For all the noisy moves that didn't cause a cut-off, even is the bestmove wasn't a noisy move, decrease the capthist score
     for (int i = 0; i < noisy_moves->count; i++) {
         int move = noisy_moves->moves[i].move;
         if (move == bestmove) continue;
