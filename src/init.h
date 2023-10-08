@@ -15,7 +15,7 @@ void InitNewGame(S_ThreadData* td);
 void InitLeapersAttacks();
 
 // init slider piece's attack tables
-void InitSlidersAttacks(const int bishop);
+void InitSlidersAttacks();
 
 void InitAll();
 

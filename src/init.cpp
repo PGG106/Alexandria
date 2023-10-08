@@ -86,29 +86,25 @@ void InitLeapersAttacks() {
 }
 
 // init slider piece's attack tables
-void InitSlidersAttacks(const int bishop) {
-    // loop over 64 board squares
+void InitSlidersAttacks() {
+    // Init bishop attacks
     for (int square = 0; square < Board_sq_num; square++) {
-        // init bishop & rook masks
         bishop_masks[square] = MaskBishopAttacks(square);
-        rook_masks[square] = MaskRookAttacks(square);
 
         // init current mask
-        Bitboard attack_mask = bishop ? bishop_masks[square] : rook_masks[square];
+        Bitboard bishop_mask = bishop_masks[square];
 
         // init relevant occupancy bit count
-        int relevant_bits_count = CountBits(attack_mask);
+        int relevant_bits_count = CountBits(bishop_mask);
 
         // init occupancy indicies
         int occupancy_indicies = (1 << relevant_bits_count);
 
         // loop over occupancy indicies
         for (int index = 0; index < occupancy_indicies; index++) {
-            // bishop
-            if (bishop) {
                 // init current occupancy variation
                 Bitboard occupancy =
-                    SetOccupancy(index, relevant_bits_count, attack_mask);
+                    SetOccupancy(index, relevant_bits_count, bishop_mask);
 
                 // init magic index
                 uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >>
@@ -117,22 +113,35 @@ void InitSlidersAttacks(const int bishop) {
                 // init bishop attacks
                 bishop_attacks[square][magic_index] =
                     BishopAttacksOnTheFly(square, occupancy);
-            }
+        }
+    }
+    // Init rook attacks
+    for (int square = 0; square < Board_sq_num; square++) {
+        // init rook masks
+        rook_masks[square] = MaskRookAttacks(square);
 
-            // rook
-            else {
-                // init current occupancy variation
-                Bitboard occupancy =
-                    SetOccupancy(index, relevant_bits_count, attack_mask);
+        // init current mask
+        Bitboard rook_mask = rook_masks[square];
 
-                // init magic index
-                uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
-                    (64 - rook_relevant_bits[square]);
+        // init relevant occupancy bit count
+        int relevant_bits_count = CountBits(rook_mask);
 
-                // init rook attacks
-                rook_attacks[square][magic_index] =
-                    RookAttacksOnTheFly(square, occupancy);
-            }
+        // init occupancy indicies
+        int occupancy_indicies = (1 << relevant_bits_count);
+
+        // loop over occupancy indicies
+        for (int index = 0; index < occupancy_indicies; index++) {
+            // init current occupancy variation
+            Bitboard occupancy =
+                SetOccupancy(index, relevant_bits_count, rook_mask);
+
+            // init magic index
+            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
+                (64 - rook_relevant_bits[square]);
+
+            // init rook attacks
+            rook_attacks[square][magic_index] =
+                RookAttacksOnTheFly(square, occupancy);
         }
     }
 }
@@ -263,8 +272,7 @@ void InitAll() {
     InitLeapersAttacks();
 
     // init slider pieces attacks
-    InitSlidersAttacks(bishop);
-    InitSlidersAttacks(rook);
+    InitSlidersAttacks();
     initializeLookupTables();
     initHashKeys();
     InitReductions();

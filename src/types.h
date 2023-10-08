@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#define NAME "Alexandria-5.0.6"
+#define NAME "Alexandria-5.0.7"
 
 // define bitboard data type
 using Bitboard = uint64_t;
@@ -68,12 +68,6 @@ enum {
     WHITE,
     BLACK,
     BOTH
-};
-
-// bishop and rook
-enum {
-    rook,
-    bishop
 };
 
 enum {
