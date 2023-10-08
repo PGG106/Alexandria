@@ -568,14 +568,14 @@ moves_loop:
 
 		if (isQuiet && SkipQuiets) continue;
 
-		int movehistory = isQuiet ? GetHistoryScore(pos, sd, move, ss) : 0;
+		int movehistory = isQuiet ? GetHistoryScore(pos, sd, move, ss) : GetCapthistScore(pos, sd, move);
 
 		// if the move isn't a quiet move we update the quiet moves list and counter
 		if (isQuiet) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
-		else if(IsCapture(move)){
+		else {
 			noisy_moves.moves[noisy_moves.count].move = move;
 			noisy_moves.count++;
 		}

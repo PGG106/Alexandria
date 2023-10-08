@@ -41,9 +41,12 @@ void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, cons
 void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     int scaled_bonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / 32768;
-    int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+    int captured_piece = isEnpassant(move) ? PAWN : pos->PieceOn(To(move));
+    if (captured_piece == EMPTY)
+        captured_piece = PAWN;
+    int captured_piece_type = GetPieceType(captured_piece);
     // Update move score
-    sd->captHist[Piece(move)][To(move)][captured_piece] += scaled_bonus;
+    sd->captHist[Piece(move)][To(move)][captured_piece_type] += scaled_bonus;
 }
 
 // Update all histories
@@ -97,8 +100,11 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move) {
 
 // Returns the history score of a move
 int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move) {
-    int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-    return sd->captHist[Piece(move)][To(move)][captured_piece];
+    int captured_piece = isEnpassant(move) ? PAWN : pos->PieceOn(To(move));
+    if (captured_piece == EMPTY)
+        captured_piece = PAWN;
+    int captured_piece_type = GetPieceType(captured_piece);
+    return sd->captHist[Piece(move)][To(move)][captured_piece_type];
 }
 
 int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
