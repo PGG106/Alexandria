@@ -568,14 +568,14 @@ moves_loop:
 
 		if (isQuiet && SkipQuiets) continue;
 
-		int movehistory = isQuiet ? GetHistoryScore(pos, sd, move, ss) : 0;
+		int movehistory = GetHistoryScore(pos, sd, move, ss);
 
 		// if the move isn't a quiet move we update the quiet moves list and counter
 		if (isQuiet) {
 			quiet_moves.moves[quiet_moves.count].move = move;
 			quiet_moves.count++;
 		}
-		else if(IsCapture(move)){
+		else {
 			noisy_moves.moves[noisy_moves.count].move = move;
 			noisy_moves.count++;
 		}
@@ -764,7 +764,7 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode,ttPv);
+	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode, ttPv);
 	// return best score
 	return BestScore;
 }
