@@ -764,7 +764,7 @@ moves_loop:
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode,ttPv);
+	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode, ttPv);
 	// return best score
 	return BestScore;
 }
