@@ -568,7 +568,7 @@ moves_loop:
 
 		if (isQuiet && SkipQuiets) continue;
 
-		int movehistory = isQuiet ? GetHistoryScore(pos, sd, move, ss) : GetCapthistScore(pos, sd, move);
+		int movehistory = GetHistoryScore(pos, sd, move, ss);
 
 		// if the move isn't a quiet move we update the quiet moves list and counter
 		if (isQuiet) {

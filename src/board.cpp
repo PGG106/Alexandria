@@ -326,6 +326,8 @@ int GetPiece(const int piecetype, const int color) {
 
 // Returns the piecetype of a piece
 int GetPieceType(const int piece) {
+    if (piece == EMPTY)
+        return EMPTY;
     return PieceType[piece];
 }
 
