@@ -433,7 +433,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 	// IIR by Ed Schroder (That i find out about in Berserk source code)
 	// http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
 	// https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-	if (depth >= 4 && ttFlag == HFNONE && !excludedMove)
+	if (cutNode && depth >= 4 && ttFlag == HFNONE && !excludedMove)
 		depth--;
 
 	// If we are in check or searching a singular extension we avoid pruning before the move loop
