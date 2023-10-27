@@ -14,6 +14,7 @@
 #include "board.h"
 #include "movegen.h"
 #include <iostream>
+#include "tune.h"
 
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& move_string, S_Board* pos) {
@@ -273,7 +274,13 @@ void UciLoop(char** argv) {
                 uci_options->Threads = std::stoi(tokens.at(4));
                 std::cout << "Set Threads to " << uci_options->Threads << "\n";
             }
+#ifdef TUNE
+            else {
+                updateTuneVariable(tokens.at(2), std::stoi(tokens.at(4)));
+        }
+#else
             else std::cout << "Unknown command: " << input << std::endl;
+#endif
         }
 
         // parse UCI "isready" command
@@ -323,15 +330,32 @@ void UciLoop(char** argv) {
             std::cout << "id author PGG and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 8192 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
-            // printf("option name MultiPV type spin default 1 min 1 max 1\n");
+#ifdef TUNE
+            for (tunable_param param : tunable_params) {
+                std::cout << "option name " + param.name;
+                std::cout << " type spin default ";
+                std::cout << param.curr_value;
+                std::cout << " min ";
+                std::cout << param.min_value;
+                std::cout << " max ";
+                std::cout << param.max_value << "\n";
+            }
+#endif
             std::cout << "uciok\n";
             // Set uci compatible output mode
             print_uci = true;
         }
 
-        // parse UCI "uci" command
+        // print board
         else if (input == "d") {
             PrintBoard(&td->pos);
+        }
+
+        // spsa info dump
+        else if (input == "tune") {
+            for (tunable_param param : tunable_params) {
+                std::cout << param << "\n";
+            }
         }
 
         else if (input == "eval") {// call parse position function
