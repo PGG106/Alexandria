@@ -358,13 +358,6 @@ void UciLoop(char** argv) {
             }
         }
 
-        else if (input == "debug") {
-            for (auto& it : tuned_values) {
-                // Do stuff
-                cout << it.first;
-            }
-        }
-
         else if (input == "eval") {// call parse position function
             if (!parsed_position) {
                 ParsePosition("position startpos", &td->pos);

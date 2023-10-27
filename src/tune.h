@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we use the addTune in initTunables, this will do 2 things
