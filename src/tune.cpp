@@ -9,7 +9,7 @@ void addTune(std::string name, std::string type, int curr_value, int min_value, 
 }
 
 void InitTunable() {
-	addTune("lmrdivisor", "int", 12, 11, 17, 22.1);
+	//addTune("lmrdivisor", "int", 12, 11, 17, 22.1);
 }
 
 void updateTuneVariable(std::string tune_variable_name, int value)

@@ -8,7 +8,7 @@ How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
 1) create a "tunable param" object with all the info we have to feed to the OB spsa input, this info can be dumped using the uci command "tune"
 2) add the parameter to an unordered map.
-To use said variable we simply have to swap out the previous magic number with the map entry.
+To use said variable we simply have to swap out the previous magic number with the map entry (tuned_values[<parameter name>]).
 The creation of the uci boilerplate strings and the handling of setoption is automated.
 */
 

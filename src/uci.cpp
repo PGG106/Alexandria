@@ -346,12 +346,12 @@ void UciLoop(char** argv) {
             print_uci = true;
         }
 
-        // parse UCI "uci" command
+        // print board
         else if (input == "d") {
             PrintBoard(&td->pos);
         }
 
-        // parse UCI "uci" command
+        // spsa info dump
         else if (input == "tune") {
             for (tunable_param param : tunable_params) {
                 std::cout << param << "\n";
