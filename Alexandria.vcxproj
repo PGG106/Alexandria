@@ -176,6 +176,7 @@
     <ClInclude Include="src\threads.h" />
     <ClInclude Include="src\time_manager.h" />
     <ClInclude Include="src\ttable.h" />
+    <ClInclude Include="src\tune.h" />
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\uci.h" />
     <ClInclude Include="src\test_main.h" />
@@ -204,6 +205,7 @@
     <ClCompile Include="src\threads.cpp" />
     <ClCompile Include="src\time_manager.cpp" />
     <ClCompile Include="src\ttable.cpp" />
+    <ClCompile Include="src\tune.cpp" />
     <ClCompile Include="src\uci.cpp" />
     <ClCompile Include="src\test_main.cpp" />
   </ItemGroup>
