@@ -4,7 +4,7 @@ std::vector<tunable_param> tunable_params;
 std::unordered_map<std::string, int> tuned_values;
 
 void addTune(std::string name, std::string type, int curr_value, int min_value, int max_value, float C_end) {
-	tunable_params.push_back(tunable_param(name, type, curr_value, min_value, max_value, C_end));
+	tunable_params.emplace_back(name, type, curr_value, min_value, max_value, C_end);
 	tuned_values.emplace(name, curr_value);
 }
 
