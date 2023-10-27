@@ -12,6 +12,7 @@ To use said variable we simply have to swap out the previous magic number with t
 The creation of the uci boilerplate strings and the handling of setoption is automated.
 */
 
+// This class acts as a fancy string constructor, it's used just to store all the info OB wants for a tune
 class tunable_param {
 public:
 	std::string name;
@@ -43,8 +44,10 @@ inline std::ostream& operator<<(std::ostream& os, const tunable_param& param)
 	os << param.R_end;
 	return os;
 }
-
+// This contains all the tunable parameters informations, the information in here is never altered except for when a new entry gets added
 extern std::vector<tunable_param> tunable_params;
+// This is the map where the actual values of the variables being tuned are stored
 extern std::unordered_map<std::string, int> tuned_values;
 void InitTunable();
+// Handles the update of a variable being tuned
 void updateTuneVariable(std::string tune_variable_name, int value);
