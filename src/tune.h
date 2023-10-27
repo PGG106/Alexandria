@@ -46,6 +46,6 @@ inline std::ostream& operator<<(std::ostream& os, const tunable_param& param)
 }
 
 extern std::vector<tunable_param> tunable_params;
-extern int tune1;
+extern std::unordered_map<std::string, int> tuned_values;
 void InitTunable();
 void updateTuneVariable(std::string tune_variable_name, int value);
