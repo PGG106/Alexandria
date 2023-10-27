@@ -280,7 +280,7 @@ void UciLoop(char** argv) {
         }
 #else
             else std::cout << "Unknown command: " << input << std::endl;
-#endif // DEBUG
+#endif
         }
 
         // parse UCI "isready" command
