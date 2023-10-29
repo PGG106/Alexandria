@@ -730,7 +730,6 @@ moves_loop:
 			// found a better move
 			if (Score > alpha) {
 				bestmove = move;
-				alpha = Score;
 				// Update the pv table
 				pv_table->pvArray[ss->ply][ss->ply] = move;
 				for (int next_ply = ss->ply + 1; next_ply < pv_table->pvLength[ss->ply + 1]; next_ply++) {
@@ -753,11 +752,13 @@ moves_loop:
 							sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
 					}
                     // Update the history heuristics based on the new best move
-					UpdateHistories(pos, sd, ss, depth, bestmove, &quiet_moves, &noisy_moves);
+					UpdateHistories(pos, sd, ss, depth + (eval <= alpha), bestmove, &quiet_moves, &noisy_moves);
 
 					// node (move) fails high
 					break;
 				}
+
+				alpha = Score;
 			}
 		}
 	}
