@@ -5,6 +5,8 @@
 #include "movegen.h"
 #include "misc.h"
 #include "uci.h"
+#include "attack.h"
+#include "magic.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
@@ -317,6 +319,58 @@ void parse_moves(const std::string& moves, S_Board* pos) {
 // Returns the bitboard of a piecetype
 Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
     return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
+}
+
+Bitboard getThreats(const S_Board* pos, const int side) {
+    // Take the occupancies of both positions, encoding where all the pieces on the board reside
+    Bitboard occ = pos->Occupancy(BOTH);
+    uint64_t threats = 0;
+
+    // Get Pawn attacks
+    Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
+    while (pawns) {
+        int source_square = GetLsbIndex(pawns);
+        threats |= pawn_attacks[side][source_square];
+        pop_bit(pawns, source_square);
+    }
+
+    // Get Knight attacks
+    Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
+    while (knights) {
+        int source_square = GetLsbIndex(knights);
+        threats |= knight_attacks[source_square];
+        pop_bit(knights, source_square);
+    }
+
+    // Get Bishop attacks
+    Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
+    while (bishops) {
+        int source_square = GetLsbIndex(bishops);
+        threats |= GetBishopAttacks(source_square, occ);
+        pop_bit(bishops, source_square);
+    }
+    // Get Rook attacks
+    Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
+    while (rooks) {
+        int source_square = GetLsbIndex(rooks);
+        threats |= GetRookAttacks(source_square, occ);
+        pop_bit(rooks, source_square);
+    }
+    // Get Queen attacks
+    Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
+    while (queens) {
+        int source_square = GetLsbIndex(queens);
+        threats |= GetQueenAttacks(source_square, occ);
+        pop_bit(queens, source_square);
+    }
+    // Get King attacks
+    Bitboard king = pos->GetPieceColorBB(KING, pos->side);
+    while (king) {
+        int source_square = GetLsbIndex(king);
+        threats |= king_attacks[source_square];
+        pop_bit(king, source_square);
+    }
+    return threats;
 }
 
 // Return a piece based on the piecetype and the color

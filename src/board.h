@@ -231,6 +231,8 @@ void ResetInfo(S_SearchINFO* info);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 [[nodiscard]] Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
+// Returns the threats bitboard of the pieces of <side> color
+[[nodiscard]] Bitboard getThreats(const S_Board* pos, const int side);
 // Return a piece based on the type and the color
 [[nodiscard]] int GetPiece(const int piecetype, const int color);
 // Returns the piece_type of a piece
