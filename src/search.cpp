@@ -703,7 +703,7 @@ moves_loop:
 			if (depth_reduction)
 			{
 				// define the conthist bonus
-				int bonus = std::min(16 * depth * depth, 1200);
+				int bonus = std::min(16 * (depth + 1) * (depth + 1), 1200);
 				updateCHScore(sd, ss, move, Score > alpha ? bonus : -bonus);
             }
 		}
@@ -730,7 +730,6 @@ moves_loop:
 			// found a better move
 			if (Score > alpha) {
 				bestmove = move;
-				alpha = Score;
 				// Update the pv table
 				pv_table->pvArray[ss->ply][ss->ply] = move;
 				for (int next_ply = ss->ply + 1; next_ply < pv_table->pvLength[ss->ply + 1]; next_ply++) {
@@ -758,6 +757,8 @@ moves_loop:
 					// node (move) fails high
 					break;
 				}
+
+				alpha = Score;
 			}
 		}
 	}
