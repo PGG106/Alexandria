@@ -757,7 +757,7 @@ moves_loop:
 					// node (move) fails high
 					break;
 				}
-
+				// Update alpha iff alpha < beta
 				alpha = Score;
 			}
 		}
@@ -884,13 +884,16 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			// Update  what the best score is
 			BestScore = Score;
 
-			// if the Score is better than alpha update alpha and our best move
+			// if the Score is better than alpha update our best move
 			if (Score > alpha) {
-				alpha = Score;
 				bestmove = move;
 
 				// if the Score is better than or equal to beta break the loop because we failed high
-				if (Score >= beta) break;
+				if (Score >= beta) {
+					break;
+				}
+				// Update alpha iff alpha < beta
+				alpha = Score;
 			}
 		}
 	}
