@@ -104,8 +104,11 @@ void ParsePosition(const std::string& command, S_Board* pos) {
     // if there are moves to be played in the fen play them
     if (command.find("moves") != std::string::npos) {
         int string_start = command.find("moves") + 6;
-        std::string moves_substr = command.substr(string_start, std::string::npos);
-        parse_moves(moves_substr, pos);
+        // Avoid looking for a moves that doesn't exist in the case of "position startpos moves <blank>" (Needed for Scid support)
+        if (!(string_start > command.length())) {
+            std::string moves_substr = command.substr(string_start, std::string::npos);
+            parse_moves(moves_substr, pos);
+        }
     }
 
     // Update accumulator state to reflect the new position
