@@ -545,8 +545,6 @@ moves_loop:
 	// assign a score to every move based on how promising it is
 	score_moves(pos, sd, ss, move_list, ttMove);
 
-	// old value of alpha
-	int old_alpha = alpha;
 	int BestScore = -MAXSCORE;
 	int bestmove = NOMOVE;
 
@@ -770,7 +768,7 @@ moves_loop:
 		}
 
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
-	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
+	int flag = BestScore >= beta ? HFLOWER : (pvNode && bestmove) ? HFEXACT : HFUPPER;
 
 	if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(BestScore, ss->ply), ss->static_eval, flag, depth, pvNode, ttPv);
 	// return best score
