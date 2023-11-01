@@ -39,7 +39,7 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
         tte->move = move;
 
     // Overwrite less valuable entries (cheapest checks first)
-    if (flags == HFEXACT || static_cast<TTKey>(key) != tte->tt_key || depth + 11 + 2 * pv > tte->depth) {
+    if (flags == HFEXACT || static_cast<TTKey>(key) != tte->tt_key || depth + 5 + 2 * pv > tte->depth) {
         tte->tt_key = static_cast<TTKey>(key);
         tte->wasPv_flags = static_cast<uint8_t>(flags + (wasPv << 2));
         tte->score = static_cast<int16_t>(score);
