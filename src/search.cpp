@@ -868,6 +868,19 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			break;
 		}
 		ss->move = move;
+
+		// Futility pruning. If static eval is far below alpha, only search moves that win material.
+		if (BestScore > -mate_found 
+			&& !in_check 
+			&& BoardHasNonPawns(pos, pos->side) 
+			&& !isPromo(move) 
+			&& !isEnpassant(move)) {
+				int futilityBase = ss->static_eval + 256;
+				if (futilityBase <= alpha && !SEE(pos, move, 1)) {
+					BestScore = std::max(futilityBase, BestScore);
+					continue;
+				}
+			}
 		MakeMove(move, pos);
 		// increment nodes count
 		info->nodes++;
