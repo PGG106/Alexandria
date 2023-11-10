@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#define NAME "Alexandria-5.0.18"
+#define NAME "Alexandria-5.0.19"
 
 // define bitboard data type
 using Bitboard = uint64_t;

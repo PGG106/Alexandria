@@ -764,10 +764,10 @@ moves_loop:
 	}
 
 		// We don't have any legal moves to make in the current postion
-		if (move_list->count == 0) {
-			// If we are veryfing a singular move return alpha else if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
-			return excludedMove ? alpha : in_check ? (-mate_score + ss->ply) : 0;
-		}
+	if (move_list->count == 0) {
+		// If we are veryfing a singular move return alpha else if the king is in check return mating score (assuming closest distance to mating position) otherwise return stalemate
+		return excludedMove ? alpha : in_check ? (-mate_score + ss->ply) : 0;
+	}
 
 	// Set the TT flag based on whether the BestScore is better than beta and if it's not based on if we changed alpha or not
 	int flag = BestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
