@@ -277,8 +277,9 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 		else average_score = (average_score + score) / 2;
 		// Only the main thread handles time related tasks
 		if (td->id == 0) {
-			// use the previous search to adjust some of the time management parameters
-			if (td->RootDepth > 7) {
+			// use the previous search to adjust some of the time management parameters, do not scale movetime time controls
+			if (td->RootDepth > 7
+				&& td->info.timeset) {
 				ScaleTm(td);
 			}
 
