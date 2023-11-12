@@ -875,7 +875,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 			&& BoardHasNonPawns(pos, pos->side) 
 			&& !isPromo(move) 
 			&& !isEnpassant(move)) {
-				int futilityBase = ss->static_eval + 256;
+				int futilityBase = ss->static_eval + 192;
 				if (futilityBase <= alpha && !SEE(pos, move, 1)) {
 					BestScore = std::max(futilityBase, BestScore);
 					continue;
