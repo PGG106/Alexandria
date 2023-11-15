@@ -130,7 +130,6 @@ void MakeMove(const int move, S_Board* pos) {
     // handle double pawn push
     if (doublePush) {
         pos->enPas = targetSquare + NORTH;
-
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -206,16 +205,14 @@ void MakeMoveLight(const int move, S_Board* pos) {
     // handle enpassant captures
     if (enpass) {
         ClearPiece(GetPiece(PAWN, pos->side ^ 1), targetSquare + NORTH, pos);
-
+        // a capture was played so reset 50 move rule counter
         pos->fiftyMove = 0;
     }
 
     // handling capture moves
     else if (capture) {
-        int piececap = pos->pieces[targetSquare];
-
-        ClearPiece(piececap, targetSquare, pos);
-
+        const int pieceCap = pos->pieces[targetSquare];
+        ClearPiece(pieceCap, targetSquare, pos);
         // a capture was played so reset 50 move rule counter
         pos->fiftyMove = 0;
     }

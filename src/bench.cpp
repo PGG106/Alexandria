@@ -73,11 +73,8 @@ void StartBench() {
     auto start = std::chrono::steady_clock::now();
     for (int positions = 0; positions < 52; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
-
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
-
         RootSearch(14, td, uci_options);
-
         totalNodes += td->info.nodes;
     }
     auto end = std::chrono::steady_clock::now();
@@ -91,9 +88,7 @@ void BenchInference() {
     // init all
     InitAll();
     S_ThreadData* td(new S_ThreadData());
-
     InitHashTable(HashTable, 64);
-
     int dummy_eval = 0;
     int64_t sum = 0;
     int count = 100000000;
@@ -104,9 +99,7 @@ void BenchInference() {
         auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
         sum += duration.count();
     }
-
     std::cout << "Average NS: " << (sum / count) << std::endl;
     std::cout << "Dummy: " << dummy_eval << std::endl;
-
     delete td;
 }
