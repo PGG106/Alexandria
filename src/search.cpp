@@ -217,7 +217,7 @@ static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, 
             continue;
         }
         // After the killer moves try the Counter moves
-        else if (move == sd->CounterMoves[From(ss->move)][To(ss->move)]) {
+        else if (move == sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)]) {
             move_list->moves[i].score = counterMoveScore;
             continue;
         }
