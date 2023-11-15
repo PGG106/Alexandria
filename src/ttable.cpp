@@ -12,15 +12,15 @@ void ClearHashTable(S_HashTable* table) {
 }
 
 void InitHashTable(S_HashTable* table, uint64_t MB) {
-    uint64_t HashSize = 0x100000 * MB;
-    uint64_t numEntries = (HashSize / sizeof(S_HashEntry)) - 2;
+    const uint64_t hashSize = 0x100000 * MB;
+    const uint64_t numEntries = (hashSize / sizeof(S_HashEntry)) - 2;
     table->pTable.resize(numEntries);
     ClearHashTable(table);
     std::cout << "HashTable init complete with " << numEntries << " entries\n";
 }
 
 bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
-    uint64_t index = Index(pos->posKey);
+    const uint64_t index = Index(pos->posKey);
 
     *tte = HashTable->pTable[index];
 
@@ -30,7 +30,7 @@ bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
     const int depth, const bool pv, const bool wasPv) {
     // Calculate index based on the position key and get the entry that already fills that index
-    uint64_t index = Index(key);
+    const uint64_t index = Index(key);
     S_HashEntry* tte = &HashTable->pTable[index];
 
     // Replacement strategy taken from Stockfish
