@@ -91,7 +91,7 @@ void MakeMove(const int move, S_Board* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
 
-    int NORTH = pos->side == WHITE ? 8 : -8;
+    const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // handle enpassant captures
     if (enpass) {
@@ -306,14 +306,14 @@ void UnmakeMove(const int move, S_Board* pos) {
 
     // handle pawn promotions
     if (promotion) {
-        int promoted_piece = GetPiece(getPromotedPiecetype(move),pos->side^1);
+        const int promoted_piece = GetPiece(getPromotedPiecetype(move),pos->side^1);
         ClearPiece(promoted_piece, targetSquare, pos);
     }
 
     // move piece
     MovePiece(piece, targetSquare, sourceSquare, pos);
 
-    int SOUTH = pos->side == WHITE ? -8 : 8;
+    const int SOUTH = pos->side == WHITE ? -8 : 8;
 
     // handle enpassant captures
     if (enpass) {
@@ -353,7 +353,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     // handling capture moves
     if (capture && !enpass) {
         // Retrieve the captured piece we have to restore
-        int piececap = pos->history[pos->hisPly].capture;
+        const int piececap = pos->history[pos->hisPly].capture;
         AddPiece(piececap, targetSquare, pos);
     }
 
