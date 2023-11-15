@@ -163,12 +163,12 @@ bool SEE(const S_Board* pos, const int move, const int threshold) {
 }
 
 // score_moves takes a list of move as an argument and assigns a score to each move
-static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, int PvMove) {
+static inline void score_moves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, int ttMove) {
     // Loop through all the move in the movelist
     for (int i = 0; i < move_list->count; i++) {
         int move = move_list->moves[i].move;
         // If the move is from the TT (aka it's our hashmove) give it the highest score
-        if (move == PvMove) {
+        if (move == ttMove) {
             move_list->moves[i].score = INT32_MAX - 100;
             continue;
         }
