@@ -331,7 +331,7 @@ void UciLoop(char** argv) {
             // print engine info
             std::cout << "id name " << NAME << "\n";
             std::cout << "id author PGG and Contributors\n";
-            std::cout << "option name Hash type spin default 16 min 1 max 8192 \n";
+            std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
 #ifdef TUNE
             for (tunable_param param : tunable_params) {
