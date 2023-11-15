@@ -2,4 +2,4 @@
 
 struct S_MOVELIST;
 
-void PickMove(S_MOVELIST* move_list, const int moveNum);
+void PickMove(S_MOVELIST* moveList, const int moveNum);

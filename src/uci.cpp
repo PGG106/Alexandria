@@ -19,50 +19,50 @@
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& move_string, S_Board* pos) {
     // create move list instance
-    S_MOVELIST move_list[1];
+    S_MOVELIST moveList[1];
 
     // generate moves
-    GenerateMoves(move_list, pos);
+    GenerateMoves(moveList, pos);
 
     // parse source square
-    const int source_square = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
+    const int sourceSquare = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
 
     // parse target square
-    const int target_square = (move_string[2] - 'a') + (8 - (move_string[3] - '0')) * 8;
+    const int targetSquare = (move_string[2] - 'a') + (8 - (move_string[3] - '0')) * 8;
 
     // loop over the moves within a move list
-    for (int move_count = 0; move_count < move_list->count; move_count++) {
+    for (int move_count = 0; move_count < moveList->count; move_count++) {
         // init move
-        const int move = move_list->moves[move_count].move;
+        const int move = moveList->moves[move_count].move;
 
         // make sure source & target squares are available within the generated move
-        if (source_square == From(move) &&
-            target_square == To(move)) {
+        if (sourceSquare == From(move) &&
+            targetSquare == To(move)) {
             // init promoted piece
-            const int promoted_piece = getPromotedPiecetype(move);
+            const int promotedPiece = getPromotedPiecetype(move);
 
             // promoted piece is available
             if (isPromo(move)) {
                 // promoted to queen
-                if ((promoted_piece == QUEEN) &&
+                if ((promotedPiece == QUEEN) &&
                     move_string[4] == 'q')
                     // return legal move
                     return move;
 
                 // promoted to rook
-                else if ((promoted_piece == ROOK) &&
+                else if ((promotedPiece == ROOK) &&
                     move_string[4] == 'r')
                     // return legal move
                     return move;
 
                 // promoted to bishop
-                else if ((promoted_piece == BISHOP) &&
+                else if ((promotedPiece == BISHOP) &&
                     move_string[4] == 'b')
                     // return legal move
                     return move;
 
                 // promoted to knight
-                else if ((promoted_piece == KNIGHT) &&
+                else if ((promotedPiece == KNIGHT) &&
                     move_string[4] == 'n')
                     // return legal move
                     return move;
@@ -356,7 +356,7 @@ void UciLoop(char** argv) {
 
         // spsa info dump
         else if (input == "tune") {
-            for (tunable_param param : tunable_params) {
+            for (tunable_param param : tunableParams) {
                 std::cout << param << "\n";
             }
         }

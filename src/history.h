@@ -13,6 +13,6 @@ void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, cons
 [[nodiscard]] int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss);
 [[nodiscard]] int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move);
 // Clean all the history tables
-void CleanHistories(Search_data* ss);
+void CleanHistories(Search_data* sd);
 // Updates the continuation history score for a single move
 void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus);
