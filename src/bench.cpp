@@ -68,7 +68,7 @@ void StartBench() {
     InitAll();
     S_UciOptions uci_options[1];
     S_ThreadData* td(new S_ThreadData());
-    uint64_t total_nodes = 0;
+    uint64_t totalNodes = 0;
     InitHashTable(HashTable, 64);
     auto start = std::chrono::steady_clock::now();
     for (int positions = 0; positions < 52; positions++) {
@@ -78,12 +78,12 @@ void StartBench() {
 
         RootSearch(14, td, uci_options);
 
-        total_nodes += td->info.nodes;
+        totalNodes += td->info.nodes;
     }
     auto end = std::chrono::steady_clock::now();
     auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "\n";
-    std::cout << total_nodes << " nodes " << signed(total_nodes / (total_time + 1) * 1000) << " nps" << std::endl;
+    std::cout << totalNodes << " nodes " << signed(totalNodes / (totalNodes + 1) * 1000) << " nps" << std::endl;
     delete td;
 }
 
