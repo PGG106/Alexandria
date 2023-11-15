@@ -81,9 +81,9 @@ void StartBench() {
         totalNodes += td->info.nodes;
     }
     auto end = std::chrono::steady_clock::now();
-    auto total_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    auto totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "\n";
-    std::cout << totalNodes << " nodes " << signed(totalNodes / (totalNodes + 1) * 1000) << " nps" << std::endl;
+    std::cout << totalNodes << " nodes " << signed(totalNodes / (totalTime + 1) * 1000) << " nps" << std::endl;
     delete td;
 }
 
