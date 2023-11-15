@@ -114,8 +114,8 @@ int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, c
 }
 
 // Resets the history tables
-void CleanHistories(Search_data* ss) {
-    std::memset(ss->searchHistory, 0, sizeof(ss->searchHistory));
-    std::memset(ss->cont_hist, 0, sizeof(ss->cont_hist));
-    std::memset(ss->captHist, 0, sizeof(ss->captHist));
+void CleanHistories(Search_data* sd) {
+    std::memset(sd->searchHistory, 0, sizeof(sd->searchHistory));
+    std::memset(sd->cont_hist, 0, sizeof(sd->cont_hist));
+    std::memset(sd->captHist, 0, sizeof(sd->captHist));
 }

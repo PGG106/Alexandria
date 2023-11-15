@@ -17,17 +17,17 @@ class tunable_param {
 public:
 	std::string name;
 	std::string type;
-	float curr_value;
-	float min_value;
-	float max_value;
+	float currValue;
+	float minValue;
+	float maxValue;
 	float C_end;
 	float R_end;
 	tunable_param(std::string param_name, std::string param_type, float param_curr_value, float param_min_value, float param_max_value, float param_C_end, float param_R_end = 0.002) {
 		this->name = param_name;
 		this->type = param_type;
-		this->curr_value = param_curr_value;
-		this->min_value = param_min_value;
-		this->max_value = param_max_value;
+		this->currValue = param_curr_value;
+		this->minValue = param_min_value;
+		this->maxValue = param_max_value;
 		this->C_end = param_C_end;
 		this->R_end = param_R_end;
 	}
@@ -37,17 +37,17 @@ inline std::ostream& operator<<(std::ostream& os, const tunable_param& param)
 {
 	os << param.name <<", ";
 	os << param.type << ", ";
-	os << param.curr_value << ", ";
-	os << param.min_value << ", ";
-	os << param.max_value << ", ";
+	os << param.currValue << ", ";
+	os << param.minValue << ", ";
+	os << param.maxValue << ", ";
 	os << param.C_end << ", ";
 	os << param.R_end;
 	return os;
 }
 // This contains all the tunable parameters informations, the information in here is never altered except for when a new entry gets added
-extern std::vector<tunable_param> tunable_params;
+extern std::vector<tunable_param> tunableParams;
 // This is the map where the actual values of the variables being tuned are stored
-extern std::unordered_map<std::string, int> tuned_values;
+extern std::unordered_map<std::string, int> tunedValues;
 void InitTunable();
 // Handles the update of a variable being tuned
 void updateTuneVariable(std::string tune_variable_name, int value);
