@@ -6,11 +6,11 @@
 
 struct Search_stack {
     int excludedMove = {};
-    int16_t static_eval = {};
+    int16_t staticEval = {};
     int move = {};
     int ply;
     int searchKillers[2] = {};
-    int double_extensions = 0;
+    int doubleExtensions = 0;
 };
 
 struct Search_data {

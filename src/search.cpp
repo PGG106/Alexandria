@@ -306,7 +306,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
     // Explicitely clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
-        (ss + i)->static_eval = score_none;
+        (ss + i)->staticEval = score_none;
         (ss + i)->excludedMove = NOMOVE;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
@@ -439,7 +439,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck || excludedMove) {
-        ss->static_eval = eval = score_none;
+        ss->staticEval = eval = score_none;
         improving = false;
         goto moves_loop;
     }
@@ -447,7 +447,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // get an evaluation of the position:
     if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        eval = ss->static_eval = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
+        eval = ss->staticEval = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
         // We can also use the tt score as a more accurate form of eval
         if (ttScore != score_none
             && ((ttFlag == HFUPPER && ttScore < eval)
@@ -457,7 +457,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
-        eval = ss->static_eval = EvalPosition(pos);
+        eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
         {
             // Save the eval into the TT
@@ -467,12 +467,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
     // improving is a very important modifier to a lot of heuristic, in short it just checks if our current static eval has improved since our last move, some extra logic is needed to account for the fact we don't evaluate positions that are in check
     // We look for the irst ply we weren't in check in between 2 and 4 plies ago, if we found one we check if the static eval increased, if we don't we just assume we have improved
-    if ((ss - 2)->static_eval != score_none) {
-        if (ss->static_eval > (ss - 2)->static_eval)
+    if ((ss - 2)->staticEval != score_none) {
+        if (ss->staticEval > (ss - 2)->staticEval)
             improving = true;
     }
-    else if ((ss - 4)->static_eval != score_none) {
-        if (ss->static_eval > (ss - 4)->static_eval)
+    else if ((ss - 4)->staticEval != score_none) {
+        if (ss->staticEval > (ss - 4)->staticEval)
             improving = true;
     }
     else
@@ -491,7 +491,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             return eval;
 
         // null move pruning: If we can give our opponent a free move and still be above beta after a reduced search we can return beta, we check if the board has non pawn pieces to avoid zugzwangs
-        if (eval >= ss->static_eval
+        if (eval >= ss->staticEval
             && eval >= beta
             && ss->ply
             && (ss - 1)->move != NOMOVE
@@ -600,7 +600,7 @@ moves_loop:
             if (!inCheck
                 && lmrDepth < 12
                 && isQuiet
-                && ss->static_eval + 100 + 150 * lmrDepth <= alpha) {
+                && ss->staticEval + 100 + 150 * lmrDepth <= alpha) {
                 SkipQuiets = true;
                 continue;
             }
@@ -635,9 +635,9 @@ moves_loop:
                     // Avoid search explosion by limiting the number of double extensions
                     if (!pvNode
                         && singularScore < singularBeta - 17
-                        && ss->double_extensions <= 11) {
+                        && ss->doubleExtensions <= 11) {
                         extension = 2;
-                        ss->double_extensions = (ss - 1)->double_extensions + 1;
+                        ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
                     }
                 }
 
@@ -773,7 +773,7 @@ moves_loop:
     // Set the TT flag based on whether the bestScore is better than beta and if it's not based on if we changed alpha or not
     int flag = bestScore >= beta ? HFLOWER : (alpha != old_alpha) ? HFEXACT : HFUPPER;
 
-    if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->static_eval, flag, depth, pvNode, ttPv);
+    if (!excludedMove) StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, flag, depth, pvNode, ttPv);
     // return best score
     return bestScore;
 }
@@ -822,21 +822,21 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         ttPv = pvNode || (tte.wasPv_flags >> 2);
 
     if (inCheck) {
-        ss->static_eval = score_none;
+        ss->staticEval = score_none;
         bestScore = -MAXSCORE;
     }
     // If we have a ttHit with a valid eval use that
     else if (ttHit) {
-        ss->static_eval = bestScore = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
+        ss->staticEval = bestScore = (tte.eval != score_none) ? tte.eval : EvalPosition(pos);
         if (ttScore != score_none && 
-            ((ttFlag == HFUPPER && ttScore < ss->static_eval)
-            || (ttFlag == HFLOWER && ttScore > ss->static_eval)
+            ((ttFlag == HFUPPER && ttScore < ss->staticEval)
+            || (ttFlag == HFLOWER && ttScore > ss->staticEval)
             || (ttFlag == HFEXACT)))
             bestScore = ttScore;
     }
     // If we don't have any useful info in the TT just call Evalpos
     else {
-        bestScore = ss->static_eval = EvalPosition(pos);
+        bestScore = ss->staticEval = EvalPosition(pos);
     }
 
     // Stand pat
@@ -875,7 +875,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             && BoardHasNonPawns(pos, pos->side) 
             && !isPromo(move) 
             && !isEnpassant(move)) {
-                int futilityBase = ss->static_eval + 192;
+                int futilityBase = ss->staticEval + 192;
                 if (futilityBase <= alpha && !SEE(pos, move, 1)) {
                     bestScore = std::max(futilityBase, bestScore);
                     continue;
@@ -885,7 +885,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
-        int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
+        const int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
 
         // take move back
         UnmakeMove(move, pos);
@@ -920,7 +920,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // Set the TT flag based on whether the bestScore is better than beta, for qsearch we never use the exact flag
     int flag = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->static_eval, flag, 0, pvNode, ttPv);
+    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, flag, 0, pvNode, ttPv);
 
     // return the best score we got
     return bestScore;
