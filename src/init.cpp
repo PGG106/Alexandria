@@ -286,15 +286,15 @@ void InitNewGame(S_ThreadData* td) {
     S_Board* pos = &td->pos;
     Search_data* ss = &td->ss;
     S_SearchINFO* info = &td->info;
-    PvTable* pv_table = &td->pv_table;
+    PvTable* pvTable = &td->pvTable;
 
     CleanHistories(ss);
 
     // Clean the Pv array
     for (int index = 0; index < MAXDEPTH + 1; ++index) {
-        pv_table->pvLength[index] = 0;
+        pvTable->pvLength[index] = 0;
         for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-            pv_table->pvArray[index][index2] = NOMOVE;
+            pvTable->pvArray[index][index2] = NOMOVE;
         }
     }
 

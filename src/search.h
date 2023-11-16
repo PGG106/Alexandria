@@ -27,7 +27,7 @@ struct S_ThreadData {
     S_Board pos;
     Search_data ss;
     S_SearchINFO info;
-    PvTable pv_table;
+    PvTable pvTable;
     uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};
     int RootDepth;
     int nmpPlies;
@@ -49,7 +49,7 @@ template <bool pvNode>
 template <bool pvNode>
 [[nodiscard]] int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss);
 
-[[nodiscard]] int GetBestMove(const PvTable* pv_table);
+[[nodiscard]] int GetBestMove(const PvTable* pvTable);
 
 // inspired by the Weiss engine
 [[nodiscard]] bool SEE(const S_Board* pos, const int move, const int threshold);
