@@ -49,7 +49,7 @@ bool StopEarly(const S_SearchINFO* info) {
 }
 
 void ScaleTm(S_ThreadData* td) {
-    int bestmove = GetBestMove(&td->pv_table);
+    int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
     double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
     double nodeScalingFactor = (1.62 - bestMoveNodesFraction) * 1.48;
