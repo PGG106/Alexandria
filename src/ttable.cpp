@@ -86,6 +86,8 @@ int16_t MoveToTT(int move) {
     return (move & 0xffff);
 }
 
+// It's important to preserve a move being null even it's being unpacked
 int MoveFromTT(int16_t packed_move, int piece) {
+    if (packed_move == NOMOVE) return NOMOVE;
     return (packed_move |(piece << 16));
 }
