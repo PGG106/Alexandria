@@ -368,20 +368,24 @@ void UnmakeMove(const int move, S_Board* pos) {
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
-    pos->played_positions.emplace_back(pos->posKey);
-
-    if (GetEpSquare(pos) != no_sq)
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
+    // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
+    // Store position key in the array of searched position
+    pos->played_positions.emplace_back(pos->posKey);
 
+    pos->hisPly++;
+    pos->fiftyMove++;
+
+    // Reset EP square
+    if (GetEpSquare(pos) != no_sq)
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+    // reset enpassant square
     pos->enPas = no_sq;
 
     pos->ChangeSide();
-    pos->hisPly++;
     HashKey(pos, SideKey);
 }
 
