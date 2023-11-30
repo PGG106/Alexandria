@@ -78,6 +78,11 @@ ifeq ($(build), x86-64-bmi2)
 	ARCH         = -x86-64-bmi2
 endif
 
+ifeq ($(build), x86-64-avx512)
+	NATIVE       = -march=x86-64-v4 -mtune=znver4
+	ARCH         = -x86-64-avx512
+endif
+
 ifeq ($(build), debug)
 	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
