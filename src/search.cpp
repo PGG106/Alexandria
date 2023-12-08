@@ -577,15 +577,6 @@ moves_loop:
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
 
-        // if the move isn't a quiet move we update the quiet moves list and counter
-        if (isQuiet) {
-            quietMoves.moves[quietMoves.count].move = move;
-            quietMoves.count++;
-        }
-        else {
-            noisyMoves.moves[noisyMoves.count].move = move;
-            noisyMoves.count++;
-        }
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -mate_found) {
@@ -662,6 +653,15 @@ moves_loop:
         ss->move = move;
         // Play the move
         MakeMove(move, pos);
+        // Add any played move to the matching list
+        if (isQuiet) {
+            quietMoves.moves[quietMoves.count].move = move;
+            quietMoves.count++;
+        }
+        else {
+            noisyMoves.moves[noisyMoves.count].move = move;
+            noisyMoves.count++;
+        }
         // increment nodes count
         info->nodes++;
         uint64_t nodesBeforeSearch = info->nodes;
