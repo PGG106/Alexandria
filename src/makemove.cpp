@@ -13,7 +13,6 @@ void ClearPiece(const int piece, const int from, S_Board* pos) {
     HashKey(pos, PieceKeys[piece][from]);
     pop_bit(pos->bitboards[piece], from);
     pos->pieces[from] = EMPTY;
-    pop_bit(pos->occupancies[BOTH], from);
     pop_bit(pos->occupancies[color], from);
 }
 
@@ -22,7 +21,6 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
-    set_bit(pos->occupancies[BOTH], to);
     pos->pieces[to] = piece;
     HashKey(pos, PieceKeys[piece][to]);
 }

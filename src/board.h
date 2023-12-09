@@ -102,7 +102,7 @@ public:
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
-    Bitboard occupancies[3] = {};
+    Bitboard occupancies[2] = {};
     NNUE::accumulator accumulator = {};
     // Previous values of the nnue accumulators. always empty at the start of search
     std::vector<NNUE::accumulator> accumulatorStack = {};
@@ -118,6 +118,10 @@ public:
     }
 
     inline Bitboard Occupancy(int sidex) const {
+        assert(side >= WHITE && side <= BOTH);
+        if (sidex == BOTH)
+            return occupancies[WHITE] | occupancies[BLACK];
+        else
         return occupancies[sidex];
     }
 
