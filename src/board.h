@@ -117,12 +117,12 @@ public:
         return occupancies[side ^ 1];
     }
 
-    inline Bitboard Occupancy(int sidex) const {
+    inline Bitboard Occupancy(const int side) const {
         assert(side >= WHITE && side <= BOTH);
-        if (sidex == BOTH)
+        if (side == BOTH)
             return occupancies[WHITE] | occupancies[BLACK];
         else
-        return occupancies[sidex];
+        return occupancies[side];
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
