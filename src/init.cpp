@@ -165,7 +165,7 @@ void initializeLookupTables() {
 
 // BIG THANKS TO DISSERVIN FOR LETTING ME BORROW THIS CODE
 Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
-    Bitboard Occ = pos->occupancies[2];
+    Bitboard Occ = pos->Occupancy(BOTH);
     Bitboard checks = 0ULL;
     Bitboard pawn_mask =
         pos->bitboards[(color ^ 1) * 6] & pawn_attacks[color][sq];

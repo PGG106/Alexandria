@@ -100,7 +100,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
     if (pos->pinD & (1ULL << square))
         return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
     // Calculate pawn pushs
-    Bitboard push = PawnPush(color, square) & ~pos->occupancies[2];
+    Bitboard push = PawnPush(color, square) & ~pos->Occupancy(BOTH);
 
     push |=
         (color == WHITE)
@@ -133,7 +133,7 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
         ClearPiece(ourPawn, square, pos);
         ClearPiece(theirPawn, (GetEpSquare(pos) + offset), pos);
         AddPiece(ourPawn, GetEpSquare(pos), pos);
-        if (!((GetRookAttacks(kSQ, pos->occupancies[2]) &
+        if (!((GetRookAttacks(kSQ, pos->Occupancy(BOTH)) &
             (pos->GetPieceColorBB(ROOK, color ^ 1) |
                 pos->GetPieceColorBB(QUEEN, color ^ 1)))))
             moves |= (1ULL << GetEpSquare(pos));
@@ -406,7 +406,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
         while (rooks_mask) {
             sourceSquare = GetLsbIndex(rooks_mask);
             Bitboard moves = LegalRookMoves(pos, pos->side, sourceSquare) &
-                (pos->occupancies[pos->side ^ 1]);
+                (pos->Occupancy(pos->side ^ 1));
             const int piece = GetPiece(ROOK, pos->side);
             while (moves) {
                 targetSquare = GetLsbIndex(moves);

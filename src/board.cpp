@@ -227,8 +227,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
         // populate white occupancy bitboard
         pos->occupancies[BLACK] |= pos->bitboards[piece];
 
-    pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
-
     pos->posKey = GeneratePosKey(pos);
 
     pos->checkers = IsInCheck(pos, pos->side);
