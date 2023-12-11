@@ -668,10 +668,10 @@ moves_loop:
         bool doFullSearch = false;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
         if (movesSearched >= 2 + 2 * pvNode && depth >= 3) {
-            if (isQuiet) {
+            if (isQuiet || !ttPv) {
 
                 // Get base reduction value
-                depthReduction = reductions[true][depth][movesSearched];
+                depthReduction = reductions[isQuiet][depth][movesSearched];
 
                 // Reduce more if we aren't in a pv node
                 depthReduction += !ttPv;
@@ -689,18 +689,7 @@ moves_loop:
                 if (pos->checkers)
                     depthReduction -= 1;
             }
-            else if (!ttPv) {
 
-                // Get base reduction value
-                depthReduction = reductions[false][depth][movesSearched];
-
-                // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= std::clamp(moveHistory / 16384, -2, 2);
-
-                // Decrease the reduction for moves that give check
-                if (pos->checkers)
-                    depthReduction -= 1;
-            }
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
             depthReduction = std::clamp(depthReduction, 0, newDepth - 1);
             // search current move with reduced depth:
