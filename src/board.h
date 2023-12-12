@@ -122,7 +122,7 @@ public:
         if (occupancySide == BOTH)
             return occupancies[WHITE] | occupancies[BLACK];
         else
-        return occupancies[occupancySide];
+            return occupancies[occupancySide];
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
