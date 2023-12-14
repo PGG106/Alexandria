@@ -10,7 +10,6 @@
 #include "init.h"
 #include "io.h"
 #include "threads.h"
-#include "test_main.h"
 #include "board.h"
 #include "movegen.h"
 #include <iostream>
@@ -374,10 +373,6 @@ void UciLoop(char** argv) {
 
         else if (input == "bench") {
             StartBench();
-        }
-
-        else if (input == "tests") {
-            RunTests();
         }
 
         else if (input == "see") {

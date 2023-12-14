@@ -179,7 +179,6 @@
     <ClInclude Include="src\tune.h" />
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\uci.h" />
-    <ClInclude Include="src\test_main.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\history.cpp" />
@@ -207,7 +206,6 @@
     <ClCompile Include="src\ttable.cpp" />
     <ClCompile Include="src\tune.cpp" />
     <ClCompile Include="src\uci.cpp" />
-    <ClCompile Include="src\test_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\makefile" />

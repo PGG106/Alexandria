@@ -73,7 +73,6 @@ struct S_Undo {
     int enPas = 0;
     int fiftyMove = 0;
     bool checkers = false;
-    Bitboard occupancies[3];
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -209,9 +208,6 @@ const constexpr char* square_to_coordinates[] = {
     "a2", "b2", "c2", "d2", "e2", "f2","g2","h2",
     "a1", "b1", "c1", "d1", "e1", "f1","g1","h1",
 };
-
-constexpr char RankChar[] = "12345678";
-constexpr char FileChar[] = "abcdefgh";
 
 // ASCII pieces
 constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
