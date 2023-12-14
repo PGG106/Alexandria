@@ -4,21 +4,8 @@
 
 struct S_Board;
 
-#define HASH_PCE(pce, sq) (pos->posKey ^= (PieceKeys[(pce)][(sq)]))
-
-/// <summary>
-/// Removes a piece from a square
-/// </summary>
-/// <param name="piece">the piece to be removed</param>
-/// <param name="sq">the square the piece sits on</param>
-/// <param name="pos">the current position</param>
 void ClearPiece(const int piece, const int from, S_Board* pos);
-/// <summary>
-/// Adds a pice to a square
-/// </summary>
-/// <param name="piece">the piece to be added</param>
-/// <param name="to">the square the piece will be added to</param>
-/// <param name="pos">the current position</param>
+
 void AddPiece(const int piece, const int to, S_Board* pos);
 
 void MovePiece(const int piece, const int from, const int to, S_Board* pos);
@@ -29,7 +16,6 @@ void HashKey(S_Board* pos, ZobristKey key);
 
 // make move on chess board
 void MakeMove(const int move, S_Board* pos);
-void MakeMoveLight(const int move, S_Board* pos);
 // Reverts the previously played move
 void UnmakeMove(const int move, S_Board* pos);
 // makes a null move (a move that doesn't move any piece)

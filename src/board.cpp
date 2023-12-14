@@ -310,7 +310,7 @@ void parse_moves(const std::string& moves, S_Board* pos) {
         // parse next move
         int move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
-        MakeMoveLight(move, pos);
+        MakeMove(move, pos);
     }
 }
 

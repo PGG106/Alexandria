@@ -2,7 +2,6 @@
 
 #include "board.h"
 #include "types.h"
-#include <memory>
 #include <vector>
 
 PACK(struct S_HashEntry {

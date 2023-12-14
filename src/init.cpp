@@ -270,7 +270,6 @@ void InitAll() {
 #endif
     // init leaper pieces attacks
     InitLeapersAttacks();
-
     // init slider pieces attacks
     InitSlidersAttacks();
     initializeLookupTables();

@@ -32,30 +32,6 @@ enum {
     a1, b1, c1, d1, e1, f1, g1, h1, no_sq
 };
 
-enum {
-    FILE_A,
-    FILE_B,
-    FILE_C,
-    FILE_D,
-    FILE_E,
-    FILE_F,
-    FILE_G,
-    FILE_H,
-    FILE_NONE
-};
-
-enum {
-    RANK_1,
-    RANK_2,
-    RANK_3,
-    RANK_4,
-    RANK_5,
-    RANK_6,
-    RANK_7,
-    RANK_8,
-    RANK_NONE
-};
-
 // encode pieces
 enum {
     WP, WN, WB, WR, WQ, WK,
