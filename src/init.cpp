@@ -244,7 +244,7 @@ void InitReductions() {
 
     for (int i = 1; i < MAXDEPTH; i++) {
         for (int j = 1; j < MAXDEPTH; j++) {
-            reductions[0][i][j] = -0.25 + log(i) * log(j) / 2.00;
+            reductions[0][i][j] = -0.50 + log(i) * log(j) / 2.00;
             reductions[1][i][j] = +1.00 + log(i) * log(j) / 2.00;
         }
     }
