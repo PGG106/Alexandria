@@ -269,7 +269,8 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
     int averageScore = score_none;
-
+    int bestmoveStability = 0;
+    int previousBestMove = NOMOVE;
     // Clean the position and the search info to start search from a clean state
     ClearForSearch(td);
 
@@ -279,10 +280,17 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
         averageScore = averageScore == score_none ? score : (averageScore + score) / 2;
         // Only the main thread handles time related tasks
         if (td->id == 0) {
+            if (GetBestMove(&td->pvTable) == previousBestMove) {
+                bestmoveStability = std::min(bestmoveStability + 1, 4);
+            }
+            else {
+                bestmoveStability = 0;
+                previousBestMove = GetBestMove(&td->pvTable);
+            }
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
             if (   td->RootDepth > 7
                 && td->info.timeset) {
-                ScaleTm(td);
+                ScaleTm(td, bestmoveStability);
             }
 
             // check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
