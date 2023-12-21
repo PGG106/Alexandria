@@ -20,11 +20,11 @@ public:
     using accumulator = std::array<std::array<int16_t, HIDDEN_SIZE>, 2>;
 
     void init(const char* file);
-    void add(NNUE::accumulator& board_accumulator, int piece, int to);
-    void clear(NNUE::accumulator& board_accumulator, int piece, int from);
-    void move(NNUE::accumulator& board_accumulator, int piece, int from, int to);
+    void add(NNUE::accumulator& board_accumulator, const int piece, const int to);
+    void clear(NNUE::accumulator& board_accumulator, const int piece, const int from);
+    void move(NNUE::accumulator& board_accumulator, const int piece, const int from, const int to);
     [[nodiscard]] int32_t SCReLU(int16_t x);
-    [[nodiscard]] int32_t output(const NNUE::accumulator& board_accumulator, bool whiteToMove);
+    [[nodiscard]] int32_t output(const NNUE::accumulator& board_accumulator, const bool whiteToMove);
     void Clear(NNUE::accumulator& board_accumulator);
-    [[nodiscard]] std::pair<std::size_t, std::size_t> GetIndex(int piece, int square);
+    [[nodiscard]] std::pair<std::size_t, std::size_t> GetIndex(const int piece, const int square);
 };

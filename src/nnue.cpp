@@ -73,7 +73,7 @@ void NNUE::init(const char* file) {
     }
 }
 
-void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
+void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int to) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, to);
     auto whiteAdd = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
     auto blackAdd = &net.featureWeights[blackIdx * HIDDEN_SIZE];
@@ -85,7 +85,7 @@ void NNUE::add(NNUE::accumulator& board_accumulator, int piece, int to) {
     }
 }
 
-void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
+void NNUE::clear(NNUE::accumulator& board_accumulator, const int piece, const int from) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, from);
     auto whiteSub = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
     auto blackSub = &net.featureWeights[blackIdx * HIDDEN_SIZE];
@@ -97,7 +97,7 @@ void NNUE::clear(NNUE::accumulator& board_accumulator, int piece, int from) {
     }
 }
 
-void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int to) {
+void NNUE::move(NNUE::accumulator& board_accumulator, const int piece, const int from, const int to) {
     auto [whiteIdxFrom, blackIdxFrom] = GetIndex(piece, from);
     auto [whiteIdxTo, blackIdxTo] = GetIndex(piece, to);
     auto whiteSub = &net.featureWeights[whiteIdxFrom * HIDDEN_SIZE];
@@ -112,7 +112,7 @@ void NNUE::move(NNUE::accumulator& board_accumulator, int piece, int from, int t
     }
 }
 
-int32_t NNUE::output(const NNUE::accumulator& board_accumulator, bool whiteToMove) {
+int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whiteToMove) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
     const int16_t* us;
@@ -135,7 +135,7 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, bool whiteToMov
     return unsquared * 400 / (64 * 255);
 }
 
-std::pair<std::size_t, std::size_t> NNUE::GetIndex(int piece, int square) {
+std::pair<std::size_t, std::size_t> NNUE::GetIndex(const int piece, const int square) {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     int piecetype = GetPieceType(piece);
