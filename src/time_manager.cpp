@@ -48,14 +48,15 @@ bool StopEarly(const S_SearchINFO* info) {
     return (info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt;
 }
 
-void ScaleTm(S_ThreadData* td, const int bestmoveStabilityFactor) {
+void ScaleTm(S_ThreadData* td, const int bestMoveStabilityFactor) {
     constexpr double bestmoveScale[5] = { 2.5, 1.20, 0.95, 0.85, 0.8 };
-    int bestmove = GetBestMove(&td->pvTable);
+    const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
-    double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
-    double nodeScalingFactor = (1.62 - bestMoveNodesFraction) * 1.48;
-    // Scale the search time based on how many nodes we spent
-    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestmoveScale[bestmoveStabilityFactor], td->info.stoptimeMax);
+    const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
+    const double nodeScalingFactor = (1.62 - bestMoveNodesFraction) * 1.48;
+    const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
+    // Scale the search time based on how many nodes we spent and how the best move changed
+    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor, td->info.stoptimeMax);
 
 }
 
