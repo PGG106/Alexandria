@@ -589,25 +589,29 @@ moves_loop:
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -mate_found) {
-            // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
-            if (   !pvNode
-                && !inCheck
-                &&  isQuiet
-                &&  movesSearched > lmp_margin[depth][improving]) {
-                SkipQuiets = true;
-                continue;
-            }
 
-            // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][movesSearched]);
+            if (!SkipQuiets) {
 
-            // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
-            if (   !inCheck
-                &&  lmrDepth < 11
-                &&  isQuiet
-                &&  ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
-                SkipQuiets = true;
-                continue;
+                // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
+                if (!pvNode
+                    && !inCheck
+                    && isQuiet
+                    && movesSearched > lmp_margin[depth][improving]) {
+                    SkipQuiets = true;
+                    continue;
+                }
+
+                // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
+                const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][movesSearched]);
+
+                // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
+                if (!inCheck
+                    && lmrDepth < 11
+                    && isQuiet
+                    && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
+                    SkipQuiets = true;
+                    continue;
+                }
             }
 
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
