@@ -596,7 +596,7 @@ moves_loop:
                 if (!pvNode
                     && !inCheck
                     && isQuiet
-                    && movesSearched > lmp_margin[depth][improving]) {
+                    && movesSearched >= lmp_margin[depth][improving]) {
                     SkipQuiets = true;
                     continue;
                 }
