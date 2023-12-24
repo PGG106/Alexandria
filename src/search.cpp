@@ -595,10 +595,8 @@ moves_loop:
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (!pvNode
                     && !inCheck
-                    && isQuiet
                     && movesSearched >= lmp_margin[depth][improving]) {
                     SkipQuiets = true;
-                    continue;
                 }
 
                 // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
@@ -607,10 +605,8 @@ moves_loop:
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
                     && lmrDepth < 11
-                    && isQuiet
                     && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
                     SkipQuiets = true;
-                    continue;
                 }
             }
 
