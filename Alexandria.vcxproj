@@ -208,9 +208,7 @@
     <ClCompile Include="src\uci.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\makefile" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="makefile" />
     <None Include="src\nn.net" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

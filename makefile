@@ -5,10 +5,9 @@ _ROOT     := $(_THIS)
 EVALFILE   = $(NETWORK_NAME)
 CXX       := g++
 TARGET    := Alexandria
-CXXFLAGS  :=  -funroll-loops -O3 -flto -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
--Wlogical-op -Wunused -Wold-style-cast -Wundef -DNDEBUG
+CXXFLAGS  :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG
+WARNINGS  :=  -Wall -Wcast-qual -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wunused -Wold-style-cast -Wundef
 NATIVE     = -march=native
-
 
 # engine name
 NAME      := Alexandria
@@ -31,12 +30,8 @@ endif
 ifeq ($(OS), Windows_NT)
 	uname_S := Windows
 	SUFFIX  := .exe
-	FLAGS    = -pthread -lstdc++ -static
-	CXXFLAGS += -static -static-libgcc -static-libstdc++ -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
-else
+	CXXFLAGS += -static 
 	FLAGS   = -lpthread -lstdc++
-	SUFFIX  :=
-	uname_S := $(shell uname -s)
 endif
 
 # Different native flag for macOS
@@ -91,6 +86,9 @@ endif
 
 # Add network name and Evalfile
 CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE)\"
+
+# Add warnings 
+CXXFLAGS += $(WARNINGS)
 
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
