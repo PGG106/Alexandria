@@ -98,7 +98,6 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->idx = 0;
     mp->stage = GEN_MOVES;
     mp->capturesOnly = capturesOnly;
-    std::memset(mp->moveList, 0, sizeof(mp->moveList));
 }
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {
