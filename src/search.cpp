@@ -567,12 +567,6 @@ moves_loop:
     S_MOVELIST quietMoves, noisyMoves;
     quietMoves.count = 0, noisyMoves.count = 0;
 
-    // create move list instance
-    S_MOVELIST moveList[1];
-
-    // generate moves
-    GenerateMoves(moveList, pos);
-
     // loop over moves within a movelist
     while ((move = NextMove(&mp, false)) != NOMOVE) {
         if (move == excludedMove)
