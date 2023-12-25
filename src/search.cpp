@@ -550,34 +550,35 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     }
 
 moves_loop:
-    // create move list instance
-    S_MOVELIST moveList[1];
-
-    // generate moves
-    GenerateMoves(moveList, pos);
-    // assign a score to every move based on how promising it is
-    ScoreMoves(pos, sd, ss, moveList, ttMove);
-
+    
     // old value of alpha
-    int old_alpha = alpha;
+    const int old_alpha = alpha;
     int bestScore = -MAXSCORE;
+    int move = NOMOVE;
     int bestMove = NOMOVE;
 
-    int movesSearched = 0;
+    int movesSearched = 0, totalMoves = 0;
     bool SkipQuiets = false;
+
+    Movepicker mp;
+    InitMP(&mp, pos, sd, ss, ttMove, false);
 
     // Keep track of the played quiet and noisy moves
     S_MOVELIST quietMoves, noisyMoves;
     quietMoves.count = 0, noisyMoves.count = 0;
 
+    // create move list instance
+    S_MOVELIST moveList[1];
+
+    // generate moves
+    GenerateMoves(moveList, pos);
+
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        // take the most promising move that hasn't been played yet
-        PickMove(moveList, count);
-        // get the move with the highest score in the move ordering
-        int move = moveList->moves[count].move;
+    while ((move = NextMove(&mp, false)) != NOMOVE) {
         if (move == excludedMove)
             continue;
+
+        totalMoves++;
 
         bool isQuiet = IsQuiet(move);
 
@@ -778,11 +779,11 @@ moves_loop:
     // We don't have any legal moves to make in the current postion. If we are in singular search, return alpha.
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
-    if (moveList->count == 0)
+    if (totalMoves == 0) {
         return excludedMove ? alpha
-                  : inCheck ? -mate_score + ss->ply
-                  :           0;
-
+            : inCheck ? -mate_score + ss->ply
+            : 0;
+    }
     // Set the TT flag based on whether the bestScore is better than beta and if it's not based on if we changed alpha or not
     int flag = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
@@ -860,31 +861,19 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // Adjust alpha based on eval
     alpha = std::max(alpha, bestScore);
 
-    // create move list instance
-    S_MOVELIST move_list[1];
+    Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
-    if (!inCheck)
-        GenerateCaptures(move_list, pos);
-    else
-        GenerateMoves(move_list, pos);
-
-    // score the generated moves
-    ScoreMoves(pos, sd, ss, move_list, ttMove);
+    InitMP(&mp, pos, sd, ss, ttMove, !inCheck);
 
     int bestmove = NOMOVE;
+    int move = NOMOVE;
+    int totalMoves = 0;
 
     // loop over moves within the movelist
-    for (int count = 0; count < move_list->count; count++) {
-        PickMove(move_list, count);
-        int move = move_list->moves[count].move;
-        int moveScore = move_list->moves[count].score;
+    while ((move = NextMove(&mp, bestScore > -mate_found)) != NOMOVE) {
 
-        // See pruning
-        if (   moveScore < goodCaptureScore 
-            && bestScore > -mate_found) {
-            break;
-        }
         ss->move = move;
+        totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -mate_found
@@ -930,9 +919,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     }
 
     // return mate score (assuming closest distance to mating position)
-    if (move_list->count == 0 && inCheck)
+    if (totalMoves == 0 && inCheck) {
         return -mate_score + ss->ply;
-
+    }
     // Set the TT flag based on whether the bestScore is better than beta, for qsearch we never use the exact flag
     int flag = bestScore >= beta ? HFLOWER : HFUPPER;
 
