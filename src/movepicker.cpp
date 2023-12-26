@@ -102,7 +102,7 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {
 top:
-    switch (mp->stage){
+    switch (mp->stage) {
     case GEN_MOVES: {
         if (mp->capturesOnly) {
             GenerateCaptures(mp->moveList, mp->pos);
@@ -117,13 +117,14 @@ top:
     case PICK_MOVES: {
         while (mp->idx < mp->moveList->count) {
             PickMove(mp->moveList, mp->idx);
-            int move = mp->moveList->moves[mp->idx].move;
-            int moveScore = mp->moveList->moves[mp->idx].score;
+            const int move = mp->moveList->moves[mp->idx].move;
+            const int moveScore = mp->moveList->moves[mp->idx].score;
             ++mp->idx;
             if (skipNonGood && moveScore < goodCaptureScore)
                 return NOMOVE;
             return move;
         }
         return NOMOVE;
+    }
     }
 }
