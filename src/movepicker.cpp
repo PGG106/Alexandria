@@ -125,4 +125,5 @@ top:
         return NOMOVE;
     }
     }
+    return NOMOVE;
 }

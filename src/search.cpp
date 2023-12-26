@@ -706,7 +706,7 @@ moves_loop:
     // We don't have any legal moves to make in the current postion. If we are in singular search, return alpha.
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
-    if (totalMoves == 0) {
+    if (totalMoves == 0 && !excludedMove) {
         return excludedMove ? alpha
             : inCheck ? -mate_score + ss->ply
             : 0;
