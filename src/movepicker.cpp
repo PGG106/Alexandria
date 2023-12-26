@@ -99,7 +99,6 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
 }
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {
-top:
     switch (mp->stage) {
     case GEN_MOVES: {
         if (mp->capturesOnly) {
@@ -110,15 +109,14 @@ top:
         }
         ScoreMoves(mp->pos, mp->sd, mp->ss, mp->moveList, mp->ttMove);
         ++mp->stage;
-        goto top;
+        [[fallthrough]];
     }
     case PICK_MOVES: {
         while (mp->idx < mp->moveList->count) {
             partialInsertionSort(mp->moveList, mp->idx);
             const int move = mp->moveList->moves[mp->idx].move;
-            const int moveScore = mp->moveList->moves[mp->idx].score;
             ++mp->idx;
-            if (skipNonGood && moveScore < goodCaptureScore)
+            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureScore)
                 return NOMOVE;
             return move;
         }
