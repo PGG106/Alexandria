@@ -5,7 +5,7 @@
 #include "history.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
-void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, int ttMove) {
+void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, const int ttMove) {
     // Loop through all the move in the movelist
     for (int i = 0; i < move_list->count; i++) {
         int move = move_list->moves[i].move;

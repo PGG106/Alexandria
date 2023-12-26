@@ -506,8 +506,9 @@ moves_loop:
             continue;
 
         totalMoves++;
+        ss->move = move;
 
-        bool isQuiet = IsQuiet(move);
+        const bool isQuiet = IsQuiet(move);
 
         if (isQuiet && SkipQuiets)
             continue;
