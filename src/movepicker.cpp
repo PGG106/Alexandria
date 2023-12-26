@@ -102,18 +102,19 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {
 top:
-    if (mp->stage == GEN_MOVES) {
+    switch (mp->stage){
+    case GEN_MOVES: {
         if (mp->capturesOnly) {
             GenerateCaptures(mp->moveList, mp->pos);
         }
         else {
             GenerateMoves(mp->moveList, mp->pos);
         }
-        ScoreMoves(mp->pos,mp->sd, mp->ss, mp->moveList, mp->ttMove);
+        ScoreMoves(mp->pos, mp->sd, mp->ss, mp->moveList, mp->ttMove);
         ++mp->stage;
         goto top;
     }
-    else if (mp->stage == PICK_MOVES) {
+    case PICK_MOVES: {
         while (mp->idx < mp->moveList->count) {
             PickMove(mp->moveList, mp->idx);
             int move = mp->moveList->moves[mp->idx].move;
@@ -123,6 +124,6 @@ top:
                 return NOMOVE;
             return move;
         }
+        return NOMOVE;
     }
-    return NOMOVE;
 }
