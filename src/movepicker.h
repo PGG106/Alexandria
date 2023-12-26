@@ -3,8 +3,6 @@
 
 struct S_MOVELIST;
 
-void PickMove(S_MOVELIST* moveList, const int moveNum);
-
 enum {
     GEN_MOVES,
     PICK_MOVES

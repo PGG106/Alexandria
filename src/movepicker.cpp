@@ -71,8 +71,7 @@ void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* mov
     }
 }
 
-
-void PickMove(S_MOVELIST* moveList, const int moveNum) {
+void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
     int bestScore = -2147483645;
     int bestNum = moveNum;
     // starting at the number of the current move and stopping at the end of the list
@@ -88,7 +87,6 @@ void PickMove(S_MOVELIST* moveList, const int moveNum) {
     moveList->moves[moveNum] = moveList->moves[bestNum];
     moveList->moves[bestNum] = temp;
 }
-
 
 void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly) {
     mp->pos = pos;
@@ -116,7 +114,7 @@ top:
     }
     case PICK_MOVES: {
         while (mp->idx < mp->moveList->count) {
-            PickMove(mp->moveList, mp->idx);
+            partialInsertionSort(mp->moveList, mp->idx);
             const int move = mp->moveList->moves[mp->idx].move;
             const int moveScore = mp->moveList->moves[mp->idx].score;
             ++mp->idx;
