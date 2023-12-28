@@ -580,9 +580,6 @@ moves_loop:
                 else if (ttScore >= beta)
                     extension = -2;
             }
-            // Check extension
-            else if (inCheck)
-                extension = 1;
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
