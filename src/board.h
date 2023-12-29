@@ -134,6 +134,7 @@ public:
     }
 
     inline int PieceOn(const int square) const {
+        assert(square >= 0 && square <= 63);
         return pieces[square];
     }
 
@@ -141,7 +142,7 @@ public:
         return side;
     }
 
-    inline int GetPoskey() const {
+    inline ZobristKey GetPoskey() const {
         return posKey;
     }
 
