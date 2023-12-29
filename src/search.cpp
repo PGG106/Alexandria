@@ -24,7 +24,7 @@ static bool IsRepetition(const S_Board* pos, const bool pvNode) {
     int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
     // Get the point our search should start from
     int startingPoint = pos->played_positions.size();
-    // Scan backwards from our starting point to the current position
+    // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
         if (pos->played_positions[startingPoint - index] == pos->posKey) {
