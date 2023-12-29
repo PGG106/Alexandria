@@ -71,6 +71,7 @@ void ResetBoard(S_Board* pos) {
         pos->pieces[index] = EMPTY;
     }
     pos->castleperm = 0; 
+    pos->plyFromNull = 0;
 }
 
 void ResetInfo(S_SearchINFO* info) {
