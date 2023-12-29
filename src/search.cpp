@@ -23,11 +23,11 @@ static bool IsRepetition(const S_Board* pos, const bool pvNode) {
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
     // Get the point our search should start from
-    int startingPoint = std::max<int>(pos->played_positions.size() - distance, 0);
-    // Scan forwards from our starting point to the current position
-    for (int index = startingPoint; index < static_cast<int>(pos->played_positions.size()); index++)
+    int startingPoint = pos->played_positions.size();
+    // Scan backwards from our starting point to the current position
+    for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
-        if (pos->played_positions[index] == pos->posKey) {
+        if (pos->played_positions[startingPoint - index] == pos->posKey) {
             // we found a repetition
             counter++;
             if (counter >= 2 + pvNode)
