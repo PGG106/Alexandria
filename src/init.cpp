@@ -163,7 +163,7 @@ void initializeLookupTables() {
     }
 }
 
-// BIG THANKS TO DISSERVIN FOR LETTING ME BORROW THIS CODE
+// Originally inspired by smallbrain's checkmask code, later simplified to work with pseudolegal
 Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
     Bitboard Occ = pos->Occupancy(BOTH);
     Bitboard checks = 0ULL;
@@ -190,7 +190,6 @@ Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
         pos->checks += CountBits(bishop_mask);
         int index = GetLsbIndex(bishop_mask);
         checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
-        pos->checks++;
     }
     if (rook_mask) {
         pos->checks += CountBits(rook_mask);
