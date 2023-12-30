@@ -5,6 +5,7 @@
 #include "makemove.h"
 #include "board.h"
 #include "move.h"
+#include "io.h"
 
 // is the square given in input attacked by the current given side
 bool IsSquareAttacked(const S_Board* pos, const Bitboard occ, const int square, const int side) {
@@ -39,6 +40,7 @@ static inline Bitboard PawnPush(int color, int sq) {
 static inline void init(S_Board* pos, int color, int sq) {
     Bitboard newMask = DoCheckmask(pos, color, sq);
     pos->checkMask = newMask ? newMask : 18446744073709551615ULL;
+    DoPinMask(pos, color, sq);
 }
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 int MoveExists(S_Board* pos, const int move) {
@@ -408,7 +410,6 @@ bool IsLegal(const S_Board* pos, const int move) {
         return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from), to, pos->side ^ 1);
 
     Bitboard pins = pos->pinHV | pos->pinD;
-
     return !(pins & (1ULL << from)) || (get_file[from] == get_file[ksq] && get_file[to] == get_file[ksq]) 
                                     || (get_rank[from] == get_rank[ksq] && get_rank[to] == get_rank[ksq])
                                     || (get_diagonal[from] == get_diagonal[ksq] && get_diagonal[to] == get_diagonal[ksq])

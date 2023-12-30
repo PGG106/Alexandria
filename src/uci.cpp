@@ -261,21 +261,6 @@ void UciLoop(char** argv) {
             }
         }
 
-        // parse UCI "go" command
-        else if (tokens[0] == "test") {
-            StopHelperThreads();
-            // Join previous search thread if it exists
-            if (main_thread.joinable())
-                main_thread.join();
-
-            if (!parsed_position) { // call parse position function
-                ParsePosition("r3k2r/2pb1ppp/2pp4/p7/1nP1B1pp/1P2P3/P2N2PP/q2QK2R w Kkq - 0 16", &td->pos);
-            }
-            int move = encode_move(f7, f6, BP, Movetype::Quiet);
-            bool legality = IsLegal(&td->pos, move);
-            std::cout << "legality: " << legality <<"\n";
-        }
-
         else if (tokens[0] == "setoption") {
             // check tokens for size to see if we have a value
             if (tokens.size() < 5) {
