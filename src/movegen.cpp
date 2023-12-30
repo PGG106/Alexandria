@@ -407,5 +407,5 @@ bool IsLegal(const S_Board* pos, const int move) {
     if (GetPieceType(Piece(move)) == KING)
         return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from), to, pos->side ^ 1);
 
-    return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << to), KingSQ(pos, pos->side), pos->side ^ 1);
+    return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from), KingSQ(pos, pos->side), pos->side ^ 1);
 }
