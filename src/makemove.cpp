@@ -71,6 +71,7 @@ void MakeMove(const int move, S_Board* pos) {
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
+
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
@@ -79,7 +80,7 @@ void MakeMove(const int move, S_Board* pos) {
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move),pos->side);
+    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     const bool capture = IsCapture(move);
     const bool doublePush = isDP(move);
@@ -264,6 +265,7 @@ void MakeNullMove(S_Board* pos) {
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
+
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 

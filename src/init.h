@@ -20,5 +20,3 @@ void InitSlidersAttacks();
 void InitAll();
 
 [[nodiscard]] Bitboard DoCheckmask(S_Board* pos, int color, int sq);
-
-void DoPinMask(S_Board* pos, int color, int sq);
