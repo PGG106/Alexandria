@@ -397,15 +397,20 @@ bool IsLegal(const S_Board* pos, const int move) {
 
     int from = From(move);
     int to = To(move);
+    int ksq = KingSQ(pos, pos->side);
 
     if (isEnpassant(move)) {
         Bitboard occ = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << GetEpSquare(pos)) ^ (1ULL << to);
-        int ksq = KingSQ(pos, pos->side);
         return !IsSquareAttacked(pos, occ, ksq, pos->side ^ 1);
     }
 
     if (GetPieceType(Piece(move)) == KING)
         return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from), to, pos->side ^ 1);
 
-    return !IsSquareAttacked(pos, (pos->Occupancy(BOTH) ^ (1ULL << from)) | (1ULL << to), KingSQ(pos, pos->side), pos->side ^ 1);
+    Bitboard pins = pos->pinHV | pos->pinD;
+
+    return !(pins & (1ULL << from)) || (get_file[from] == get_file[ksq] && get_file[to] == get_file[ksq]) 
+                                    || (get_rank[from] == get_rank[ksq] && get_rank[to] == get_rank[ksq])
+                                    || (get_diagonal[from] == get_diagonal[ksq] && get_diagonal[to] == get_diagonal[ksq])
+                                    || (get_antidiagonal(from) == get_antidiagonal(ksq) && get_antidiagonal(to) == get_antidiagonal(ksq));
 }
