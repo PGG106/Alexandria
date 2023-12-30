@@ -402,7 +402,8 @@ bool IsLegal(const S_Board* pos, const int move) {
     int ksq = KingSQ(pos, pos->side);
 
     if (isEnpassant(move)) {
-        Bitboard occ = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << GetEpSquare(pos)) ^ (1ULL << to);
+        const int NORTH = pos->side == WHITE ? 8 : -8;
+        Bitboard occ = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << (to+NORTH)) ^ (1ULL << to);
         return !IsSquareAttacked(pos, occ, ksq, pos->side ^ 1);
     }
 
