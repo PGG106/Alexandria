@@ -20,19 +20,19 @@
 static bool IsRepetition(const S_Board* pos, const bool pvNode) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 1;
-
-    // we only need to check for repetition the moves since the last 50mr reset
-    for (int index = std::max(static_cast<int>(pos->played_positions.size()) - pos->Get50mrCounter(), 0);
-        index < static_cast<int>(pos->played_positions.size()); index++)
-
+    // How many moves back should we look at most, aka our distance to the last irreversible move
+    int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    // Get the point our search should start from
+    int startingPoint = pos->played_positions.size();
+    // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
+    for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
-        if (pos->played_positions[index] == pos->posKey) {
+        if (pos->played_positions[startingPoint - index] == pos->posKey) {
             // we found a repetition
             counter++;
             if (counter >= 2 + pvNode)
                 return true;
         }
-
     return false;
 }
 

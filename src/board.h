@@ -73,6 +73,7 @@ struct S_Undo {
     int enPas = 0;
     int fiftyMove = 0;
     bool checkers = false;
+    int plyFromNull = 0;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -88,6 +89,7 @@ public:
     int enPas = no_sq; // if enpassant is possible and in which square
     int fiftyMove = 0; // Counter for the 50 moves rule
     int hisPly = 0; // total number of halfmoves
+    int plyFromNull = 0;
     int castleperm = 0;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
