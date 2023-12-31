@@ -506,15 +506,12 @@ moves_loop:
             continue;
 
         totalMoves++;
-        ss->move = move;
 
         const bool isQuiet = IsQuiet(move);
 
         if (isQuiet && SkipQuiets)
             continue;
-
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
-
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -mate_found) {
@@ -583,7 +580,6 @@ moves_loop:
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
-        int depthReduction = 0;
         ss->move = move;
         // Play the move
         MakeMove(move, pos);
@@ -600,6 +596,7 @@ moves_loop:
         info->nodes++;
         uint64_t nodesBeforeSearch = info->nodes;
         bool doFullSearch = false;
+        int depthReduction = 0;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
         if (movesSearched >= 2 + 2 * pvNode && depth >= 3 && (isQuiet || !ttPv)) {
 
