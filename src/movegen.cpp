@@ -392,7 +392,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     }
 }
 
-bool IsLegal(const S_Board* pos, const int move) {
+bool IsLegal(S_Board* pos, const int move) {
 
     if (IsCastle(move))
         return true;
@@ -402,9 +402,17 @@ bool IsLegal(const S_Board* pos, const int move) {
     int ksq = KingSQ(pos, pos->side);
 
     if (isEnpassant(move)) {
-        const int NORTH = pos->side == WHITE ? 8 : -8;
-        Bitboard occ = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << (to+NORTH)) ^ (1ULL << to);
-        return !IsSquareAttacked(pos, occ, ksq, pos->side ^ 1);
+        const int SOUTH = pos->side == WHITE ? 8 : -8;
+        int ourPawn = GetPiece(PAWN, pos->side);
+        int theirPawn = GetPiece(PAWN, pos->side ^ 1);
+        ClearPiece(ourPawn, from, pos);
+        ClearPiece(theirPawn, to + SOUTH, pos);
+        AddPiece(ourPawn, to, pos);
+        bool moveLegal = !IsSquareAttacked(pos, ksq, pos->side ^ 1);
+        AddPiece(ourPawn, from, pos);
+        AddPiece(theirPawn, to + SOUTH, pos);
+        ClearPiece(ourPawn, to, pos);
+        return moveLegal;
     }
 
     if (GetPieceType(Piece(move)) == KING)
