@@ -510,8 +510,6 @@ moves_loop:
         if (isQuiet && SkipQuiets)
             continue;
 
-        ss->move = move;
-
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
 
         if (   !rootNode
@@ -582,6 +580,7 @@ moves_loop:
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
+        ss->move = move;
         // Play the move
         if (!MakeMove(move, pos))
             continue;
