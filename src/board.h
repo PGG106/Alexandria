@@ -100,9 +100,6 @@ public:
     S_Undo    history[1024];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
-    Bitboard checkMask = 0ULL;
-    Bitboard pinD = 0ULL;
-    Bitboard pinHV = 0ULL;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};

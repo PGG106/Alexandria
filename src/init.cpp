@@ -164,72 +164,7 @@ void initializeLookupTables() {
     }
 }
 
-// Originally inspired by smallbrain's checkmask code, later simplified to work with pseudolegal
-Bitboard DoCheckmask(S_Board* pos, int color, int sq) {
-    Bitboard Occ = pos->Occupancy(BOTH);
-    Bitboard checks = 0ULL;
-    Bitboard pawn_mask =
-        pos->bitboards[(color ^ 1) * 6] & pawn_attacks[color][sq];
-    Bitboard knight_mask =
-        pos->bitboards[(color ^ 1) * 6 + 1] & knight_attacks[sq];
-    Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
-        pos->bitboards[(color ^ 1) * 6 + 4]) &
-        GetBishopAttacks(sq, Occ) & ~pos->occupancies[color];
-    Bitboard rook_mask = (pos->bitboards[(color ^ 1) * 6 + 3] |
-        pos->bitboards[(color ^ 1) * 6 + 4]) &
-        GetRookAttacks(sq, Occ) & ~pos->occupancies[color];
-    pos->checks = 0;
-    if (pawn_mask) {
-        checks |= pawn_mask;
-        pos->checks++;
-    }
-    if (knight_mask) {
-        checks |= knight_mask;
-        pos->checks++;
-    }
-    if (bishop_mask) {
-        pos->checks += CountBits(bishop_mask);
-        int index = GetLsbIndex(bishop_mask);
-        checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
-    }
-    if (rook_mask) {
-        pos->checks += CountBits(rook_mask);
-        int index = GetLsbIndex(rook_mask);
-        checks |= SQUARES_BETWEEN_BB[sq][index] | (1ULL << index);
-    }
-    return checks;
-}
 
-void DoPinMask(S_Board* pos, int color, int sq) {
-    Bitboard them = pos->Enemy();
-    Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
-        pos->bitboards[(color ^ 1) * 6 + 4]) &
-        GetBishopAttacks(sq, them);
-    Bitboard rook_mask = (pos->bitboards[(color ^ 1) * 6 + 3] |
-        pos->bitboards[0 + (color ^ 1) * 6 + 4]) &
-        GetRookAttacks(sq, them);
-    Bitboard rook_pin = 0ULL;
-    Bitboard bishop_pin = 0ULL;
-    pos->pinD = 0ULL;
-    pos->pinHV = 0ULL;
-
-    while (rook_mask) {
-        int index = GetLsbIndex(rook_mask);
-        Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-        if (CountBits(possible_pin & pos->occupancies[color]) == 1)
-            rook_pin |= possible_pin;
-        pop_bit(rook_mask, index);
-    }
-    while (bishop_mask) {
-        int index = GetLsbIndex(bishop_mask);
-        Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-        if (CountBits(possible_pin & pos->occupancies[color]) == 1)
-            bishop_pin |= possible_pin;
-        pop_bit(bishop_mask, index);
-    }
-    pos->pinHV = rook_pin;
-    pos->pinD = bishop_pin;
-}
 
 // PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {

@@ -37,17 +37,13 @@ static inline Bitboard PawnPush(int color, int sq) {
     return 1ULL << (sq + (color == WHITE ? -8 : 8));
 }
 
-static inline void init(S_Board* pos, int color, int sq) {
-    Bitboard newMask = DoCheckmask(pos, color, sq);
-    pos->checkMask = newMask ? newMask : 18446744073709551615ULL;
-}
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 int MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
     GenerateMoves(list, pos);
 
     for (int moveNum = 0; moveNum < list->count; ++moveNum) {
-        if (list->moves[moveNum].move == move && IsLegal(pos, move)) {
+        if (list->moves[moveNum].move == move) {
             return true;
         }
     }
@@ -103,18 +99,16 @@ static inline Bitboard PseudoLegalPawnMoves(S_Board* pos, int color, int square)
         ? (get_rank[square] == 1 ? (push >> 8) & ~pos->Occupancy(BOTH) : 0ULL)
         : (get_rank[square] == 6 ? (push << 8) & ~pos->Occupancy(BOTH) : 0ULL);
 
-    int offset = color * -16 + 8;
     Bitboard attacks = pawn_attacks[color][square];
     // If we are in check and the en passant square lies on our attackmask and
     // the en passant piece gives check return the ep mask as a move square
     if (pos->checkers && GetEpSquare(pos) != no_sq &&
-        attacks & (1ULL << GetEpSquare(pos)) &&
-        pos->checkMask & (1ULL << (GetEpSquare(pos) + offset)))
+        attacks & (1ULL << GetEpSquare(pos)))
         return (attacks & (1ULL << GetEpSquare(pos)));
 
     // If we are in check we can do all moves that are on the checkmask
     if (pos->checkers)
-        return ((attacks & enemy) | push) & pos->checkMask;
+        return ((attacks & enemy) | push);
 
     Bitboard moves = ((attacks & enemy) | push);
 
@@ -126,19 +120,19 @@ static inline Bitboard PseudoLegalPawnMoves(S_Board* pos, int color, int square)
 }
 
 static inline Bitboard PseudoLegalKnightMoves(S_Board* pos, int color, int square) {
-    return knight_attacks[square] & ~pos->Occupancy(color) & pos->checkMask;
+    return knight_attacks[square] & ~pos->Occupancy(color);
 }
 
 static inline Bitboard PseudoLegalBishopMoves(S_Board* pos, int color, int square) {
-    return GetBishopAttacks(square, pos->Occupancy(BOTH)) & ~(pos->Occupancy(color)) & pos->checkMask;
+    return GetBishopAttacks(square, pos->Occupancy(BOTH)) & ~(pos->Occupancy(color));
 }
 
 static inline Bitboard PseudoLegalRookMoves(S_Board* pos, int color, int square) {
-    return GetRookAttacks(square, pos->Occupancy(BOTH)) & ~(pos->Occupancy(color)) & pos->checkMask;
+    return GetRookAttacks(square, pos->Occupancy(BOTH)) & ~(pos->Occupancy(color));
 }
 
 static inline Bitboard PseudoLegalQueenMoves(S_Board* pos, int color, int square) {
-    return (PseudoLegalRookMoves(pos, color, square) | PseudoLegalBishopMoves(pos, color, square)) & pos->checkMask;
+    return (PseudoLegalRookMoves(pos, color, square) | PseudoLegalBishopMoves(pos, color, square));
 }
 
 static inline Bitboard PseudoLegalKingMoves(S_Board* pos, int color, int square) {
@@ -152,80 +146,76 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    init(pos, pos->side, KingSQ(pos, pos->side));
-
-    if (pos->checks < 2) {
-        Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
-        while (pawns) {
-            // init source square
-            sourceSquare = GetLsbIndex(pawns);
-            Bitboard moves = PseudoLegalPawnMoves(pos, pos->side, sourceSquare);
-            while (moves) {
-                // init target square
-                targetSquare = GetLsbIndex(moves);
-                AddPawnMove(pos, sourceSquare, targetSquare, move_list);
-                pop_bit(moves, targetSquare);
-            }
-            // pop lsb from piece bitboard copy
-            pop_bit(pawns, sourceSquare);
+    Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
+    while (pawns) {
+        // init source square
+        sourceSquare = GetLsbIndex(pawns);
+        Bitboard moves = PseudoLegalPawnMoves(pos, pos->side, sourceSquare);
+        while (moves) {
+            // init target square
+            targetSquare = GetLsbIndex(moves);
+            AddPawnMove(pos, sourceSquare, targetSquare, move_list);
+            pop_bit(moves, targetSquare);
         }
+        // pop lsb from piece bitboard copy
+        pop_bit(pawns, sourceSquare);
+    }
 
-        // genarate knight moves
-        Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
-        while (knights) {
-            sourceSquare = GetLsbIndex(knights);
-            Bitboard moves = PseudoLegalKnightMoves(pos, pos->side, sourceSquare);
-            const int piece = GetPiece(KNIGHT, pos->side);
-            while (moves) {
-                targetSquare = GetLsbIndex(moves);
-                Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_bit(moves, targetSquare);
-            }
-            pop_bit(knights, sourceSquare);
+    // genarate knight moves
+    Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
+    while (knights) {
+        sourceSquare = GetLsbIndex(knights);
+        Bitboard moves = PseudoLegalKnightMoves(pos, pos->side, sourceSquare);
+        const int piece = GetPiece(KNIGHT, pos->side);
+        while (moves) {
+            targetSquare = GetLsbIndex(moves);
+            Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
+            pop_bit(moves, targetSquare);
         }
+        pop_bit(knights, sourceSquare);
+    }
 
-        Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
-        while (bishops) {
-            sourceSquare = GetLsbIndex(bishops);
-            Bitboard moves = PseudoLegalBishopMoves(pos, pos->side, sourceSquare);
-            const int piece = GetPiece(BISHOP, pos->side);
-            while (moves) {
-                targetSquare = GetLsbIndex(moves);
-                Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_bit(moves, targetSquare);
-            }
-            pop_bit(bishops, sourceSquare);
+    Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
+    while (bishops) {
+        sourceSquare = GetLsbIndex(bishops);
+        Bitboard moves = PseudoLegalBishopMoves(pos, pos->side, sourceSquare);
+        const int piece = GetPiece(BISHOP, pos->side);
+        while (moves) {
+            targetSquare = GetLsbIndex(moves);
+            Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
+            pop_bit(moves, targetSquare);
         }
+        pop_bit(bishops, sourceSquare);
+    }
 
-        Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
-        while (rooks) {
-            sourceSquare = GetLsbIndex(rooks);
-            Bitboard moves = PseudoLegalRookMoves(pos, pos->side, sourceSquare);
-            const int piece = GetPiece(ROOK, pos->side);
-            while (moves) {
-                targetSquare = GetLsbIndex(moves);
-                Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_bit(moves, targetSquare);
-            }
-            pop_bit(rooks, sourceSquare);
+    Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
+    while (rooks) {
+        sourceSquare = GetLsbIndex(rooks);
+        Bitboard moves = PseudoLegalRookMoves(pos, pos->side, sourceSquare);
+        const int piece = GetPiece(ROOK, pos->side);
+        while (moves) {
+            targetSquare = GetLsbIndex(moves);
+            Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
+            pop_bit(moves, targetSquare);
         }
+        pop_bit(rooks, sourceSquare);
+    }
 
-        Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
-        while (queens) {
-            sourceSquare = GetLsbIndex(queens);
-            Bitboard moves = PseudoLegalQueenMoves(pos, pos->side, sourceSquare);
-            const int piece = GetPiece(QUEEN, pos->side);
-            while (moves) {
-                targetSquare = GetLsbIndex(moves);
-                Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-                AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_bit(moves, targetSquare);
-            }
-            pop_bit(queens, sourceSquare);
+    Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
+    while (queens) {
+        sourceSquare = GetLsbIndex(queens);
+        Bitboard moves = PseudoLegalQueenMoves(pos, pos->side, sourceSquare);
+        const int piece = GetPiece(QUEEN, pos->side);
+        while (moves) {
+            targetSquare = GetLsbIndex(moves);
+            Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
+            pop_bit(moves, targetSquare);
         }
+        pop_bit(queens, sourceSquare);
     }
 
     sourceSquare = KingSQ(pos, pos->side);
@@ -303,8 +293,6 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
     // define source & target squares
     int sourceSquare, targetSquare;
-
-    init(pos, pos->side, KingSQ(pos, pos->side));
 
     if (pos->checks < 2) {
         Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, pos->side);

@@ -71,8 +71,6 @@ bool MakeMove(const int move, S_Board* pos) {
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -190,8 +188,6 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->castleperm = pos->history[pos->hisPly].castlePerm;
     pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
 
     // parse move
     const int sourceSquare = From(move);
@@ -275,8 +271,6 @@ void MakeNullMove(S_Board* pos) {
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -302,8 +296,6 @@ void TakeNullMove(S_Board* pos) {
     pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->enPas = pos->history[pos->hisPly].enPas;
     pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
 
     pos->ChangeSide();
     pos->posKey = pos->played_positions.back();
