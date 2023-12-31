@@ -490,7 +490,7 @@ moves_loop:
     int move = NOMOVE;
     int bestMove = NOMOVE;
 
-    int movesSearched = 0, totalMoves = 0;
+    int movesSearched = 0;
     bool SkipQuiets = false;
 
     Movepicker mp;
@@ -505,10 +505,6 @@ moves_loop:
         if (move == excludedMove)
             continue;
 
-        if (!IsLegal(pos, move))
-            continue;
-
-        totalMoves++;
         ss->move = move;
 
         const bool isQuiet = IsQuiet(move);
@@ -589,7 +585,8 @@ moves_loop:
         int depthReduction = 0;
         ss->move = move;
         // Play the move
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
         // Add any played move to the matching list
         if (isQuiet) {
             quietMoves.moves[quietMoves.count].move = move;
@@ -707,10 +704,8 @@ moves_loop:
     // We don't have any legal moves to make in the current postion. If we are in singular search, return alpha.
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
-    if (totalMoves == 0 && !excludedMove) {
-        return excludedMove ? alpha
-            : inCheck ? -mate_score + ss->ply
-            : 0;
+    if (bestScore == -MAXSCORE && !excludedMove) {
+        return inCheck ? -mate_score + ss->ply : 0;
     }
     // Set the TT flag based on whether the bestScore is better than beta and if it's not based on if we changed alpha or not
     int flag = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
@@ -795,16 +790,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     int bestmove = NOMOVE;
     int move = NOMOVE;
-    int totalMoves = 0;
 
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -mate_found)) != NOMOVE) {
 
-        if (!IsLegal(pos, move))
-            continue;
-
         ss->move = move;
-        totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -mate_found
@@ -819,7 +809,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
                 }
             }
 
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
@@ -851,7 +842,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     }
 
     // return mate score (assuming closest distance to mating position)
-    if (totalMoves == 0 && inCheck) {
+    if (bestScore == -MAXSCORE && inCheck) {
         return -mate_score + ss->ply;
     }
     // Set the TT flag based on whether the bestScore is better than beta, for qsearch we never use the exact flag

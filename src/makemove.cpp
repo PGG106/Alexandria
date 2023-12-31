@@ -65,7 +65,7 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 }
 
 // make move on chess board
-void MakeMove(const int move, S_Board* pos) {
+bool MakeMove(const int move, S_Board* pos) {
     // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
@@ -170,15 +170,15 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
+    // If the move is illegal revert it
+    if (IsInCheck(pos, pos->side^1)) {
+        UnmakeMove(move, pos);
+        return false;
+    }
     // Speculative prefetch of the TT entry
     TTPrefetch(pos->posKey);
     pos->checkers = IsInCheck(pos, pos->side);
-    if (IsInCheck(pos, pos->side ^ 1)) {
-        UnmakeMove(move, pos);
-        PrintBoard(pos);
-        std::cout << "\n";
-        PrintMove(move);
-    }
+    return true;
 }
 
 void UnmakeMove(const int move, S_Board* pos) {

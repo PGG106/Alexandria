@@ -28,10 +28,10 @@ void PerftDriver(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         int move = move_list->moves[move_count].move;
-        if (!IsLegal(pos, move))
-            continue;
+
         // make move
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
 
         // call perft driver recursively
         PerftDriver(depth - 1, pos);
@@ -59,10 +59,10 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         const int move = move_list->moves[move_count].move;
-        if (!IsLegal(pos, move))
-            continue;
+
         // make move
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
 
         // cummulative nodes
         long cummulative_nodes = nodes;

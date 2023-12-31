@@ -40,7 +40,6 @@ static inline Bitboard PawnPush(int color, int sq) {
 static inline void init(S_Board* pos, int color, int sq) {
     Bitboard newMask = DoCheckmask(pos, color, sq);
     pos->checkMask = newMask ? newMask : 18446744073709551615ULL;
-    DoPinMask(pos, color, sq);
 }
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 int MoveExists(S_Board* pos, const int move) {
@@ -392,35 +391,3 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     }
 }
 
-bool IsLegal(S_Board* pos, const int move) {
-
-    if (IsCastle(move))
-        return true;
-
-    int from = From(move);
-    int to = To(move);
-    int ksq = KingSQ(pos, pos->side);
-
-    if (isEnpassant(move)) {
-        const int SOUTH = pos->side == WHITE ? 8 : -8;
-        int ourPawn = GetPiece(PAWN, pos->side);
-        int theirPawn = GetPiece(PAWN, pos->side ^ 1);
-        ClearPiece(ourPawn, from, pos);
-        ClearPiece(theirPawn, to + SOUTH, pos);
-        AddPiece(ourPawn, to, pos);
-        bool moveLegal = !IsSquareAttacked(pos, ksq, pos->side ^ 1);
-        AddPiece(ourPawn, from, pos);
-        AddPiece(theirPawn, to + SOUTH, pos);
-        ClearPiece(ourPawn, to, pos);
-        return moveLegal;
-    }
-
-    if (GetPieceType(Piece(move)) == KING)
-        return !IsSquareAttacked(pos, pos->Occupancy(BOTH) ^ (1ULL << from), to, pos->side ^ 1);
-
-    Bitboard pins = pos->pinHV | pos->pinD;
-    return !(pins & (1ULL << from)) || (get_file[from] == get_file[ksq] && get_file[to] == get_file[ksq]) 
-                                    || (get_rank[from] == get_rank[ksq] && get_rank[to] == get_rank[ksq])
-                                    || (get_diagonal[from] == get_diagonal[ksq] && get_diagonal[to] == get_diagonal[ksq])
-                                    || (get_antidiagonal(from) == get_antidiagonal(ksq) && get_antidiagonal(to) == get_antidiagonal(ksq));
-}
