@@ -12,5 +12,5 @@ struct S_MOVELIST;
 // generate all moves
 void GenerateMoves(S_MOVELIST* move_list, S_Board* pos);
 
-// generate all moves
+// generate all captures
 void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos);

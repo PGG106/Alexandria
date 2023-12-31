@@ -20,14 +20,6 @@ void PerftDriver(int depth, S_Board* pos) {
     // generate moves
     GenerateMoves(move_list, pos);
 
-    // Bulk Counting
-    if (depth == 1) {
-        // increment nodes count (count reached positions)
-        nodes += move_list->count;
-        return;
-    }
-
-    // Bulk Counting
     if (depth == 0) {
         nodes += 1;
         return;
@@ -36,8 +28,10 @@ void PerftDriver(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         int move = move_list->moves[move_count].move;
+
         // make move
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
 
         // call perft driver recursively
         PerftDriver(depth - 1, pos);
@@ -65,8 +59,10 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         const int move = move_list->moves[move_count].move;
+
         // make move
-        MakeMove(move, pos);
+        if (!MakeMove(move, pos))
+            continue;
 
         // cummulative nodes
         long cummulative_nodes = nodes;

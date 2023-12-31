@@ -65,7 +65,7 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 }
 
 // make move on chess board
-void MakeMove(const int move, S_Board* pos) {
+bool MakeMove(const int move, S_Board* pos) {
     // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
@@ -81,7 +81,7 @@ void MakeMove(const int move, S_Board* pos) {
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move),pos->side);
+    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     const bool capture = IsCapture(move);
     const bool doublePush = isDP(move);
@@ -169,9 +169,15 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
+    // If the move is illegal revert it
+    if (IsInCheck(pos, pos->side^1)) {
+        UnmakeMove(move, pos);
+        return false;
+    }
     // Speculative prefetch of the TT entry
     TTPrefetch(pos->posKey);
     pos->checkers = IsInCheck(pos, pos->side);
+    return true;
 }
 
 void UnmakeMove(const int move, S_Board* pos) {
@@ -268,6 +274,7 @@ void MakeNullMove(S_Board* pos) {
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
+  
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
