@@ -72,7 +72,7 @@ struct S_Undo {
     int capture = EMPTY;
     int enPas = 0;
     int fiftyMove = 0;
-    bool checkers = false;
+    Bitboard checkers = false;
     int plyFromNull = 0;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
@@ -99,7 +99,6 @@ public:
     std::vector<ZobristKey> played_positions = {};
     Bitboard pinHV = 0ULL;
     Bitboard pinD = 0ULL;
-    Bitboard checkMask = 0ULL;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
@@ -107,8 +106,7 @@ public:
     NNUE::accumulator accumulator = {};
     // Previous values of the nnue accumulators. always empty at the start of search
     std::vector<NNUE::accumulator> accumulatorStack = {};
-    bool checkers;
-    int checks = -1;
+    Bitboard checkers;
 
     inline Bitboard Us() const {
         return occupancies[side];
@@ -244,10 +242,8 @@ void ResetInfo(S_SearchINFO* info);
 [[nodiscard]] bool BoardHasNonPawns(const S_Board* pos, const int side);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const S_Board* pos, const int c);
+[[nodiscard]] Bitboard GetCheckersBB(const S_Board* pos, const int side);
 // returns if the current side is in check
-[[nodiscard]] bool IsInCheck(const S_Board* pos, const int side);
-
-// Board state retrieval
 
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);

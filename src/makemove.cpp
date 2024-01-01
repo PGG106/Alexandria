@@ -171,7 +171,7 @@ void MakeMove(const int move, S_Board* pos) {
     HashKey(pos, SideKey);
     // Speculative prefetch of the TT entry
     TTPrefetch(pos->posKey);
-    pos->checkers = IsInCheck(pos, pos->side);
+    pos->checkers = GetCheckersBB(pos, pos->side);
 }
 
 void UnmakeMove(const int move, S_Board* pos) {

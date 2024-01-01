@@ -7,6 +7,7 @@
 #include "uci.h"
 #include "attack.h"
 #include "magic.h"
+#include "io.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
@@ -20,6 +21,7 @@
 #if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
+#include <iostream>
 
 NNUE nnue = NNUE();
 
@@ -230,7 +232,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     pos->posKey = GeneratePosKey(pos);
 
-    pos->checkers = IsInCheck(pos, pos->side);
+    pos->checkers = GetCheckersBB(pos, pos->side);
 
     // Update nnue accumulator to reflect board state
     Accumulate(pos->accumulator, pos);
@@ -394,8 +396,42 @@ int KingSQ(const S_Board* pos, const int c) {
     return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }
 
-bool IsInCheck(const S_Board* pos, const int side) {
-    return IsSquareAttacked(pos, KingSQ(pos, side), side ^ 1);
+Bitboard GetCheckersBB(const S_Board* pos, const int side) {
+    Bitboard Occ = pos->Occupancy(BOTH);
+    int kingSquare = KingSQ(pos, side);
+    // Bitboard of pawns that attack the king square
+    const Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
+    // Bitboard of knights that attack the king square
+    const Bitboard knight_mask = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];
+    // Bitboard of bishops and queens that diagonally attack the king square
+    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
+    const Bitboard bishop_mask = bishopsQueens & GetBishopAttacks(kingSquare, Occ) & ~pos->occupancies[side];
+    // Bitboard of rooks and queens that attack the king square
+    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
+    const Bitboard rook_mask = rooksQueens & GetRookAttacks(kingSquare, Occ) & ~pos->occupancies[side];
+    
+    Bitboard checkers = pawn_mask | knight_mask;
+
+    if (bishop_mask) {
+        Bitboard checkingBishops = bishop_mask;
+        while (checkingBishops) {
+        int index = GetLsbIndex(checkingBishops);
+        checkers |= (1ULL << index);
+        pop_bit(checkingBishops,index);
+        }
+    }
+    if (rook_mask) {
+        Bitboard checkingrook = rook_mask;
+        while (checkingrook) {
+            int index = GetLsbIndex(checkingrook);
+            checkers |= (1ULL << index);
+            pop_bit(checkingrook, index);
+        }
+        int index = GetLsbIndex(rook_mask);
+        checkers |= (1ULL << index);
+    }
+
+    return checkers;
 }
 
 int GetEpSquare(const S_Board* pos) {

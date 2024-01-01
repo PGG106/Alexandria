@@ -19,6 +19,7 @@ constexpr int mate_score = 32000;
 constexpr int mate_found = mate_score - MAXPLY;
 constexpr int score_none = 32001;
 constexpr int MAXSCORE = 32670;
+constexpr Bitboard fullCheckmask = 0xFFFFFFFFFFFFFFFF;
 
 // board squares
 enum {
