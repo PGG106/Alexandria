@@ -7,7 +7,6 @@
 #include "uci.h"
 #include "attack.h"
 #include "magic.h"
-#include "io.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
@@ -21,7 +20,6 @@
 #if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
-#include <iostream>
 
 NNUE nnue = NNUE();
 

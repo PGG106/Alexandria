@@ -5,8 +5,6 @@
 #include "makemove.h"
 #include "board.h"
 #include "move.h"
-#include <iostream>
-#include "io.h"
 
 // is the square given in input attacked by the current given side
 bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
