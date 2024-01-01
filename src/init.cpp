@@ -319,8 +319,6 @@ void InitNewGame(S_ThreadData* td) {
 
     // delete played moves hashes
     pos->played_positions.clear();
-    // Empty the accumulator stack
-    pos->accumulatorStack.clear();
     // call parse position function
     ParsePosition("position startpos", pos);
 }

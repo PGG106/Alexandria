@@ -107,11 +107,16 @@ public:
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    NNUE::accumulator accumulator = {};
-    // Previous values of the nnue accumulators. always empty at the start of search
-    std::vector<NNUE::accumulator> accumulatorStack = {};
+
+    NNUE::accumulator accumStack[256];
+    int accumStackHead;
+
     bool checkers;
     int checks = -1;
+
+    inline NNUE::accumulator& AccumulatorTop() {
+        return accumStack[accumStackHead-1];
+    }
 
     inline Bitboard Us() const {
         return occupancies[side];

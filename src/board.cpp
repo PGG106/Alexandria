@@ -94,8 +94,6 @@ int SquareDistance(int a, int b) {
 
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos) {
-    // Reset nnue accumulator stack
-    pos->accumulatorStack.clear();
 
     ResetBoard(pos);
 
@@ -233,7 +231,8 @@ void ParseFen(const std::string& command, S_Board* pos) {
     pos->checkers = IsInCheck(pos, pos->side);
 
     // Update nnue accumulator to reflect board state
-    Accumulate(pos->accumulator, pos);
+    Accumulate(pos->accumStack[0], pos);
+    pos->accumStackHead = 1;
 }
 
 std::string GetFen(const S_Board* pos) {
