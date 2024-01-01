@@ -72,8 +72,9 @@ struct S_Undo {
     int capture = EMPTY;
     int enPas = 0;
     int fiftyMove = 0;
-    Bitboard checkers = false;
     int plyFromNull = 0;
+    Bitboard checkers = 0ULL;
+    Bitboard checkMask = fullCheckmask;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -107,6 +108,7 @@ public:
     // Previous values of the nnue accumulators. always empty at the start of search
     std::vector<NNUE::accumulator> accumulatorStack = {};
     Bitboard checkers;
+    Bitboard checkMask = fullCheckmask;
 
     inline Bitboard Us() const {
         return occupancies[side];

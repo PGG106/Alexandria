@@ -231,6 +231,14 @@ void ParseFen(const std::string& command, S_Board* pos) {
     pos->posKey = GeneratePosKey(pos);
 
     pos->checkers = GetCheckersBB(pos, pos->side);
+    // If we are in check get the squares between the checking piece and the king
+    if (pos->checkers) {
+        const int kingSquare = KingSQ(pos, pos->side);
+        const int pieceLocation = GetLsbIndex(pos->checkers);
+        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+    }
+    else
+        pos->checkMask = fullCheckmask;
 
     // Update nnue accumulator to reflect board state
     Accumulate(pos->accumulator, pos);
