@@ -209,11 +209,9 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
         // If we are in check get the squares between the checking piece and the king
         Bitboard checkMask = fullCheckmask;
         if (pos->checkers) {
-            checkMask = 0;
             const int kingSquare = KingSQ(pos, pos->side);
-            Bitboard checkingPieces = pos->checkers;
-            const int pieceLocation = GetLsbIndex(checkingPieces);
-            checkMask |= (1ULL << pieceLocation) | SQUARES_BETWEEN_BB[pieceLocation][kingSquare];
+            const int pieceLocation = GetLsbIndex(pos->checkers);
+            checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
         }
 
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
@@ -370,15 +368,12 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     const int checks = CountBits(pos->checkers);
 
     if (checks < 2) {
-
         // If we are in check get the squares between the checking piece and the king
         Bitboard checkMask = fullCheckmask;
         if (pos->checkers) {
-            checkMask = 0;
             const int kingSquare = KingSQ(pos, pos->side);
-            Bitboard checkingPieces = pos->checkers;
-            const int pieceLocation = GetLsbIndex(checkingPieces);
-            checkMask |= (1ULL << pieceLocation) | SQUARES_BETWEEN_BB[pieceLocation][kingSquare];
+            const int pieceLocation = GetLsbIndex(pos->checkers);
+            checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
         }
 
         Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, pos->side);

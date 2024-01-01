@@ -243,8 +243,7 @@ void ResetInfo(S_SearchINFO* info);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const S_Board* pos, const int c);
 [[nodiscard]] Bitboard GetCheckersBB(const S_Board* pos, const int side);
-// returns if the current side is in check
-
+Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);

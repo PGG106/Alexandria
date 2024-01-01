@@ -434,6 +434,10 @@ Bitboard GetCheckersBB(const S_Board* pos, const int side) {
     return checkers;
 }
 
+Bitboard RayBetween(int square1, int square2) {
+    return SQUARES_BETWEEN_BB[square1][square2];
+}
+
 int GetEpSquare(const S_Board* pos) {
     return pos->enPas;
 }
