@@ -70,8 +70,9 @@ void MakeMove(const int move, S_Board* pos) {
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
+    pos->history[pos->hisPly].checkers = pos->checkers;
+    pos->history[pos->hisPly].checkMask = pos->checkMask;
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -171,7 +172,15 @@ void MakeMove(const int move, S_Board* pos) {
     HashKey(pos, SideKey);
     // Speculative prefetch of the TT entry
     TTPrefetch(pos->posKey);
-    pos->checkers = IsInCheck(pos, pos->side);
+    pos->checkers = GetCheckersBB(pos, pos->side);
+    // If we are in check get the squares between the checking piece and the king
+    if (pos->checkers) {
+        const int kingSquare = KingSQ(pos, pos->side);
+        const int pieceLocation = GetLsbIndex(pos->checkers);
+        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+    }
+    else
+        pos->checkMask = fullCheckmask;
 }
 
 void UnmakeMove(const int move, S_Board* pos) {
@@ -182,8 +191,9 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->enPas = pos->history[pos->hisPly].enPas;
     pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->castleperm = pos->history[pos->hisPly].castlePerm;
-    pos->checkers = pos->history[pos->hisPly].checkers;
     pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
+    pos->checkers = pos->history[pos->hisPly].checkers;
+    pos->checkMask = pos->history[pos->hisPly].checkMask;
 
     // parse move
     const int sourceSquare = From(move);
@@ -266,8 +276,9 @@ void MakeNullMove(S_Board* pos) {
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
+    pos->history[pos->hisPly].checkers = pos->checkers;
+    pos->history[pos->hisPly].checkMask = pos->checkMask;
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
@@ -292,8 +303,9 @@ void TakeNullMove(S_Board* pos) {
     pos->castleperm = pos->history[pos->hisPly].castlePerm;
     pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->checkers = pos->history[pos->hisPly].checkers;
     pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
+    pos->checkers = pos->history[pos->hisPly].checkers;
+    pos->checkMask = pos->history[pos->hisPly].checkMask;
 
     pos->ChangeSide();
     pos->posKey = pos->played_positions.back();
