@@ -165,28 +165,29 @@ void initializeLookupTables() {
 
 void DoPinMask(S_Board* pos, int color, int sq) {
     Bitboard them = pos->Enemy();
-    Bitboard bishop_mask = (pos->bitboards[(color ^ 1) * 6 + 2] |
-        pos->bitboards[(color ^ 1) * 6 + 4]) &
-        GetBishopAttacks(sq, them);
-    Bitboard rook_mask = (pos->bitboards[(color ^ 1) * 6 + 3] |
-        pos->bitboards[0 + (color ^ 1) * 6 + 4]) &
-        GetRookAttacks(sq, them);
-    Bitboard rook_pin = 0ULL;
-    Bitboard bishop_pin = 0ULL;
-    pos->pinD = 0ULL;
-    pos->pinHV = 0ULL;
+
+    Bitboard bishop_pin, rook_pin;
+    bishop_pin = rook_pin = 0ULL;
+    pos->pinD = pos->pinHV = 0ULL;
+
+    // Bitboard of bishops and queens that diagonally attack the king square
+    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, color ^ 1) | pos->GetPieceColorBB(QUEEN, color ^ 1);
+    Bitboard bishop_mask = bishopsQueens & GetBishopAttacks(sq, them);
+    // Bitboard of rooks and queens that attack the king square
+    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, color ^ 1) | pos->GetPieceColorBB(QUEEN, color ^ 1);
+    Bitboard rook_mask = rooksQueens & GetRookAttacks(sq, them);
 
     while (rook_mask) {
         int index = GetLsbIndex(rook_mask);
-        Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-        if (CountBits(possible_pin & pos->occupancies[color]) == 1)
+        Bitboard possible_pin = RayBetween(sq, index) | (1ULL << index);
+        if (CountBits(possible_pin & pos->Occupancy(color)) == 1)
             rook_pin |= possible_pin;
         pop_bit(rook_mask, index);
     }
     while (bishop_mask) {
         int index = GetLsbIndex(bishop_mask);
-        Bitboard possible_pin = (SQUARES_BETWEEN_BB[sq][index] | (1ULL << index));
-        if (CountBits(possible_pin & pos->occupancies[color]) == 1)
+        Bitboard possible_pin = RayBetween(sq, index) | (1ULL << index);
+        if (CountBits(possible_pin & pos->Occupancy(color)) == 1)
             bishop_pin |= possible_pin;
         pop_bit(bishop_mask, index);
     }

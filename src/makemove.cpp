@@ -181,6 +181,8 @@ void MakeMove(const int move, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+    // Update pinmasks
+    UpdatePinMasks(pos, pos->side);
 }
 
 void UnmakeMove(const int move, S_Board* pos) {
