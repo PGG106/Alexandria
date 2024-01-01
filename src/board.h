@@ -23,7 +23,7 @@
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
 #define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
-#define clr_lsb(bitboard) ((bitboard) &= (bitboard - 1))
+#define pop_lsb(bitboard) ((bitboard) &= (bitboard - 1))
 
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
