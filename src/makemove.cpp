@@ -171,6 +171,8 @@ void MakeUCIMove(const int move, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+    // Update pinmasks
+    UpdatePinMasks(pos, pos->side);
 }
 
 // make move on chess board
