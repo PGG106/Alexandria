@@ -83,6 +83,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
+    pos->plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
