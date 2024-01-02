@@ -2,6 +2,7 @@
 Cosmo - relative NNUE inference code
 Disservin - Makefile and CI PR
 JW - 16bits move structure shenanigans
+Gabe - fat speedup
 Kimmy - Search stuff
 kz04px (Big T) - Code refactoring
 Luecx - Help setting up the first non relative NNUE
