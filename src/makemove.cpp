@@ -107,6 +107,7 @@ void MakeMove(const int move, S_Board* pos) {
     else if (capture) {
         const int pieceCap = pos->pieces[targetSquare];
         assert(pieceCap != EMPTY);
+        assert(GetPieceType(pieceCap) != KING);
         ClearPieceNNUE(pieceCap, targetSquare, pos);
 
         pos->history[pos->hisPly].capture = pieceCap;
@@ -301,6 +302,8 @@ void MakeNullMove(S_Board* pos) {
 
     pos->ChangeSide();
     HashKey(pos, SideKey);
+    // Update pinmasks
+    UpdatePinMasks(pos, pos->side);
 }
 
 // Take back a null move

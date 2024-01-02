@@ -197,7 +197,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     int sourceSquare, targetSquare;
 
     const int checks = CountBits(pos->checkers);
-
+    
     if (checks < 2) {
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
         while (pawns) {

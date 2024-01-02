@@ -20,7 +20,6 @@
 #if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
-#include "io.h"
 
 NNUE nnue = NNUE();
 
