@@ -28,13 +28,13 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-    nnue.clear(pos->accumulator, piece, sq);
+    nnue.clear(pos->AccumulatorTop(), piece, sq);
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-    nnue.add(pos->accumulator, piece, to);
+    nnue.add(pos->AccumulatorTop(), piece, to);
     AddPiece(piece, to, pos);
 }
 
@@ -46,7 +46,7 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 // Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-    nnue.move(pos->accumulator, piece, from, to);
+    nnue.move(pos->AccumulatorTop(), piece, from, to);
     MovePiece(piece, from, to, pos);
 }
 
@@ -77,7 +77,9 @@ void MakeMove(const int move, S_Board* pos) {
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
-    pos->accumulatorStack.emplace_back(pos->accumulator);
+    pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
+    pos->accumStackHead++;
+
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -205,8 +207,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     const bool castling = IsCastle(move);
     const bool promotion = isPromo(move);
   
-    pos->accumulator = pos->accumulatorStack.back();
-    pos->accumulatorStack.pop_back();
+    pos->accumStackHead--;
 
     // handle pawn promotions
     if (promotion) {

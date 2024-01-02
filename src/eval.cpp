@@ -30,7 +30,7 @@ static inline float MaterialScale(const S_Board* pos) {
 // position evaluation
 int EvalPosition(const S_Board* pos) {
     bool stm = (pos->side == WHITE);
-    int eval = nnue.output(pos->accumulator, stm);
+    int eval = nnue.output(pos->accumStack[pos->accumStackHead-1], stm);
     eval = (eval * MaterialScale(pos)) / 1024;
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     // Clamp eval to avoid it somehow being a mate score

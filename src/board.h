@@ -112,6 +112,13 @@ public:
     std::vector<NNUE::accumulator> accumulatorStack = {};
     Bitboard checkers;
     Bitboard checkMask = fullCheckmask;
+  
+    NNUE::accumulator accumStack[256];
+    int accumStackHead;
+
+    inline NNUE::accumulator& AccumulatorTop() {
+        return accumStack[accumStackHead-1];
+    }
 
     inline Bitboard Us() const {
         return occupancies[side];
