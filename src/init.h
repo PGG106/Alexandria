@@ -18,5 +18,3 @@ void InitLeapersAttacks();
 void InitSlidersAttacks();
 
 void InitAll();
-
-

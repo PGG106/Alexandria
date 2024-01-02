@@ -163,8 +163,6 @@ void initializeLookupTables() {
     }
 }
 
-
-
 // PreCalculate the logarithms used in the reduction calculation
 void InitReductions() {
     // Avoid log(0) because it's bad
