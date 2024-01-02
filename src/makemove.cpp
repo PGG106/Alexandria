@@ -28,13 +28,13 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-    nnue.clear(pos->accumulator, piece, sq);
+    nnue.clear(pos->AccumulatorTop(), piece, sq);
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-    nnue.add(pos->accumulator, piece, to);
+    nnue.add(pos->AccumulatorTop(), piece, to);
     AddPiece(piece, to, pos);
 }
 
@@ -46,7 +46,7 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 // Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-    nnue.move(pos->accumulator, piece, from, to);
+    nnue.move(pos->AccumulatorTop(), piece, from, to);
     MovePiece(piece, from, to, pos);
 }
 
@@ -65,6 +65,115 @@ void inline HashKey(S_Board* pos, ZobristKey key) {
 }
 
 // make move on chess board
+void MakeUCIMove(const int move, S_Board* pos) {
+
+    // Store position key in the array of searched position
+    pos->played_positions.emplace_back(pos->posKey);
+
+    // parse move
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
+    // parse move flag
+    const bool capture = IsCapture(move);
+    const bool doublePush = isDP(move);
+    const bool enpass = isEnpassant(move);
+    const bool castling = IsCastle(move);
+    const bool promotion = isPromo(move);
+    // increment fifty move rule counter
+    pos->fiftyMove++;
+    pos->plyFromNull++;
+    const int NORTH = pos->side == WHITE ? 8 : -8;
+
+    // if a pawn was moved reset the 50 move rule counter
+    if (GetPieceType(piece) == PAWN)
+        pos->fiftyMove = 0;
+
+    // handle enpassant captures
+    if (enpass) {
+        ClearPiece(GetPiece(PAWN, pos->side ^ 1), targetSquare + NORTH, pos);
+    }
+    // handling capture moves
+    else if (capture) {
+        const int pieceCap = pos->pieces[targetSquare];
+        assert(pieceCap != EMPTY);
+        ClearPiece(pieceCap, targetSquare, pos);
+
+        // a capture was played so reset 50 move rule counter
+        pos->fiftyMove = 0;
+    }
+
+    // increment ply counters
+    pos->hisPly++;
+    // Remove the piece fom the square it moved from
+    ClearPiece(piece, sourceSquare, pos);
+    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    AddPiece(promotion ? promotedPiece : piece, targetSquare, pos);
+
+    // Reset EP square
+    if (GetEpSquare(pos) != no_sq)
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+
+    // reset enpassant square
+    pos->enPas = no_sq;
+
+    // handle double pawn push
+    if (doublePush) {
+        pos->enPas = targetSquare + NORTH;
+        // hash enpassant
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+    }
+
+    // handle castling moves
+    if (castling) {
+        // switch target square
+        switch (targetSquare) {
+            // white castles king side
+        case (g1):
+            // move H rook
+            MovePiece(WR, h1, f1, pos);
+            break;
+
+            // white castles queen side
+        case (c1):
+            // move A rook
+            MovePiece(WR, a1, d1, pos);
+            break;
+
+            // black castles king side
+        case (g8):
+            // move H rook
+            MovePiece(BR, h8, f8, pos);
+            break;
+
+            // black castles queen side
+        case (c8):
+            // move A rook
+            MovePiece(BR, a8, d8, pos);
+            break;
+        }
+    }
+
+    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+
+    // change side
+    pos->ChangeSide();
+    // Xor the new side into the key
+    HashKey(pos, SideKey);
+    // Speculative prefetch of the TT entry
+    pos->checkers = GetCheckersBB(pos, pos->side);
+    // If we are in check get the squares between the checking piece and the king
+    if (pos->checkers) {
+        const int kingSquare = KingSQ(pos, pos->side);
+        const int pieceLocation = GetLsbIndex(pos->checkers);
+        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+    }
+    else
+        pos->checkMask = fullCheckmask;
+}
+
+// make move on chess board
 void MakeMove(const int move, S_Board* pos) {
     // Store position variables for rollback purposes
     pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
@@ -78,7 +187,9 @@ void MakeMove(const int move, S_Board* pos) {
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
-    pos->accumulatorStack.emplace_back(pos->accumulator);
+    pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
+    pos->accumStackHead++;
+
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -211,8 +322,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     const bool castling = IsCastle(move);
     const bool promotion = isPromo(move);
   
-    pos->accumulator = pos->accumulatorStack.back();
-    pos->accumulatorStack.pop_back();
+    pos->accumStackHead--;
 
     // handle pawn promotions
     if (promotion) {

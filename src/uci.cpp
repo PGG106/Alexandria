@@ -111,7 +111,8 @@ void ParsePosition(const std::string& command, S_Board* pos) {
     }
 
     // Update accumulator state to reflect the new position
-    Accumulate(pos->accumulator, pos);
+    Accumulate(pos->accumStack[0], pos);
+    pos->accumStackHead = 1;
 }
 
 /*
@@ -368,7 +369,7 @@ void UciLoop(char** argv) {
             bool stm = td->pos.side == WHITE;
             printf(
                 "the eval of this position according to the neural network is %d\n",
-                nnue.output(td->pos.accumulator, stm));
+                nnue.output(td->pos.AccumulatorTop(), stm));
         }
 
         else if (input == "bench") {

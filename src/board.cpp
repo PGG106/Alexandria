@@ -94,8 +94,6 @@ int SquareDistance(int a, int b) {
 
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos) {
-    // Reset nnue accumulator stack
-    pos->accumulatorStack.clear();
 
     ResetBoard(pos);
 
@@ -243,7 +241,8 @@ void ParseFen(const std::string& command, S_Board* pos) {
     UpdatePinMasks(pos, pos->side);
 
     // Update nnue accumulator to reflect board state
-    Accumulate(pos->accumulator, pos);
+    Accumulate(pos->accumStack[0], pos);
+    pos->accumStackHead = 1;
 }
 
 std::string GetFen(const S_Board* pos) {
@@ -321,7 +320,7 @@ void parse_moves(const std::string& moves, S_Board* pos) {
         // parse next move
         int move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
-        MakeMove(move, pos);
+        MakeUCIMove(move, pos);
     }
 }
 
