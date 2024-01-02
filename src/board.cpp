@@ -447,9 +447,9 @@ void UpdatePinMasks(S_Board* pos, const int side) {
     const int kingSquare = KingSQ(pos, side);
     Bitboard them = pos->Enemy();
     // Bitboard of bishops and queens that diagonally attack the king square
-    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side) | pos->GetPieceColorBB(QUEEN, side);
+    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
     // Bitboard of rooks and queens that attack the king square
-    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side) | pos->GetPieceColorBB(QUEEN, side);
+    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
     Bitboard bishop_pin_mask = bishopsQueens & GetBishopAttacks(kingSquare, them);
     // Bitboard of rooks and queens that attack the king square
     Bitboard rook_pin_mask = rooksQueens & GetRookAttacks(kingSquare, them);
@@ -473,7 +473,6 @@ void UpdatePinMasks(S_Board* pos, const int side) {
     }
     pos->pinHV = rook_pin;
     pos->pinD = bishop_pin;
-    PrintBitboard(rook_pin);
 }
 
 Bitboard RayBetween(int square1, int square2) {

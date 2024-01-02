@@ -78,6 +78,8 @@ struct S_Undo {
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard checkMask = fullCheckmask;
+    Bitboard pinHV;
+    Bitboard pinD;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
