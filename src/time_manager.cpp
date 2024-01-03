@@ -9,7 +9,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
     if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
-    int safety_overhead = 100;
+    const int safety_overhead = std::min(150, time/2);
     time -= safety_overhead;
     // if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
@@ -19,13 +19,13 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     // else If we recieved a movestogo parameter we use total_time/movestogo
     else if (info->timeset && info->movestogo != -1) {
         // Divide the time you have left for how many moves you have to play
-        auto basetime = time / info->movestogo;
+        const auto basetime = time / info->movestogo;
         // Never use more than 80% of the total time left for a single move
-        auto maxtimeBound = 0.75 * time;
+        const auto maxtimeBound = 0.75 * time;
         // optime is the time we use to stop if we just cleared a depth
-        auto optime = std::min(0.7 * basetime, maxtimeBound);
+        const auto optime = std::min(0.7 * basetime, maxtimeBound);
         // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        auto maxtime = std::min(3.0 * basetime, maxtimeBound);
+        const auto maxtime = std::min(3.0 * basetime, maxtimeBound);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
