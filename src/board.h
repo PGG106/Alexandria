@@ -78,6 +78,8 @@ struct S_Undo {
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard checkMask = fullCheckmask;
+    Bitboard pinHV;
+    Bitboard pinD;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -252,6 +254,7 @@ void ResetInfo(S_SearchINFO* info);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const S_Board* pos, const int c);
 [[nodiscard]] Bitboard GetCheckersBB(const S_Board* pos, const int side);
+void UpdatePinMasks(S_Board* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);

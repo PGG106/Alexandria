@@ -238,6 +238,8 @@ void ParseFen(const std::string& command, S_Board* pos) {
     else
         pos->checkMask = fullCheckmask;
 
+    UpdatePinMasks(pos, pos->side);
+
     // Update nnue accumulator to reflect board state
     Accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
@@ -402,8 +404,8 @@ int KingSQ(const S_Board* pos, const int c) {
 }
 
 Bitboard GetCheckersBB(const S_Board* pos, const int side) {
+    const int kingSquare = KingSQ(pos, side);
     Bitboard Occ = pos->Occupancy(BOTH);
-    int kingSquare = KingSQ(pos, side);
     // Bitboard of pawns that attack the king square
     const Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
     // Bitboard of knights that attack the king square
@@ -437,6 +439,38 @@ Bitboard GetCheckersBB(const S_Board* pos, const int side) {
     }
 
     return checkers;
+}
+
+void UpdatePinMasks(S_Board* pos, const int side) {
+    const int kingSquare = KingSQ(pos, side);
+    Bitboard them = pos->Enemy();
+    // Bitboard of bishops and queens that diagonally attack the king square
+    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
+    // Bitboard of rooks and queens that attack the king square
+    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
+    Bitboard bishop_pin_mask = bishopsQueens & GetBishopAttacks(kingSquare, them);
+    // Bitboard of rooks and queens that attack the king square
+    Bitboard rook_pin_mask = rooksQueens & GetRookAttacks(kingSquare, them);
+
+    Bitboard bishop_pin, rook_pin;
+    bishop_pin = rook_pin = 0ULL;
+
+    while (bishop_pin_mask) {
+        int index = GetLsbIndex(bishop_pin_mask);
+        Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
+        if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
+            bishop_pin |= possible_pin;
+        pop_bit(bishop_pin_mask, index);
+    }
+    while (rook_pin_mask) {
+        int index = GetLsbIndex(rook_pin_mask);
+        Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
+        if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
+            rook_pin |= possible_pin;
+        pop_bit(rook_pin_mask, index);
+    }
+    pos->pinHV = rook_pin;
+    pos->pinD = bishop_pin;
 }
 
 Bitboard RayBetween(int square1, int square2) {

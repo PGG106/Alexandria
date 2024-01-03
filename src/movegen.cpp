@@ -35,9 +35,6 @@ static inline Bitboard PawnPush(int color, int sq) {
     return (1ULL << (sq + 8));
 }
 
-static inline void init(S_Board* pos, int color, int sq) {
-    DoPinMask(pos, color, sq);
-}
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 int MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
@@ -199,10 +196,8 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    init(pos, pos->side, KingSQ(pos, pos->side));
-
     const int checks = CountBits(pos->checkers);
-
+    
     if (checks < 2) {
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
         while (pawns) {
@@ -352,8 +347,6 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 
     // define source & target squares
     int sourceSquare, targetSquare;
-
-    init(pos, pos->side, KingSQ(pos, pos->side));
 
     const int checks = CountBits(pos->checkers);
 
