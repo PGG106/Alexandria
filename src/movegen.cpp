@@ -431,3 +431,74 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
         AddMove(encode_move(sourceSquare, targetSquare, piece, Movetype::Capture), move_list);
     }
 }
+
+// Pseudo-legality test inspired by Koivisto
+bool IsPseudoLegal(S_Board* pos, int move) {
+
+    if (move == NOMOVE)
+        return false;
+
+    const int from = From(move);
+    const int to = To(move);
+    const int movedPiece = Piece(move);
+    const int pieceType = GetPieceType(movedPiece);
+
+    if (from == to)
+        return false;
+
+    if (pos->PieceOn(to) != movedPiece)
+        return false;
+
+    if (Color[movedPiece] != pos->side)
+        return false;
+
+    if ((1ULL << to) & pos->Occupancy(pos->side))
+        return false;
+
+    if ((IsQuiet(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+        return false;
+
+    if ((   isDP(move)
+         || isPromo(move)
+         || isEnpassant(move)) && pieceType != PAWN)
+        return false;
+
+    if (IsCastle(move) && pieceType != KING)
+        return false;
+
+    int NORTH = pos->side == WHITE ? -8 : 8;
+
+    switch (pieceType) {
+        case PAWN:
+            if (isDP(move)) {
+                if (from + NORTH + NORTH != to)
+                    return false;
+
+                if (pos->PieceOn(from + NORTH) != EMPTY)
+                    return false;
+
+                if (   (pos->side == WHITE && get_rank[from] != 1)
+                    || (pos->side == BLACK && get_rank[from] != 6))
+                    return false;
+            }
+            else if (IsQuiet(move)) {
+                if (from + NORTH != to)
+                    return false;
+
+                if (   (pos->side == WHITE && get_rank[from] >= 6)
+                    || (pos->side == BLACK && get_rank[from] <= 1))
+                    return false;
+            }
+            if (isEnpassant(move)) {
+                if (to != GetEpSquare(pos))
+                    return false;
+
+                if (!((1ULL << (to - NORTH)) & GetPieceColorBB(PAWN, pos->side ^ 1)))
+                    return false;
+            }
+            if (IsCapture(move) && !(pawn_attacks[side][square] & (1ULL << to)))
+                return false;
+
+            if ()
+    }
+}
