@@ -5,10 +5,10 @@
 #include "history.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
-void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, const int ttMove) {
+void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* move_list, const int ttMove, const int SEEThreshold) {
     // Loop through all the move in the movelist
     for (int i = 0; i < move_list->count; i++) {
-        int move = move_list->moves[i].move;
+        const int move = move_list->moves[i].move;
         // If the move is from the TT (aka it's our hashmove) give it the highest score
         if (move == ttMove) {
             move_list->moves[i].score = INT32_MAX - 100;
@@ -35,7 +35,7 @@ void ScoreMoves(S_Board* pos, Search_data* sd, Search_stack* ss, S_MOVELIST* mov
         }
         else if (IsCapture(move)) {
             // Good captures get played before any move that isn't a promotion or a TT move
-            if (SEE(pos, move, -107)) {
+            if (SEE(pos, move, SEEThreshold)) {
                 int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
                 // Sort by most valuable victim and capthist, with LVA as tiebreaks
                 move_list->moves[i].score = mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move) + goodCaptureScore;
@@ -88,7 +88,7 @@ void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
     moveList->moves[bestNum] = temp;
 }
 
-void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly) {
+void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
     mp->pos = pos;
     mp->sd = sd;
     mp->ss = ss;
@@ -96,6 +96,7 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->idx = 0;
     mp->stage = GEN_MOVES;
     mp->capturesOnly = capturesOnly;
+    mp->SEEThreshold = SEEThreshold;
 }
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {
@@ -107,7 +108,7 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
         else {
             GenerateMoves(mp->moveList, mp->pos);
         }
-        ScoreMoves(mp->pos, mp->sd, mp->ss, mp->moveList, mp->ttMove);
+        ScoreMoves(mp->pos, mp->sd, mp->ss, mp->moveList, mp->ttMove, mp->SEEThreshold);
         ++mp->stage;
         [[fallthrough]];
     }
