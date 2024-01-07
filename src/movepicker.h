@@ -4,6 +4,7 @@
 struct S_MOVELIST;
 
 enum {
+    PICK_TT,
     GEN_MOVES,
     PICK_MOVES
 };
@@ -16,6 +17,9 @@ struct Movepicker {
     int idx;
     int stage;
     int ttMove;
+    int killer0;
+    int killer1;
+    int counter;
     bool capturesOnly;
     int SEEThreshold;
 };

@@ -446,6 +446,9 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (from == to)
         return false;
 
+    if (movedPiece == EMPTY)
+        return false;
+
     if (pos->PieceOn(from) != movedPiece)
         return false;
 
@@ -456,6 +459,9 @@ bool IsPseudoLegal(S_Board* pos, int move) {
         return false;
 
     if ((!IsCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+        return false;
+
+    if (IsCapture(move) && !isEnpassant(move) && pos->PieceOn(to) == EMPTY)
         return false;
 
     if ((   isDP(move)
