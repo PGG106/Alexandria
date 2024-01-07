@@ -487,10 +487,6 @@ bool IsPseudoLegal(S_Board* pos, int move) {
             else if (!IsCapture(move)) {
                 if (from + NORTH != to)
                     return false;
-
-                if (   (pos->side == WHITE && get_rank[from] >= 6)
-                    || (pos->side == BLACK && get_rank[from] <= 1))
-                    return false;
             }
             if (isEnpassant(move)) {
                 if (to != GetEpSquare(pos))

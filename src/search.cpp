@@ -502,6 +502,7 @@ moves_loop:
 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, false)) != NOMOVE) {
+
         if (move == excludedMove)
             continue;
 
