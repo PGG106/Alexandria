@@ -511,6 +511,7 @@ moves_loop:
 
         if (isQuiet && SkipQuiets)
             continue;
+
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)

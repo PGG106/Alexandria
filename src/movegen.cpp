@@ -466,6 +466,9 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (IsCastle(move) && pieceType != KING)
         return false;
 
+    if ((pos->checkers & (pos->checkers - 1)) && pieceType != KING)
+        return false;
+
     int NORTH = pos->side == WHITE ? -8 : 8;
 
     switch (pieceType) {
@@ -555,6 +558,9 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (IsCastle(move)) {
+                if (pos->checkers)
+                    return false;
+
                 if (std::abs(to - from) != 2)
                     return false;
 
@@ -580,4 +586,60 @@ bool IsPseudoLegal(S_Board* pos, int move) {
             break;
     }
     return true;
+}
+
+bool IsLegal(S_Board* pos, int move) {
+
+    if (!IsPseudoLegal(pos, move))
+        return false;
+
+    int color = pos->side;
+    int ksq = KingSQ(pos, color);
+    const int from = From(move);
+    const int to = To(move);
+    const int movedPiece = Piece(move);
+    const int pieceType = GetPieceType(movedPiece);
+
+    if (isEnpassant(move)) {
+        int offset = color == WHITE ? 8 : -8;
+        int ourPawn = GetPiece(PAWN, color);
+        int theirPawn = GetPiece(PAWN, color ^ 1);
+        ClearPiece(ourPawn, from, pos);
+        ClearPiece(theirPawn, to + offset, pos);
+        AddPiece(ourPawn, to, pos);
+        bool isLegal = !IsSquareAttacked(pos, ksq, color ^ 1);
+        AddPiece(ourPawn, from, pos);
+        AddPiece(theirPawn, to + offset, pos);
+        ClearPiece(ourPawn, to, pos);
+        return isLegal;
+    }
+    else if (IsCastle(move)) {
+        bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        if (isKSCastle) {
+            return    !IsSquareAttacked(pos, color == WHITE ? f1 : f8, color ^ 1)
+                   && !IsSquareAttacked(pos, color == WHITE ? g1 : g8, color ^ 1);
+        }
+        else {
+            return    !IsSquareAttacked(pos, color == WHITE ? d1 : d8, color ^ 1)
+                   && !IsSquareAttacked(pos, color == WHITE ? c1 : c8, color ^ 1);
+        }
+    }
+
+    Bitboard pins = pos->pinD | pos->pinHV;
+
+    if (pieceType == KING) {
+        int king = GetPiece(KING, color);
+        ClearPiece(king, ksq, pos);
+        bool isLegal = !IsSquareAttacked(pos, to, color ^ 1);
+        AddPiece(king, ksq, pos);
+        return isLegal;
+    }
+    else if (pins & (1ULL << from)) {
+        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+    }
+    else if (pos->checkers) {
+        return (1ULL << to) & pos->checkMask;
+    }
+    else
+        return true;
 }
