@@ -446,7 +446,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (from == to)
         return false;
 
-    if (pos->PieceOn(to) != movedPiece)
+    if (pos->PieceOn(from) != movedPiece)
         return false;
 
     if (Color[movedPiece] != pos->side)
@@ -455,7 +455,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if ((1ULL << to) & pos->Occupancy(pos->side))
         return false;
 
-    if ((IsQuiet(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+    if ((!IsCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
         return false;
 
     if ((   isDP(move)
@@ -481,7 +481,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
                     || (pos->side == BLACK && get_rank[from] != 6))
                     return false;
             }
-            else if (IsQuiet(move)) {
+            else if (!IsCapture(move)) {
                 if (from + NORTH != to)
                     return false;
 
@@ -493,12 +493,91 @@ bool IsPseudoLegal(S_Board* pos, int move) {
                 if (to != GetEpSquare(pos))
                     return false;
 
-                if (!((1ULL << (to - NORTH)) & GetPieceColorBB(PAWN, pos->side ^ 1)))
+                if (!((1ULL << (to - NORTH)) & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
                     return false;
             }
-            if (IsCapture(move) && !(pawn_attacks[side][square] & (1ULL << to)))
+            if (IsCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
                 return false;
 
-            if ()
+            if (isPromo(move)) {
+                if (   (pos->side == WHITE && get_rank[from] != 6)
+                    || (pos->side == BLACK && get_rank[from] != 1))
+                    return false;
+
+                if (   (pos->side == WHITE && get_rank[to] != 7)
+                    || (pos->side == BLACK && get_rank[to] != 0))
+                    return false;
+            }
+            else {
+                if (   (pos->side == WHITE && get_rank[from] >= 6)
+                    || (pos->side == BLACK && get_rank[from] <= 1))
+                    return false;
+            }
+            break;
+
+        case KNIGHT:
+            if (!(knight_attacks[from] & (1ULL << to)))
+                return false;
+
+            break;
+
+        case BISHOP:
+            if (   get_diagonal[from] != get_diagonal[to]
+                && get_antidiagonal(from) != get_antidiagonal(to))
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case ROOK:
+            if (   get_file[from] != get_file[to]
+                && get_rank[from] != get_rank[to])
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case QUEEN:
+            if (   get_file[from] != get_file[to]
+                && get_rank[from] != get_rank[to]
+                && get_diagonal[from] != get_diagonal[to]
+                && get_antidiagonal(from) != get_antidiagonal(to))
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case KING:
+            if (IsCastle(move)) {
+                if (std::abs(to - from) != 2)
+                    return false;
+
+                bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+
+                Bitboard castleBlocked = pos->Occupancy(BOTH) & (pos->side == WHITE ? isKSCastle ? 0x6000000000000000ULL
+                                                                                                 : 0x0E00000000000000ULL
+                                                                                    : isKSCastle ? 0x0000000000000060ULL
+                                                                                                 : 0x000000000000000EULL);
+                int castleType = pos->side == WHITE ? isKSCastle ? WKCA
+                                                                 : WQCA
+                                                    : isKSCastle ? BKCA
+                                                                 : BQCA;
+
+                if (!castleBlocked && (pos->GetCastlingPerm() & castleType))
+                    return true;
+
+                return false;
+            }
+            if (!(king_attacks[from] & (1ULL << to)))
+                return false;
+
+            break;
     }
+    return true;
 }
