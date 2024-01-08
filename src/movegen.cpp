@@ -36,7 +36,7 @@ static inline Bitboard PawnPush(int color, int sq) {
 }
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
-int MoveExists(S_Board* pos, const int move) {
+bool MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
     GenerateMoves(list, pos);
 
@@ -472,7 +472,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (IsCastle(move) && pieceType != KING)
         return false;
 
-    if ((pos->checkers & (pos->checkers - 1)) && pieceType != KING)
+    if ((CountBits(pos->checkers) > 2) && pieceType != KING)
         return false;
 
     int NORTH = pos->side == WHITE ? -8 : 8;
