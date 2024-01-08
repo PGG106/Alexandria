@@ -197,7 +197,7 @@ void MakeMove(const int move, S_Board* pos) {
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move),pos->side);
+    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     const bool capture = IsCapture(move);
     const bool doublePush = isDP(move);
