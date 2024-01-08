@@ -85,7 +85,7 @@ void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int 
     }
 }
 
-void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd, std::vector<std::pair<std::size_t, std::size_t>> NNUESub) {
+void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<std::size_t, std::size_t>>& NNUEAdd, std::vector<std::pair<std::size_t, std::size_t>>& NNUESub) {
     int adds = NNUEAdd.size();
     int subs = NNUESub.size();
     // Quiets
