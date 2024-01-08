@@ -28,13 +28,13 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
-    nnue.clear(pos->AccumulatorTop(), piece, sq);
+    pos->NNUESub.emplace_back(nnue.GetIndex(piece, sq));
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
-    nnue.add(pos->AccumulatorTop(), piece, to);
+    pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
     AddPiece(piece, to, pos);
 }
 
@@ -46,7 +46,8 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 // Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-    nnue.move(pos->AccumulatorTop(), piece, from, to);
+    pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
+    pos->NNUESub.emplace_back(nnue.GetIndex(piece, from));
     MovePiece(piece, from, to, pos);
 }
 
@@ -279,6 +280,8 @@ void MakeMove(const int move, S_Board* pos) {
         }
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
 
     // change side
     pos->ChangeSide();
