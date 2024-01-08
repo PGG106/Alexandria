@@ -278,7 +278,6 @@ void MakeMove(const int move, S_Board* pos) {
             break;
         }
     }
-
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 
     // change side
@@ -383,7 +382,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
 
     // restore zobrist key (done at the end to avoid overwriting the value while
-    // moving pieces bacl to their place)
+    // moving pieces back to their place)
     pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }

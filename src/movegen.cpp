@@ -36,7 +36,7 @@ static inline Bitboard PawnPush(int color, int sq) {
 }
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
-int MoveExists(S_Board* pos, const int move) {
+bool MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
     GenerateMoves(list, pos);
 
@@ -430,4 +430,218 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
         pop_lsb(king_moves);
         AddMove(encode_move(sourceSquare, targetSquare, piece, Movetype::Capture), move_list);
     }
+}
+
+// Pseudo-legality test inspired by Koivisto
+bool IsPseudoLegal(S_Board* pos, int move) {
+
+    if (move == NOMOVE)
+        return false;
+
+    const int from = From(move);
+    const int to = To(move);
+    const int movedPiece = Piece(move);
+    const int pieceType = GetPieceType(movedPiece);
+
+    if (from == to)
+        return false;
+
+    if (movedPiece == EMPTY)
+        return false;
+
+    if (pos->PieceOn(from) != movedPiece)
+        return false;
+
+    if (Color[movedPiece] != pos->side)
+        return false;
+
+    if ((1ULL << to) & pos->Occupancy(pos->side))
+        return false;
+
+    if ((!IsCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+        return false;
+
+    if (IsCapture(move) && !isEnpassant(move) && pos->PieceOn(to) == EMPTY)
+        return false;
+
+    if ((   isDP(move)
+         || isPromo(move)
+         || isEnpassant(move)) && pieceType != PAWN)
+        return false;
+
+    if (IsCastle(move) && pieceType != KING)
+        return false;
+
+    if ((CountBits(pos->checkers) > 2) && pieceType != KING)
+        return false;
+
+    int NORTH = pos->side == WHITE ? -8 : 8;
+
+    switch (pieceType) {
+        case PAWN:
+            if (isDP(move)) {
+                if (from + NORTH + NORTH != to)
+                    return false;
+
+                if (pos->PieceOn(from + NORTH) != EMPTY)
+                    return false;
+
+                if (   (pos->side == WHITE && get_rank[from] != 1)
+                    || (pos->side == BLACK && get_rank[from] != 6))
+                    return false;
+            }
+            else if (!IsCapture(move)) {
+                if (from + NORTH != to)
+                    return false;
+            }
+            if (isEnpassant(move)) {
+                if (to != GetEpSquare(pos))
+                    return false;
+
+                if (!((1ULL << (to - NORTH)) & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
+                    return false;
+            }
+            if (IsCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
+                return false;
+
+            if (isPromo(move)) {
+                if (   (pos->side == WHITE && get_rank[from] != 6)
+                    || (pos->side == BLACK && get_rank[from] != 1))
+                    return false;
+
+                if (   (pos->side == WHITE && get_rank[to] != 7)
+                    || (pos->side == BLACK && get_rank[to] != 0))
+                    return false;
+            }
+            else {
+                if (   (pos->side == WHITE && get_rank[from] >= 6)
+                    || (pos->side == BLACK && get_rank[from] <= 1))
+                    return false;
+            }
+            break;
+
+        case KNIGHT:
+            if (!(knight_attacks[from] & (1ULL << to)))
+                return false;
+
+            break;
+
+        case BISHOP:
+            if (   get_diagonal[from] != get_diagonal[to]
+                && get_antidiagonal(from) != get_antidiagonal(to))
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case ROOK:
+            if (   get_file[from] != get_file[to]
+                && get_rank[from] != get_rank[to])
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case QUEEN:
+            if (   get_file[from] != get_file[to]
+                && get_rank[from] != get_rank[to]
+                && get_diagonal[from] != get_diagonal[to]
+                && get_antidiagonal(from) != get_antidiagonal(to))
+                return false;
+
+            if (RayBetween(from, to) & pos->Occupancy(BOTH))
+                return false;
+
+            break;
+
+        case KING:
+            if (IsCastle(move)) {
+                if (pos->checkers)
+                    return false;
+
+                if (std::abs(to - from) != 2)
+                    return false;
+
+                bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+
+                Bitboard castleBlocked = pos->Occupancy(BOTH) & (pos->side == WHITE ? isKSCastle ? 0x6000000000000000ULL
+                                                                                                 : 0x0E00000000000000ULL
+                                                                                    : isKSCastle ? 0x0000000000000060ULL
+                                                                                                 : 0x000000000000000EULL);
+                int castleType = pos->side == WHITE ? isKSCastle ? WKCA
+                                                                 : WQCA
+                                                    : isKSCastle ? BKCA
+                                                                 : BQCA;
+
+                if (!castleBlocked && (pos->GetCastlingPerm() & castleType))
+                    return true;
+
+                return false;
+            }
+            if (!(king_attacks[from] & (1ULL << to)))
+                return false;
+
+            break;
+    }
+    return true;
+}
+
+bool IsLegal(S_Board* pos, int move) {
+
+    if (!IsPseudoLegal(pos, move))
+        return false;
+
+    int color = pos->side;
+    int ksq = KingSQ(pos, color);
+    const int from = From(move);
+    const int to = To(move);
+    const int movedPiece = Piece(move);
+    const int pieceType = GetPieceType(movedPiece);
+
+    if (isEnpassant(move)) {
+        int offset = color == WHITE ? 8 : -8;
+        int ourPawn = GetPiece(PAWN, color);
+        int theirPawn = GetPiece(PAWN, color ^ 1);
+        ClearPiece(ourPawn, from, pos);
+        ClearPiece(theirPawn, to + offset, pos);
+        AddPiece(ourPawn, to, pos);
+        bool isLegal = !IsSquareAttacked(pos, ksq, color ^ 1);
+        AddPiece(ourPawn, from, pos);
+        AddPiece(theirPawn, to + offset, pos);
+        ClearPiece(ourPawn, to, pos);
+        return isLegal;
+    }
+    else if (IsCastle(move)) {
+        bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        if (isKSCastle) {
+            return    !IsSquareAttacked(pos, color == WHITE ? f1 : f8, color ^ 1)
+                   && !IsSquareAttacked(pos, color == WHITE ? g1 : g8, color ^ 1);
+        }
+        else {
+            return    !IsSquareAttacked(pos, color == WHITE ? d1 : d8, color ^ 1)
+                   && !IsSquareAttacked(pos, color == WHITE ? c1 : c8, color ^ 1);
+        }
+    }
+
+    Bitboard pins = pos->pinD | pos->pinHV;
+
+    if (pieceType == KING) {
+        int king = GetPiece(KING, color);
+        ClearPiece(king, ksq, pos);
+        bool isLegal = !IsSquareAttacked(pos, to, color ^ 1);
+        AddPiece(king, ksq, pos);
+        return isLegal;
+    }
+    else if (pins & (1ULL << from)) {
+        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+    }
+    else if (pos->checkers) {
+        return (1ULL << to) & pos->checkMask;
+    }
+    else
+        return true;
 }

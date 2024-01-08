@@ -502,6 +502,7 @@ moves_loop:
 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, false)) != NOMOVE) {
+
         if (move == excludedMove)
             continue;
 
@@ -511,6 +512,7 @@ moves_loop:
 
         if (isQuiet && SkipQuiets)
             continue;
+
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
