@@ -85,30 +85,74 @@ void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int 
     }
 }
 
-void NNUE::clear(NNUE::accumulator& board_accumulator, const int piece, const int from) {
-    auto [whiteIdx, blackIdx] = GetIndex(piece, from);
-    auto whiteSub = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
-    auto blackSub = &net.featureWeights[blackIdx * HIDDEN_SIZE];
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[0][i] -= whiteSub[i];
+void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<std::size_t, std::size_t>>& NNUEAdd, std::vector<std::pair<std::size_t, std::size_t>>& NNUESub) {
+    int adds = NNUEAdd.size();
+    int subs = NNUESub.size();
+    // Quiets
+    if (adds == 1 && subs == 1) {
+        auto [whiteAddIdx, blackAddIdx] = NNUEAdd.back();
+        NNUEAdd = {};
+        auto [whiteSubIdx, blackSubIdx] = NNUESub.back();
+        NNUESub = {};
+        addSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx, blackSubIdx);
     }
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[1][i] -= blackSub[i];
+    // Captures
+    else if (adds == 1 && subs == 2) {
+        auto [whiteAddIdx, blackAddIdx] = NNUEAdd.back();
+        NNUEAdd = {};
+        auto [whiteSubIdx1, blackSubIdx1] = NNUESub.back();
+        NNUESub.pop_back();
+        auto [whiteSubIdx2, blackSubIdx2] = NNUESub.back();
+        NNUESub = {};
+        addSubSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx1, blackSubIdx1, whiteSubIdx2, blackSubIdx2);
+    }
+    // Castling
+    else {
+        auto [whiteAddIdx1, blackAddIdx1] = NNUEAdd.back();
+        NNUEAdd.pop_back();
+        auto [whiteAddIdx2, blackAddIdx2] = NNUEAdd.back();
+        NNUEAdd = {};
+        auto [whiteSubIdx1, blackSubIdx1] = NNUESub.back();
+        NNUESub.pop_back();
+        auto [whiteSubIdx2, blackSubIdx2] = NNUESub.back();
+        NNUESub = {};
+        addSub(board_accumulator, whiteAddIdx1, blackAddIdx1, whiteSubIdx1, blackSubIdx1);
+        addSub(board_accumulator, whiteAddIdx2, blackAddIdx2, whiteSubIdx2, blackSubIdx2);
     }
 }
 
-void NNUE::move(NNUE::accumulator& board_accumulator, const int piece, const int from, const int to) {
-    auto [whiteIdxFrom, blackIdxFrom] = GetIndex(piece, from);
-    auto [whiteIdxTo, blackIdxTo] = GetIndex(piece, to);
-    auto whiteSub = &net.featureWeights[whiteIdxFrom * HIDDEN_SIZE];
-    auto whiteAdd = &net.featureWeights[whiteIdxTo * HIDDEN_SIZE];
+void NNUE::addSub(NNUE::accumulator& board_accumulator, std::size_t whiteAddIdx, std::size_t blackAddIdx, std::size_t whiteSubIdx, std::size_t blackSubIdx) {
+    auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
+    auto whiteSub = &net.featureWeights[whiteSubIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] = board_accumulator[0][i] - whiteSub[i] + whiteAdd[i];
     }
-    auto blackSub = &net.featureWeights[blackIdxFrom * HIDDEN_SIZE];
-    auto blackAdd = &net.featureWeights[blackIdxTo * HIDDEN_SIZE];
+    auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
+    auto blackSub = &net.featureWeights[blackSubIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[1][i] = board_accumulator[1][i] - blackSub[i] + blackAdd[i];
+    }
+}
+
+void NNUE::addSubSub(NNUE::accumulator& board_accumulator, 
+                     std::size_t whiteAddIdx,
+                     std::size_t blackAddIdx,
+                     std::size_t whiteSubIdx1,
+                     std::size_t blackSubIdx1,
+                     std::size_t whiteSubIdx2,
+                     std::size_t blackSubIdx2) {
+
+    auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
+    auto whiteSub1 = &net.featureWeights[whiteSubIdx1 * HIDDEN_SIZE];
+    auto whiteSub2 = &net.featureWeights[whiteSubIdx2 * HIDDEN_SIZE];
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        board_accumulator[0][i] = board_accumulator[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
+    }
+    auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
+    auto blackSub1 = &net.featureWeights[blackSubIdx1 * HIDDEN_SIZE];
+    auto blackSub2 = &net.featureWeights[blackSubIdx2 * HIDDEN_SIZE];
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        board_accumulator[1][i] = board_accumulator[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
     }
 }
 
@@ -139,8 +183,7 @@ std::pair<std::size_t, std::size_t> NNUE::GetIndex(const int piece, const int sq
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     int piecetype = GetPieceType(piece);
-    int color = piece / 6;
-    // return square + piecetype * 64 + (Color[piece] == BLACK) * 64 * 6;
+    int color = Color[piece];
     std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + (square ^ 0b111'000);
     std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + square;
     return {whiteIdx, blackIdx};

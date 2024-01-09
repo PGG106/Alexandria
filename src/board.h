@@ -103,6 +103,8 @@ public:
     S_Undo    history[1024];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
+    std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd = {};
+    std::vector<std::pair<std::size_t, std::size_t>> NNUESub = {};
     Bitboard pinHV = 0ULL;
     Bitboard pinD = 0ULL;
 
