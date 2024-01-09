@@ -636,8 +636,9 @@ moves_loop:
         if (doFullSearch)
         {
             // SF yoink, based on the value returned by our reduced search see if we should search deeper, this is an exact yoink of what SF and frankly i don't care lmao
-            const bool doDeeperSearch = depthReduction && score > (bestScore + 53 + 2 * newDepth);
-            score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch, !cutNode, td, ss + 1);
+            const bool doDeeperSearch = depthReduction && (score > (bestScore + 53 + 2 * newDepth));
+            const bool doShallowerSearch = depthReduction && (score < (bestScore + newDepth));
+            score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch - doShallowerSearch, !cutNode, td, ss + 1);
             if (depthReduction)
             {
                 // define the conthist bonus
