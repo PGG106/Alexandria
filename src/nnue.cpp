@@ -91,19 +91,15 @@ void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<st
     // Quiets
     if (adds == 1 && subs == 1) {
         auto [whiteAddIdx, blackAddIdx] = NNUEAdd.back();
-        NNUEAdd = {};
         auto [whiteSubIdx, blackSubIdx] = NNUESub.back();
-        NNUESub = {};
         addSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx, blackSubIdx);
     }
     // Captures
     else if (adds == 1 && subs == 2) {
         auto [whiteAddIdx, blackAddIdx] = NNUEAdd.back();
-        NNUEAdd = {};
         auto [whiteSubIdx1, blackSubIdx1] = NNUESub.back();
         NNUESub.pop_back();
         auto [whiteSubIdx2, blackSubIdx2] = NNUESub.back();
-        NNUESub = {};
         addSubSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx1, blackSubIdx1, whiteSubIdx2, blackSubIdx2);
     }
     // Castling
@@ -111,14 +107,15 @@ void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<st
         auto [whiteAddIdx1, blackAddIdx1] = NNUEAdd.back();
         NNUEAdd.pop_back();
         auto [whiteAddIdx2, blackAddIdx2] = NNUEAdd.back();
-        NNUEAdd = {};
         auto [whiteSubIdx1, blackSubIdx1] = NNUESub.back();
         NNUESub.pop_back();
         auto [whiteSubIdx2, blackSubIdx2] = NNUESub.back();
-        NNUESub = {};
         addSub(board_accumulator, whiteAddIdx1, blackAddIdx1, whiteSubIdx1, blackSubIdx1);
         addSub(board_accumulator, whiteAddIdx2, blackAddIdx2, whiteSubIdx2, blackSubIdx2);
     }
+    // Reset the add and sub vectors
+    NNUEAdd.clear();
+    NNUESub.clear();
 }
 
 void NNUE::addSub(NNUE::accumulator& board_accumulator, std::size_t whiteAddIdx, std::size_t blackAddIdx, std::size_t whiteSubIdx, std::size_t blackSubIdx) {

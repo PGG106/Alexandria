@@ -213,16 +213,13 @@ void MakeMove(const int move, S_Board* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    // handle enpassant captures
-    if (enpass) {
-        ClearPieceNNUE(GetPiece(PAWN, pos->side ^ 1), targetSquare + NORTH, pos);
-    }
     // handling capture moves
-    else if (capture) {
-        const int pieceCap = pos->pieces[targetSquare];
+    if (capture) {
+        const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
+        const int capturedPieceLocation = enpass ? targetSquare + NORTH : targetSquare;
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
-        ClearPieceNNUE(pieceCap, targetSquare, pos);
+        ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
 
         pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
