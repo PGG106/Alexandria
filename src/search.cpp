@@ -597,7 +597,6 @@ moves_loop:
         // increment nodes count
         info->nodes++;
         uint64_t nodesBeforeSearch = info->nodes;
-        bool doFullSearch = false;
         int depthReduction = 0;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
         if (movesSearched >= 2 + 2 * pvNode && depth >= 3 && (isQuiet || !ttPv)) {
@@ -625,25 +624,21 @@ moves_loop:
             depthReduction = std::clamp(depthReduction, 0, newDepth - 1);
             // search current move with reduced depth:
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth - depthReduction, true, td, ss + 1);
-            // if we failed high on a reduced node we'll search with a reduced window and full depth
-            doFullSearch = score > alpha && depthReduction;
-        }
-        else
-            // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
-            doFullSearch = !pvNode || movesSearched > 0;
 
-        // Search every move (excluding the first of every node) that skipped or failed LMR with full depth but a reduced window
-        if (doFullSearch)
-        {
-            // SF yoink, based on the value returned by our reduced search see if we should search deeper, this is an exact yoink of what SF and frankly i don't care lmao
-            const bool doDeeperSearch = depthReduction && score > (bestScore + 53 + 2 * newDepth);
-            score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch, !cutNode, td, ss + 1);
-            if (depthReduction)
-            {
+            // if we failed high on a reduced node we'll search with a reduced window and full depth
+            if (score > alpha && depthReduction) {
+                // SF yoink, based on the value returned by our reduced search see if we should search deeper, this is an exact yoink of what SF and frankly i don't care lmao
+                const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
+                score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch, !cutNode, td, ss + 1);
+
                 // define the conthist bonus
                 int bonus = std::min(16 * (depth + 1) * (depth + 1), 1200);
                 updateCHScore(sd, ss, move, score > alpha ? bonus : -bonus);
             }
+        }
+        // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
+        else if (!pvNode || movesSearched > 0) {
+            score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !cutNode, td, ss + 1);
         }
 
         // PVS Search: Search the first move and every move that beat alpha with full depth and a full window
