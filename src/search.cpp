@@ -636,7 +636,7 @@ moves_loop:
         if (doFullSearch)
         {
             // SF yoink, based on the value returned by our reduced search see if we should search deeper, this is an exact yoink of what SF and frankly i don't care lmao
-            const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
+            const bool doDeeperSearch = depthReduction && score > (bestScore + 53 + 2 * newDepth);
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch, !cutNode, td, ss + 1);
             if (depthReduction)
             {
@@ -646,7 +646,7 @@ moves_loop:
             }
         }
 
-        // PVS Search: Search the first move and every move that produced a score better than alpha with full depth and a full window
+        // PVS Search: Search the first move and every move that beat alpha with full depth and a full window
         if (pvNode && (movesSearched == 0 || score > alpha))
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
