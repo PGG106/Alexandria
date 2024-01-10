@@ -90,17 +90,15 @@ void MakeUCIMove(const int move, S_Board* pos) {
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
-
-    // handle enpassant captures
-    if (enpass) {
-        ClearPiece(GetPiece(PAWN, pos->side ^ 1), targetSquare + NORTH, pos);
-    }
     // handling capture moves
-    else if (capture) {
-        const int pieceCap = pos->pieces[targetSquare];
+    if (capture) {
+        const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
+        const int capturedPieceLocation = enpass ? targetSquare + NORTH : targetSquare;
         assert(pieceCap != EMPTY);
-        ClearPiece(pieceCap, targetSquare, pos);
+        assert(GetPieceType(pieceCap) != KING);
+        ClearPiece(pieceCap, capturedPieceLocation, pos);
 
+        pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
         pos->fiftyMove = 0;
     }
@@ -336,9 +334,12 @@ void UnmakeMove(const int move, S_Board* pos) {
 
     const int SOUTH = pos->side == WHITE ? -8 : 8;
 
-    // handle enpassant captures
-    if (enpass) {
-        AddPiece(GetPiece(PAWN, pos->side), targetSquare + SOUTH, pos);
+    // handle captures
+    if (capture) {
+        // Retrieve the captured piece we have to restore
+        const int piececap = enpass ? GetPiece(PAWN, pos->side) : pos->history[pos->hisPly].capture;
+        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
+        AddPiece(piececap, capturedPieceLocation, pos);
     }
 
     // handle castling moves
@@ -371,12 +372,6 @@ void UnmakeMove(const int move, S_Board* pos) {
         }
     }
 
-    // handling capture moves
-    if (capture && !enpass) {
-        // Retrieve the captured piece we have to restore
-        const int piececap = pos->history[pos->hisPly].capture;
-        AddPiece(piececap, targetSquare, pos);
-    }
 
     // change side
     pos->ChangeSide();
