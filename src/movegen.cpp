@@ -290,8 +290,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 if (!get_bit(pos->Occupancy(BOTH), f1) &&
                     !get_bit(pos->Occupancy(BOTH), g1)) {
                     // make sure king and the f1 squares are not under attacks
-                    if (!IsSquareAttacked(pos, e1, BLACK) &&
-                        !IsSquareAttacked(pos, f1, BLACK) &&
+                    if (!IsSquareAttacked(pos, f1, BLACK) &&
                         !IsSquareAttacked(pos, g1, BLACK))
                         AddMove(encode_move(e1, g1, WK, Movetype::KSCastle), move_list);
                 }
@@ -303,8 +302,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     !get_bit(pos->Occupancy(BOTH), c1) &&
                     !get_bit(pos->Occupancy(BOTH), b1)) {
                     // make sure king and the d1 squares are not under attacks
-                    if (!IsSquareAttacked(pos, e1, BLACK) &&
-                        !IsSquareAttacked(pos, d1, BLACK) &&
+                    if (!IsSquareAttacked(pos, d1, BLACK) &&
                         !IsSquareAttacked(pos, c1, BLACK))
                         AddMove(encode_move(e1, c1, WK, Movetype::QSCastle), move_list);
                 }
@@ -317,8 +315,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                 if (!get_bit(pos->Occupancy(BOTH), f8) &&
                     !get_bit(pos->Occupancy(BOTH), g8)) {
                     // make sure king and the f8 squares are not under attacks
-                    if (!IsSquareAttacked(pos, e8, WHITE) &&
-                        !IsSquareAttacked(pos, f8, WHITE) &&
+                    if (!IsSquareAttacked(pos, f8, WHITE) &&
                         !IsSquareAttacked(pos, g8, WHITE))
                         AddMove(encode_move(e8, g8, BK, Movetype::KSCastle), move_list);
                 }
@@ -330,8 +327,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
                     !get_bit(pos->Occupancy(BOTH), c8) &&
                     !get_bit(pos->Occupancy(BOTH), b8)) {
                     // make sure king and the d8 squares are not under attacks
-                    if (!IsSquareAttacked(pos, e8, WHITE) &&
-                        !IsSquareAttacked(pos, d8, WHITE) &&
+                    if (!IsSquareAttacked(pos, d8, WHITE) &&
                         !IsSquareAttacked(pos, c8, WHITE))
                         AddMove(encode_move(e8, c8, BK, Movetype::QSCastle), move_list);
                 }
