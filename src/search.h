@@ -11,6 +11,7 @@ struct Search_stack {
     int ply;
     int searchKillers[2] = {};
     int doubleExtensions = 0;
+    bool hasUpdated = false;
 };
 
 struct Search_data {

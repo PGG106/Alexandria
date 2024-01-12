@@ -277,10 +277,6 @@ void MakeMove(const int move, S_Board* pos) {
 
     // change side
     pos->ChangeSide();
-
-    // update nnue
-    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-
     // Xor the new side into the key
     HashKey(pos, SideKey);
     // Speculative prefetch of the TT entry
@@ -311,6 +307,9 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->checkMask = pos->history[pos->hisPly].checkMask;
     pos->pinHV = pos->history[pos->hisPly].pinHV;
     pos->pinD = pos->history[pos->hisPly].pinD;
+
+    pos->NNUEAdd.clear();
+    pos->NNUESub.clear();
 
     // parse move
     const int sourceSquare = From(move);

@@ -421,6 +421,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKillers[0] = NOMOVE;
     (ss + 1)->searchKillers[1] = NOMOVE;
+    (ss + 1)->hasUpdated = false;
 
     if (!pvNode) {
         // Reverse futility pruning
