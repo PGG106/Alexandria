@@ -387,7 +387,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // get an evaluation of the position:
     if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        eval = ss->staticEval = tte.eval != score_none ? tte.eval : EvalPosition(pos);
+        if (tte.eval != score_none) {
+            eval = ss->staticEval = tte.eval;
+        }
+        else {
+            nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+            eval = ss->staticEval = EvalPosition(pos);
+        }
+
         // We can also use the tt score as a more accurate form of eval
         if (    ttScore != score_none
             && (   (ttFlag == HFUPPER && ttScore < eval)
@@ -396,6 +403,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             eval = ttScore;
     }
     else {
+
+        nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+
         // If we don't have anything in the TT we have to call evalposition
         eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
@@ -421,7 +431,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKillers[0] = NOMOVE;
     (ss + 1)->searchKillers[1] = NOMOVE;
-    (ss + 1)->hasUpdated = false;
 
     if (!pvNode) {
         // Reverse futility pruning
@@ -484,7 +493,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     }
 
 moves_loop:
-    
+
+    // update accumulator
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+
     // old value of alpha
     const int old_alpha = alpha;
     int bestScore = -MAXSCORE;
@@ -763,7 +775,15 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     }
     // If we have a ttHit with a valid eval use that
     else if (ttHit) {
-        ss->staticEval = bestScore = tte.eval != score_none ? tte.eval : EvalPosition(pos);
+
+        // If the value in the TT is valid we use that, otherwise we call the static evaluation function
+        if (tte.eval != score_none) {
+            bestScore = ss->staticEval = tte.eval;
+        }
+        else {
+            nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+            bestScore = ss->staticEval = EvalPosition(pos);
+        }
 
         // We can also use the TT score as a more accurate form of eval
         if (    ttScore != score_none
@@ -773,8 +793,10 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             bestScore = ttScore;
     }
     // If we don't have any useful info in the TT just call Evalpos
-    else
+    else {
+        nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
         bestScore = ss->staticEval = EvalPosition(pos);
+    }
 
     // Stand pat
     if (bestScore >= beta)
@@ -782,6 +804,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     // Adjust alpha based on eval
     alpha = std::max(alpha, bestScore);
+
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
 
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
