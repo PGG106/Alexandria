@@ -472,7 +472,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (IsCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->checkers) > 2) && pieceType != KING)
+    if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
         return false;
 
     int NORTH = pos->side == WHITE ? -8 : 8;
