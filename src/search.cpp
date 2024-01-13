@@ -377,6 +377,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     if (depth >= 4 && ttFlag == HFNONE)
         depth--;
 
+    // clean killers and excluded move for the next ply
+    (ss + 1)->excludedMove = NOMOVE;
+    (ss + 1)->searchKillers[0] = NOMOVE;
+    (ss + 1)->searchKillers[1] = NOMOVE;
+
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck || excludedMove) {
         ss->staticEval = eval = score_none;
@@ -426,11 +431,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     }
     else
         improving = true;
-    
-    // clean killers and excluded move for the next ply
-    (ss + 1)->excludedMove = NOMOVE;
-    (ss + 1)->searchKillers[0] = NOMOVE;
-    (ss + 1)->searchKillers[1] = NOMOVE;
 
     if (!pvNode) {
         // Reverse futility pruning
