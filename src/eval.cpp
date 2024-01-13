@@ -28,7 +28,8 @@ static inline float MaterialScale(const S_Board* pos) {
 }
 
 // position evaluation
-int EvalPosition(const S_Board* pos) {
+int EvalPosition(S_Board* pos) {
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     bool stm = (pos->side == WHITE);
     int eval = nnue.output(pos->accumStack[pos->accumStackHead-1], stm);
     eval = (eval * MaterialScale(pos)) / 1024;

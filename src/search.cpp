@@ -392,13 +392,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // get an evaluation of the position:
     if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        if (tte.eval != score_none) {
-            eval = ss->staticEval = tte.eval;
-        }
-        else {
-            nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-            eval = ss->staticEval = EvalPosition(pos);
-        }
+        eval = ss->staticEval = tte.eval != score_none ? tte.eval : EvalPosition(pos);
 
         // We can also use the tt score as a more accurate form of eval
         if (    ttScore != score_none
@@ -408,9 +402,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             eval = ttScore;
     }
     else {
-
-        nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-
         // If we don't have anything in the TT we have to call evalposition
         eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
@@ -777,13 +768,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     else if (ttHit) {
 
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        if (tte.eval != score_none) {
-            bestScore = ss->staticEval = tte.eval;
-        }
-        else {
-            nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-            bestScore = ss->staticEval = EvalPosition(pos);
-        }
+        ss->staticEval = bestScore = tte.eval != score_none ? tte.eval : EvalPosition(pos);
 
         // We can also use the TT score as a more accurate form of eval
         if (    ttScore != score_none
@@ -793,10 +778,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             bestScore = ttScore;
     }
     // If we don't have any useful info in the TT just call Evalpos
-    else {
-        nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+    else
         bestScore = ss->staticEval = EvalPosition(pos);
-    }
 
     // Stand pat
     if (bestScore >= beta)
