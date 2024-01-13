@@ -46,9 +46,8 @@ void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
 
 // Move a piece from square to to square from
 void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
-    pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
-    pos->NNUESub.emplace_back(nnue.GetIndex(piece, from));
-    MovePiece(piece, from, to, pos);
+    ClearPieceNNUE(piece, from, pos);
+    AddPieceNNUE(piece, to, pos);
 }
 
 void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
@@ -276,8 +275,6 @@ void MakeMove(const int move, S_Board* pos) {
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 
-    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
@@ -310,6 +307,9 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->checkMask = pos->history[pos->hisPly].checkMask;
     pos->pinHV = pos->history[pos->hisPly].pinHV;
     pos->pinD = pos->history[pos->hisPly].pinD;
+
+    pos->NNUEAdd.clear();
+    pos->NNUESub.clear();
 
     // parse move
     const int sourceSquare = From(move);
