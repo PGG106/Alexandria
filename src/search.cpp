@@ -618,7 +618,7 @@ moves_loop:
             depthReduction -= improving;
 
             // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-            depthReduction -= std::clamp(moveHistory / 16384, -2, 2);
+            depthReduction -= moveHistory / 16384;
 
             // Decrease the reduction for moves that give check
             if (pos->checkers)
