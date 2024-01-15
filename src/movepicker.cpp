@@ -13,13 +13,9 @@ void ScoreMoves(Movepicker* mp) {
     // Loop through all the move in the movelist
     for (int i = 0; i < moveList->count; i++) {
         int move = moveList->moves[i].move;
-        // If the move is from the TT (aka it's our hashmove) give it the highest score
-        if (move == mp->ttMove) {
-            moveList->moves[i].score = INT32_MAX - 100;
-            continue;
-        }
-        // Sort promotions based on the promoted piece type
-        else if (isPromo(move)) {
+        // We have no need to sort the TT move first since the ttmove always gets played before movegen if it's an acceptable move.
+        // start sorting from the promotions based on the promoted piece type.
+         if (isPromo(move)) {
             switch (getPromotedPiecetype(move)) {
             case QUEEN:
                 moveList->moves[i].score = queenPromotionScore;
