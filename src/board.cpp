@@ -20,6 +20,7 @@
 #if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
+#include "init.h"
 
 NNUE nnue = NNUE();
 
@@ -502,4 +503,19 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
         if (!input) continue;
         nnue.add(board_accumulator, pos->pieces[i], i);
     }
+}
+
+ZobristKey keyAfter(const S_Board* pos, const int move) {
+
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+    const int  captured = pos->PieceOn(targetSquare);
+
+    ZobristKey newKey = pos->GetPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
+
+    if (captured != EMPTY)
+        newKey ^= PieceKeys[captured][targetSquare];
+
+    return newKey;
 }

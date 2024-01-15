@@ -588,6 +588,7 @@ moves_loop:
         int newDepth = depth - 1 + extension;
         ss->move = move;
         // Play the move
+        TTPrefetch(keyAfter(pos, move));
         MakeMove(move, pos);
         // Add any played move to the matching list
         if (isQuiet) {
@@ -816,6 +817,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
                     continue;
                 }
             }
+        TTPrefetch(keyAfter(pos, move));
         MakeMove(move, pos);
         // increment nodes count
         info->nodes++;
