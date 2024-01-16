@@ -7,6 +7,7 @@
 #include "uci.h"
 #include "attack.h"
 #include "magic.h"
+#include "init.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
@@ -20,7 +21,6 @@
 #if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
 #include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
 #endif
-#include "init.h"
 
 NNUE nnue = NNUE();
 
@@ -505,6 +505,7 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
     }
 }
 
+// Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
 ZobristKey keyAfter(const S_Board* pos, const int move) {
 
     const int sourceSquare = From(move);
