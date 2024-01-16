@@ -279,8 +279,6 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
-    // Speculative prefetch of the TT entry
-    TTPrefetch(pos->posKey);
     pos->checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
     if (pos->checkers) {

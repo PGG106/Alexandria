@@ -586,6 +586,8 @@ moves_loop:
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
+        // Speculative prefetch of the TT entry
+        TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
         MakeMove(move, pos);
@@ -801,7 +803,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -mate_found)) != NOMOVE) {
 
-        ss->move = move;
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
@@ -815,7 +816,11 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
                     bestScore = std::max(futilityBase, bestScore);
                     continue;
                 }
-            }
+        }
+        // Speculative prefetch of the TT entry
+        TTPrefetch(keyAfter(pos, move));
+        ss->move = move;
+        // Play the move
         MakeMove(move, pos);
         // increment nodes count
         info->nodes++;

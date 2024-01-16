@@ -261,3 +261,4 @@ Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
+ZobristKey keyAfter(const S_Board* pos, const int move);

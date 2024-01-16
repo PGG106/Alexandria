@@ -7,6 +7,7 @@
 #include "uci.h"
 #include "attack.h"
 #include "magic.h"
+#include "init.h"
 #include <cassert>
 
 #if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
@@ -502,4 +503,20 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
         if (!input) continue;
         nnue.add(board_accumulator, pos->pieces[i], i);
     }
+}
+
+// Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
+ZobristKey keyAfter(const S_Board* pos, const int move) {
+
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+    const int  captured = pos->PieceOn(targetSquare);
+
+    ZobristKey newKey = pos->GetPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
+
+    if (captured != EMPTY)
+        newKey ^= PieceKeys[captured][targetSquare];
+
+    return newKey;
 }
