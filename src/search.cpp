@@ -583,7 +583,7 @@ moves_loop:
                 else if (ttScore >= beta)
                     extension = -2;
 
-                // If we are expecting a fail-high both based on node type and based on TT bound
+                // If we are expecting a fail-high both based on search states from previous plies and based on TT bound
                 // but our TT move is not singular and our TT score is failing low, reduce the search depth
                 else if (ttScore <= alpha && cutNode)
                     extension = -1;
