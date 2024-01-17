@@ -603,12 +603,11 @@ moves_loop:
         // increment nodes count
         info->nodes++;
         uint64_t nodesBeforeSearch = info->nodes;
-        int depthReduction = 0;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
         if (movesSearched >= 2 + 2 * pvNode && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            depthReduction = reductions[isQuiet][depth][movesSearched];
+            int depthReduction = reductions[isQuiet][depth][movesSearched];
 
             // Reduce more if we aren't in a pv node
             depthReduction += !ttPv;
@@ -628,14 +627,18 @@ moves_loop:
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
             depthReduction = std::clamp(depthReduction, 0, newDepth - 1);
+            int reducedDepth = newDepth - depthReduction;
             // search current move with reduced depth:
-            score = -Negamax<false>(-alpha - 1, -alpha, newDepth - depthReduction, true, td, ss + 1);
+            score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
             if (score > alpha && depthReduction) {
                 // SF yoink, based on the value returned by our reduced search see if we should search deeper, this is an exact yoink of what SF and frankly i don't care lmao
                 const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
-                score = -Negamax<false>(-alpha - 1, -alpha, newDepth + doDeeperSearch, !cutNode, td, ss + 1);
+                const bool doShallowerSearch = score < bestScore + newDepth;
+                newDepth += doDeeperSearch - doShallowerSearch;
+                if (newDepth > reducedDepth)
+                score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !cutNode, td, ss + 1);
 
                 // define the conthist bonus
                 int bonus = std::min(16 * (depth + 1) * (depth + 1), 1200);
