@@ -51,11 +51,11 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
 int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
-    S_HashEntry *tte = &HashTable->pTable[i];
-    if (tte->tt_key != 0)
-        hit++;
+        S_HashEntry *tte = &HashTable->pTable[i];
+        if (tte->tt_key != 0)
+            hit++;
     }
-    return hit/2;
+    return hit / 2;
 }
 
 uint64_t Index(const ZobristKey posKey) {
