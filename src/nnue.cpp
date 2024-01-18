@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include "incbin/incbin.h"
+
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
 // This macro invocation will declare the following three variables
@@ -11,8 +13,6 @@
 //     const unsigned char *const gEVALEnd;     // a marker to the end
 //     const unsigned int         gEVALSize;    // the size of the embedded file
 // Note that this does not work in Microsoft Visual Studio.
-#define INCBIN_STYLE INCBIN_STYLE_CAMEL
-#include "incbin/incbin.h"
 #if !defined(_MSC_VER)
 INCBIN(EVAL, EVALFILE);
 #else
