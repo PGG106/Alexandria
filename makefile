@@ -31,7 +31,7 @@ endif
 ifeq ($(OS), Windows_NT)
 	uname_S := Windows
 	SUFFIX  := .exe
-	FLAGS    = -lstdc++ -static
+	FLAGS    = -lstdc++
 	CXXFLAGS += -static -static-libgcc -static-libstdc++
 else
 	FLAGS   = -pthread
