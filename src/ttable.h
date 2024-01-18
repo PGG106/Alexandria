@@ -23,11 +23,12 @@ void ClearHashTable(S_HashTable* table);
 // Initialize an Hashtable of size MB
 void InitHashTable(S_HashTable* table, uint64_t MB);
 
-[[nodiscard]] bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte);
+[[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
 
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
     const int depth, const bool pv, const bool wasPv);
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
+int GetHashfull();
 void TTPrefetch(const ZobristKey posKey);
 int ScoreToTT(int score, int ply);
 

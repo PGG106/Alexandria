@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "ttable.h"
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 
@@ -188,7 +189,7 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
         else
             std::cout << "info score cp " << score << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
-            " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
+            " nps " << nps << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime << " pv ";
 
         // loop over the moves within a PV line
         for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
