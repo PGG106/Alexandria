@@ -5,8 +5,8 @@ _ROOT     := $(_THIS)
 EVALFILE   = $(NETWORK_NAME)
 CXX       := g++
 TARGET    := Alexandria
-CXXFLAGS  :=  -funroll-loops -O3 -flto -Wall -Wcast-qual -fno-exceptions -std=gnu++2a -pedantic -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference \
--Wlogical-op -Wunused -Wold-style-cast -Wundef -DNDEBUG
+WARNINGS   = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
+CXXFLAGS  :=  -funroll-loops -O3 -flto  -fno-exceptions -std=gnu++2a  -DNDEBUG $(WARNINGS)
 NATIVE     = -march=native
 
 
@@ -31,10 +31,10 @@ endif
 ifeq ($(OS), Windows_NT)
 	uname_S := Windows
 	SUFFIX  := .exe
-	FLAGS    = -pthread -lstdc++ -static
-	CXXFLAGS += -static -static-libgcc -static-libstdc++ -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+	FLAGS    = -lstdc++ -static
+	CXXFLAGS += -static -static-libgcc -static-libstdc++
 else
-	FLAGS   = -lpthread -lstdc++
+	FLAGS   = -pthread
 	SUFFIX  :=
 	uname_S := $(shell uname -s)
 endif
