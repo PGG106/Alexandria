@@ -19,12 +19,12 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
     std::cout << "HashTable init complete with " << numEntries << " entries\n";
 }
 
-bool ProbeHashEntry(const S_Board* pos, S_HashEntry* tte) {
-    const uint64_t index = Index(pos->posKey);
+bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte){
+    const uint64_t index = Index(posKey);
 
     *tte = HashTable->pTable[index];
 
-    return (HashTable->pTable[index].tt_key == static_cast<TTKey>(pos->posKey));
+    return (HashTable->pTable[index].tt_key == static_cast<TTKey>(posKey));
 }
 
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
@@ -46,6 +46,16 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
         tte->eval = eval;
         tte->depth = static_cast<uint8_t>(depth);
     }
+}
+
+int GetHashfull() {
+    int hit = 0;
+    for (int i = 0; i < 2000; i++) {
+    S_HashEntry *tte = &HashTable->pTable[i];
+    if (tte->tt_key != 0)
+        hit++;
+    }
+    return hit/2;
 }
 
 uint64_t Index(const ZobristKey posKey) {
