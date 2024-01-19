@@ -6,7 +6,7 @@ EVALFILE   = $(NETWORK_NAME)
 CXX       := g++
 TARGET    := Alexandria
 WARNINGS   = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
-CXXFLAGS  :=  -funroll-loops -O3 -flto  -fno-exceptions -std=gnu++2a  -DNDEBUG $(WARNINGS)
+CXXFLAGS  :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
 NATIVE     = -march=native
 
 
@@ -14,6 +14,11 @@ NATIVE     = -march=native
 NAME      := Alexandria
 
 TMPDIR = .tmp
+
+# Detect Clang
+ifeq ($(CXX), clang++)
+CXXFLAGS = -funroll-loops -O3 -flto -fuse-ld=lld -fno-exceptions -std=gnu++2a -DNDEBUG
+endif
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
@@ -31,8 +36,7 @@ endif
 ifeq ($(OS), Windows_NT)
 	uname_S := Windows
 	SUFFIX  := .exe
-	FLAGS    = -lstdc++
-	CXXFLAGS += -static -static-libgcc -static-libstdc++
+	CXXFLAGS += -static
 else
 	FLAGS   = -pthread
 	SUFFIX  :=
