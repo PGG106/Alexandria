@@ -3,7 +3,7 @@ NETWORK_NAME = nn.net
 _THIS     := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT     := $(_THIS)
 EVALFILE   = $(NETWORK_NAME)
-CXX2       := clang++
+CXX       := g++
 TARGET    := Alexandria
 WARNINGS   = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS  :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
@@ -16,7 +16,7 @@ NAME      := Alexandria
 TMPDIR = .tmp
 
 # Detect Clang
-ifeq ($(CXX2), clang++)
+ifeq ($(CXX), clang++)
 CXXFLAGS = -funroll-loops -O3 -flto -fuse-ld=lld -fno-exceptions -std=gnu++2a -DNDEBUG
 endif
 
@@ -106,10 +106,10 @@ clean:
 	@rm -rf $(TMPDIR) *.o  $(DEPENDS) *.d
 
 $(TARGET): $(OBJECTS)
-	$(CXX2) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
-	$(CXX2) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
