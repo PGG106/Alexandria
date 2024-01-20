@@ -614,7 +614,7 @@ moves_loop:
             // Get base reduction value
             int depthReduction = reductions[isQuiet][depth][movesSearched];
 
-            // Reduce more if we aren't in a pv node
+            // Reduce more if we have never been on the pv
             depthReduction += !ttPv;
 
             // Fuck
@@ -622,6 +622,9 @@ moves_loop:
 
             // Reduce less if we are improving
             depthReduction -= improving;
+
+            // Decrease the reduction for refutations
+            depthReduction -= (move == mp.killer0 || move == mp.killer1 || move == mp.counter);
 
             // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
             depthReduction -= moveHistory / 16384;
