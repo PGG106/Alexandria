@@ -14,6 +14,7 @@
 #include "movegen.h"
 #include <iostream>
 #include "tune.h"
+#include "eval.h"
 
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& move_string, S_Board* pos) {
@@ -367,9 +368,8 @@ void UciLoop(char** argv) {
             }
             // print position eval
             bool stm = td->pos.side == WHITE;
-            printf(
-                "the eval of this position according to the neural network is %d\n",
-                nnue.output(td->pos.AccumulatorTop(), stm));
+            std::cout << "Raw eval: " << nnue.output(td->pos.AccumulatorTop(), stm) << std::endl;
+            std::cout << "Scaled eval: " << EvalPosition(&td->pos) << std::endl;
         }
 
         else if (input == "bench") {
