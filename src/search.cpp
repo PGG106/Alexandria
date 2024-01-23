@@ -618,6 +618,8 @@ moves_loop:
             // Reduce more if we are not improving
             depthReduction += !improving;
 
+            depthReduction -= (move == mp.killer0 || move == mp.killer1 || move == mp.counter);
+
             // Reduce less if we have been on the PV
             if (ttPv)
                 depthReduction -= 1 + cutNode;
