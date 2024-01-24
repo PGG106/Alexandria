@@ -353,8 +353,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
         while (pawn_mask) {
             // init source square
             sourceSquare = GetLsbIndex(pawn_mask);
-            Bitboard moves = LegalPawnMoves(pos, pos->side, sourceSquare) & (pos->Enemy() | 0xFF000000000000FF);
-
+            Bitboard moves = LegalPawnMoves(pos, pos->side, sourceSquare) & (pos->Enemy() | 0xFF000000000000FF | (1ULL << pos->enPas));
             while (moves) {
                 // init target square
                 targetSquare = GetLsbIndex(moves);
@@ -393,8 +392,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
         Bitboard rooks_mask = pos->GetPieceColorBB(ROOK, pos->side);
         while (rooks_mask) {
             sourceSquare = GetLsbIndex(rooks_mask);
-            Bitboard moves = LegalRookMoves(pos, pos->side, sourceSquare) &
-                (pos->Occupancy(pos->side ^ 1));
+            Bitboard moves = LegalRookMoves(pos, pos->side, sourceSquare) & pos->Enemy();
             const int piece = GetPiece(ROOK, pos->side);
             while (moves) {
                 targetSquare = GetLsbIndex(moves);
