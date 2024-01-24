@@ -8,56 +8,17 @@
 #include "attack.h"
 #include "magic.h"
 #include "init.h"
+#include <bit>
 #include <cassert>
-
-#if defined(_WIN64) && defined(_MSC_VER) // No Makefile used
-#include <intrin.h> // Microsoft header for _BitScanForward64()
-#define IS_64BIT
-#endif
-#if defined(USE_POPCNT) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
-#include <nmmintrin.h> // Intel and Microsoft header for _mm_popcnt_u64()
-#endif
-
-#if !defined(NO_PREFETCH) && (defined(__INTEL_COMPILER) || defined(_MSC_VER))
-#include <xmmintrin.h> // Intel and Microsoft header for _mm_prefetch()
-#endif
 
 NNUE nnue = NNUE();
 
 int CountBits(Bitboard bitboard) {
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-    return (uint8_t)_mm_popcnt_u64(bitboard);
-#else // Assumed gcc or compatible compiler
-    return __builtin_popcountll(bitboard);
-#endif
+    return std::popcount(bitboard);
 }
 
 int GetLsbIndex(Bitboard bitboard) {
-#if defined(__GNUC__) // GCC, Clang, ICC
-    return int(__builtin_ctzll(bitboard));
-#elif defined(_MSC_VER) // MSVC
-#ifdef _WIN64 // MSVC, WIN64
-    unsigned long idx;
-    _BitScanForward64(&idx, bitboard);
-    return (int)idx;
-#else // MSVC, WIN32
-    assert(bitboard);
-    unsigned long idx;
-
-    if (b & 0xffffffff) {
-        _BitScanForward(&idx, int32_t(bitboard));
-        return int(idx);
-    }
-    else {
-        _BitScanForward(&idx, int32_t(bitboard >> 32));
-        return int(idx + 32);
-    }
-#endif
-#else // Compiler is neither GCC nor MSVC compatible
-
-#error "Compiler not supported."
-
-#endif
+    return std::countr_zero(bitboard);
 }
 
 // Reset the position to a clean state
