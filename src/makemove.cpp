@@ -175,15 +175,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
 
 // make move on chess board
 void MakeMove(const int move, S_Board* pos) {
-    // Store position variables for rollback purposes
-    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-    pos->history[pos->hisPly].enPas = pos->enPas;
-    pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].checkMask = pos->checkMask;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
+    saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
@@ -297,14 +289,7 @@ void UnmakeMove(const int move, S_Board* pos) {
 
     pos->hisPly--;
 
-    pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->castleperm = pos->history[pos->hisPly].castlePerm;
-    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->checkMask = pos->history[pos->hisPly].checkMask;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
+    restorePreviousBoardState(pos);
 
     pos->NNUEAdd.clear();
     pos->NNUESub.clear();
@@ -382,15 +367,7 @@ void UnmakeMove(const int move, S_Board* pos) {
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(S_Board* pos) {
-    // Store position variables for rollback purposes
-    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-    pos->history[pos->hisPly].enPas = pos->enPas;
-    pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].checkMask = pos->checkMask;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
+    saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
@@ -414,16 +391,10 @@ void MakeNullMove(S_Board* pos) {
 void TakeNullMove(S_Board* pos) {
     pos->hisPly--;
 
-    pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->castleperm = pos->history[pos->hisPly].castlePerm;
-    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->checkMask = pos->history[pos->hisPly].checkMask;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
+    restorePreviousBoardState(pos);
 
     pos->ChangeSide();
     pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }
+
