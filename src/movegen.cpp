@@ -57,7 +57,7 @@ static inline void AddMove(int move, S_MOVELIST* list) {
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
     Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
     if (!(abs(to - from) - 16)) movetype = Movetype::doublePush;
-    else if(!(to - pos->enPas)) movetype = Movetype::enPassant;
+    else if(to == GetEpSquare(pos)) movetype = Movetype::enPassant;
 
     if (pos->side == WHITE) {
         if (from >= a7 &&
@@ -87,7 +87,7 @@ static inline void AddPawnMove(const S_Board* pos, const int from, const int to,
 }
 
 static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
-    const Bitboard enemy = pos->occupancies[color ^ 1];
+    const Bitboard enemy = pos->Enemy();
 
     // If we are pinned diagonally we can only do captures which are on the pin_dg
     // and on the checkmask

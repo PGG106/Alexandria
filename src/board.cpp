@@ -481,3 +481,26 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 
     return newKey;
 }
+
+void saveBoardState(S_Board* pos) {
+    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+    pos->history[pos->hisPly].enPas = pos->enPas;
+    pos->history[pos->hisPly].castlePerm = pos->castleperm;
+    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
+    pos->history[pos->hisPly].checkers = pos->checkers;
+    pos->history[pos->hisPly].checkMask = pos->checkMask;
+    pos->history[pos->hisPly].pinHV = pos->pinHV;
+    pos->history[pos->hisPly].pinD = pos->pinD;
+}
+
+void restorePreviousBoardState(S_Board* pos)
+{
+    pos->enPas = pos->history[pos->hisPly].enPas;
+    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+    pos->castleperm = pos->history[pos->hisPly].castlePerm;
+    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
+    pos->checkers = pos->history[pos->hisPly].checkers;
+    pos->checkMask = pos->history[pos->hisPly].checkMask;
+    pos->pinHV = pos->history[pos->hisPly].pinHV;
+    pos->pinD = pos->history[pos->hisPly].pinD;
+}
