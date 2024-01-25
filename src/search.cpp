@@ -613,12 +613,16 @@ moves_loop:
             int depthReduction = reductions[isQuiet][depth][movesSearched];
 
             // Fuck
-            depthReduction += 2 * cutNode;
+            if (cutNode)
+                depthReduction += 2;
 
             // Reduce more if we are not improving
-            depthReduction += !improving;
+            if (!improving)
+                depthReduction += 1;
 
-            depthReduction -= (move == mp.killer0 || move == mp.killer1 || move == mp.counter);
+            // Reduce less if the move is a refutation
+            if (move == mp.killer0 || move == mp.killer1 || move == mp.counter)
+                depthReduction -= 1;
 
             // Reduce less if we have been on the PV
             if (ttPv)
@@ -633,6 +637,7 @@ moves_loop:
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
             depthReduction = std::clamp(depthReduction, 0, newDepth - 1);
+
             int reducedDepth = newDepth - depthReduction;
             // search current move with reduced depth:
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
