@@ -89,6 +89,7 @@ void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
 }
 
 void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     mp->pos = pos;
     mp->sd = sd;
     mp->ss = ss;
