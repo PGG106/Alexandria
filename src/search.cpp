@@ -423,8 +423,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
     if (!pvNode) {
         // Reverse futility pruning
-        if (   depth < 9
-            && eval - 66 * (depth - improving) >= beta
+        if (   depth < 10
+            && eval - 81 * (depth - improving) >= beta
             && abs(eval) < mate_found)
             return eval;
 
