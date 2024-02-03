@@ -297,48 +297,48 @@ Bitboard getThreats(const S_Board* pos, const int side) {
     uint64_t threats = 0;
 
     // Get Pawn attacks
-    Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
+    Bitboard pawns = pos->GetPieceColorBB(PAWN, side);
     while (pawns) {
         int source_square = GetLsbIndex(pawns);
         threats |= pawn_attacks[side][source_square];
-        pop_bit(pawns, source_square);
+        pop_lsb(pawns);
     }
 
     // Get Knight attacks
-    Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
+    Bitboard knights = pos->GetPieceColorBB(KNIGHT, side);
     while (knights) {
         int source_square = GetLsbIndex(knights);
         threats |= knight_attacks[source_square];
-        pop_bit(knights, source_square);
+        pop_lsb(knights);
     }
 
     // Get Bishop attacks
-    Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
+    Bitboard bishops = pos->GetPieceColorBB(BISHOP, side);
     while (bishops) {
         int source_square = GetLsbIndex(bishops);
         threats |= GetBishopAttacks(source_square, occ);
-        pop_bit(bishops, source_square);
+        pop_lsb(bishops);
     }
     // Get Rook attacks
-    Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
+    Bitboard rooks = pos->GetPieceColorBB(ROOK, side);
     while (rooks) {
         int source_square = GetLsbIndex(rooks);
         threats |= GetRookAttacks(source_square, occ);
-        pop_bit(rooks, source_square);
+        pop_lsb(rooks);
     }
     // Get Queen attacks
-    Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
+    Bitboard queens = pos->GetPieceColorBB(QUEEN, side);
     while (queens) {
         int source_square = GetLsbIndex(queens);
         threats |= GetQueenAttacks(source_square, occ);
-        pop_bit(queens, source_square);
+        pop_lsb(queens);
     }
     // Get King attacks
-    Bitboard king = pos->GetPieceColorBB(KING, pos->side);
+    Bitboard king = pos->GetPieceColorBB(KING, side);
     while (king) {
         int source_square = GetLsbIndex(king);
         threats |= king_attacks[source_square];
-        pop_bit(king, source_square);
+        pop_lsb(king);
     }
     return threats;
 }
