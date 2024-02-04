@@ -20,25 +20,25 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     else if (info->timeset && info->movestogo != -1) {
         // Divide the time you have left for how many moves you have to play
         const auto basetime = time / info->movestogo;
-        // Never use more than 75% of the total time left for a single move
-        const auto maxtimeBound = 0.75 * time;
+        // Never use more than 76% of the total time left for a single move
+        const auto maxtimeBound = 0.76 * time;
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min(0.7 * basetime, maxtimeBound);
+        const auto optime = std::min(0.76 * basetime, maxtimeBound);
         // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min(3.0 * basetime, maxtimeBound);
+        const auto maxtime = std::min(3.04 * basetime, maxtimeBound);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
     }
     // else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
     else if (info->timeset) {
-        int basetime = time / 20 + inc * 3 / 4;
-        // Never use more than 75% of the total time left for a single move
-        const auto maxtimeBound = 0.75 * time;
+        int basetime = time * 0.054 + inc * 0.85;
+        // Never use more than 76% of the total time left for a single move
+        const auto maxtimeBound = 0.76 * time;
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min(0.7 * basetime, maxtimeBound);
+        const auto optime = std::min(0.76 * basetime, maxtimeBound);
         // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min(3.0 * basetime, maxtimeBound);
+        const auto maxtime = std::min(3.04 * basetime, maxtimeBound);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
@@ -51,11 +51,11 @@ bool StopEarly(const S_SearchINFO* info) {
 }
 
 void ScaleTm(S_ThreadData* td, const int bestMoveStabilityFactor) {
-    constexpr double bestmoveScale[5] = { 2.5, 1.20, 0.95, 0.85, 0.8 };
+    constexpr double bestmoveScale[5] = { 2.43, 1.35, 1.09, 0.88, 0.68 };
     const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
     const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
-    const double nodeScalingFactor = (1.62 - bestMoveNodesFraction) * 1.48;
+    const double nodeScalingFactor = (1.52 - bestMoveNodesFraction) * 1.74;
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
     td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor, td->info.stoptimeMax);
