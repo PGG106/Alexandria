@@ -291,6 +291,52 @@ Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
     return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 
+bool oppCanWinMaterial(const S_Board* pos, const int side) {
+    Bitboard occ = pos->Occupancy(BOTH);
+    Bitboard  us = pos->Occupancy(side);
+    Bitboard oppPawns = pos->GetPieceColorBB(PAWN, side ^ 1);
+    Bitboard ourPawns = pos->GetPieceColorBB(PAWN, side);
+    while (oppPawns) {
+        int source_square = GetLsbIndex(oppPawns);
+        if (pawn_attacks[side ^ 1][source_square] & (us ^ ourPawns))
+            return true;
+
+        pop_lsb(ourPawns);
+    }
+
+    Bitboard oppKnights = pos->GetPieceColorBB(KNIGHT, side ^ 1);
+    Bitboard ourKnights = pos->GetPieceColorBB(KNIGHT, side);
+    Bitboard oppBishops = pos->GetPieceColorBB(BISHOP, side ^ 1);
+    Bitboard ourBishops = pos->GetPieceColorBB(BISHOP, side);
+    while (oppKnights) {
+        int source_square = GetLsbIndex(oppKnights);
+        if (knight_attacks[source_square] & (us ^ ourPawns ^ ourKnights ^ ourBishops))
+            return true;
+
+        pop_lsb(oppKnights);
+    }
+
+    while (oppBishops) {
+        int source_square = GetLsbIndex(oppBishops);
+        if (GetBishopAttacks(source_square, occ) & (us ^ ourPawns ^ ourKnights ^ ourBishops))
+            return true;
+
+        pop_lsb(oppBishops);
+    }
+
+    Bitboard oppRooks = pos->GetPieceColorBB(ROOK, side ^ 1);
+    Bitboard ourRooks = pos->GetPieceColorBB(ROOK, side);
+    while (oppRooks) {
+        int source_square = GetLsbIndex(oppRooks);
+        if (GetRookAttacks(source_square, occ) & (us ^ ourPawns ^ ourKnights ^ ourBishops ^ ourRooks))
+            return true;
+
+        pop_lsb(ourRooks);
+    }
+
+    return false;
+}
+
 Bitboard getThreats(const S_Board* pos, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
     Bitboard occ = pos->Occupancy(BOTH);

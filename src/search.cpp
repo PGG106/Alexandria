@@ -424,8 +424,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     if (!pvNode) {
         // Reverse futility pruning
         if (   depth < 10
-            && eval - 81 * (depth - improving) >= beta
-            && abs(eval) < mate_found)
+            && abs(eval) < mate_found
+            && eval - (81 + 10 * oppCanWinMaterial(pos, pos->side)) * depth + 81 * improving >= beta)
             return eval;
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high, 
