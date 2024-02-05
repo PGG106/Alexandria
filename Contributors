@@ -1,14 +1,14 @@
 # Everyone that significantly contributed to Alex code (in alphabetical order)
 Cosmo - relative NNUE inference code
+cj5716 - Several gainers
 Disservin - Makefile and CI PR
-JW - 16bits move structure shenanigans
 Gabe - fat speedup
+JW - 16bits move structure shenanigans
 Kimmy - Search stuff
 kz04px (Big T) - Code refactoring
 Luecx - Help setting up the first non relative NNUE
-Nanopixel - TM code suggestion
-Viren - Improved improving
-cj5716 - Search stuff
+NanoPixel - TM code suggestion
+Viren - Search stuff
 
 # Everyone that significantly contributed hardware to test Alex (in alphabetical order)
 Johan K (SweHosting is the best hosting ever)
