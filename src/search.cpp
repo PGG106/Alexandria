@@ -567,7 +567,7 @@ moves_loop:
                     if (   !pvNode
                         &&  singularScore < singularBeta - 17
                         &&  ss->doubleExtensions <= 11) {
-                        extension = 2;
+                        extension = 2 + (IsQuiet(ttMove) && singularScore < singularBeta - 300);
                         ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
                     }
                 }
