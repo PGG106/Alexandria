@@ -681,12 +681,14 @@ moves_loop:
             if (score > alpha) {
                 bestMove = move;
 
-                // Update the pv table
-                pvTable->pvArray[ss->ply][ss->ply] = move;
-                for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
-                    pvTable->pvArray[ss->ply][nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
+                if (pvNode) {
+                    // Update the pv table
+                    pvTable->pvArray[ss->ply][ss->ply] = move;
+                    for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
+                        pvTable->pvArray[ss->ply][nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
+                    }
+                    pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
                 }
-                pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
 
                 if (score >= beta) {
                     // If the move that caused the beta cutoff is quiet we have a killer move
