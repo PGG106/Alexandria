@@ -2,7 +2,8 @@
 Cosmo - relative NNUE inference code
 cj5716 - Several gainers
 Disservin - Makefile and CI PR
-Gabe - fat speedup
+fireandice - Writing SIMD so we don't have to
+Gabe - Fat speedup
 JW - 16bits move structure shenanigans
 Kimmy - Search stuff
 kz04px (Big T) - Code refactoring

@@ -1,17 +1,17 @@
 
 NETWORK_NAME = nn.net
-_THIS     := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-_ROOT     := $(_THIS)
+_THIS	 := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+_ROOT	 := $(_THIS)
 EVALFILE   = $(NETWORK_NAME)
-CXX       := g++
-TARGET    := Alexandria
+CXX	   := g++
+TARGET	:= Alexandria
 WARNINGS   = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS  :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
-NATIVE     = -march=native
+NATIVE	 = -march=native
 
 
 # engine name
-NAME      := Alexandria
+NAME	  := Alexandria
 
 TMPDIR = .tmp
 
@@ -22,10 +22,10 @@ endif
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
-	MKDIR    := mkdir
+	MKDIR	:= mkdir
 else
 ifeq ($(COMP), MINGW)
-	MKDIR    := mkdir
+	MKDIR	:= mkdir
 else
 	MKDIR   := mkdir -p
 endif
@@ -52,45 +52,72 @@ endif
 # Remove native for builds
 ifdef build
 	NATIVE =
+else
+	build = native
 endif
 
 # SPECIFIC BUILDS
 ifeq ($(build), native)
-	NATIVE   = -march=native
-	ARCH     = -x86-64-native
+	NATIVE	 = -march=native
+	ARCH	   = -x86-64-native
+	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
+	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
+		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
+			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
+		endif
+	else ifneq ($(findstring __BMI2__, $(PROPERTIES)),)
+		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
+		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	endif
+	
 endif
 
 ifeq ($(build), x86-64)
-	NATIVE       = -mtune=znver1
+	NATIVE	   = -mtune=znver1
 	INSTRUCTIONS = -msse -msse2 -mpopcnt
-	ARCH         = -x86-64
+	ARCH		 = -x86-64
 endif
 
 ifeq ($(build), x86-64-modern)
-	NATIVE       = -mtune=znver2
+	NATIVE	   = -mtune=znver2
 	INSTRUCTIONS = -m64 -msse -msse3 -mpopcnt
-	ARCH         = -x86-64-modern
+	ARCH		 = -x86-64-modern
 endif
 
 ifeq ($(build), x86-64-avx2)
-	NATIVE       = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
-	ARCH         = -x86-64-avx2
+	NATIVE	   = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
+	ARCH		 = -x86-64-avx2
+	CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
 endif
 
 ifeq ($(build), x86-64-bmi2)
-	NATIVE       = -march=haswell
-	ARCH         = -x86-64-bmi2
+	NATIVE	   = -march=haswell
+	ARCH		 = -x86-64-bmi2
+	CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
 endif
 
 ifeq ($(build), x86-64-avx512)
-	NATIVE       = -march=x86-64-v4 -mtune=znver4
-	ARCH         = -x86-64-avx512
+	NATIVE	   = -march=x86-64-v4 -mtune=znver4
+	ARCH		 = -x86-64-avx512
+	CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
 endif
 
 ifeq ($(build), debug)
 	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
-	FLAGS    = -lpthread -lstdc++
+	FLAGS	= -lpthread -lstdc++
+
+	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
+	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
+		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
+			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
+		endif
+	else ifneq ($(findstring __BMI2__, $(PROPERTIES)),)
+		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
+		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	endif
 endif
 
 # Add network name and Evalfile
@@ -99,7 +126,7 @@ CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE)\"
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SOURCES))
-EXE     := $(NAME)$(SUFFIX)
+EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
 clean:
