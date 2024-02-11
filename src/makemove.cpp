@@ -165,10 +165,10 @@ void MakeUCIMove(const int move, S_Board* pos) {
     if (pos->checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
         const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
     // Update pinmasks
     UpdatePinMasks(pos, pos->side);
 }
@@ -276,10 +276,10 @@ void MakeMove(const int move, S_Board* pos) {
     if (pos->checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
         const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
     // Update pinmasks
     UpdatePinMasks(pos, pos->side);
 }

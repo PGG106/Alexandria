@@ -108,9 +108,8 @@ public:
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
     Bitboard checkers;
-    Bitboard checkMask = fullCheckmask;
   
-    NNUE::accumulator accumStack[256];
+    NNUE::accumulator accumStack[MAXPLY];
     int accumStackHead;
 
     inline NNUE::accumulator& AccumulatorTop() {
