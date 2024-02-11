@@ -160,11 +160,11 @@ void MakeUCIMove(const int move, S_Board* pos) {
     // Xor the new side into the key
     HashKey(pos, SideKey);
     // Speculative prefetch of the TT entry
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
         pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
@@ -271,11 +271,11 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
         pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else

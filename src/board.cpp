@@ -190,11 +190,11 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     pos->posKey = GeneratePosKey(pos);
 
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
         pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
@@ -533,7 +533,7 @@ void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].enPas = GetEpSquare(pos);
     pos->history[pos->hisPly].castlePerm = pos->GetCastlingPerm();
     pos->history[pos->hisPly].plyFromNull = pos->boardState.plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->checkers;
+    pos->history[pos->hisPly].checkers = pos->boardState.checkers;
     pos->history[pos->hisPly].checkMask = pos->boardState.checkMask;
     pos->history[pos->hisPly].pinHV = pos->boardState.pinHV;
     pos->history[pos->hisPly].pinD = pos->boardState.pinD;
@@ -545,7 +545,7 @@ void restorePreviousBoardState(S_Board* pos)
     pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->boardState.castlePerm = pos->history[pos->hisPly].castlePerm;
     pos->boardState.plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->checkers = pos->history[pos->hisPly].checkers;
+    pos->boardState.checkers = pos->history[pos->hisPly].checkers;
     pos->boardState.checkMask = pos->history[pos->hisPly].checkMask;
     pos->boardState.pinHV = pos->history[pos->hisPly].pinHV;
     pos->boardState.pinD = pos->history[pos->hisPly].pinD;

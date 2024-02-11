@@ -110,12 +110,12 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
     Bitboard attacks = pawn_attacks[color][square];
     // If we are in check and  the en passant square lies on our attackmask and
     // the en passant piece gives check return the ep mask as a move square
-    if (pos->checkers && GetEpSquare(pos) != no_sq &&
+    if (pos->boardState.checkers && GetEpSquare(pos) != no_sq &&
         attacks & (1ULL << GetEpSquare(pos)) &&
         pos->boardState.checkMask & (1ULL << (GetEpSquare(pos) + offset)))
         return (attacks & (1ULL << GetEpSquare(pos)));
     // If we are in check we can do all moves that are on the checkmask
-    if (pos->checkers)
+    if (pos->boardState.checkers)
         return ((attacks & enemy) | push) & pos->boardState.checkMask;
 
     Bitboard moves = ((attacks & enemy) | push) & pos->boardState.checkMask;
@@ -196,7 +196,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
     
     if (checks < 2) {
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
@@ -282,7 +282,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
         pop_lsb(moves);
     }
 
-    if (!pos->checkers) {
+    if (!pos->boardState.checkers) {
         if (pos->side == WHITE) {
             // king side castling is available
             if (pos->GetCastlingPerm() & WKCA) {
@@ -344,7 +344,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
 
     if (checks < 2) {
 
@@ -466,7 +466,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (IsCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
+    if ((CountBits(pos->boardState.checkers) >= 2) && pieceType != KING)
         return false;
 
     int NORTH = pos->side == WHITE ? -8 : 8;
@@ -554,7 +554,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (IsCastle(move)) {
-                if (pos->checkers)
+                if (pos->boardState.checkers)
                     return false;
 
                 if (std::abs(to - from) != 2)
@@ -631,9 +631,9 @@ bool IsLegal(S_Board* pos, int move) {
         return isLegal;
     }
     else if (pins & (1ULL << from)) {
-        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+        return !pos->boardState.checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
-    else if (pos->checkers) {
+    else if (pos->boardState.checkers) {
         return (1ULL << to) & pos->boardState.checkMask;
     }
     else

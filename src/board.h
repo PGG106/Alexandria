@@ -88,15 +88,14 @@ int CountBits(Bitboard bitboard);
 
 struct S_Board {
 public:
-    int pieces[Board_sq_num]; // array that stores for every square of the board
-    // if there's a piece, or if the square is invalid
+    int pieces[Board_sq_num];
 
-    int side = -1; // what side has to move
-    int hisPly = 0; // total number of halfmoves
+    int side = -1;
+    int hisPly = 0;
     BoardState boardState;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
-    // stores the state of the board  rollback purposes
+    // TODO: make this not break if the game has more than 512 moves
     BoardState    history[1024];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
@@ -106,7 +105,6 @@ public:
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    Bitboard checkers;
   
     NNUE::accumulator accumStack[MAXPLY];
     int accumStackHead;
