@@ -93,7 +93,6 @@ public:
 
     int side = -1; // what side has to move
     int hisPly = 0; // total number of halfmoves
-    int enPas = no_sq; // if enpassant is possible and in which square
     BoardState boardState;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;

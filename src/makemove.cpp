@@ -114,11 +114,11 @@ void MakeUCIMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->boardState.enPas = targetSquare + NORTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -227,11 +227,11 @@ void MakeMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->boardState.enPas = targetSquare + NORTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -379,7 +379,7 @@ void MakeNullMove(S_Board* pos) {
     if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     pos->ChangeSide();
     HashKey(pos, SideKey);

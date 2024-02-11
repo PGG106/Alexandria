@@ -159,11 +159,11 @@ void ParseFen(const std::string& command, S_Board* pos) {
         const int rank = 8 - (ep_square[1] - '0');
 
         // init enpassant square
-        pos->enPas = rank * 8 + file;
+        pos->boardState.enPas = rank * 8 + file;
     }
     // no enpassant square
     else
-        pos->enPas = no_sq;
+        pos->boardState.enPas = no_sq;
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
@@ -486,7 +486,7 @@ Bitboard RayBetween(int square1, int square2) {
 }
 
 int GetEpSquare(const S_Board* pos) {
-    return pos->enPas;
+    return pos->boardState.enPas;
 }
 
 uint64_t GetMaterialValue(const S_Board* pos) {
@@ -530,7 +530,7 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 
 void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].fiftyMove = pos->Get50mrCounter();
-    pos->history[pos->hisPly].enPas = pos->enPas;
+    pos->history[pos->hisPly].enPas = GetEpSquare(pos);
     pos->history[pos->hisPly].castlePerm = pos->GetCastlingPerm();
     pos->history[pos->hisPly].plyFromNull = pos->boardState.plyFromNull;
     pos->history[pos->hisPly].checkers = pos->checkers;
@@ -541,7 +541,7 @@ void saveBoardState(S_Board* pos) {
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->enPas = pos->history[pos->hisPly].enPas;
+    pos->boardState.enPas = pos->history[pos->hisPly].enPas;
     pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->boardState.castlePerm = pos->history[pos->hisPly].castlePerm;
     pos->boardState.plyFromNull = pos->history[pos->hisPly].plyFromNull;
