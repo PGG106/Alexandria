@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <immintrin.h>
 
 constexpr int INPUT_WEIGHTS = 768;
 constexpr int HIDDEN_SIZE = 1024;
@@ -28,4 +29,12 @@ public:
     [[nodiscard]] int32_t SCReLU(int16_t x);
     [[nodiscard]] int32_t output(const NNUE::accumulator& board_accumulator, const bool whiteToMove);
     [[nodiscard]] std::pair<std::size_t, std::size_t> GetIndex(const int piece, const int square);
+    #if defined(USE_AVX2)
+    [[nodiscard]] int32_t flatten(const int16_t *acc, const int16_t *weights);
+    [[nodiscard]] int32_t horizontal_add(const __m256i sum);
+    [[nodiscard]] __m256i simd_screlu(const __m256i vec);
+    #elif defined(USE_AVX512)
+    [[nodiscard]] int32_t flatten(const int16_t *acc, const int16_t *weights);
+    [[nodiscard]] __m512i simd_screlu(const __m512i vec);
+    #endif
 };
