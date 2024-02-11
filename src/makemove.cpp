@@ -82,13 +82,13 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const bool castling = IsCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
+    pos->boardState.fiftyMove++;
     pos->plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     // handling capture moves
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
@@ -99,7 +99,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
 
         pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
 
     // increment ply counters
@@ -194,13 +194,13 @@ void MakeMove(const int move, S_Board* pos) {
     const bool castling = IsCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
+    pos->boardState.fiftyMove++;
     pos->plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
@@ -212,7 +212,7 @@ void MakeMove(const int move, S_Board* pos) {
 
         pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
 
     // increment ply counters
@@ -372,7 +372,7 @@ void MakeNullMove(S_Board* pos) {
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->hisPly++;
-    pos->fiftyMove++;
+    pos->boardState.fiftyMove++;
     pos->plyFromNull=0;
 
     // Reset EP square

@@ -70,7 +70,7 @@ extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-struct S_Undo {
+struct BoardState {
     int castlePerm = 15;
     int capture = EMPTY;
     int enPas = 0;
@@ -92,15 +92,15 @@ public:
     // if there's a piece, or if the square is invalid
 
     int side = -1; // what side has to move
-    int enPas = no_sq; // if enpassant is possible and in which square
-    int fiftyMove = 0; // Counter for the 50 moves rule
     int hisPly = 0; // total number of halfmoves
+    int enPas = no_sq; // if enpassant is possible and in which square
+    BoardState boardState;
     int plyFromNull = 0;
     int castleperm = 0;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
-    S_Undo    history[1024];
+    BoardState    history[1024];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd = {};
@@ -160,7 +160,7 @@ public:
     }
 
     inline int Get50mrCounter() const {
-        return fiftyMove;
+        return boardState.fiftyMove;
     }
 
     inline int GetCastlingPerm() const {

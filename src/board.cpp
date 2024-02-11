@@ -167,10 +167,10 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
-        pos->fiftyMove = std::stoi(fifty_move);
+        pos->boardState.fiftyMove = std::stoi(fifty_move);
     }
     else {
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
@@ -529,7 +529,7 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
+    pos->history[pos->hisPly].fiftyMove = pos->Get50mrCounter();
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->castleperm;
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
@@ -542,7 +542,7 @@ void saveBoardState(S_Board* pos) {
 void restorePreviousBoardState(S_Board* pos)
 {
     pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
+    pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->castleperm = pos->history[pos->hisPly].castlePerm;
     pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
     pos->checkers = pos->history[pos->hisPly].checkers;
