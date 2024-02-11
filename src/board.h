@@ -103,8 +103,6 @@ public:
     std::vector<ZobristKey> played_positions = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUESub = {};
-    Bitboard pinHV = 0ULL;
-    Bitboard pinD = 0ULL;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};

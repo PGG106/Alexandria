@@ -92,8 +92,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
     // If we are pinned diagonally we can only do captures which are on the pin_dg
     // and on the checkmask
 
-    if (pos->pinD & (1ULL << square))
-        return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
+    if (pos->boardState.pinD & (1ULL << square))
+        return pawn_attacks[color][square] & pos->boardState.pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
     // Calculate pawn pushs
     Bitboard push = PawnPush(color, square) & ~pos->Occupancy(BOTH);
 
@@ -104,8 +104,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 
     // If we are pinned horizontally we can do no moves but if we are pinned
     // vertically we can only do pawn pushs
-    if (pos->pinHV & (1ULL << square))
-        return push & pos->pinHV & pos->checkMask;
+    if (pos->boardState.pinHV & (1ULL << square))
+        return push & pos->boardState.pinHV & pos->checkMask;
     int offset = color * -16 + 8;
     Bitboard attacks = pawn_attacks[color][square];
     // If we are in check and  the en passant square lies on our attackmask and
@@ -140,28 +140,28 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
-    if (pos->pinD & (1ULL << square) || pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square) || pos->boardState.pinHV & (1ULL << square))
         return NOMOVE;
     return knight_attacks[square] & ~pos->Occupancy(color) &
         pos->checkMask;
 }
 
 static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
-    if (pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinHV & (1ULL << square))
         return NOMOVE;
-    if (pos->pinD & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square))
         return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->pinD & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.pinD & pos->checkMask;
     return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->checkMask;
 }
 
 static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
-    if (pos->pinD & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square))
         return NOMOVE;
-    if (pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinHV & (1ULL << square))
         return GetRookAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->pinHV & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.pinHV & pos->checkMask;
     return GetRookAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->checkMask;
 }
@@ -621,7 +621,7 @@ bool IsLegal(S_Board* pos, int move) {
         }
     }
 
-    Bitboard pins = pos->pinD | pos->pinHV;
+    Bitboard pins = pos->boardState.pinD | pos->boardState.pinHV;
 
     if (pieceType == KING) {
         int king = GetPiece(KING, color);
