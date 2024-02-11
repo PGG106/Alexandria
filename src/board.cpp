@@ -32,7 +32,7 @@ void ResetBoard(S_Board* pos) {
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
     }
-    pos->castleperm = 0; 
+    pos->boardState.castlePerm = 0; 
     pos->plyFromNull = 0;
 }
 
@@ -136,16 +136,16 @@ void ParseFen(const std::string& command, S_Board* pos) {
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->castleperm) |= WKCA;
+            (pos->boardState.castlePerm) |= WKCA;
             break;
         case 'Q':
-            (pos->castleperm) |= WQCA;
+            (pos->boardState.castlePerm) |= WQCA;
             break;
         case 'k':
-            (pos->castleperm) |= BKCA;
+            (pos->boardState.castlePerm) |= BKCA;
             break;
         case 'q':
-            (pos->castleperm) |= BQCA;
+            (pos->boardState.castlePerm) |= BQCA;
             break;
         case '-':
             break;
@@ -531,7 +531,7 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].fiftyMove = pos->Get50mrCounter();
     pos->history[pos->hisPly].enPas = pos->enPas;
-    pos->history[pos->hisPly].castlePerm = pos->castleperm;
+    pos->history[pos->hisPly].castlePerm = pos->GetCastlingPerm();
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
     pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].checkMask = pos->checkMask;
@@ -543,7 +543,7 @@ void restorePreviousBoardState(S_Board* pos)
 {
     pos->enPas = pos->history[pos->hisPly].enPas;
     pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->castleperm = pos->history[pos->hisPly].castlePerm;
+    pos->boardState.castlePerm = pos->history[pos->hisPly].castlePerm;
     pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
     pos->checkers = pos->history[pos->hisPly].checkers;
     pos->checkMask = pos->history[pos->hisPly].checkMask;

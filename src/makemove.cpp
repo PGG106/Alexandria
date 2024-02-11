@@ -54,8 +54,8 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
     // update castling rights
-    pos->castleperm &= castling_rights[source_square];
-    pos->castleperm &= castling_rights[target_square];
+    pos->boardState.castlePerm &= castling_rights[source_square];
+    pos->boardState.castlePerm &= castling_rights[target_square];
     // Xor the new one
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 }

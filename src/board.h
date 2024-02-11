@@ -96,7 +96,6 @@ public:
     int enPas = no_sq; // if enpassant is possible and in which square
     BoardState boardState;
     int plyFromNull = 0;
-    int castleperm = 0;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
@@ -164,7 +163,7 @@ public:
     }
 
     inline int GetCastlingPerm() const {
-        return castleperm;
+        return boardState.castlePerm;
     }
 
     inline void ChangeSide() {
