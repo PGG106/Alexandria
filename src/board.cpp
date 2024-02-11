@@ -33,7 +33,7 @@ void ResetBoard(S_Board* pos) {
         pos->pieces[index] = EMPTY;
     }
     pos->boardState.castlePerm = 0; 
-    pos->plyFromNull = 0;
+    pos->boardState.plyFromNull = 0;
 }
 
 void ResetInfo(S_SearchINFO* info) {
@@ -532,7 +532,7 @@ void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].fiftyMove = pos->Get50mrCounter();
     pos->history[pos->hisPly].enPas = pos->enPas;
     pos->history[pos->hisPly].castlePerm = pos->GetCastlingPerm();
-    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
+    pos->history[pos->hisPly].plyFromNull = pos->boardState.plyFromNull;
     pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].checkMask = pos->checkMask;
     pos->history[pos->hisPly].pinHV = pos->pinHV;
@@ -544,7 +544,7 @@ void restorePreviousBoardState(S_Board* pos)
     pos->enPas = pos->history[pos->hisPly].enPas;
     pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
     pos->boardState.castlePerm = pos->history[pos->hisPly].castlePerm;
-    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
+    pos->boardState.plyFromNull = pos->history[pos->hisPly].plyFromNull;
     pos->checkers = pos->history[pos->hisPly].checkers;
     pos->checkMask = pos->history[pos->hisPly].checkMask;
     pos->pinHV = pos->history[pos->hisPly].pinHV;

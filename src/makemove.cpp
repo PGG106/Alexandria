@@ -83,7 +83,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->boardState.fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
@@ -195,7 +195,7 @@ void MakeMove(const int move, S_Board* pos) {
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->boardState.fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
@@ -372,8 +372,8 @@ void MakeNullMove(S_Board* pos) {
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->hisPly++;
-    pos->boardState.fiftyMove++;
-    pos->plyFromNull=0;
+    pos->boardState.fiftyMove++; 
+    pos->boardState.plyFromNull = 0;
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
