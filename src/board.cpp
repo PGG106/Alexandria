@@ -529,24 +529,10 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->hisPly].fiftyMove = pos->Get50mrCounter();
-    pos->history[pos->hisPly].enPas = GetEpSquare(pos);
-    pos->history[pos->hisPly].castlePerm = pos->GetCastlingPerm();
-    pos->history[pos->hisPly].plyFromNull = pos->boardState.plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->boardState.checkers;
-    pos->history[pos->hisPly].checkMask = pos->boardState.checkMask;
-    pos->history[pos->hisPly].pinHV = pos->boardState.pinHV;
-    pos->history[pos->hisPly].pinD = pos->boardState.pinD;
+    pos->history[pos->hisPly] = pos->boardState;
 }
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->boardState.enPas = pos->history[pos->hisPly].enPas;
-    pos->boardState.fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->boardState.castlePerm = pos->history[pos->hisPly].castlePerm;
-    pos->boardState.plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->boardState.checkers = pos->history[pos->hisPly].checkers;
-    pos->boardState.checkMask = pos->history[pos->hisPly].checkMask;
-    pos->boardState.pinHV = pos->history[pos->hisPly].pinHV;
-    pos->boardState.pinD = pos->history[pos->hisPly].pinD;
+    pos->boardState = pos->history[pos->hisPly];
 }
