@@ -80,8 +80,7 @@ struct BoardState {
     Bitboard checkMask = fullCheckmask;
     Bitboard pinHV;
     Bitboard pinD;
-}; // stores a move and the state of the game before that move is made
-// for rollback purposes
+};
 
 // counts how many bits are set in a bitboard
 int CountBits(Bitboard bitboard);
