@@ -381,6 +381,7 @@ void UciLoop(char** argv) {
         else if (input == "bench") {
             tryhardmode = true;
             StartBench();
+            tryhardmode = false;
         }
 
         else if (input == "see") {
