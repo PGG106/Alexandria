@@ -21,10 +21,6 @@ int Piece(const int move) {
     return ((move & 0xf0000) >> 16);
 }
 
-bool IsCapture(const int move) {
-    return GetMovetype(move) & static_cast<int>(Movetype::Capture);
-}
-
 bool isEnpassant(const int move) {
     return GetMovetype(move) == static_cast<int>(Movetype::enPassant);
 }
@@ -37,7 +33,7 @@ bool isPromo(const int move) {
     return GetMovetype(move) & 8;
 }
 
-bool IsCastle(const int move) {
+bool isCastle(const int move) {
     return (GetMovetype(move) == static_cast<int>(Movetype::KSCastle)) || (GetMovetype(move) == static_cast<int>(Movetype::QSCastle));
 }
 
@@ -45,6 +41,15 @@ int getPromotedPiecetype(const int move) {
     return (GetMovetype(move) & 3) + 1;
 }
 
-bool IsQuiet(const int move) {
-    return !IsCapture(move) && !isPromo(move);
+bool isQuiet(const int move) {
+    return !isCapture(move);
+}
+
+bool isCapture(const int move) {
+    return GetMovetype(move) & static_cast<int>(Movetype::Capture);
+}
+
+// Shorthand for captures + any promotion no matter if quiet or not 
+bool isTactical(const int move) {
+    return isCapture(move) || isPromo(move);
 }

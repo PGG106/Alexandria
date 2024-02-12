@@ -52,7 +52,7 @@ void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonu
 void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves, const S_MOVELIST* noisy_moves) {
     // define the history bonus
     const int bonus = std::min(16 * (depth + 1) * (depth + 1), 1200);
-    if (IsQuiet(bestmove))
+    if (!isTactical(bestmove))
     {
         // increase bestmove HH and CH score
         updateHHScore(pos, sd, bestmove, bonus);
@@ -107,7 +107,7 @@ int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move) 
 }
 
 int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
-    if (IsQuiet(move))
+    if (!isTactical(move))
         return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
     else
         return GetCapthistScore(pos, sd, move);
