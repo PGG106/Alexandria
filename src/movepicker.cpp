@@ -122,7 +122,7 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
             if (move == mp->ttMove)
                 continue;
 
-            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureScore)
+            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureMin)
                 return NOMOVE;
 
             return move;
