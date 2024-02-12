@@ -12,6 +12,7 @@
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 
 bool print_uci = false;
+bool tryhardmode = false;
 void PrintBitboard(const Bitboard bitboard) {
     // print offset
     std::cout << std::endl;
@@ -173,6 +174,9 @@ std::string Pick_color(int score) {
 
 // Prints the uci output
 void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options) {
+    // We are benching the engine and we don't care about the output
+    if (tryhardmode)
+        return;
     // This handles the basic console output
     long time = GetTimeMs() - td->info.starttime;
     uint64_t nodes = td->info.nodes + GetTotalNodes();

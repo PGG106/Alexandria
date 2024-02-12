@@ -33,7 +33,7 @@ void ScoreMoves(Movepicker* mp) {
                 break;
             }
         }
-        else if (IsCapture(move)) {
+        else if (isCapture(move)) {
             // Good captures get played before any move that isn't a promotion or a TT move
             if (SEE(pos, move, mp->SEEThreshold)) {
                 int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
@@ -93,7 +93,7 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->pos = pos;
     mp->sd = sd;
     mp->ss = ss;
-    mp->ttMove = (!capturesOnly || !IsQuiet(ttMove)) && IsLegal(pos, ttMove) ? ttMove : NOMOVE;
+    mp->ttMove = (!capturesOnly || isTactical(ttMove)) && IsLegal(pos, ttMove) ? ttMove : NOMOVE;
     mp->idx = 0;
     mp->stage = mp->ttMove ? PICK_TT : GEN_MOVES;
     mp->capturesOnly = capturesOnly;

@@ -76,10 +76,10 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
-    const bool capture = IsCapture(move);
+    const bool capture = isCapture(move);
     const bool doublePush = isDP(move);
     const bool enpass = isEnpassant(move);
-    const bool castling = IsCastle(move);
+    const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->boardState.fiftyMove++;
@@ -188,10 +188,10 @@ void MakeMove(const int move, S_Board* pos) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
-    const bool capture = IsCapture(move);
+    const bool capture = isCapture(move);
     const bool doublePush = isDP(move);
     const bool enpass = isEnpassant(move);
-    const bool castling = IsCastle(move);
+    const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->boardState.fiftyMove++;
@@ -299,9 +299,9 @@ void UnmakeMove(const int move, S_Board* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     // parse move flag
-    const bool capture = IsCapture(move);
+    const bool capture = isCapture(move);
     const bool enpass = isEnpassant(move);
-    const bool castling = IsCastle(move);
+    const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
   
     pos->accumStackHead--;

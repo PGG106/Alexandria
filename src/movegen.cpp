@@ -452,10 +452,10 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if ((1ULL << to) & pos->Occupancy(pos->side))
         return false;
 
-    if ((!IsCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+    if ((!isCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
         return false;
 
-    if (IsCapture(move) && !isEnpassant(move) && pos->PieceOn(to) == EMPTY)
+    if (isCapture(move) && !isEnpassant(move) && pos->PieceOn(to) == EMPTY)
         return false;
 
     if ((   isDP(move)
@@ -463,7 +463,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
          || isEnpassant(move)) && pieceType != PAWN)
         return false;
 
-    if (IsCastle(move) && pieceType != KING)
+    if (isCastle(move) && pieceType != KING)
         return false;
 
     if ((CountBits(pos->boardState.checkers) >= 2) && pieceType != KING)
@@ -484,7 +484,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
                     || (pos->side == BLACK && get_rank[from] != 6))
                     return false;
             }
-            else if (!IsCapture(move)) {
+            else if (!isCapture(move)) {
                 if (from + NORTH != to)
                     return false;
             }
@@ -495,7 +495,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
                 if (!((1ULL << (to - NORTH)) & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
                     return false;
             }
-            if (IsCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
+            if (isCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
                 return false;
 
             if (isPromo(move)) {
@@ -553,8 +553,8 @@ bool IsPseudoLegal(S_Board* pos, int move) {
             break;
 
         case KING:
-            if (IsCastle(move)) {
-                if (pos->boardState.checkers)
+            if (isCastle(move)) {
+                if (pos->checkers)
                     return false;
 
                 if (std::abs(to - from) != 2)
@@ -609,7 +609,7 @@ bool IsLegal(S_Board* pos, int move) {
         ClearPiece(ourPawn, to, pos);
         return isLegal;
     }
-    else if (IsCastle(move)) {
+    else if (isCastle(move)) {
         bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
         if (isKSCastle) {
             return    !IsSquareAttacked(pos, color == WHITE ? f1 : f8, color ^ 1)
