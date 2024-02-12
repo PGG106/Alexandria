@@ -54,8 +54,8 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
     // update castling rights
-    pos->castleperm &= castling_rights[source_square];
-    pos->castleperm &= castling_rights[target_square];
+    pos->boardState.castlePerm &= castling_rights[source_square];
+    pos->boardState.castlePerm &= castling_rights[target_square];
     // Xor the new one
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 }
@@ -82,13 +82,13 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.fiftyMove++;
+    pos->boardState.plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     // handling capture moves
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
@@ -99,7 +99,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
 
         pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
 
     // increment ply counters
@@ -114,11 +114,11 @@ void MakeUCIMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->boardState.enPas = targetSquare + NORTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -160,15 +160,15 @@ void MakeUCIMove(const int move, S_Board* pos) {
     // Xor the new side into the key
     HashKey(pos, SideKey);
     // Speculative prefetch of the TT entry
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
     // Update pinmasks
     UpdatePinMasks(pos, pos->side);
 }
@@ -194,13 +194,13 @@ void MakeMove(const int move, S_Board* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.fiftyMove++;
+    pos->boardState.plyFromNull++;
     const int NORTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
@@ -212,7 +212,7 @@ void MakeMove(const int move, S_Board* pos) {
 
         pos->history[pos->hisPly].capture = pieceCap;
         // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
 
     // increment ply counters
@@ -227,11 +227,11 @@ void MakeMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->boardState.enPas = targetSquare + NORTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -271,15 +271,15 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
     // Update pinmasks
     UpdatePinMasks(pos, pos->side);
 }
@@ -372,14 +372,14 @@ void MakeNullMove(S_Board* pos) {
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->hisPly++;
-    pos->fiftyMove++;
-    pos->plyFromNull=0;
+    pos->boardState.fiftyMove++; 
+    pos->boardState.plyFromNull = 0;
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     pos->ChangeSide();
     HashKey(pos, SideKey);
