@@ -33,7 +33,7 @@ void ScoreMoves(Movepicker* mp) {
                 break;
             }
         }
-        else if (IsCapture(move)) {
+        else if (isCapture(move)) {
             // Good captures get played before any move that isn't a promotion or a TT move
             if (SEE(pos, move, mp->SEEThreshold)) {
                 int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
