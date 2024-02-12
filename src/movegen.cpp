@@ -554,7 +554,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (isCastle(move)) {
-                if (pos->checkers)
+                if (pos->boardState.checkers)
                     return false;
 
                 if (std::abs(to - from) != 2)
