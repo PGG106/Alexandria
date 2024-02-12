@@ -205,6 +205,7 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 // main UCI loop
 void UciLoop(char** argv) {
     if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
+        tryhardmode = true;
         StartBench();
         return;
     }
@@ -378,6 +379,7 @@ void UciLoop(char** argv) {
         }
 
         else if (input == "bench") {
+            tryhardmode = true;
             StartBench();
         }
 
