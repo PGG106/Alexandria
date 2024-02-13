@@ -24,5 +24,5 @@ struct Movepicker {
     int SEEThreshold;
 };
 
-void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = -108);
+void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = score_none);
 int NextMove(Movepicker* mp, const bool skipNonGood);
