@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#define NAME "Alexandria-6.0.5"
+#define NAME "Alexandria-6.0.6"
 
 // define bitboard data type
 using Bitboard = uint64_t;
@@ -73,7 +73,8 @@ constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
 enum {
     queenPromotionScore = 2000000001,
     knightPromotionScore = 2000000000,
-    goodCaptureScore = 900000000,
+    goodCaptureScore = 1000000000,
+    goodCaptureMin = 900000000,
     killerMoveScore0 = 800000000,
     killerMoveScore1 = 700000000,
     counterMoveScore= 600000000,
