@@ -187,6 +187,7 @@ void InitReductions() {
 }
 
 void InitAll() {
+    setvbuf(stdout, NULL, _IONBF, 0);
     // init leaper pieces attacks
     InitLeapersAttacks();
     // init slider pieces attacks
