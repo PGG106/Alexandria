@@ -529,10 +529,10 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->hisPly] = pos->boardState;
+    std::memcpy(&pos->history[pos->hisPly], &pos->boardState, sizeof(BoardState));
 }
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->boardState = pos->history[pos->hisPly];
+    std::memcpy(&pos->boardState, &pos->history[pos->hisPly], sizeof(BoardState));
 }
