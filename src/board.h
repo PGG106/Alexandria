@@ -70,7 +70,7 @@ extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-struct S_Undo {
+struct BoardState {
     int castlePerm = 15;
     int capture = EMPTY;
     int enPas = 0;
@@ -80,41 +80,32 @@ struct S_Undo {
     Bitboard checkMask = fullCheckmask;
     Bitboard pinHV;
     Bitboard pinD;
-}; // stores a move and the state of the game before that move is made
-// for rollback purposes
+};
 
 // counts how many bits are set in a bitboard
 int CountBits(Bitboard bitboard);
 
 struct S_Board {
 public:
-    int pieces[Board_sq_num]; // array that stores for every square of the board
-    // if there's a piece, or if the square is invalid
+    int pieces[Board_sq_num];
 
-    int side = -1; // what side has to move
-    int enPas = no_sq; // if enpassant is possible and in which square
-    int fiftyMove = 0; // Counter for the 50 moves rule
-    int hisPly = 0; // total number of halfmoves
-    int plyFromNull = 0;
-    int castleperm = 0;
+    int side = -1;
+    int hisPly = 0;
+    BoardState boardState;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
-    // stores the state of the board  rollback purposes
-    S_Undo    history[1024];
+    // TODO: make this not break if the game has more than 512 moves
+    BoardState    history[1024];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUESub = {};
-    Bitboard pinHV = 0ULL;
-    Bitboard pinD = 0ULL;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    Bitboard checkers;
-    Bitboard checkMask = fullCheckmask;
   
-    NNUE::accumulator accumStack[256];
+    NNUE::accumulator accumStack[MAXPLY];
     int accumStackHead;
 
     inline NNUE::accumulator& AccumulatorTop() {
@@ -160,11 +151,11 @@ public:
     }
 
     inline int Get50mrCounter() const {
-        return fiftyMove;
+        return boardState.fiftyMove;
     }
 
     inline int GetCastlingPerm() const {
-        return castleperm;
+        return boardState.castlePerm;
     }
 
     inline void ChangeSide() {

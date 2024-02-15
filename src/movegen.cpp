@@ -92,8 +92,8 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
     // If we are pinned diagonally we can only do captures which are on the pin_dg
     // and on the checkmask
 
-    if (pos->pinD & (1ULL << square))
-        return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
+    if (pos->boardState.pinD & (1ULL << square))
+        return pawn_attacks[color][square] & pos->boardState.pinD & pos->boardState.checkMask & (enemy | (1ULL << GetEpSquare(pos)));
     // Calculate pawn pushs
     Bitboard push = PawnPush(color, square) & ~pos->Occupancy(BOTH);
 
@@ -104,21 +104,21 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 
     // If we are pinned horizontally we can do no moves but if we are pinned
     // vertically we can only do pawn pushs
-    if (pos->pinHV & (1ULL << square))
-        return push & pos->pinHV & pos->checkMask;
+    if (pos->boardState.pinHV & (1ULL << square))
+        return push & pos->boardState.pinHV & pos->boardState.checkMask;
     int offset = color * -16 + 8;
     Bitboard attacks = pawn_attacks[color][square];
     // If we are in check and  the en passant square lies on our attackmask and
     // the en passant piece gives check return the ep mask as a move square
-    if (pos->checkers && GetEpSquare(pos) != no_sq &&
+    if (pos->boardState.checkers && GetEpSquare(pos) != no_sq &&
         attacks & (1ULL << GetEpSquare(pos)) &&
-        pos->checkMask & (1ULL << (GetEpSquare(pos) + offset)))
+        pos->boardState.checkMask & (1ULL << (GetEpSquare(pos) + offset)))
         return (attacks & (1ULL << GetEpSquare(pos)));
     // If we are in check we can do all moves that are on the checkmask
-    if (pos->checkers)
-        return ((attacks & enemy) | push) & pos->checkMask;
+    if (pos->boardState.checkers)
+        return ((attacks & enemy) | push) & pos->boardState.checkMask;
 
-    Bitboard moves = ((attacks & enemy) | push) & pos->checkMask;
+    Bitboard moves = ((attacks & enemy) | push) & pos->boardState.checkMask;
 
     if (GetEpSquare(pos) != no_sq && SquareDistance(square, GetEpSquare(pos)) == 1 &&
         (1ULL << GetEpSquare(pos)) & attacks) {
@@ -140,30 +140,30 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
-    if (pos->pinD & (1ULL << square) || pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square) || pos->boardState.pinHV & (1ULL << square))
         return NOMOVE;
     return knight_attacks[square] & ~pos->Occupancy(color) &
-        pos->checkMask;
+        pos->boardState.checkMask;
 }
 
 static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
-    if (pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinHV & (1ULL << square))
         return NOMOVE;
-    if (pos->pinD & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square))
         return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->pinD & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.pinD & pos->boardState.checkMask;
     return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.checkMask;
 }
 
 static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
-    if (pos->pinD & (1ULL << square))
+    if (pos->boardState.pinD & (1ULL << square))
         return NOMOVE;
-    if (pos->pinHV & (1ULL << square))
+    if (pos->boardState.pinHV & (1ULL << square))
         return GetRookAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->pinHV & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.pinHV & pos->boardState.checkMask;
     return GetRookAttacks(square, pos->Occupancy(BOTH)) &
-        ~(pos->Occupancy(color)) & pos->checkMask;
+        ~(pos->Occupancy(color)) & pos->boardState.checkMask;
 }
 
 static inline Bitboard LegalQueenMoves(S_Board* pos, int color, int square) {
@@ -196,7 +196,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
     
     if (checks < 2) {
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
@@ -282,7 +282,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
         pop_lsb(moves);
     }
 
-    if (!pos->checkers) {
+    if (!pos->boardState.checkers) {
         if (pos->side == WHITE) {
             // king side castling is available
             if (pos->GetCastlingPerm() & WKCA) {
@@ -344,7 +344,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     // define source & target squares
     int sourceSquare, targetSquare;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
 
     if (checks < 2) {
 
@@ -466,7 +466,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (isCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
+    if ((CountBits(pos->boardState.checkers) >= 2) && pieceType != KING)
         return false;
 
     int NORTH = pos->side == WHITE ? -8 : 8;
@@ -554,7 +554,8 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (isCastle(move)) {
-                if (pos->checkers)
+
+                if (pos->boardState.checkers)
                     return false;
 
                 if (std::abs(to - from) != 2)
@@ -621,7 +622,7 @@ bool IsLegal(S_Board* pos, int move) {
         }
     }
 
-    Bitboard pins = pos->pinD | pos->pinHV;
+    Bitboard pins = pos->boardState.pinD | pos->boardState.pinHV;
 
     if (pieceType == KING) {
         int king = GetPiece(KING, color);
@@ -631,10 +632,10 @@ bool IsLegal(S_Board* pos, int move) {
         return isLegal;
     }
     else if (pins & (1ULL << from)) {
-        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+        return !pos->boardState.checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
-    else if (pos->checkers) {
-        return (1ULL << to) & pos->checkMask;
+    else if (pos->boardState.checkers) {
+        return (1ULL << to) & pos->boardState.checkMask;
     }
     else
         return true;

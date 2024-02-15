@@ -32,8 +32,8 @@ void ResetBoard(S_Board* pos) {
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
     }
-    pos->castleperm = 0; 
-    pos->plyFromNull = 0;
+    pos->boardState.castlePerm = 0; 
+    pos->boardState.plyFromNull = 0;
 }
 
 void ResetInfo(S_SearchINFO* info) {
@@ -136,16 +136,16 @@ void ParseFen(const std::string& command, S_Board* pos) {
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->castleperm) |= WKCA;
+            (pos->boardState.castlePerm) |= WKCA;
             break;
         case 'Q':
-            (pos->castleperm) |= WQCA;
+            (pos->boardState.castlePerm) |= WQCA;
             break;
         case 'k':
-            (pos->castleperm) |= BKCA;
+            (pos->boardState.castlePerm) |= BKCA;
             break;
         case 'q':
-            (pos->castleperm) |= BQCA;
+            (pos->boardState.castlePerm) |= BQCA;
             break;
         case '-':
             break;
@@ -159,18 +159,18 @@ void ParseFen(const std::string& command, S_Board* pos) {
         const int rank = 8 - (ep_square[1] - '0');
 
         // init enpassant square
-        pos->enPas = rank * 8 + file;
+        pos->boardState.enPas = rank * 8 + file;
     }
     // no enpassant square
     else
-        pos->enPas = no_sq;
+        pos->boardState.enPas = no_sq;
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
-        pos->fiftyMove = std::stoi(fifty_move);
+        pos->boardState.fiftyMove = std::stoi(fifty_move);
     }
     else {
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
@@ -190,15 +190,15 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     pos->posKey = GeneratePosKey(pos);
 
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    pos->boardState.checkers = GetCheckersBB(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
 
     UpdatePinMasks(pos, pos->side);
 
@@ -477,8 +477,8 @@ void UpdatePinMasks(S_Board* pos, const int side) {
             rook_pin |= possible_pin;
         pop_lsb(rook_pin_mask);
     }
-    pos->pinHV = rook_pin;
-    pos->pinD = bishop_pin;
+    pos->boardState.pinHV = rook_pin;
+    pos->boardState.pinD = bishop_pin;
 }
 
 Bitboard RayBetween(int square1, int square2) {
@@ -486,7 +486,7 @@ Bitboard RayBetween(int square1, int square2) {
 }
 
 int GetEpSquare(const S_Board* pos) {
-    return pos->enPas;
+    return pos->boardState.enPas;
 }
 
 uint64_t GetMaterialValue(const S_Board* pos) {
@@ -529,24 +529,10 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-    pos->history[pos->hisPly].enPas = pos->enPas;
-    pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].checkMask = pos->checkMask;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
+    std::memcpy(&pos->history[pos->hisPly], &pos->boardState, sizeof(BoardState));
 }
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->castleperm = pos->history[pos->hisPly].castlePerm;
-    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->checkMask = pos->history[pos->hisPly].checkMask;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
+    std::memcpy(&pos->boardState, &pos->history[pos->hisPly], sizeof(BoardState));
 }
