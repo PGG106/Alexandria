@@ -554,6 +554,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (isCastle(move)) {
+
                 if (pos->boardState.checkers)
                     return false;
 

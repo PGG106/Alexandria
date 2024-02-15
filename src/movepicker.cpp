@@ -34,18 +34,9 @@ void ScoreMoves(Movepicker* mp) {
             }
         }
         else if (isCapture(move)) {
-            // Good captures get played before any move that isn't a promotion or a TT move
-            if (SEE(pos, move, mp->SEEThreshold)) {
-                int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-                // Sort by most valuable victim and capthist, with LVA as tiebreaks
-                moveList->moves[i].score = mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move) + goodCaptureScore;
-            }
-            // Bad captures are always played last, no matter how bad the history score of a move is, it will never be played after a bad capture
-            else {
-                int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-                // Sort by most valuable victim and capthist, with LVA as tiebreaks
-                moveList->moves[i].score = badCaptureScore + mvv_lva[GetPieceType(Piece(move))][captured_piece] + GetCapthistScore(pos, sd, move);
-            }
+            // Score by most valuable victim and capthist
+            int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+            moveList->moves[i].score = PieceValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
             continue;
         }
         // First killer move always comes after the TT move,the promotions and the good captures and before anything else
@@ -128,7 +119,7 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
             if (move == mp->ttMove)
                 continue;
 
-            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureScore)
+            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureMin)
                 return NOMOVE;
 
             return move;

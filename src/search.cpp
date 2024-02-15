@@ -803,7 +803,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
-    InitMP(&mp, pos, sd, ss, ttMove, !inCheck);
+    InitMP(&mp, pos, sd, ss, ttMove, !inCheck, -108);
 
     int bestmove = NOMOVE;
     int move = NOMOVE;

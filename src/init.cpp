@@ -190,10 +190,12 @@ void InitAll() {
     setvbuf(stdout, NULL, _IONBF, 0);
     // Force windows to display colors
 #ifdef _WIN64
-    HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD flags;
-    GetConsoleMode(stdoutHandle, &flags);
-    SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    if (!tryhardmode) {
+        HANDLE stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD flags;
+        GetConsoleMode(stdoutHandle, &flags);
+        SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
 #endif
     // init leaper pieces attacks
     InitLeapersAttacks();
