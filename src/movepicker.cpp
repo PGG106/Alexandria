@@ -35,11 +35,12 @@ void ScoreMoves(Movepicker* mp) {
         }
         else if (isCapture(move)) {
             // Score by most valuable victim and capthist
-            int captured_piece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-            moveList->moves[i].score = PieceValue[captured_piece] * 32 + GetCapthistScore(pos, sd, move);
+            int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+            moveList->moves[i].score = PieceValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
             // Good captures get played before any move that isn't a promotion or a TT move
             // Bad captures are always played last, no matter how bad the history score of a quiet is, it will never be played after a bad capture
-            moveList->moves[i].score += SEE(pos, move, mp->SEEThreshold) ? goodCaptureScore : badCaptureScore;
+            int SEEThreshold = mp->SEEThreshold != score_none ? mp->SEEThreshold : -moveList->moves[i].score / 64;
+            moveList->moves[i].score += SEE(pos, move, SEEThreshold) ? goodCaptureScore : badCaptureScore;
             continue;
         }
         // First killer move always comes after the TT move,the promotions and the good captures and before anything else
