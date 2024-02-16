@@ -202,73 +202,62 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
         Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
         while (pawns) {
             // init source square
-            sourceSquare = GetLsbIndex(pawns);
+            sourceSquare = popLsb(pawns);
             Bitboard moves = LegalPawnMoves(pos, pos->side, sourceSquare);
             while (moves) {
                 // init target square
-                targetSquare = GetLsbIndex(moves);
+                targetSquare = popLsb(moves);
                 AddPawnMove(pos, sourceSquare, targetSquare, move_list);
-                pop_lsb(moves);
             }
-            // pop lsb from piece bitboard copy
-            pop_lsb(pawns);
         }
 
         // genarate knight moves
         Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
         while (knights) {
-            sourceSquare = GetLsbIndex(knights);
+            sourceSquare = popLsb(knights);
             Bitboard moves = LegalKnightMoves(pos, pos->side, sourceSquare);
             const int piece = GetPiece(KNIGHT, pos->side);
             while (moves) {
-                targetSquare = GetLsbIndex(moves);
+                targetSquare = popLsb(moves);
                 Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
                 AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_lsb(moves);
             }
-            pop_lsb(knights);
         }
 
         Bitboard bishops = pos->GetPieceColorBB(BISHOP, pos->side);
         while (bishops) {
-            sourceSquare = GetLsbIndex(bishops);
+            sourceSquare = popLsb(bishops);
             Bitboard moves = LegalBishopMoves(pos, pos->side, sourceSquare);
             const int piece = GetPiece(BISHOP, pos->side);
             while (moves) {
-                targetSquare = GetLsbIndex(moves);
+                targetSquare = popLsb(moves);
                 Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
                 AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_lsb(moves);
             }
-            pop_lsb(bishops);
         }
 
         Bitboard rooks = pos->GetPieceColorBB(ROOK, pos->side);
         while (rooks) {
-            sourceSquare = GetLsbIndex(rooks);
+            sourceSquare = popLsb(rooks);
             Bitboard moves = LegalRookMoves(pos, pos->side, sourceSquare);
             const int piece = GetPiece(ROOK, pos->side);
             while (moves) {
-                targetSquare = GetLsbIndex(moves);
+                targetSquare = popLsb(moves);
                 Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
                 AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_lsb(moves);
             }
-            pop_lsb(rooks);
         }
 
         Bitboard queens = pos->GetPieceColorBB(QUEEN, pos->side);
         while (queens) {
-            sourceSquare = GetLsbIndex(queens);
+            sourceSquare = popLsb(queens);
             Bitboard moves = LegalQueenMoves(pos, pos->side, sourceSquare);
             const int piece = GetPiece(QUEEN, pos->side);
             while (moves) {
-                targetSquare = GetLsbIndex(moves);
+                targetSquare = popLsb(moves);
                 Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
                 AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-                pop_lsb(moves);
             }
-            pop_lsb(queens);
         }
     }
 
@@ -276,10 +265,9 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
     const int piece = GetPiece(KING, pos->side);
     Bitboard moves = LegalKingMoves(pos, pos->side, sourceSquare);
     while (moves) {
-        targetSquare = GetLsbIndex(moves);
+        targetSquare = popLsb(moves);
         Movetype movetype = pos->PieceOn(targetSquare) != EMPTY ? Movetype::Capture : Movetype::Quiet;
         AddMove(encode_move(sourceSquare, targetSquare, piece, movetype), move_list);
-        pop_lsb(moves);
     }
 
     if (!pos->checkers) {
