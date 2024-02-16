@@ -420,17 +420,15 @@ Bitboard GetCheckersBB(const S_Board* pos, const int side) {
     if (bishop_mask) {
         Bitboard checkingBishops = bishop_mask;
         while (checkingBishops) {
-        int index = GetLsbIndex(checkingBishops);
+        int index = popLsb(checkingBishops);
         checkers |= (1ULL << index);
-        pop_lsb(checkingBishops);
         }
     }
     if (rook_mask) {
         Bitboard checkingrook = rook_mask;
         while (checkingrook) {
-            int index = GetLsbIndex(checkingrook);
+            int index = popLsb(checkingrook);
             checkers |= (1ULL << index);
-            pop_lsb(checkingrook);
         }
         int index = GetLsbIndex(rook_mask);
         checkers |= (1ULL << index);
@@ -454,18 +452,16 @@ void UpdatePinMasks(S_Board* pos, const int side) {
     bishop_pin = rook_pin = 0ULL;
 
     while (bishop_pin_mask) {
-        int index = GetLsbIndex(bishop_pin_mask);
+        int index = popLsb(bishop_pin_mask);
         Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
         if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
             bishop_pin |= possible_pin;
-        pop_lsb(bishop_pin_mask);
     }
     while (rook_pin_mask) {
-        int index = GetLsbIndex(rook_pin_mask);
+        int index = popLsb(rook_pin_mask);
         Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
         if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
             rook_pin |= possible_pin;
-        pop_lsb(rook_pin_mask);
     }
     pos->pinHV = rook_pin;
     pos->pinD = bishop_pin;

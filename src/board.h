@@ -34,7 +34,7 @@ inline int GetLsbIndex(Bitboard bitboard) {
     return std::countr_zero(bitboard);
 }
 
-inline int popLsb(Bitboard bitboard) {
+inline int popLsb(Bitboard& bitboard) {
     assert(bitboard);
     int square = GetLsbIndex(bitboard);
     bitboard &= bitboard - 1;
