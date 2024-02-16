@@ -177,8 +177,7 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
     int king = GetPiece(KING, color);
     ClearPiece(king, square, pos);
     while (moves) {
-        int index = GetLsbIndex(moves);
-        pop_lsb(moves);
+        int index = popLsb(moves);
         if (IsSquareAttacked(pos, index, pos->side ^ 1)) {
             continue;
         }
