@@ -213,9 +213,7 @@ Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     // loop over the range of bits within attack mask
     for (int count = 0; count < bits_in_mask; count++) {
         // get LSB index of attacks mask
-        int square = GetLsbIndex(attack_mask);
-        // pop LSB in attack map
-        pop_lsb(attack_mask);
+        int square = popLsb(attack_mask);
         // make sure occupancy is on board
         if (index & (1 << count))
             // populate occupancy map
