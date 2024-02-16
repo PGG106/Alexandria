@@ -33,6 +33,36 @@ enum {
     a1, b1, c1, d1, e1, f1, g1, h1, no_sq
 };
 
+// Lookup to get the rank of a square
+constexpr int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
+                               6, 6, 6, 6, 6, 6, 6, 6,
+                               5, 5, 5, 5, 5, 5, 5, 5,
+                               4, 4, 4, 4, 4, 4, 4, 4,
+                               3, 3, 3, 3, 3, 3, 3, 3,
+                               2, 2, 2, 2, 2, 2, 2, 2,
+                               1, 1, 1, 1, 1, 1, 1, 1,
+                               0, 0, 0, 0, 0, 0, 0, 0 };
+
+// extract rank from a square [square]
+constexpr int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7,
+                               0, 1, 2, 3, 4, 5, 6, 7 };
+
+// extract diagonal from a square [square]
+constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10,  9,  8,  7,
+                                             13, 12, 11, 10,  9,  8,  7,  6,
+                                             12, 11, 10,  9,  8,  7,  6,  5,
+                                             11, 10,  9,  8,  7,  6,  5,  4,
+                                             10,  9,  8,  7,  6,  5,  4,  3,
+                                              9,  8,  7,  6,  5,  4,  3,  2,
+                                              8,  7,  6,  5,  4,  3,  2,  1,
+                                              7,  6,  5,  4,  3,  2,  1,  0 };
+
 // encode pieces
 enum {
     WP, WN, WB, WR, WQ, WK,
@@ -65,6 +95,13 @@ enum {
 enum {
     PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };
+
+// Lookup to get the color from a piece
+constexpr int Color[12] = { WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
+                            BLACK, BLACK, BLACK, BLACK, BLACK, BLACK };
+
+constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
+                                PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 // Contains the material Values of the pieces
 constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
