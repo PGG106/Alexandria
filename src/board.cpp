@@ -17,10 +17,6 @@ int CountBits(Bitboard bitboard) {
     return std::popcount(bitboard);
 }
 
-int GetLsbIndex(Bitboard bitboard) {
-    return std::countr_zero(bitboard);
-}
-
 // Reset the position to a clean state
 void ResetBoard(S_Board* pos) {
     // reset board position (pos->pos->bitboards)
