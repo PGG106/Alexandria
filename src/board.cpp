@@ -293,11 +293,9 @@ bool oppCanWinMaterial(const S_Board* pos, const int side) {
     Bitboard oppPawns = pos->GetPieceColorBB(PAWN, side ^ 1);
     Bitboard ourPawns = pos->GetPieceColorBB(PAWN, side);
     while (oppPawns) {
-        const int source_square = GetLsbIndex(oppPawns);
+        const int source_square = popLsb(oppPawns);
         if (pawn_attacks[side ^ 1][source_square] & (us ^ ourPawns))
             return true;
-
-        pop_lsb(ourPawns);
     }
 
     Bitboard oppKnights = pos->GetPieceColorBB(KNIGHT, side ^ 1);
@@ -319,11 +317,9 @@ bool oppCanWinMaterial(const S_Board* pos, const int side) {
     Bitboard oppRooks = pos->GetPieceColorBB(ROOK, side ^ 1);
     Bitboard ourRooks = pos->GetPieceColorBB(ROOK, side);
     while (oppRooks) {
-        const int source_square = GetLsbIndex(oppRooks);
+        const int source_square = popLsb(oppRooks);
         if (GetRookAttacks(source_square, occ) & (us ^ ourPawns ^ ourKnights ^ ourBishops ^ ourRooks))
             return true;
-
-        pop_lsb(ourRooks);
     }
 
     return false;
