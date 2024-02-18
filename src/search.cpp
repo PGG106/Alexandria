@@ -425,7 +425,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < mate_found
-            && eval - 81 * (depth - improving) >= beta)
+            && eval - 91 * (depth - improving) >= beta)
             return eval;
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high, 
@@ -567,7 +567,7 @@ moves_loop:
                     if (   !pvNode
                         &&  singularScore < singularBeta - 17
                         &&  ss->doubleExtensions <= 11) {
-                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 300);
+                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 100);
                         ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
                     }
                 }
