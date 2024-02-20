@@ -57,7 +57,7 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
         auto us_vector = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(acc + i * CHUNK_SIZE));
         auto weights_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(weights + i * CHUNK_SIZE));
         auto min = _mm256_set1_epi16(0);
-        auto max = _mm256_set1_epi16(181);
+        auto max = _mm256_set1_epi16(255);
         auto clamped = _mm256_min_epi16(_mm256_max_epi16(us_vector, min), max);
         auto mul = _mm256_madd_epi16(_mm256_mullo_epi16(clamped, weights_vec), clamped);
         sum = _mm256_add_epi32(sum, mul);
@@ -73,7 +73,7 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
         auto us_vector = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(acc + i * CHUNK_SIZE));
         auto weights_vec = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(weights + i * CHUNK_SIZE));
         auto min = _mm512_set1_epi16(0);
-        auto max = _mm512_set1_epi16(181);
+        auto max = _mm512_set1_epi16(255);
         auto clamped = _mm512_min_epi16(_mm512_max_epi16(us_vector, min), max);
         auto mul = _mm512_madd_epi16(_mm512_mullo_epi16(clamped, weights_vec), clamped);
         sum = _mm512_add_epi32(sum, mul);
@@ -85,7 +85,7 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
 
 int32_t NNUE::SCReLU(int16_t x) {
     constexpr int16_t CR_MIN = 0;
-    constexpr int16_t CR_MAX = 181;
+    constexpr int16_t CR_MAX = 255;
     // compute squared clipped ReLU
     int16_t clipped = std::clamp(x, CR_MIN, CR_MAX);
     int32_t wide = clipped;
@@ -225,7 +225,7 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whit
     }
     #if defined(USE_AVX512) || defined(USE_AVX2)
     int32_t output = flatten(us, net.outputWeights) + flatten(them, net.outputWeights + HIDDEN_SIZE);
-    return (net.outputBias + output / 181) * 400 / (64 * 181);
+    return (net.outputBias + output / 255) * 400 / (64 * 255);
     #else
     int32_t output = 0;
     for (int i = 0; i < HIDDEN_SIZE; i++) {
@@ -234,8 +234,8 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whit
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         output += SCReLU(them[i]) * static_cast<int32_t>(net.outputWeights[HIDDEN_SIZE + i]);
     }
-    int32_t unsquared = output / 181 + net.outputBias;
-    return unsquared * 400 / (64 * 181);
+    int32_t unsquared = output / 255 + net.outputBias;
+    return unsquared * 400 / (64 * 255);
     #endif
 }
 
