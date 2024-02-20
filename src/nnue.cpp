@@ -37,13 +37,6 @@ constexpr int32_t CHUNK_SIZE = 1;
 constexpr int32_t REQUIRED_ITERS = HIDDEN_SIZE / CHUNK_SIZE;
 
 #if defined(USE_AVX2)
-__m256i NNUE::simd_screlu(const __m256i vec) {
-    auto min = _mm256_set1_epi16(0);
-    auto max = _mm256_set1_epi16(181);
-    auto clamped = _mm256_min_epi16(_mm256_max_epi16(vec, min), max);
-    return _mm256_mullo_epi16(clamped, clamped);
-}
-
 int32_t NNUE::horizontal_add(const __m256i sum) {
     auto upper_128 = _mm256_extracti128_si256(sum, 1);
     auto lower_128 = _mm256_castsi256_si128(sum);
@@ -62,9 +55,11 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
     auto sum = _mm256_setzero_si256();
     for (int i = 0; i < REQUIRED_ITERS; i++) {
         auto us_vector = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(acc + i * CHUNK_SIZE));
-        auto activated = simd_screlu(us_vector);
         auto weights_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(weights + i * CHUNK_SIZE));
-        auto mul = _mm256_madd_epi16(activated, weights_vec);
+        auto min = _mm256_set1_epi16(0);
+        auto max = _mm256_set1_epi16(181);
+        auto clamped = _mm256_min_epi16(_mm256_max_epi16(us_vector, min), max);
+        auto mul = _mm256_madd_epi16(_mm256_mullo_epi16(clamped, weights_vec), clamped);
         sum = _mm256_add_epi32(sum, mul);
     }
     return horizontal_add(sum);
@@ -72,20 +67,15 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
 
 #elif defined(USE_AVX512)
 
-__m512i NNUE::simd_screlu(const __m512i vec) {
-    auto min = _mm512_set1_epi16(0);
-    auto max = _mm512_set1_epi16(181);
-    auto clamped = _mm512_min_epi16(_mm512_max_epi16(vec, min), max);
-    return _mm512_mullo_epi16(clamped, clamped);
-}
-
 int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
     auto sum = _mm512_setzero_si512();
     for (int i = 0; i < REQUIRED_ITERS; i++) {
         auto us_vector = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(acc + i * CHUNK_SIZE));
-        auto activated = simd_screlu(us_vector);
         auto weights_vec = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(weights + i * CHUNK_SIZE));
-        auto mul = _mm512_madd_epi16(activated, weights_vec);
+        auto min = _mm512_set1_epi16(0);
+        auto max = _mm512_set1_epi16(181);
+        auto clamped = _mm512_min_epi16(_mm512_max_epi16(us_vector, min), max);
+        auto mul = _mm512_madd_epi16(_mm512_mullo_epi16(clamped, weights_vec), clamped);
         sum = _mm512_add_epi32(sum, mul);
     }
     return _mm512_reduce_add_epi32(sum);
