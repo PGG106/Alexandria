@@ -34,43 +34,24 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
     for (int move_count = 0; move_count < moveList->count; move_count++) {
         // init move
         const int move = moveList->moves[move_count].move;
-
         // make sure source & target squares are available within the generated move
         if (sourceSquare == From(move) &&
             targetSquare == To(move)) {
-            // init promoted piece
-            const int promotedPiece = getPromotedPiecetype(move);
-
             // promoted piece is available
             if (isPromo(move)) {
-                // promoted to queen
-                if ((promotedPiece == QUEEN) &&
-                    move_string[4] == 'q')
-                    // return legal move
-                    return move;
-
-                // promoted to rook
-                else if ((promotedPiece == ROOK) &&
-                    move_string[4] == 'r')
-                    // return legal move
-                    return move;
-
-                // promoted to bishop
-                else if ((promotedPiece == BISHOP) &&
-                    move_string[4] == 'b')
-                    // return legal move
-                    return move;
-
-                // promoted to knight
-                else if ((promotedPiece == KNIGHT) &&
-                    move_string[4] == 'n')
-                    // return legal move
-                    return move;
-
+                switch (getPromotedPiecetype(move)) {
+                case QUEEN:
+                    return move_string[4] == 'q';
+                case ROOK:
+                    return move_string[4] == 'r';
+                case BISHOP:
+                    return move_string[4] == 'b';
+                case KNIGHT:
+                    return move_string[4] == 'n';
+                }
                 // continue the loop on possible wrong promotions (e.g. "e7e8f")
                 continue;
             }
-
             // return legal move
             return move;
         }
@@ -115,13 +96,6 @@ void ParsePosition(const std::string& command, S_Board* pos) {
     Accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
 }
-
-/*
-        Example UCI commands to make engine search for the best move
-
-        // fixed depth search
-        go depth 64
-*/
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
 bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
