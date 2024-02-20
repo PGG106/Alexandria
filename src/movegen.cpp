@@ -30,9 +30,7 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
 }
 
 static inline Bitboard PawnPush(int color, int sq) {
-    if (color == WHITE)
-        return (1ULL << (sq - 8));
-    return (1ULL << (sq + 8));
+    return 1ULL << (sq + (color == WHITE ? -8 : 8));
 }
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
@@ -48,7 +46,7 @@ bool MoveExists(S_Board* pos, const int move) {
     return false;
 }
 // function that adds a move to the move list
-static inline void AddMove(int move, S_MOVELIST* list) {
+void AddMove(int move, S_MOVELIST* list) {
     list->moves[list->count].move = move;
     list->moves[list->count].score = 0;
     list->count++;
@@ -56,34 +54,24 @@ static inline void AddMove(int move, S_MOVELIST* list) {
 // function that adds a pawn move (and all its possible branches) to the move list
 static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
     Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-    if (!(abs(to - from) - 16)) movetype = Movetype::doublePush;
-    else if(to == GetEpSquare(pos)) movetype = Movetype::enPassant;
+    if (abs(to - from) == 16)
+        movetype = Movetype::doublePush;
+    else if (to == GetEpSquare(pos))
+        movetype = Movetype::enPassant;
 
-    if (pos->side == WHITE) {
-        if (from >= a7 &&
-            from <= h7) { // if the piece is moving from the 7th to the 8th rank
-            AddMove(encode_move(from, to, WP, (Movetype::queenPromo | movetype)), list);
-            AddMove(encode_move(from, to, WP, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, WP, (Movetype::bishopPromo | movetype)), list);
-            AddMove(encode_move(from, to, WP, (Movetype::knightPromo | movetype)), list);
-        }
-        else { // else do not include possible promotions
-            AddMove(encode_move(from, to, WP,  movetype), list);
-        }
-    }
+    int pawnType = GetPiece(PAWN, pos->side);
 
-    else {
-        if (from >= a2 &&
-            from <= h2) { // if the piece is moving from the 2nd to the 1st rank
-            AddMove(encode_move(from, to, BP, (Movetype::queenPromo | movetype)), list);
-            AddMove(encode_move(from, to, BP, (Movetype::rookPromo | movetype)), list); // consider every possible piece promotion
-            AddMove(encode_move(from, to, BP, (Movetype::bishopPromo | movetype)), list);
-            AddMove(encode_move(from, to, BP, (Movetype::knightPromo | movetype)), list);
-        }
-        else { // else do not include possible promotions
-            AddMove(encode_move(from, to, BP, movetype), list);
-        }
+    // if the pawn is moving from the 7th to the 8th rank (relative), it is a promotion
+    if (get_rank[to] == (pos->side == WHITE ? 7 : 0)) {
+        // consider every possible piece promotion
+        AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | movetype)), list);
+        AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | movetype)), list); 
+        AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | movetype)), list);
+        AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | movetype)), list);
     }
+    // not a promotion
+    else
+        AddMove(encode_move(from, to, pawnType,  movetype), list);
 }
 
 static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
@@ -94,18 +82,18 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 
     if (pos->pinD & (1ULL << square))
         return pawn_attacks[color][square] & pos->pinD & pos->checkMask & (enemy | (1ULL << GetEpSquare(pos)));
+
     // Calculate pawn pushs
     Bitboard push = PawnPush(color, square) & ~pos->Occupancy(BOTH);
 
-    push |=
-        (color == WHITE)
-        ? (get_rank[square] == 1 ? (push >> 8) & ~pos->Occupancy(BOTH) : 0ULL)
-        : (get_rank[square] == 6 ? (push << 8) & ~pos->Occupancy(BOTH) : 0ULL);
+    push |= color == WHITE ? (get_rank[square] == 1 ? (push >> 8) & ~pos->Occupancy(BOTH) : 0ULL)
+                           : (get_rank[square] == 6 ? (push << 8) & ~pos->Occupancy(BOTH) : 0ULL);
 
     // If we are pinned horizontally we can do no moves but if we are pinned
     // vertically we can only do pawn pushs
     if (pos->pinHV & (1ULL << square))
         return push & pos->pinHV & pos->checkMask;
+
     int offset = color * -16 + 8;
     Bitboard attacks = pawn_attacks[color][square];
     // If we are in check and  the en passant square lies on our attackmask and
@@ -140,18 +128,19 @@ static inline Bitboard LegalPawnMoves(S_Board* pos, int color, int square) {
 }
 
 static inline Bitboard LegalKnightMoves(S_Board* pos, int color, int square) {
-    if (pos->pinD & (1ULL << square) || pos->pinHV & (1ULL << square))
+    if ((pos->pinD | pos->pinHV) & (1ULL << square))
         return NOMOVE;
-    return knight_attacks[square] & ~pos->Occupancy(color) &
-        pos->checkMask;
+    return knight_attacks[square] & ~pos->Occupancy(color) & pos->checkMask;
 }
 
 static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
     if (pos->pinHV & (1ULL << square))
         return NOMOVE;
+
     if (pos->pinD & (1ULL << square))
         return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->pinD & pos->checkMask;
+
     return GetBishopAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->checkMask;
 }
@@ -159,16 +148,17 @@ static inline Bitboard LegalBishopMoves(S_Board* pos, int color, int square) {
 static inline Bitboard LegalRookMoves(S_Board* pos, int color, int square) {
     if (pos->pinD & (1ULL << square))
         return NOMOVE;
+
     if (pos->pinHV & (1ULL << square))
         return GetRookAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->pinHV & pos->checkMask;
+
     return GetRookAttacks(square, pos->Occupancy(BOTH)) &
         ~(pos->Occupancy(color)) & pos->checkMask;
 }
 
 static inline Bitboard LegalQueenMoves(S_Board* pos, int color, int square) {
-    return LegalRookMoves(pos, color, square) |
-        LegalBishopMoves(pos, color, square);
+    return LegalRookMoves(pos, color, square) | LegalBishopMoves(pos, color, square);
 }
 
 static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
@@ -178,10 +168,10 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
     ClearPiece(king, square, pos);
     while (moves) {
         int index = popLsb(moves);
-        if (IsSquareAttacked(pos, index, pos->side ^ 1)) {
+        if (IsSquareAttacked(pos, index, pos->side ^ 1))
             continue;
-        }
-        finalMoves |= (1ULL << index);
+
+        finalMoves |= 1ULL << index;
     }
     AddPiece(king, square, pos);
 
@@ -189,7 +179,8 @@ static inline Bitboard LegalKingMoves(S_Board* pos, int color, int square) {
 }
 
 // generate all moves
-void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) { // init move count
+void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) {
+    // init move count
     move_list->count = 0;
 
     // define source & target squares

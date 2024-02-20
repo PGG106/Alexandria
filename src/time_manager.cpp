@@ -9,7 +9,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
     if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
-    const int safety_overhead = std::min(300, time/2);
+    const int safety_overhead = std::min(300, time / 2);
     time -= safety_overhead;
     // if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
@@ -51,7 +51,7 @@ bool StopEarly(const S_SearchINFO* info) {
 }
 
 void ScaleTm(S_ThreadData* td, const int bestMoveStabilityFactor) {
-    constexpr double bestmoveScale[5] = { 2.43, 1.35, 1.09, 0.88, 0.68 };
+    constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
     const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
