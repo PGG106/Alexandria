@@ -41,13 +41,21 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
             if (isPromo(move)) {
                 switch (getPromotedPiecetype(move)) {
                 case QUEEN:
-                    return move_string[4] == 'q';
+                    if (move_string[4] == 'q')
+                        return move;
+                    break;
                 case ROOK:
-                    return move_string[4] == 'r';
+                    if (move_string[4] == 'r')
+                    return move;
+                    break;
                 case BISHOP:
-                    return move_string[4] == 'b';
+                    if (move_string[4] == 'b')
+                    return move;
+                    break;
                 case KNIGHT:
-                    return move_string[4] == 'n';
+                    if (move_string[4] == 'n')
+                    return move;
+                    break;
                 }
                 // continue the loop on possible wrong promotions (e.g. "e7e8f")
                 continue;
