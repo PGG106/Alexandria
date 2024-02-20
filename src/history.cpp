@@ -10,6 +10,10 @@ UpdateHistories : this performs a general update of all the heuristics, giving t
 GetScore: this is simply a getter for a specific entry of the history table
 */
 
+int history_bonus(const int depth) {
+    return std::min(16 * (depth + 1) * (depth + 1), 1200);
+}
+
 void updateHHScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / 32768;
@@ -50,8 +54,7 @@ void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonu
 
 // Update all histories
 void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestmove, const S_MOVELIST* quiet_moves, const S_MOVELIST* noisy_moves) {
-    // define the history bonus
-    const int bonus = std::min(16 * (depth + 1) * (depth + 1), 1200);
+    const int bonus = history_bonus(depth);
     if (!isTactical(bestmove))
     {
         // increase bestmove HH and CH score

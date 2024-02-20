@@ -84,15 +84,16 @@ void MakeUCIMove(const int move, S_Board* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
-    const int NORTH = pos->side == WHITE ? 8 : -8;
+    const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
+
     // handling capture moves
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
-        const int capturedPieceLocation = enpass ? targetSquare + NORTH : targetSquare;
+        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
         ClearPiece(pieceCap, capturedPieceLocation, pos);
@@ -118,7 +119,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -169,6 +170,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+
     // Update pinmasks
     UpdatePinMasks(pos, pos->side);
 }
@@ -196,7 +198,7 @@ void MakeMove(const int move, S_Board* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
-    const int NORTH = pos->side == WHITE ? 8 : -8;
+    const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
@@ -205,7 +207,7 @@ void MakeMove(const int move, S_Board* pos) {
     // handling capture moves
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
-        const int capturedPieceLocation = enpass ? targetSquare + NORTH : targetSquare;
+        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
         ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
@@ -231,7 +233,7 @@ void MakeMove(const int move, S_Board* pos) {
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + NORTH;
+        pos->enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -373,11 +375,12 @@ void MakeNullMove(S_Board* pos) {
 
     pos->hisPly++;
     pos->fiftyMove++;
-    pos->plyFromNull=0;
+    pos->plyFromNull = 0;
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+
     // reset enpassant square
     pos->enPas = no_sq;
 
