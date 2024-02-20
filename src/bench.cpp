@@ -63,7 +63,7 @@ const char* benchmarkfens[52] = {
     "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void StartBench() {
+void StartBench(int depth) {
     // init all
     InitAll();
     S_UciOptions uci_options[1];
@@ -74,7 +74,7 @@ void StartBench() {
     for (int positions = 0; positions < 52; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
-        RootSearch(14, td, uci_options);
+        RootSearch(depth, td, uci_options);
         totalNodes += td->info.nodes;
     }
     auto end = std::chrono::steady_clock::now();

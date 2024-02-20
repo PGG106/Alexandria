@@ -203,10 +203,21 @@ bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
 }
 
 // main UCI loop
-void UciLoop(char** argv) {
+void UciLoop(int argc, char** argv) {
     if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
+        int benchDepth = 14;
+        // If there's an additional input try to parse it as a bench depth
+        if (argc == 3) {
+            if (std::stoi(argv[2]) > 0) {
+                benchDepth = std::stoi(argv[2]);
+            }
+            else {
+                std::cout << "Invalid bench depth";
+                return;
+            }
+        }
         tryhardmode = true;
-        StartBench();
+        StartBench(benchDepth);
         return;
     }
 

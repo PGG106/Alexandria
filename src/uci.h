@@ -25,4 +25,4 @@ void ParsePosition(const std::string& command, S_Board* pos);
 [[nodiscard]] bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos);
 
 // main UCI loop
-void UciLoop(char** argv);
+void UciLoop(int argc, char** argv);
