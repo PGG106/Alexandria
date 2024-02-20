@@ -32,9 +32,7 @@ public:
     #if defined(USE_AVX2)
     [[nodiscard]] int32_t flatten(const int16_t *acc, const int16_t *weights);
     [[nodiscard]] int32_t horizontal_add(const __m256i sum);
-    [[nodiscard]] __m256i simd_screlu(const __m256i vec);
     #elif defined(USE_AVX512)
     [[nodiscard]] int32_t flatten(const int16_t *acc, const int16_t *weights);
-    [[nodiscard]] __m512i simd_screlu(const __m512i vec);
     #endif
 };
