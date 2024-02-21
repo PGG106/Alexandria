@@ -14,28 +14,11 @@ void ScoreMoves(Movepicker* mp) {
     for (int i = 0; i < moveList->count; i++) {
         int move = moveList->moves[i].move;
         // We have no need to sort the TT move first since the ttmove always gets played before movegen if it's an acceptable move.
-        // start sorting from the promotions based on the promoted piece type.
-         if (isPromo(move)) {
-            switch (getPromotedPiecetype(move)) {
-            case QUEEN:
-                moveList->moves[i].score = queenPromotionScore;
-                break;
-            case KNIGHT:
-                moveList->moves[i].score = knightPromotionScore;
-                break;
-            case ROOK:
-                moveList->moves[i].score = badPromotionScore;
-                break;
-            case BISHOP:
-                moveList->moves[i].score = badPromotionScore;
-                break;
-            default:
-                break;
-            }
-        }
-        else if (isCapture(move)) {
+        if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+            // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
+            if (capturedPiece == EMPTY) capturedPiece = PAWN;
             moveList->moves[i].score = PieceValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
             // Good captures get played before any move that isn't a promotion or a TT move
             // Bad captures are always played last, no matter how bad the history score of a quiet is, it will never be played after a bad capture
