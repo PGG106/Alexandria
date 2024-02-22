@@ -27,71 +27,6 @@ Network net;
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
-#if defined(USE_AVX512)
-constexpr int32_t CHUNK_SIZE = 32;
-#elif defined(USE_AVX2)
-constexpr int32_t CHUNK_SIZE = 16;
-#else
-constexpr int32_t CHUNK_SIZE = 1;
-#endif
-constexpr int32_t REQUIRED_ITERS = HIDDEN_SIZE / CHUNK_SIZE;
-
-#if defined(USE_AVX2)
-int32_t NNUE::horizontal_add(const __m256i sum) {
-    auto upper_128 = _mm256_extracti128_si256(sum, 1);
-    auto lower_128 = _mm256_castsi256_si128(sum);
-    auto sum_128 = _mm_add_epi32(upper_128, lower_128);
-
-    auto upper_64 = _mm_unpackhi_epi64(sum_128, sum_128);
-    auto sum_64 = _mm_add_epi32(upper_64, sum_128);
-
-    auto upper_32 = _mm_shuffle_epi32(sum_64, 1);
-    auto sum_32 = _mm_add_epi32(upper_32, sum_64);
-
-    return _mm_cvtsi128_si32(sum_32);
-}
-
-int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
-    auto sum = _mm256_setzero_si256();
-    for (int i = 0; i < REQUIRED_ITERS; i++) {
-        auto us_vector = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(acc + i * CHUNK_SIZE));
-        auto weights_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(weights + i * CHUNK_SIZE));
-        auto min = _mm256_set1_epi16(0);
-        auto max = _mm256_set1_epi16(255);
-        auto clamped = _mm256_min_epi16(_mm256_max_epi16(us_vector, min), max);
-        auto mul = _mm256_madd_epi16(_mm256_mullo_epi16(clamped, weights_vec), clamped);
-        sum = _mm256_add_epi32(sum, mul);
-    }
-    return horizontal_add(sum);
-}
-
-#elif defined(USE_AVX512)
-
-int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
-    auto sum = _mm512_setzero_si512();
-    for (int i = 0; i < REQUIRED_ITERS; i++) {
-        auto us_vector = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(acc + i * CHUNK_SIZE));
-        auto weights_vec = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(weights + i * CHUNK_SIZE));
-        auto min = _mm512_set1_epi16(0);
-        auto max = _mm512_set1_epi16(255);
-        auto clamped = _mm512_min_epi16(_mm512_max_epi16(us_vector, min), max);
-        auto mul = _mm512_madd_epi16(_mm512_mullo_epi16(clamped, weights_vec), clamped);
-        sum = _mm512_add_epi32(sum, mul);
-    }
-    return _mm512_reduce_add_epi32(sum);
-}
-
-#endif
-
-int32_t NNUE::SCReLU(int16_t x) {
-    constexpr int16_t CR_MIN = 0;
-    constexpr int16_t CR_MAX = 255;
-    // compute squared clipped ReLU
-    int16_t clipped = std::clamp(x, CR_MIN, CR_MAX);
-    int32_t wide = clipped;
-    return wide * wide;
-}
-
 void NNUE::init(const char* file) {
     // open the nn file
     FILE* nn = fopen(file, "rb");
@@ -129,6 +64,17 @@ void NNUE::init(const char* file) {
         std::memcpy(&net.outputBias, &gEVALData[memoryIndex], 1 * sizeof(int16_t));
     }
 }
+
+#if defined(USE_AVX512)
+constexpr int32_t CHUNK_SIZE = 32;
+#elif defined(USE_AVX2)
+constexpr int32_t CHUNK_SIZE = 16;
+#else
+constexpr int32_t CHUNK_SIZE = 1;
+#endif
+constexpr int32_t REQUIRED_ITERS = HIDDEN_SIZE / CHUNK_SIZE;
+constexpr int32_t QA = 255;
+constexpr int32_t QB = 64;
 
 void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int to) {
     auto [whiteIdx, blackIdx] = GetIndex(piece, to);
@@ -211,6 +157,57 @@ void NNUE::addSubSub(NNUE::accumulator& board_accumulator,
     }
 }
 
+#if defined(USE_AVX2) && !defined(USE_AVX512)
+int32_t NNUE::horizontal_add(const __m256i sum) {
+    auto upper_128 = _mm256_extracti128_si256(sum, 1);
+    auto lower_128 = _mm256_castsi256_si128(sum);
+    auto sum_128 = _mm_add_epi32(upper_128, lower_128);
+
+    auto upper_64 = _mm_unpackhi_epi64(sum_128, sum_128);
+    auto sum_64 = _mm_add_epi32(upper_64, sum_128);
+
+    auto upper_32 = _mm_shuffle_epi32(sum_64, 1);
+    auto sum_32 = _mm_add_epi32(upper_32, sum_64);
+
+    return _mm_cvtsi128_si32(sum_32);
+}
+#endif
+
+int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
+    #if defined(USE_AVX512)
+    auto sum = _mm512_setzero_si512();
+    for (int i = 0; i < REQUIRED_ITERS; i++) {
+        auto us_vector = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(acc + i * CHUNK_SIZE));
+        auto weights_vec = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(weights + i * CHUNK_SIZE));
+        auto min = _mm512_set1_epi16(0);
+        auto max = _mm512_set1_epi16(QA);
+        auto clamped = _mm512_min_epi16(_mm512_max_epi16(us_vector, min), max);
+        auto mul = _mm512_madd_epi16(_mm512_mullo_epi16(clamped, weights_vec), clamped);
+        sum = _mm512_add_epi32(sum, mul);
+    }
+    return _mm512_reduce_add_epi32(sum);
+    #elif defined(USE_AVX2)
+    auto sum = _mm256_setzero_si256();
+    for (int i = 0; i < REQUIRED_ITERS; i++) {
+        auto us_vector = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(acc + i * CHUNK_SIZE));
+        auto weights_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(weights + i * CHUNK_SIZE));
+        auto min = _mm256_set1_epi16(0);
+        auto max = _mm256_set1_epi16(QA);
+        auto clamped = _mm256_min_epi16(_mm256_max_epi16(us_vector, min), max);
+        auto mul = _mm256_madd_epi16(_mm256_mullo_epi16(clamped, weights_vec), clamped);
+        sum = _mm256_add_epi32(sum, mul);
+    }
+    return horizontal_add(sum);
+    #else
+    int32_t sum = 0;
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        int32_t clipped = std::clamp(static_cast<int32_t>(acc[i]), 0, QA);
+        sum += clipped * clipped * static_cast<int32_t>(weights[i]);
+    }
+    return sum;
+    #endif
+}
+
 int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whiteToMove) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
@@ -223,20 +220,8 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whit
         us = board_accumulator[1].data();
         them = board_accumulator[0].data();
     }
-    #if defined(USE_AVX512) || defined(USE_AVX2)
     int32_t output = flatten(us, net.outputWeights) + flatten(them, net.outputWeights + HIDDEN_SIZE);
-    return (net.outputBias + output / 255) * 400 / (64 * 255);
-    #else
-    int32_t output = 0;
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += SCReLU(us[i]) * static_cast<int32_t>(net.outputWeights[i]);
-    }
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += SCReLU(them[i]) * static_cast<int32_t>(net.outputWeights[HIDDEN_SIZE + i]);
-    }
-    int32_t unsquared = output / 255 + net.outputBias;
-    return unsquared * 400 / (64 * 255);
-    #endif
+    return (output / QA + net.outputBias) * 400 / (QA * QB);
 }
 
 std::pair<std::size_t, std::size_t> NNUE::GetIndex(const int piece, const int square) {
