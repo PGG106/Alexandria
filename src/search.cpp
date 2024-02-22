@@ -489,7 +489,7 @@ moves_loop:
     int move = NOMOVE;
     int bestMove = NOMOVE;
 
-    int movesSearched = 0, totalMoves = 0;
+    int totalMoves = 0;
     bool SkipQuiets = false;
 
     Movepicker mp;
@@ -522,12 +522,12 @@ moves_loop:
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (!pvNode
                     && !inCheck
-                    && movesSearched >= lmp_margin[depth][improving]) {
+                    && totalMoves > lmp_margin[depth][improving]) {
                     SkipQuiets = true;
                 }
 
                 // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-                const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][movesSearched]);
+                const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves]);
 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
@@ -602,10 +602,10 @@ moves_loop:
         info->nodes++;
         uint64_t nodesBeforeSearch = info->nodes;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
-        if (movesSearched >= 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
+        if (totalMoves > 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            int depthReduction = reductions[isQuiet][depth][movesSearched];
+            int depthReduction = reductions[isQuiet][depth][totalMoves];
 
             // Fuck
             if (cutNode)
@@ -653,12 +653,12 @@ moves_loop:
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
-        else if (!pvNode || movesSearched > 0) {
+        else if (!pvNode || totalMoves > 1) {
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !cutNode, td, ss + 1);
         }
 
         // PVS Search: Search the first move and every move that beat alpha with full depth and a full window
-        if (pvNode && (movesSearched == 0 || score > alpha))
+        if (pvNode && (totalMoves == 1 || score > alpha))
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
@@ -670,7 +670,6 @@ moves_loop:
         if (info->stopped)
             return 0;
 
-        movesSearched++;
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
