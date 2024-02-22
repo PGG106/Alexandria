@@ -12,7 +12,7 @@ struct Search_stack {
     int searchKillers[2] = {};
     int doubleExtensions = 0;
 };
-
+ 
 struct Search_data {
     int searchHistory[2][Board_sq_num][Board_sq_num] = {};
     // Piece, To, Captured
