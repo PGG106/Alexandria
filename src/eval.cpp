@@ -33,11 +33,17 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
     return eval * (192 + phase) / 256;
 }
 
+int EvalPositionRaw(Position* pos) {
+    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+    bool stm = pos->side == WHITE;
+    // int pieceCount = pos->PieceCount();
+    int outputBucket = 0;
+    return nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
+}
+
 // position evaluation
 int EvalPosition(Position* pos) {
-    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-    bool stm = (pos->side == WHITE);
-    int eval = nnue.output(pos->accumStack[pos->accumStackHead-1], stm);
+    int eval = EvalPositionRaw(pos);
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     // Clamp eval to avoid it somehow being a mate score

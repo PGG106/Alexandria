@@ -369,8 +369,7 @@ void UciLoop(int argc, char** argv) {
                 ParsePosition("position startpos", &td->pos);
             }
             // print position eval
-            bool stm = td->pos.side == WHITE;
-            std::cout << "Raw eval: " << nnue.output(td->pos.AccumulatorTop(), stm) << std::endl;
+            std::cout << "Raw eval: " << EvalPositionRaw(&td->pos) << std::endl;
             std::cout << "Scaled eval: " << EvalPosition(&td->pos) << std::endl;
         }
 
