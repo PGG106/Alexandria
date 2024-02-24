@@ -569,6 +569,7 @@ moves_loop:
                         &&  ss->doubleExtensions <= 11) {
                         extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 100);
                         ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
+                        depth += depth < 10;
                     }
                 }
                 else if (singularBeta >= beta)
