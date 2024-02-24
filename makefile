@@ -53,7 +53,14 @@ endif
 ifdef build
 	NATIVE =
 else
-	build = native
+	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
+	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
+		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
+			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
+		endif
+	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
+		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	endif
 endif
 
 # SPECIFIC BUILDS
@@ -65,12 +72,9 @@ ifeq ($(build), native)
 		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
 			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
 		endif
-	else ifneq ($(findstring __BMI2__, $(PROPERTIES)),)
-		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
 	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
 		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
-	endif
-	
+	endif	
 endif
 
 ifeq ($(build), x86-64)
@@ -113,8 +117,6 @@ ifeq ($(build), debug)
 		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
 			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
 		endif
-	else ifneq ($(findstring __BMI2__, $(PROPERTIES)),)
-		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
 	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
 		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
 	endif
