@@ -411,11 +411,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
     if ((ss - 2)->staticEval != score_none) {
-        if (ss->staticEval > (ss - 2)->staticEval + 7) 
+        if (ss->staticEval > (ss - 2)->staticEval + 2) 
             improving = true;
     }
     else if ((ss - 4)->staticEval != score_none) {
-        if (ss->staticEval > (ss - 4)->staticEval + 7)
+        if (ss->staticEval > (ss - 4)->staticEval + 2)
             improving = true;
     }
     else
