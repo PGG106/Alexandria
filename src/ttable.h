@@ -25,15 +25,24 @@ void InitHashTable(S_HashTable* table, uint64_t MB);
 
 [[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
-    const int depth, const bool pv, const bool wasPv);
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flag, const int depth, const bool pv, const bool wasPv);
+
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
+
 int GetHashfull();
+
 void TTPrefetch(const ZobristKey posKey);
+
 int ScoreToTT(int score, int ply);
 
 int ScoreFromTT(int score, int ply);
 
 int16_t MoveToTT(int move);
 
-int MoveFromTT(int16_t packed_move, int piece);
+int MoveFromTT(S_Board *pos, int16_t packed_move);
+
+uint8_t FlagFromTT(uint8_t wasPv_flags);
+
+bool FormerPV(uint8_t wasPv_flags);
+
+uint8_t PackToTT(uint8_t flag, bool wasPv);

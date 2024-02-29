@@ -356,8 +356,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
     const bool ttHit = excludedMove ? false : ProbeHashEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
-    const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-    const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
+    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const uint8_t ttFlag = ttHit ? FlagFromTT(tte.wasPv_flags) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != score_none
@@ -367,7 +367,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             ||  ttFlag == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && tte.wasPv_flags >> 2);
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.wasPv_flags));
 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
@@ -760,8 +760,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeHashEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
-    const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-    const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
+    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const uint8_t ttFlag = ttHit ? FlagFromTT(tte.wasPv_flags) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != score_none
@@ -770,7 +770,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             ||  ttFlag == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && tte.wasPv_flags >> 2);
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.wasPv_flags));
 
     if (inCheck) {
         ss->staticEval = score_none;
