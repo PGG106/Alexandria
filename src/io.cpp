@@ -164,7 +164,7 @@ std::string Pick_color(int score) {
     // drawish score, no highlight
     if (abs(score) <= 10) return "\033[38;5;7m";
     // Good mate score, blue
-    if (score > mate_found) return "\033[38;5;39m";
+    if (score > MATE_FOUND) return "\033[38;5;39m";
     // positive for us, light green
     if (score > 10) return "\033[38;5;42m";
     // negative for us, red
@@ -183,12 +183,12 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
 
     uint64_t nps = nodes / (time + !time) * 1000;
     if (print_uci) {
-        if (score > -mate_score && score < -mate_found)
-            std::cout << "info score mate " << -(score + mate_score) / 2 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
+        if (score > -MATE_SCORE && score < -MATE_FOUND)
+            std::cout << "info score mate " << -(score + MATE_SCORE) / 2 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
             " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
 
-        else if (score > mate_found && score < mate_score)
-            std::cout << "info score mate " << (mate_score - score) / 2 + 1 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
+        else if (score > MATE_FOUND && score < MATE_SCORE)
+            std::cout << "info score mate " << (MATE_SCORE - score) / 2 + 1 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
             " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
 
         else
@@ -227,12 +227,12 @@ void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, co
         int score_precision = 0;
         float parsed_score = 0;
         std::string score_unit;
-        if (score > -mate_score && score < -mate_found) {
-            parsed_score = std::abs((score + mate_score) / 2);
+        if (score > -MATE_SCORE && score < -MATE_FOUND) {
+            parsed_score = std::abs((score + MATE_SCORE) / 2);
             score_unit = "-M";
         }
-        else if (score > mate_found && score < mate_score) {
-            parsed_score = (mate_score - score) / 2 + 1;
+        else if (score > MATE_FOUND && score < MATE_SCORE) {
+            parsed_score = (MATE_SCORE - score) / 2 + 1;
             score_unit = "+M";
         }
         else {
