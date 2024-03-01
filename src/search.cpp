@@ -201,7 +201,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
-    int averageScore = score_none;
+    int averageScore = SCORE_NONE;
     int bestMoveStabilityFactor = 0;
     int previousBestMove = NOMOVE;
     // Clean the position and the search info to start search from a clean state
@@ -210,7 +210,7 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
     // Call the Negamax function in an iterative deepening framework
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
         score = AspirationWindowSearch(averageScore, currentDepth, td);
-        averageScore = averageScore == score_none ? score : (averageScore + score) / 2;
+        averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
         // Only the main thread handles time related tasks
         if (td->id == 0) {
             // Keep track of how many times in a row the best move stayed the same
@@ -249,7 +249,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
     // Explicitely clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
-        (ss + i)->staticEval = score_none;
+        (ss + i)->staticEval = SCORE_NONE;
         (ss + i)->excludedMove = NOMOVE;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
@@ -347,32 +347,32 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             return inCheck ? 0 : EvalPosition(pos);
 
         // Mate distance pruning
-        alpha = std::max(alpha, -mate_score + ss->ply);
-        beta = std::min(beta, mate_score - ss->ply - 1);
+        alpha = std::max(alpha, -MATE_SCORE + ss->ply);
+        beta = std::min(beta, MATE_SCORE - ss->ply - 1);
         if (alpha >= beta)
             return alpha;
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
     const bool ttHit = excludedMove ? false : ProbeHashEntry(pos->GetPoskey(), &tte);
-    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
-    const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-    const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
+    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
+    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const uint8_t ttBound = ttHit ? BoundFromTT(tte.boundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
-        &&  ttScore != score_none
+        &&  ttScore != SCORE_NONE
         &&  tte.depth >= depth
-        && (   (ttFlag == HFUPPER && ttScore <= alpha)
-            || (ttFlag == HFLOWER && ttScore >= beta)
-            ||  ttFlag == HFEXACT))
+        && (   (ttBound == HFUPPER && ttScore <= alpha)
+            || (ttBound == HFLOWER && ttScore >= beta)
+            ||  ttBound == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && tte.wasPv_flags >> 2);
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.boundPV));
 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (depth >= 4 && ttFlag == HFNONE)
+    if (depth >= 4 && ttBound == HFNONE)
         depth--;
 
     // clean killers and excluded move for the next ply
@@ -382,7 +382,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck || excludedMove) {
-        ss->staticEval = eval = score_none;
+        ss->staticEval = eval = SCORE_NONE;
         improving = false;
         goto moves_loop;
     }
@@ -390,13 +390,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // get an evaluation of the position:
     if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        eval = ss->staticEval = tte.eval != score_none ? tte.eval : EvalPosition(pos);
+        eval = ss->staticEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
 
         // We can also use the tt score as a more accurate form of eval
-        if (    ttScore != score_none
-            && (   (ttFlag == HFUPPER && ttScore < eval)
-                || (ttFlag == HFLOWER && ttScore > eval)
-                ||  ttFlag == HFEXACT))
+        if (    ttScore != SCORE_NONE
+            && (   (ttBound == HFUPPER && ttScore < eval)
+                || (ttBound == HFLOWER && ttScore > eval)
+                ||  ttBound == HFEXACT))
             eval = ttScore;
     }
     else {
@@ -404,17 +404,17 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
         eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
             // Save the eval into the TT
-            StoreHashEntry(pos->posKey, NOMOVE, score_none, eval, HFNONE, 0, pvNode, ttPv);
+            StoreHashEntry(pos->posKey, NOMOVE, SCORE_NONE, eval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
-    if ((ss - 2)->staticEval != score_none) {
+    if ((ss - 2)->staticEval != SCORE_NONE) {
         if (ss->staticEval > (ss - 2)->staticEval)
             improving = true;
     }
-    else if ((ss - 4)->staticEval != score_none) {
+    else if ((ss - 4)->staticEval != SCORE_NONE) {
         if (ss->staticEval > (ss - 4)->staticEval)
             improving = true;
     }
@@ -424,7 +424,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     if (!pvNode) {
         // Reverse futility pruning
         if (   depth < 10
-            && abs(eval) < mate_found
+            && abs(eval) < MATE_FOUND
             && eval - 91 * (depth - improving) >= beta)
             return eval;
 
@@ -455,7 +455,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
                 // Don't return unproven mates but still return beta
-                if (nmpScore > mate_found)
+                if (nmpScore > MATE_FOUND)
                     nmpScore = beta;
 
                 // If we don't have to do a verification search just return the score
@@ -515,7 +515,7 @@ moves_loop:
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
-            &&  bestScore > -mate_found) {
+            &&  bestScore > -MATE_FOUND) {
 
             if (!SkipQuiets) {
 
@@ -551,8 +551,8 @@ moves_loop:
                 &&  depth >= 7
                 &&  move == ttMove
                 && !excludedMove
-                && (ttFlag & HFLOWER)
-                &&  abs(ttScore) < mate_found
+                && (ttBound & HFLOWER)
+                &&  abs(ttScore) < MATE_FOUND
                 &&  tte.depth >= depth - 3) {
                 const int singularBeta = ttScore - depth;
                 const int singularDepth = (depth - 1) / 2;
@@ -720,14 +720,14 @@ moves_loop:
     // If we are in neither of these 2 cases, it is stalemate.
     if (totalMoves == 0) {
         return excludedMove ? -MAXSCORE
-             :      inCheck ? -mate_score + ss->ply
+             :      inCheck ? -MATE_SCORE + ss->ply
                             : 0;
     }
-    // Set the TT flag based on whether the bestScore is better than beta and if it's not based on if we changed alpha or not
-    int flag = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
+    // Set the TT bound based on whether we failed high or raised alpha
+    int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
     if (!excludedMove)
-        StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, flag, depth, pvNode, ttPv);
+        StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
     // return best score
     return bestScore;
 }
@@ -759,34 +759,34 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeHashEntry(pos->GetPoskey(), &tte);
-    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : score_none;
-    const int ttMove = ttHit ? MoveFromTT(tte.move, pos->PieceOn(From(tte.move))) : NOMOVE;
-    const uint8_t ttFlag = ttHit ? tte.wasPv_flags & 3 : HFNONE;
+    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
+    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const uint8_t ttBound = ttHit ? BoundFromTT(tte.boundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
-        &&  ttScore != score_none
-        && (   (ttFlag == HFUPPER && ttScore <= alpha)
-            || (ttFlag == HFLOWER && ttScore >= beta)
-            ||  ttFlag == HFEXACT))
+        &&  ttScore != SCORE_NONE
+        && (   (ttBound == HFUPPER && ttScore <= alpha)
+            || (ttBound == HFLOWER && ttScore >= beta)
+            ||  ttBound == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && tte.wasPv_flags >> 2);
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.boundPV));
 
     if (inCheck) {
-        ss->staticEval = score_none;
+        ss->staticEval = SCORE_NONE;
         bestScore = -MAXSCORE;
     }
     // If we have a ttHit with a valid eval use that
     else if (ttHit) {
 
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        ss->staticEval = bestScore = tte.eval != score_none ? tte.eval : EvalPosition(pos);
+        ss->staticEval = bestScore = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
 
         // We can also use the TT score as a more accurate form of eval
-        if (    ttScore != score_none
-            && (   (ttFlag == HFUPPER && ttScore < bestScore)
-                || (ttFlag == HFLOWER && ttScore > bestScore)
-                ||  ttFlag == HFEXACT))
+        if (    ttScore != SCORE_NONE
+            && (   (ttBound == HFUPPER && ttScore < bestScore)
+                || (ttBound == HFLOWER && ttScore > bestScore)
+                ||  ttBound == HFEXACT))
             bestScore = ttScore;
     }
     // If we don't have any useful info in the TT just call Evalpos
@@ -809,12 +809,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     int totalMoves = 0;
 
     // loop over moves within the movelist
-    while ((move = NextMove(&mp, bestScore > -mate_found)) != NOMOVE) {
+    while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
 
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
-        if (    bestScore > -mate_found
+        if (    bestScore > -MATE_FOUND
             && !inCheck
             && !isPromo(move)
             && !isEnpassant(move)
@@ -862,12 +862,12 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     // return mate score (assuming closest distance to mating position)
     if (totalMoves == 0 && inCheck) {
-        return -mate_score + ss->ply;
+        return -MATE_SCORE + ss->ply;
     }
-    // Set the TT flag based on whether the bestScore is better than beta, for qsearch we never use the exact flag
-    int flag = bestScore >= beta ? HFLOWER : HFUPPER;
+    // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
+    int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, flag, 0, pvNode, ttPv);
+    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
 
     // return the best score we got
     return bestScore;

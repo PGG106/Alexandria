@@ -24,24 +24,23 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte){
 
     *tte = HashTable->pTable[index];
 
-    return (HashTable->pTable[index].tt_key == static_cast<TTKey>(posKey));
+    return (HashTable->pTable[index].ttKey == static_cast<TTKey>(posKey));
 }
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flags,
-    const int depth, const bool pv, const bool wasPv) {
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flag, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     S_HashEntry* tte = &HashTable->pTable[index];
 
     // Replacement strategy taken from Stockfish
     // Preserve any existing move for the same position
-    if (move || static_cast<TTKey>(key) != HashTable->pTable[index].tt_key)
+    if (move || static_cast<TTKey>(key) != HashTable->pTable[index].ttKey)
         tte->move = move;
 
     // Overwrite less valuable entries (cheapest checks first)
-    if (flags == HFEXACT || static_cast<TTKey>(key) != tte->tt_key || depth + 5 + 2 * pv > tte->depth) {
-        tte->tt_key = static_cast<TTKey>(key);
-        tte->wasPv_flags = static_cast<uint8_t>(flags + (wasPv << 2));
+    if (flag == HFEXACT || static_cast<TTKey>(key) != tte->ttKey || depth + 5 + 2 * pv > tte->depth) {
+        tte->ttKey = static_cast<TTKey>(key);
+        tte->boundPV = PackToTT(flag, wasPV);
         tte->score = static_cast<int16_t>(score);
         tte->eval = eval;
         tte->depth = static_cast<uint8_t>(depth);
@@ -52,7 +51,7 @@ int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
         S_HashEntry *tte = &HashTable->pTable[i];
-        if (tte->tt_key != 0)
+        if (tte->ttKey != 0)
             hit++;
     }
     return hit / 2;
@@ -81,14 +80,20 @@ void TTPrefetch(const ZobristKey posKey) {
 
 
 int ScoreToTT(int score, int ply) {
-    if (score > mate_score) score += ply;
-    else if (score < -mate_score) score -= ply;
+    if (score > MATE_FOUND)
+        score += ply;
+    else if (score < -MATE_FOUND)
+        score -= ply;
+
     return score;
 }
 
 int ScoreFromTT(int score, int ply) {
-    if (score > mate_score) score -= ply;
-    else if (score < -mate_score) score += ply;
+    if (score > MATE_FOUND)
+        score -= ply;
+    else if (score < -MATE_FOUND)
+        score += ply;
+
     return score;
 }
 
@@ -96,8 +101,23 @@ int16_t MoveToTT(int move) {
     return (move & 0xffff);
 }
 
-// It's important to preserve a move being null even it's being unpacked
-int MoveFromTT(int16_t packed_move, int piece) {
-    if (packed_move == NOMOVE) return NOMOVE;
-    return (packed_move |(piece << 16));
+int MoveFromTT(S_Board *pos, int16_t packed_move) {
+    // It's important to preserve a move being null even it's being unpacked
+    if (packed_move == NOMOVE)
+        return NOMOVE;
+
+    int piece = pos->PieceOn(From(packed_move));
+    return (packed_move | (piece << 16));
+}
+
+uint8_t BoundFromTT(uint8_t boundPV) {
+    return boundPV & 0b00000011;
+}
+
+bool FormerPV(uint8_t boundPV) {
+    return boundPV & 0b00000100;
+}
+
+uint8_t PackToTT(uint8_t flag, bool wasPV) {
+    return static_cast<uint8_t>(flag + (wasPV << 2));
 }

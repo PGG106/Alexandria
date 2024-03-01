@@ -35,6 +35,6 @@ int EvalPosition(S_Board* pos) {
     eval = (eval * MaterialScale(pos)) / 1024;
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     // Clamp eval to avoid it somehow being a mate score
-    eval = std::clamp(eval, -mate_score + 1, mate_score - 1);
+    eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;
 }

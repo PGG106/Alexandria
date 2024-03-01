@@ -22,7 +22,7 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = PieceValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
             // Good captures get played before any move that isn't a promotion or a TT move
             // Bad captures are always played last, no matter how bad the history score of a quiet is, it will never be played after a bad capture
-            int SEEThreshold = mp->SEEThreshold != score_none ? mp->SEEThreshold : -moveList->moves[i].score / 64;
+            int SEEThreshold = mp->SEEThreshold != SCORE_NONE ? mp->SEEThreshold : -moveList->moves[i].score / 64;
             moveList->moves[i].score += SEE(pos, move, SEEThreshold) ? goodCaptureScore : badCaptureScore;
             continue;
         }
