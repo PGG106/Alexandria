@@ -10,7 +10,7 @@ PACK(struct S_HashEntry {
     int16_t eval = score_none;
     TTKey tt_key = 0;
     uint8_t depth = 0;
-    uint8_t wasPv_flags = HFNONE;
+    uint8_t boundPV = HFNONE;
 });
 
 struct S_HashTable {
@@ -41,8 +41,8 @@ int16_t MoveToTT(int move);
 
 int MoveFromTT(S_Board *pos, int16_t packed_move);
 
-uint8_t FlagFromTT(uint8_t wasPv_flags);
+uint8_t BoundFromTT(uint8_t boundPV);
 
-bool FormerPV(uint8_t wasPv_flags);
+bool FormerPV(uint8_t boundPV);
 
 uint8_t PackToTT(uint8_t flag, bool wasPv);

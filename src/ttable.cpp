@@ -40,7 +40,7 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
     // Overwrite less valuable entries (cheapest checks first)
     if (flag == HFEXACT || static_cast<TTKey>(key) != tte->tt_key || depth + 5 + 2 * pv > tte->depth) {
         tte->tt_key = static_cast<TTKey>(key);
-        tte->wasPv_flags = PackToTT(flag, wasPv);
+        tte->boundPV = PackToTT(flag, wasPv);
         tte->score = static_cast<int16_t>(score);
         tte->eval = eval;
         tte->depth = static_cast<uint8_t>(depth);
@@ -110,12 +110,12 @@ int MoveFromTT(S_Board *pos, int16_t packed_move) {
     return (packed_move | (piece << 16));
 }
 
-uint8_t FlagFromTT(uint8_t wasPv_flags) {
-    return wasPv_flags & 0b00000011;
+uint8_t BoundFromTT(uint8_t boundPV) {
+    return boundPV & 0b00000011;
 }
 
-bool FormerPV(uint8_t wasPv_flags) {
-    return wasPv_flags & 0b00000100;
+bool FormerPV(uint8_t boundPV) {
+    return boundPV & 0b00000100;
 }
 
 uint8_t PackToTT(uint8_t flag, bool wasPv) {
