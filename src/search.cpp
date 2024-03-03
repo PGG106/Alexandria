@@ -812,6 +812,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
 
+        if (!IsLegal(pos, move))
+            continue;
+
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
