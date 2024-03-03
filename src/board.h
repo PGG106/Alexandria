@@ -29,7 +29,7 @@
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-inline int GetLsbIndex(Bitboard bitboard) {
+[[nodiscard]] inline int GetLsbIndex(Bitboard bitboard) {
     return std::countr_zero(bitboard);
 }
 
@@ -202,9 +202,6 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // NNUE
 extern NNUE nnue;
-
-// get least significant 1st bit index
-[[nodiscard]] int GetLsbIndex(Bitboard bitboard);
 
 [[nodiscard]] int SquareDistance(int a, int b);
 

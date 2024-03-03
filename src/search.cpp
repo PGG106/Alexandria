@@ -817,7 +817,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         if (    bestScore > -MATE_FOUND
             && !inCheck
             && !isPromo(move)
-            && !isEnpassant(move)
             &&  BoardHasNonPawns(pos, pos->side)) {
                 int futilityBase = ss->staticEval + 192;
                 if (futilityBase <= alpha && !SEE(pos, move, 1)) {
