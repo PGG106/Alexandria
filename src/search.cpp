@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+#include "bitboard.h"
 #include "search.h"
 #include "history.h"
 #include "piece_data.h"
@@ -9,12 +13,9 @@
 #include "threads.h"
 #include "movepicker.h"
 #include "ttable.h"
-#include <cassert>
 #include "movegen.h"
 #include "time_manager.h"
 #include "io.h"
-#include <iostream>
-#include <algorithm>
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const S_Board* pos, const bool pvNode) {

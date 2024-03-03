@@ -1,6 +1,7 @@
-#include "attack.h"
-#include "magic.h"
 #include <algorithm>
+#include "attack.h"
+#include "bitboard.h"
+#include "magic.h"
 
 // generate pawn attacks
 Bitboard MaskPawnAttacks(int side, int square) {

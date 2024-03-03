@@ -1,3 +1,6 @@
+#include <bit>
+#include <cassert>
+#include "bitboard.h"
 #include "board.h"
 #include "piece_data.h"
 #include "hashkey.h"
@@ -8,14 +11,8 @@
 #include "attack.h"
 #include "magic.h"
 #include "init.h"
-#include <bit>
-#include <cassert>
 
 NNUE nnue = NNUE();
-
-int CountBits(Bitboard bitboard) {
-    return std::popcount(bitboard);
-}
 
 // Reset the position to a clean state
 void ResetBoard(S_Board* pos) {

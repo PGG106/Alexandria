@@ -1,5 +1,6 @@
 #include "movegen.h"
 #include "attack.h"
+#include "bitboard.h"
 #include "init.h"
 #include "magic.h"
 #include "makemove.h"
