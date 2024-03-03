@@ -93,6 +93,9 @@
     <ClInclude Include="src\tune.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="bitboard.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\board.cpp">
@@ -172,9 +175,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\makefile" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="src\nn.net" />
+    <None Include="makefile" />
   </ItemGroup>
 </Project>

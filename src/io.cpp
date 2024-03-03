@@ -1,12 +1,13 @@
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include "bitboard.h"
 #include "piece_data.h"
 #include "misc.h"
 #include "threads.h"
 #include "movegen.h"
 #include "io.h"
 #include "uci.h"
-#include <iostream>
-#include <sstream>
-#include <iomanip>
 #include "ttable.h"
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))

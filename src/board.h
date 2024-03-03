@@ -1,11 +1,11 @@
 #pragma once
 
-#include <bit>
 #include <cassert>
 #include <cctype>
 #include <cstring>
 #include <string>
 #include <vector>
+#include "bitboard.h"
 #include "nnue.h"
 #include "stdint.h"
 #include "move.h"
@@ -19,26 +19,7 @@
 #define PACK(__Declaration__) \
     __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
 #endif
-
-// set/get/pop bit macros
-#define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
-#define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
-#define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
-
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
-
-#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
-inline int GetLsbIndex(Bitboard bitboard) {
-    return std::countr_zero(bitboard);
-}
-
-inline int popLsb(Bitboard& bitboard) {
-    assert(bitboard);
-    int square = GetLsbIndex(bitboard);
-    bitboard &= bitboard - 1;
-    return square;
-}
 
 extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
@@ -56,9 +37,6 @@ struct S_Undo {
     Bitboard pinD;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
-
-// counts how many bits are set in a bitboard
-int CountBits(Bitboard bitboard);
 
 struct S_Board {
 public:
@@ -202,9 +180,6 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 // NNUE
 extern NNUE nnue;
-
-// get least significant 1st bit index
-[[nodiscard]] int GetLsbIndex(Bitboard bitboard);
 
 [[nodiscard]] int SquareDistance(int a, int b);
 

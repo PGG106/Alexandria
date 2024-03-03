@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="bitboard.h" />
     <ClInclude Include="src\history.h" />
     <ClInclude Include="src\attack.h" />
     <ClInclude Include="src\bench.h" />
