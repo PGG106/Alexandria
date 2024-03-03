@@ -71,7 +71,7 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->pos = pos;
     mp->sd = sd;
     mp->ss = ss;
-    mp->ttMove = (!capturesOnly || isTactical(ttMove)) && IsLegal(pos, ttMove) ? ttMove : NOMOVE;
+    mp->ttMove = (!capturesOnly || isTactical(ttMove)) && IsPseudoLegal(pos, ttMove) ? ttMove : NOMOVE;
     mp->idx = 0;
     mp->stage = mp->ttMove ? PICK_TT : GEN_MOVES;
     mp->capturesOnly = capturesOnly;

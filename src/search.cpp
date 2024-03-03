@@ -503,7 +503,7 @@ moves_loop:
     // loop over moves within a movelist
     while ((move = NextMove(&mp, false)) != NOMOVE) {
 
-        if (move == excludedMove)
+        if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
         totalMoves++;
