@@ -322,7 +322,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     // handle captures
     if (capture) {
         // Retrieve the captured piece we have to restore
-        const int piececap = enpass ? GetPiece(PAWN, pos->side) : pos->history[pos->hisPly].capture;
+        const int piececap = pos->history[pos->hisPly].capture;
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         AddPiece(piececap, capturedPieceLocation, pos);
     }
