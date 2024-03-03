@@ -17,7 +17,7 @@ void PerftDriver(int depth, S_Board* pos) {
     // create move list instance
     S_MOVELIST move_list[1];
 
-    // Bulk Counting
+    // Non bulk Counting
     if (depth == 0) {
         nodes += 1;
         return;
