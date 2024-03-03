@@ -44,7 +44,7 @@ constexpr int get_rank[64] = { 7, 7, 7, 7, 7, 7, 7, 7,
                                1, 1, 1, 1, 1, 1, 1, 1,
                                0, 0, 0, 0, 0, 0, 0, 0 };
 
-// extract rank from a square [square]
+// Lookup to get the file of a square
 constexpr int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7,
                                0, 1, 2, 3, 4, 5, 6, 7,
                                0, 1, 2, 3, 4, 5, 6, 7,

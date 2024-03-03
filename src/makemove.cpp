@@ -357,7 +357,6 @@ void UnmakeMove(const int move, S_Board* pos) {
         }
     }
 
-
     // change side
     pos->ChangeSide();
 
