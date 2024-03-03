@@ -29,7 +29,7 @@ void PerftDriver(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         int move = move_list->moves[move_count].move;
-        if (!IsPseudoLegal(pos, move))
+        if (!IsLegal(pos, move))
             continue;
 
         // make move
