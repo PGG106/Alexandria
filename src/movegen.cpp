@@ -91,7 +91,7 @@ static inline Bitboard PseudoLegalPawnMoves(S_Board* pos, int color, int square)
     int epSq = GetEpSquare(pos);
     Bitboard attacks = pawn_attacks[color][square];
     moves |= attacks & enemy;
-    if (epSq != no_sq && attacks & (1ULL << epSq))
+    if (epSq != no_sq && (attacks & (1ULL << epSq)))
         moves |= 1ULL << epSq;
 
     moves &= pos->checkMask;
