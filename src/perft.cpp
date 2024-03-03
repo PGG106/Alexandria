@@ -60,6 +60,10 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         const int move = move_list->moves[move_count].move;
+
+        if (!IsLegal(pos, move))
+            continue;
+
         // make move
         MakeMove(move, pos);
 
@@ -70,7 +74,6 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
         PerftDriver(depth - 1, pos);
 
         // take back
-
         UnmakeMove(move, pos);
 
         // old nodes
