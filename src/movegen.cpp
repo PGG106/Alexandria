@@ -441,8 +441,6 @@ bool IsLegal(S_Board* pos, int move) {
         }
     }
 
-    Bitboard pins = pos->pinD | pos->pinHV;
-
     if (pieceType == KING) {
         int king = GetPiece(KING, color);
         ClearPiece(king, ksq, pos);
@@ -450,7 +448,7 @@ bool IsLegal(S_Board* pos, int move) {
         AddPiece(king, ksq, pos);
         return isLegal;
     }
-    else if (pins & (1ULL << from)) {
+    else if (pos->pinned & (1ULL << from)) {
         return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
     else if (pos->checkers) {

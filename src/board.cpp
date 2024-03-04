@@ -452,8 +452,7 @@ void UpdatePinMasks(S_Board* pos, const int side) {
         if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
             rook_pin |= possible_pin;
     }
-    pos->pinHV = rook_pin;
-    pos->pinD = bishop_pin;
+    pos->pinned = rook_pin | bishop_pin;
 }
 
 Bitboard RayBetween(int square1, int square2) {
@@ -510,8 +509,7 @@ void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
     pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].checkMask = pos->checkMask;
-    pos->history[pos->hisPly].pinHV = pos->pinHV;
-    pos->history[pos->hisPly].pinD = pos->pinD;
+    pos->history[pos->hisPly].pinned = pos->pinned;
 }
 
 void restorePreviousBoardState(S_Board* pos)
@@ -522,6 +520,5 @@ void restorePreviousBoardState(S_Board* pos)
     pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
     pos->checkers = pos->history[pos->hisPly].checkers;
     pos->checkMask = pos->history[pos->hisPly].checkMask;
-    pos->pinHV = pos->history[pos->hisPly].pinHV;
-    pos->pinD = pos->history[pos->hisPly].pinD;
+    pos->pinned = pos->history[pos->hisPly].pinned;
 }
