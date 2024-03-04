@@ -88,8 +88,8 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 
     // Captures and capture-promotions
-    Bitboard captBB1 = (NORTH(ourPawns & ~0x8080808080808080ULL, color) >> 1) & enemy & pos->checkMask;
-    Bitboard captBB2 = (NORTH(ourPawns & ~0x101010101010101ULL, color) << 1) & enemy & pos->checkMask;
+    Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->checkMask;
+    Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->checkMask;
     while (captBB1) {
         int to = popLsb(captBB1);
         int from = to - north + 1;
