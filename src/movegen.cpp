@@ -43,13 +43,13 @@ bool MoveExists(S_Board* pos, const int move) {
     return false;
 }
 // function that adds a move to the move list
-void AddMove(int move, S_MOVELIST* list) {
+void AddMove(const int move, S_MOVELIST* list) {
     list->moves[list->count].move = move;
     list->moves[list->count].score = 0;
     list->count++;
 }
 
-static inline Bitboard NORTH(Bitboard in, int color) {
+static inline Bitboard NORTH(const Bitboard in, const int color) {
     return color == WHITE ? in >> 8 : in << 8;
 }
 
@@ -68,11 +68,11 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
         push &= pos->checkMask;
         doublePush &= pos->checkMask;
         while (push) {
-            int to = popLsb(push);
+            const int to = popLsb(push);
             AddMove(encode_move(to - north, to, pawnType, Movetype::Quiet), list);
         }
         while (doublePush) {
-            int to = popLsb(doublePush);
+            const int to = popLsb(doublePush);
             AddMove(encode_move(to - north * 2, to, pawnType, Movetype::doublePush), list);
         }
     }
@@ -80,7 +80,7 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     // Push promotions
     Bitboard pushPromo = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & 0xFF000000000000FFULL & pos->checkMask;
     while (pushPromo) {
-        int to = popLsb(pushPromo);
+        const int to = popLsb(pushPromo);
         AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
         AddMove(encode_move(to - north, to, pawnType, Movetype::rookPromo | Movetype::Quiet), list);
         AddMove(encode_move(to - north, to, pawnType, Movetype::bishopPromo | Movetype::Quiet), list);
@@ -91,8 +91,8 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->checkMask;
     Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->checkMask;
     while (captBB1) {
-        int to = popLsb(captBB1);
-        int from = to - north + 1;
+        const int to = popLsb(captBB1);
+        const int from = to - north + 1;
         if (get_rank[to] != (color == WHITE ? 7 : 0))
             AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
         else {
@@ -104,8 +104,8 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 
     while (captBB2) {
-        int to = popLsb(captBB2);
-        int from = to - north - 1;
+        const int to = popLsb(captBB2);
+        const int from = to - north - 1;
         if (get_rank[to] != (color == WHITE ? 7 : 0))
             AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
         else {
@@ -116,7 +116,7 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
         }
     }
 
-    int epSq = GetEpSquare(pos);
+    const int epSq = GetEpSquare(pos);
     if (epSq == no_sq)
         return;
 
@@ -130,12 +130,12 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
 
 static inline void PseudoLegalKnightMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
     Bitboard knights = pos->GetPieceColorBB(KNIGHT, color);
-    int knightType = GetPiece(KNIGHT, color);
+    const int knightType = GetPiece(KNIGHT, color);
     while (knights) {
-        int from = popLsb(knights);
+        const int from = popLsb(knights);
         Bitboard possible_moves = knight_attacks[from] & pos->checkMask & (capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color));
         while (possible_moves) {
-            int to = popLsb(possible_moves);
+            const int to = popLsb(possible_moves);
             Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, knightType, movetype), list);
         }
@@ -144,13 +144,13 @@ static inline void PseudoLegalKnightMoves(S_Board* pos, int color, S_MOVELIST* l
 
 static inline void PseudoLegalBishopMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
     Bitboard bishops = pos->GetPieceColorBB(BISHOP, color);
-    int bishopType = GetPiece(BISHOP, color);
+    const int bishopType = GetPiece(BISHOP, color);
     while (bishops) {
-        int from = popLsb(bishops);
+        const int from = popLsb(bishops);
         Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & pos->checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
-            int to = popLsb(possible_moves);
+            const int to = popLsb(possible_moves);
             Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, bishopType, movetype), list);
         }
@@ -159,13 +159,13 @@ static inline void PseudoLegalBishopMoves(S_Board* pos, int color, S_MOVELIST* l
 
 static inline void PseudoLegalRookMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
     Bitboard rooks = pos->GetPieceColorBB(ROOK, color);
-    int rookType = GetPiece(ROOK, color);
+    const int rookType = GetPiece(ROOK, color);
     while (rooks) {
-        int from = popLsb(rooks);
+        const int from = popLsb(rooks);
         Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & pos->checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
-            int to = popLsb(possible_moves);
+            const int to = popLsb(possible_moves);
             Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, rookType, movetype), list);
         }
@@ -174,13 +174,13 @@ static inline void PseudoLegalRookMoves(S_Board* pos, int color, S_MOVELIST* lis
 
 static inline void PseudoLegalQueenMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
     Bitboard queens = pos->GetPieceColorBB(QUEEN, color);
-    int queenType = GetPiece(QUEEN, color);
+    const int queenType = GetPiece(QUEEN, color);
     while (queens) {
-        int from = popLsb(queens);
+        const int from = popLsb(queens);
         Bitboard possible_moves = (GetRookAttacks(from, pos->Occupancy(BOTH)) | GetBishopAttacks(from, pos->Occupancy(BOTH))) & pos->checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
-            int to = popLsb(possible_moves);
+            const int to = popLsb(possible_moves);
             Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, queenType, movetype), list);
         }
@@ -188,11 +188,11 @@ static inline void PseudoLegalQueenMoves(S_Board* pos, int color, S_MOVELIST* li
 }
 
 static inline void PseudoLegalKingMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
-    int kingType = GetPiece(KING, color);
-    int from = KingSQ(pos, color);
+    const int kingType = GetPiece(KING, color);
+    const int from = KingSQ(pos, color);
     Bitboard possible_moves = king_attacks[from] & (capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color));
     while (possible_moves) {
-        int to = popLsb(possible_moves);
+        const int to = popLsb(possible_moves);
         Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
         AddMove(encode_move(from, to, kingType, movetype), list);
     }
@@ -292,7 +292,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
         return false;
 
-    int NORTH = pos->side == WHITE ? -8 : 8;
+    const int NORTH = pos->side == WHITE ? -8 : 8;
 
     switch (pieceType) {
         case PAWN:
@@ -409,8 +409,8 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
 bool IsLegal(S_Board* pos, int move) {
 
-    int color = pos->side;
-    int ksq = KingSQ(pos, color);
+    const int color = pos->side;
+    const int ksq = KingSQ(pos, color);
     const int from = From(move);
     const int to = To(move);
     const int movedPiece = Piece(move);
