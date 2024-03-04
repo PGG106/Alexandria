@@ -160,7 +160,8 @@ void MakeUCIMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    // Update pinmasks and checkers
+    UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
     if (pos->checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
@@ -169,9 +170,6 @@ void MakeUCIMove(const int move, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
-
-    // Update pinmasks
-    UpdatePinMasks(pos, pos->side);
 }
 
 // make move on chess board
@@ -272,7 +270,8 @@ void MakeMove(const int move, S_Board* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos, SideKey);
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    // Update pinmasks and checkers
+    UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
     if (pos->checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
@@ -281,8 +280,6 @@ void MakeMove(const int move, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
-    // Update pinmasks
-    UpdatePinMasks(pos, pos->side);
 }
 
 void UnmakeMove(const int move, S_Board* pos) {
@@ -384,8 +381,8 @@ void MakeNullMove(S_Board* pos) {
 
     pos->ChangeSide();
     HashKey(pos, SideKey);
-    // Update pinmasks
-    UpdatePinMasks(pos, pos->side);
+    // Update pinmasks and checkers
+    UpdatePinsAndCheckers(pos, pos->side);
 }
 
 // Take back a null move

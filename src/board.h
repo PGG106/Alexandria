@@ -204,8 +204,7 @@ void ResetInfo(S_SearchINFO* info);
 [[nodiscard]] bool BoardHasNonPawns(const S_Board* pos, const int side);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const S_Board* pos, const int c);
-[[nodiscard]] Bitboard GetCheckersBB(const S_Board* pos, const int side);
-void UpdatePinMasks(S_Board* pos, const int side);
+void UpdatePinsAndCheckers(S_Board* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);

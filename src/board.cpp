@@ -183,7 +183,9 @@ void ParseFen(const std::string& command, S_Board* pos) {
 
     pos->posKey = GeneratePosKey(pos);
 
-    pos->checkers = GetCheckersBB(pos, pos->side);
+    // Update pinmasks and checkers
+    UpdatePinsAndCheckers(pos, pos->side);
+
     // If we are in check get the squares between the checking piece and the king
     if (pos->checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
@@ -192,8 +194,6 @@ void ParseFen(const std::string& command, S_Board* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
-
-    UpdatePinMasks(pos, pos->side);
 
     // Update nnue accumulator to reflect board state
     Accumulate(pos->accumStack[0], pos);
@@ -390,69 +390,26 @@ int KingSQ(const S_Board* pos, const int c) {
     return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }
 
-Bitboard GetCheckersBB(const S_Board* pos, const int side) {
+void UpdatePinsAndCheckers(S_Board* pos, const int side) {
+    Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
-    Bitboard Occ = pos->Occupancy(BOTH);
-    // Bitboard of pawns that attack the king square
-    const Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
-    // Bitboard of knights that attack the king square
-    const Bitboard knight_mask = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];
-    // Bitboard of bishops and queens that diagonally attack the king square
+    const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
+    const Bitboard knightCheckers = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
-    const Bitboard bishop_mask = bishopsQueens & GetBishopAttacks(kingSquare, Occ) & ~pos->occupancies[side];
-    // Bitboard of rooks and queens that attack the king square
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
-    const Bitboard rook_mask = rooksQueens & GetRookAttacks(kingSquare, Occ) & ~pos->occupancies[side];
-    
-    Bitboard checkers = pawn_mask | knight_mask;
+    Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
+    pos->pinned = 0ULL;
+    pos->checkers = pawnCheckers | knightCheckers;
 
-    if (bishop_mask) {
-        Bitboard checkingBishops = bishop_mask;
-        while (checkingBishops) {
-        int index = popLsb(checkingBishops);
-        checkers |= (1ULL << index);
-        }
+    while (sliderAttacks) {
+        const int sq = popLsb(sliderAttacks);
+        const Bitboard blockers = (RayBetween(kingSquare, sq) | (1ULL << sq)) & pos->Occupancy(side);
+        const int numBlockers = CountBits(blockers);
+        if (!numBlockers)
+            pos->checkers |= 1ULL << sq;
+        else if (numBlockers == 1)
+            pos->pinned |= blockers;
     }
-    if (rook_mask) {
-        Bitboard checkingrook = rook_mask;
-        while (checkingrook) {
-            int index = popLsb(checkingrook);
-            checkers |= (1ULL << index);
-        }
-        int index = GetLsbIndex(rook_mask);
-        checkers |= (1ULL << index);
-    }
-
-    return checkers;
-}
-
-void UpdatePinMasks(S_Board* pos, const int side) {
-    const int kingSquare = KingSQ(pos, side);
-    Bitboard them = pos->Enemy();
-    // Bitboard of bishops and queens that diagonally attack the king square
-    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
-    // Bitboard of rooks and queens that attack the king square
-    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side^1) | pos->GetPieceColorBB(QUEEN, side^1);
-    Bitboard bishop_pin_mask = bishopsQueens & GetBishopAttacks(kingSquare, them);
-    // Bitboard of rooks and queens that attack the king square
-    Bitboard rook_pin_mask = rooksQueens & GetRookAttacks(kingSquare, them);
-
-    Bitboard bishop_pin, rook_pin;
-    bishop_pin = rook_pin = 0ULL;
-
-    while (bishop_pin_mask) {
-        int index = popLsb(bishop_pin_mask);
-        Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
-        if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
-            bishop_pin |= possible_pin;
-    }
-    while (rook_pin_mask) {
-        int index = popLsb(rook_pin_mask);
-        Bitboard possible_pin = RayBetween(kingSquare, index) | (1ULL << index);
-        if (CountBits(possible_pin & pos->Occupancy(side)) == 1)
-            rook_pin |= possible_pin;
-    }
-    pos->pinned = rook_pin | bishop_pin;
 }
 
 Bitboard RayBetween(int square1, int square2) {
