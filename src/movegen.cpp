@@ -30,10 +30,6 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
     return false;
 }
 
-static inline Bitboard PawnPush(int color, int sq) {
-    return 1ULL << (sq + (color == WHITE ? -8 : 8));
-}
-
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 bool MoveExists(S_Board* pos, const int move) {
     S_MOVELIST list[1];
@@ -52,52 +48,84 @@ void AddMove(int move, S_MOVELIST* list) {
     list->moves[list->count].score = 0;
     list->count++;
 }
-// function that adds a pawn move (and all its possible branches) to the move list
-static inline void AddPawnMove(const S_Board* pos, const int from, const int to, S_MOVELIST* list) {
-    Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-    if (abs(to - from) == 16)
-        movetype = Movetype::doublePush;
-    else if (to == GetEpSquare(pos))
-        movetype = Movetype::enPassant;
 
-    int pawnType = GetPiece(PAWN, pos->side);
-
-    // if the pawn is moving from the 7th to the 8th rank (relative), it is a promotion
-    if (get_rank[to] == (pos->side == WHITE ? 7 : 0)) {
-        // consider every possible piece promotion
-        AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | movetype)), list);
-        AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | movetype)), list); 
-        AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | movetype)), list);
-        AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | movetype)), list);
-    }
-    // not a promotion
-    else
-        AddMove(encode_move(from, to, pawnType,  movetype), list);
+static inline Bitboard NORTH(Bitboard in, int color) {
+    return color == WHITE ? in >> 8 : in << 8;
 }
 
-static inline Bitboard PseudoLegalPawnMoves(S_Board* pos, int color, int square) {
+static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
 
-    const Bitboard enemy = pos->Enemy();
-    Bitboard moves = 0;
+    const Bitboard enemy = pos->Occupancy(color ^ 1);
+    const Bitboard ourPawns = pos->GetPieceColorBB(PAWN, color);
+    const Bitboard rank4BB = color == WHITE ? 0x000000FF00000000ULL : 0x00000000FF000000ULL;
+    const int pawnType = GetPiece(PAWN, pos->side);
+    const int north = color == WHITE ? -8 : 8;
 
-    // Calculate pawn pushs
-    Bitboard push = PawnPush(color, square) & ~pos->Occupancy(BOTH);
+    // Quiet moves (ie push/double-push)
+    if (!capOnly) {
+        Bitboard push = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & ~0xFF000000000000FFULL;
+        Bitboard doublePush = NORTH(push, color) & ~pos->Occupancy(BOTH) & rank4BB;
+        push &= pos->checkMask;
+        doublePush &= pos->checkMask;
+        while (push) {
+            int to = popLsb(push);
+            AddMove(encode_move(to - north, to, pawnType, Movetype::Quiet), list);
+        }
+        while (doublePush) {
+            int to = popLsb(doublePush);
+            AddMove(encode_move(to - north * 2, to, pawnType, Movetype::doublePush), list);
+        }
+    }
 
-    push |= color == WHITE ? (get_rank[square] == 1 ? (push >> 8) & ~pos->Occupancy(BOTH) : 0ULL)
-                           : (get_rank[square] == 6 ? (push << 8) & ~pos->Occupancy(BOTH) : 0ULL);
+    // Push promotions
+    Bitboard pushPromo = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & 0xFF000000000000FFULL & pos->checkMask;
+    while (pushPromo) {
+        int to = popLsb(pushPromo);
+        AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
+        AddMove(encode_move(to - north, to, pawnType, Movetype::rookPromo | Movetype::Quiet), list);
+        AddMove(encode_move(to - north, to, pawnType, Movetype::bishopPromo | Movetype::Quiet), list);
+        AddMove(encode_move(to - north, to, pawnType, Movetype::knightPromo | Movetype::Quiet), list);
+    }
 
-    moves |= push;
+    // Captures and capture-promotions
+    Bitboard captBB1 = (NORTH(ourPawns & ~0x8080808080808080ULL, color) >> 1) & enemy & pos->checkMask;
+    Bitboard captBB2 = (NORTH(ourPawns & ~0x101010101010101ULL, color) << 1) & enemy & pos->checkMask;
+    while (captBB1) {
+        int to = popLsb(captBB1);
+        int from = to - north + 1;
+        if (get_rank[to] != (color == WHITE ? 7 : 0))
+            AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
+        else {
+            AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | Movetype::Capture)), list);
+            AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | Movetype::Capture)), list); 
+            AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | Movetype::Capture)), list);
+            AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | Movetype::Capture)), list);
+        }
+    }
+
+    while (captBB2) {
+        int to = popLsb(captBB2);
+        int from = to - north - 1;
+        if (get_rank[to] != (color == WHITE ? 7 : 0))
+            AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
+        else {
+            AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | Movetype::Capture)), list);
+            AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | Movetype::Capture)), list); 
+            AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | Movetype::Capture)), list);
+            AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | Movetype::Capture)), list);
+        }
+    }
 
     int epSq = GetEpSquare(pos);
-    Bitboard attacks = pawn_attacks[color][square];
-    moves |= attacks & enemy;
-    moves &= pos->checkMask;
+    if (epSq == no_sq)
+        return;
 
-    // En Passant, we do not need to factor in checkmask here as it is special-cased in legality check
-    if (epSq != no_sq && (attacks & (1ULL << epSq)))
-        moves |= 1ULL << epSq;
-
-    return moves;
+    // En passant
+    Bitboard epPieces = pawn_attacks[color ^ 1][epSq] & ourPawns;
+    while (epPieces) {
+        int from = popLsb(epPieces);
+        AddMove(encode_move(from, epSq, pawnType, Movetype::enPassant), list);
+    }
 }
 
 static inline Bitboard PseudoLegalKnightMoves(S_Board* pos, int color, int square) {
@@ -131,17 +159,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) {
     const int checks = CountBits(pos->checkers);
     
     if (checks < 2) {
-        Bitboard pawns = pos->GetPieceColorBB(PAWN, pos->side);
-        while (pawns) {
-            // init source square
-            sourceSquare = popLsb(pawns);
-            Bitboard moves = PseudoLegalPawnMoves(pos, pos->side, sourceSquare);
-            while (moves) {
-                // init target square
-                targetSquare = popLsb(moves);
-                AddPawnMove(pos, sourceSquare, targetSquare, move_list);
-            }
-        }
+        PseudoLegalPawnMoves(pos, pos->side, move_list, false);
 
         // genarate knight moves
         Bitboard knights = pos->GetPieceColorBB(KNIGHT, pos->side);
@@ -233,19 +251,8 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     const int checks = CountBits(pos->checkers);
 
     if (checks < 2) {
+        PseudoLegalPawnMoves(pos, pos->side, move_list, true);
 
-        Bitboard pawn_mask = pos->GetPieceColorBB(PAWN, pos->side);
-
-        while (pawn_mask) {
-            // init source square
-            sourceSquare = popLsb(pawn_mask);
-            Bitboard moves = PseudoLegalPawnMoves(pos, pos->side, sourceSquare) & (pos->Enemy() | 0xFF000000000000FF | (1ULL << GetEpSquare(pos)));
-            while (moves) {
-                // init target square
-                targetSquare = popLsb(moves);
-                AddPawnMove(pos, sourceSquare, targetSquare, move_list);
-            }
-        }
         // genarate knight moves
         Bitboard knights_mask = pos->GetPieceColorBB(KNIGHT, pos->side);
         while (knights_mask) {
