@@ -420,7 +420,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             improving = true;
     }
     else
-        improving = true;
+        improving = info->nodes % 2;
 
     if (!pvNode) {
         // Reverse futility pruning
