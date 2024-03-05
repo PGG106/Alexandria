@@ -503,7 +503,7 @@ moves_loop:
     // loop over moves within a movelist
     while ((move = NextMove(&mp, false)) != NOMOVE) {
 
-        if (move == excludedMove)
+        if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
         totalMoves++;
@@ -811,6 +811,9 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
+
+        if (!IsLegal(pos, move))
+            continue;
 
         totalMoves++;
 

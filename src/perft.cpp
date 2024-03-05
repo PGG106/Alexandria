@@ -17,25 +17,21 @@ void PerftDriver(int depth, S_Board* pos) {
     // create move list instance
     S_MOVELIST move_list[1];
 
-    // generate moves
-    GenerateMoves(move_list, pos);
-
-    // Bulk Counting
-    if (depth == 1) {
-        // increment nodes count (count reached positions)
-        nodes += move_list->count;
-        return;
-    }
-
-    // Bulk Counting
+    // Non bulk Counting
     if (depth == 0) {
         nodes += 1;
         return;
     }
 
+    // generate moves
+    GenerateMoves(move_list, pos);
+
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         int move = move_list->moves[move_count].move;
+        if (!IsLegal(pos, move))
+            continue;
+
         // make move
         MakeMove(move, pos);
 
@@ -43,7 +39,6 @@ void PerftDriver(int depth, S_Board* pos) {
         PerftDriver(depth - 1, pos);
 
         // take back
-
         UnmakeMove(move, pos);
     }
 }
@@ -65,6 +60,10 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     // loop over generated moves
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         const int move = move_list->moves[move_count].move;
+
+        if (!IsLegal(pos, move))
+            continue;
+
         // make move
         MakeMove(move, pos);
 
@@ -75,7 +74,6 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
         PerftDriver(depth - 1, pos);
 
         // take back
-
         UnmakeMove(move, pos);
 
         // old nodes

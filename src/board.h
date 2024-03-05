@@ -33,8 +33,7 @@ struct S_Undo {
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard checkMask = fullCheckmask;
-    Bitboard pinHV;
-    Bitboard pinD;
+    Bitboard pinned;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -57,8 +56,7 @@ public:
     std::vector<ZobristKey> played_positions = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUEAdd = {};
     std::vector<std::pair<std::size_t, std::size_t>> NNUESub = {};
-    Bitboard pinHV = 0ULL;
-    Bitboard pinD = 0ULL;
+    Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
@@ -206,8 +204,7 @@ void ResetInfo(S_SearchINFO* info);
 [[nodiscard]] bool BoardHasNonPawns(const S_Board* pos, const int side);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const S_Board* pos, const int c);
-[[nodiscard]] Bitboard GetCheckersBB(const S_Board* pos, const int side);
-void UpdatePinMasks(S_Board* pos, const int side);
+void UpdatePinsAndCheckers(S_Board* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const S_Board* pos);
 [[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);

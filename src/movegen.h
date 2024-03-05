@@ -18,9 +18,8 @@ void AddMove(int move, S_MOVELIST* list);
 // Check for move legality
 [[nodiscard]] bool IsLegal(S_Board* pos, int move);
 
-
 // generate all moves
 void GenerateMoves(S_MOVELIST* move_list, S_Board* pos);
 
-// generate all moves
+// generate all captures
 void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos);
