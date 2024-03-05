@@ -289,7 +289,6 @@ void UciLoop(int argc, char** argv) {
         // parse UCI "isready" command
         else if (input == "isready") {
             std::cout << "readyok\n";
-
             continue;
         }
 
