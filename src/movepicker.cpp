@@ -78,7 +78,7 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->SEEThreshold = SEEThreshold;
     mp->killer0 = ss->searchKillers[0];
     mp->killer1 = ss->searchKillers[1];
-    mp->counter = sd->CounterMoves[From((ss - 1)->move)][To((ss - 1)->move)];
+    mp->counter = sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)];
 }
 
 int NextMove(Movepicker* mp, const bool skipNonGood) {

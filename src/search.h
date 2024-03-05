@@ -17,15 +17,15 @@ struct Search_data {
     int searchHistory[2][Board_sq_num][Board_sq_num] = {};
     // Piece, To, Captured
     int captHist[12][Board_sq_num][6] = {};
-    int CounterMoves[Board_sq_num][Board_sq_num] = {};
-    int cont_hist[12][64][12][64] = {};
+    int counterMoves[Board_sq_num][Board_sq_num] = {};
+    int contHist[12][64][12][64] = {};
 };
 
 // a collection of all the data a thread needs to conduct a search
 struct S_ThreadData {
     int id = 0;
     S_Board pos;
-    Search_data ss;
+    Search_data sd;
     S_SearchINFO info;
     PvTable pvTable;
     uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};

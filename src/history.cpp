@@ -18,8 +18,7 @@ void updateHHScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / 32768;
     // Update move score
-    sd->searchHistory[pos->side][From(move)]
-        [To(move)] += scaledBonus;
+    sd->searchHistory[pos->side][From(move)][To(move)] += scaledBonus;
 }
 
 void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
@@ -27,15 +26,15 @@ void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, cons
     const int scaledBonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
     // Update move score
     if (ss->ply > 0) {
-        sd->cont_hist[Piece((ss - 1)->move)][To((ss - 1)->move)]
+        sd->contHist[Piece((ss - 1)->move)][To((ss - 1)->move)]
             [Piece(move)][To(move)] += scaledBonus;
         // Score followup
         if (ss->ply > 1) {
-            sd->cont_hist[Piece((ss - 2)->move)][To((ss - 2)->move)]
+            sd->contHist[Piece((ss - 2)->move)][To((ss - 2)->move)]
                 [Piece(move)][To(move)] += scaledBonus;
 
             if (ss->ply > 3) {
-                sd->cont_hist[Piece((ss - 4)->move)][To((ss - 4)->move)]
+                sd->contHist[Piece((ss - 4)->move)][To((ss - 4)->move)]
                     [Piece(move)][To(move)] += scaledBonus;
             }
         }
@@ -93,11 +92,11 @@ int GetCHScore(const Search_data* sd, const Search_stack* ss, const int move) {
     const int previousPreviousMove = (ss - 2)->move;
     const int previousPreviousPreviousPreviousMove = (ss - 4)->move;
     if (previousMove)
-        score += sd->cont_hist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)];
+        score += sd->contHist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)];
     if (previousPreviousMove)
-        score += sd->cont_hist[Piece(previousPreviousMove)][To(previousPreviousMove)][Piece(move)][To(move)];
+        score += sd->contHist[Piece(previousPreviousMove)][To(previousPreviousMove)][Piece(move)][To(move)];
     if (previousPreviousPreviousPreviousMove)
-        score += sd->cont_hist[Piece(previousPreviousPreviousPreviousMove)][To(previousPreviousPreviousPreviousMove)][Piece(move)][To(move)];
+        score += sd->contHist[Piece(previousPreviousPreviousPreviousMove)][To(previousPreviousPreviousPreviousMove)][Piece(move)][To(move)];
     return score;
 }
 
@@ -119,6 +118,6 @@ int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, c
 // Resets the history tables
 void CleanHistories(Search_data* sd) {
     std::memset(sd->searchHistory, 0, sizeof(sd->searchHistory));
-    std::memset(sd->cont_hist, 0, sizeof(sd->cont_hist));
+    std::memset(sd->contHist, 0, sizeof(sd->contHist));
     std::memset(sd->captHist, 0, sizeof(sd->captHist));
 }
