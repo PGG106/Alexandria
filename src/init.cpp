@@ -212,11 +212,11 @@ void InitAll() {
 void InitNewGame(S_ThreadData* td) {
     // Extract data structures from ThreadData
     S_Board* pos = &td->pos;
-    Search_data* ss = &td->ss;
+    Search_data* sd = &td->sd;
     S_SearchINFO* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
-    CleanHistories(ss);
+    CleanHistories(sd);
 
     // Clean the Pv array
     for (int index = 0; index < MAXDEPTH + 1; ++index) {
@@ -229,7 +229,7 @@ void InitNewGame(S_ThreadData* td) {
     // Clean the Counter moves array
     for (int index = 0; index < Board_sq_num; ++index) {
         for (int index2 = 0; index2 < Board_sq_num; ++index2) {
-            ss->CounterMoves[index][index2] = NOMOVE;
+            sd->counterMoves[index][index2] = NOMOVE;
         }
     }
 

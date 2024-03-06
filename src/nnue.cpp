@@ -88,7 +88,7 @@ void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int 
     }
 }
 
-void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<std::size_t, std::size_t>>& NNUEAdd, std::vector<std::pair<std::size_t, std::size_t>>& NNUESub) {
+void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<NNUEIndices>& NNUEAdd, std::vector<NNUEIndices>& NNUESub) {
     int adds = NNUEAdd.size();
     int subs = NNUESub.size();
 
@@ -97,32 +97,25 @@ void NNUE::update(NNUE::accumulator& board_accumulator, std::vector<std::pair<st
 
     // Quiets
     if (adds == 1 && subs == 1) {
-        auto [whiteAddIdx, blackAddIdx] = NNUEAdd[0];
-        auto [whiteSubIdx, blackSubIdx] = NNUESub[0];
-        addSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx, blackSubIdx);
+        addSub(board_accumulator, NNUEAdd[0], NNUESub[0]);
     }
     // Captures
     else if (adds == 1 && subs == 2) {
-        auto [whiteAddIdx, blackAddIdx] = NNUEAdd[0];
-        auto [whiteSubIdx1, blackSubIdx1] = NNUESub[0];
-        auto [whiteSubIdx2, blackSubIdx2] = NNUESub[1];
-        addSubSub(board_accumulator, whiteAddIdx, blackAddIdx, whiteSubIdx1, blackSubIdx1, whiteSubIdx2, blackSubIdx2);
+        addSubSub(board_accumulator, NNUEAdd[0], NNUESub[0], NNUESub[1]);
     }
     // Castling
     else {
-        auto [whiteAddIdx1, blackAddIdx1] = NNUEAdd[0];
-        auto [whiteAddIdx2, blackAddIdx2] = NNUEAdd[1];
-        auto [whiteSubIdx1, blackSubIdx1] = NNUESub[0];
-        auto [whiteSubIdx2, blackSubIdx2] = NNUESub[1];
-        addSub(board_accumulator, whiteAddIdx1, blackAddIdx1, whiteSubIdx1, blackSubIdx1);
-        addSub(board_accumulator, whiteAddIdx2, blackAddIdx2, whiteSubIdx2, blackSubIdx2);
+        addSub(board_accumulator, NNUEAdd[0], NNUESub[0]);
+        addSub(board_accumulator, NNUEAdd[1], NNUESub[1]);
     }
     // Reset the add and sub vectors
     NNUEAdd.clear();
     NNUESub.clear();
 }
 
-void NNUE::addSub(NNUE::accumulator& board_accumulator, std::size_t whiteAddIdx, std::size_t blackAddIdx, std::size_t whiteSubIdx, std::size_t blackSubIdx) {
+void NNUE::addSub(NNUE::accumulator& board_accumulator, NNUEIndices add, NNUEIndices sub) {
+    auto [whiteAddIdx, blackAddIdx] = add;
+    auto [whiteSubIdx, blackSubIdx] = sub;
     auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
     auto whiteSub = &net.featureWeights[whiteSubIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
@@ -135,13 +128,11 @@ void NNUE::addSub(NNUE::accumulator& board_accumulator, std::size_t whiteAddIdx,
     }
 }
 
-void NNUE::addSubSub(NNUE::accumulator& board_accumulator, 
-                     std::size_t whiteAddIdx,
-                     std::size_t blackAddIdx,
-                     std::size_t whiteSubIdx1,
-                     std::size_t blackSubIdx1,
-                     std::size_t whiteSubIdx2,
-                     std::size_t blackSubIdx2) {
+void NNUE::addSubSub(NNUE::accumulator& board_accumulator, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
+
+    auto [whiteAddIdx, blackAddIdx] = add;
+    auto [whiteSubIdx1, blackSubIdx1] = sub1;
+    auto [whiteSubIdx2, blackSubIdx2] = sub2;
 
     auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
     auto whiteSub1 = &net.featureWeights[whiteSubIdx1 * HIDDEN_SIZE];
@@ -224,7 +215,7 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whit
     return (output / QA + net.outputBias) * 400 / (QA * QB);
 }
 
-std::pair<std::size_t, std::size_t> NNUE::GetIndex(const int piece, const int square) {
+NNUEIndices NNUE::GetIndex(const int piece, const int square) {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     int piecetype = GetPieceType(piece);

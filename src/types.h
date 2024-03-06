@@ -106,7 +106,7 @@ constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 
 // Contains the material Values of the pieces
 constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
-                      100, 300, 300, 450, 900, 0,0,0,0 };
+                                 100, 300, 300, 450, 900, 0, 0, 0, 0 };
 
 enum {
     queenPromotionScore = 2000000001,
