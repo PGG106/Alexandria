@@ -511,6 +511,9 @@ moves_loop:
         if (isQuiet && SkipQuiets)
             continue;
 
+        // Speculative prefetch of the TT entry
+        TTPrefetch(keyAfter(pos, move));
+
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
@@ -586,8 +589,6 @@ moves_loop:
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
-        // Speculative prefetch of the TT entry
-        TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
         MakeMove(move, pos);
