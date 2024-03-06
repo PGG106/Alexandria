@@ -806,8 +806,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     int bestmove = NOMOVE;
     int move = NOMOVE;
     int totalMoves = 0;
-    const int futilityBase = ss->staticEval + 192;
-    const bool doFutilityPruning = !inCheck && BoardHasNonPawns(pos, pos->side);
 
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
@@ -819,12 +817,14 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
-            &&  doFutilityPruning
+            && !inCheck
             && !isPromo(move)
-            &&  futilityBase <= alpha
-            && !SEE(pos, move, 1)) {
-            bestScore = std::max(futilityBase, bestScore);
-            continue;
+            &&  BoardHasNonPawns(pos, pos->side)) {
+            const int futilityBase = ss->staticEval + 192;
+            if (futilityBase <= alpha && !SEE(pos, move, 1)) {
+                bestScore = std::max(futilityBase, bestScore);
+                continue;
+            }
         }
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
