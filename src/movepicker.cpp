@@ -50,10 +50,10 @@ void ScoreMoves(Movepicker* mp) {
 }
 
 void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
-    int bestScore = -2147483645;
+    int bestScore = moveList->moves[moveNum].score;
     int bestNum = moveNum;
     // starting at the number of the current move and stopping at the end of the list
-    for (int index = moveNum; index < moveList->count; ++index) {
+    for (int index = moveNum + 1; index < moveList->count; ++index) {
         // if we find a move with a better score than our bestmove we use that as the new best move
         if (moveList->moves[index].score > bestScore) {
             bestScore = moveList->moves[index].score;
