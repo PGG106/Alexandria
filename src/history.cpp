@@ -22,10 +22,12 @@ void updateHHScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
 }
 
 void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
+    // Average out the bonus across the 3 conthist entries
+    const int scaledBonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
     // Update move score
-    updateSingleCHScore(sd, ss, move, bonus, 1);
-    updateSingleCHScore(sd, ss, move, bonus, 2);
-    updateSingleCHScore(sd, ss, move, bonus, 4);
+    updateSingleCHScore(sd, ss, move, scaledBonus, 1);
+    updateSingleCHScore(sd, ss, move, scaledBonus, 2);
+    updateSingleCHScore(sd, ss, move, scaledBonus, 4);
 }
 
 void updateSingleCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus, const int offset) {
