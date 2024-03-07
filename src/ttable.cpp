@@ -9,11 +9,12 @@ S_HashTable HashTable[1];
 
 void ClearHashTable(S_HashTable* table) {
     std::fill(table->pTable.begin(), table->pTable.end(), S_HashEntry());
+    table->age = 1;
 }
 
 void InitHashTable(S_HashTable* table, uint64_t MB) {
     const uint64_t hashSize = 0x100000 * MB;
-    const uint64_t numEntries = (hashSize / sizeof(S_HashEntry)) - 2;
+    const uint64_t numEntries = (hashSize / sizeof(S_HashEntry)) - 3;
     table->pTable.resize(numEntries);
     ClearHashTable(table);
     std::cout << "HashTable init complete with " << numEntries << " entries\n";
@@ -23,11 +24,14 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte){
     const uint64_t index = Index(posKey);
 
     *tte = HashTable->pTable[index];
+    bool ttHit = tte->ttKey == static_cast<TTKey>(posKey);
+    if (ttHit)
+        UpdateEntryAge(tte->ageBoundPV);
 
-    return (HashTable->pTable[index].ttKey == static_cast<TTKey>(posKey));
+    return ttHit;
 }
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int flag, const int depth, const bool pv, const bool wasPV) {
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     S_HashEntry* tte = &HashTable->pTable[index];
@@ -38,9 +42,12 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
         tte->move = move;
 
     // Overwrite less valuable entries (cheapest checks first)
-    if (flag == HFEXACT || static_cast<TTKey>(key) != tte->ttKey || depth + 5 + 2 * pv > tte->depth) {
+    if (   bound == HFEXACT
+        || static_cast<TTKey>(key) != tte->ttKey
+        || depth + 5 + 2 * pv > tte->depth
+        || AgeFromTT(tte->ageBoundPV) != HashTable->age) {
         tte->ttKey = static_cast<TTKey>(key);
-        tte->boundPV = PackToTT(flag, wasPV);
+        tte->ageBoundPV = PackToTT(bound, wasPV, HashTable->age);
         tte->score = static_cast<int16_t>(score);
         tte->eval = eval;
         tte->depth = static_cast<uint8_t>(depth);
@@ -51,7 +58,7 @@ int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
         S_HashEntry *tte = &HashTable->pTable[i];
-        if (tte->ttKey != 0)
+        if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable->age)
             hit++;
     }
     return hit / 2;
@@ -110,14 +117,28 @@ int MoveFromTT(S_Board *pos, int16_t packed_move) {
     return (packed_move | (piece << 16));
 }
 
-uint8_t BoundFromTT(uint8_t boundPV) {
-    return boundPV & 0b00000011;
+uint8_t BoundFromTT(uint8_t ageBoundPV) {
+    return ageBoundPV & 0b00000011;
 }
 
-bool FormerPV(uint8_t boundPV) {
-    return boundPV & 0b00000100;
+bool FormerPV(uint8_t ageBoundPV) {
+    return ageBoundPV & 0b00000100;
 }
 
-uint8_t PackToTT(uint8_t flag, bool wasPV) {
-    return static_cast<uint8_t>(flag + (wasPV << 2));
+uint8_t AgeFromTT(uint8_t ageBoundPV) {
+    return (ageBoundPV & 0b11111000) >> 3;
+}
+
+uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
+    return static_cast<uint8_t>(bound + (wasPV << 2) + (age << 3));
+}
+
+void UpdateEntryAge(uint8_t &ageBoundPV) {
+    uint8_t bound = BoundFromTT(ageBoundPV);
+    bool formerPV = FormerPV(ageBoundPV);
+    ageBoundPV = PackToTT(bound, formerPV, HashTable->age);
+}
+
+void UpdateTableAge() {
+    HashTable->age = (HashTable->age + 1) % MAX_AGE;
 }

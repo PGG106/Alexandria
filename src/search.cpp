@@ -198,7 +198,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
     std::cout << "\n";
 }
 
-// SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the AspirationWindowSearch function and handles the console output
+// SearchPosition is the actual function that handles the search, it sets up the variables needed for the search, calls the AspirationWindowSearch function and handles the console output
 void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
@@ -207,6 +207,7 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
     int previousBestMove = NOMOVE;
     // Clean the position and the search info to start search from a clean state
     ClearForSearch(td);
+    UpdateTableAge();
 
     // Call the Negamax function in an iterative deepening framework
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
@@ -358,7 +359,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     const bool ttHit = excludedMove ? false : ProbeHashEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
-    const uint8_t ttBound = ttHit ? BoundFromTT(tte.boundPV) : uint8_t(HFNONE);
+    const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
@@ -368,7 +369,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
             ||  ttBound == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && FormerPV(tte.boundPV));
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
@@ -760,7 +761,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     const bool ttHit = ProbeHashEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
-    const uint8_t ttBound = ttHit ? BoundFromTT(tte.boundPV) : uint8_t(HFNONE);
+    const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
@@ -769,7 +770,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             ||  ttBound == HFEXACT))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && FormerPV(tte.boundPV));
+    const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
 
     if (inCheck) {
         ss->staticEval = SCORE_NONE;
