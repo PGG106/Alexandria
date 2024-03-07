@@ -22,18 +22,17 @@ void updateHHScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
 }
 
 void updateCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus) {
-    // Scale bonus to fix it in a [-32768;32768] range
-    const int scaledBonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
     // Update move score
-    updateSingleCHScore(sd, ss, move, scaledBonus, 1);
-    updateSingleCHScore(sd, ss, move, scaledBonus, 2);
-    updateSingleCHScore(sd, ss, move, scaledBonus, 4);
+    updateSingleCHScore(sd, ss, move, bonus, 1);
+    updateSingleCHScore(sd, ss, move, bonus, 2);
+    updateSingleCHScore(sd, ss, move, bonus, 4);
 }
 
 void updateSingleCHScore(Search_data* sd, const Search_stack* ss, const int move, const int bonus, const int offset) {
     if (ss->ply >= offset) {
         const int previousMove = (ss - offset)->move;
-        sd->contHist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)] += bonus;
+        const int scaledBonus = bonus - GetSingleCHScore(sd, ss, move, offset) * std::abs(bonus) / 65536;
+        sd->contHist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)] += scaledBonus;
     }
 }
 
@@ -103,10 +102,7 @@ int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move) 
 
 int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
     if (!isTactical(move))
-        return   2 * GetHHScore(pos, sd, move)
-               + 2 * GetSingleCHScore(sd, ss, move, 1)
-               + 2 * GetSingleCHScore(sd, ss, move, 2)
-               +     GetSingleCHScore(sd, ss, move, 4);
+        return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
     else
         return GetCapthistScore(pos, sd, move);
 }
