@@ -4,24 +4,30 @@
 #include "types.h"
 #include <vector>
 
+constexpr int ENTRIES_PER_BUCKET = 2;
+
 PACK(struct S_HashEntry {
     int16_t move = NOMOVE;
     int16_t score = SCORE_NONE;
     int16_t eval = SCORE_NONE;
     TTKey ttKey = 0;
     uint8_t depth = 0;
-    uint8_t ageBoundPV = HFNONE;
-    // lower 2 bits is bound, 3rd bit is PV, next 5 is age
+    uint8_t ageBoundPV = HFNONE; // lower 2 bits is bound, 3rd bit is PV, next 5 is age
+});
+
+PACK(struct S_HashBucket {
+    S_HashEntry entries[ENTRIES_PER_BUCKET];
 });
 
 struct S_HashTable {
-    std::vector<S_HashEntry> pTable;
+    std::vector<S_HashBucket> pTable;
     uint8_t age;
 };
 
 extern S_HashTable HashTable[1];
 
-constexpr uint8_t MAX_AGE = 1 << 5;
+constexpr uint8_t MAX_AGE = 1 << 5; // must be power of 2
+constexpr uint8_t AGE_MASK = MAX_AGE - 1;
 
 void ClearHashTable(S_HashTable* table);
 // Initialize an Hashtable of size MB
