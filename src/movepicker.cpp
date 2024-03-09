@@ -31,11 +31,6 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = killerMoveScore0;
             continue;
         }
-        // Second killer move always comes after the first one
-        else if (move == mp->killer1) {
-            moveList->moves[i].score = killerMoveScore1;
-            continue;
-        }
         // After the killer moves try the Counter moves
         else if (move == mp->counter) {
             moveList->moves[i].score = counterMoveScore;
@@ -77,7 +72,6 @@ void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, con
     mp->capturesOnly = capturesOnly;
     mp->SEEThreshold = SEEThreshold;
     mp->killer0 = ss->searchKillers[0];
-    mp->killer1 = ss->searchKillers[1];
     mp->counter = sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)];
 }
 

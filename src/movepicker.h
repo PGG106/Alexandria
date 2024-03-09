@@ -18,7 +18,6 @@ struct Movepicker {
     int stage;
     int ttMove;
     int killer0;
-    int killer1;
     int counter;
     bool capturesOnly;
     int SEEThreshold;

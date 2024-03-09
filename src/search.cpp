@@ -380,7 +380,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     // clean killers and excluded move for the next ply
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKillers[0] = NOMOVE;
-    (ss + 1)->searchKillers[1] = NOMOVE;
 
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck || excludedMove) {
@@ -617,7 +616,7 @@ moves_loop:
                 depthReduction += 1;
 
             // Reduce less if the move is a refutation
-            if (move == mp.killer0 || move == mp.killer1 || move == mp.counter)
+            if (move == mp.killer0 || move == mp.counter)
                 depthReduction -= 1;
 
             // Reduce less if we have been on the PV
@@ -692,12 +691,7 @@ moves_loop:
                 if (score >= beta) {
                     // If the move that caused the beta cutoff is quiet we have a killer move
                     if (isQuiet) {
-                        // Don't update killer moves if it would result in having 2 identical killer moves
-                        if (ss->searchKillers[0] != bestMove) {
-                            // store killer moves
-                            ss->searchKillers[1] = ss->searchKillers[0];
-                            ss->searchKillers[0] = bestMove;
-                        }
+                        ss->searchKillers[0] = bestMove;
 
                         // Save counterMoves
                         if (ss->ply >= 1)
