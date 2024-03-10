@@ -24,14 +24,12 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
 
     const uint64_t index = Index(posKey);
     S_HashBucket *bucket = &HashTable->pTable[index];
-    bool ttHit = false;
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         tte = &bucket->entries[i];
-        ttHit = tte->ttKey == static_cast<TTKey>(posKey);
-        if (ttHit)
-            break;
+        if (tte->ttKey == static_cast<TTKey>(posKey))
+            return true;
     }
-    return ttHit;
+    return false;
 }
 
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV) {
