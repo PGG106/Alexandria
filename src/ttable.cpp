@@ -24,16 +24,13 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
 
     const uint64_t index = Index(posKey);
     S_HashBucket *bucket = &HashTable->pTable[index];
-    bool ttHit;
+    bool ttHit = false;
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         tte = &bucket->entries[i];
         ttHit = tte->ttKey == static_cast<TTKey>(posKey);
-        if (ttHit) {
-            UpdateEntryAge(tte->ageBoundPV);
+        if (ttHit)
             break;
-        }
     }
-
     return ttHit;
 }
 
@@ -45,8 +42,8 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
     S_HashEntry* tte = &bucket->entries[0];
     for (int i = 1; i < ENTRIES_PER_BUCKET; i++) {
         S_HashEntry* entry = &bucket->entries[i];
-        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK)
-            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK)) {
+        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
+            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
             tte = entry;
         }
     }
