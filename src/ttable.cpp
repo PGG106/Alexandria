@@ -20,12 +20,12 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
     std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
-bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
+bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
 
     const uint64_t index = Index(posKey);
     S_HashBucket *bucket = &HashTable->pTable[index];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
-        tte = &bucket->entries[i];
+        *tte = bucket->entries[i];
         if (tte->ttKey == static_cast<TTKey>(posKey)) {
             UpdateEntryAge(tte->ageBoundPV);
             return true;
