@@ -26,8 +26,10 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
     S_HashBucket *bucket = &HashTable->pTable[index];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         tte = &bucket->entries[i];
-        if (tte->ttKey == static_cast<TTKey>(posKey))
+        if (tte->ttKey == static_cast<TTKey>(posKey)) {
+            UpdateEntryAge(tte->ageBoundPV);
             return true;
+        }
     }
     return false;
 }
@@ -154,6 +156,12 @@ uint8_t AgeFromTT(uint8_t ageBoundPV) {
 
 uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
     return static_cast<uint8_t>(bound + (wasPV << 2) + (age << 3));
+}
+
+void UpdateEntryAge(uint8_t &ageBoundPV) {
+    const uint8_t bound = BoundFromTT(ageBoundPV);
+    const bool formerPV = FormerPV(ageBoundPV);
+    ageBoundPV = PackToTT(bound, formerPV, HashTable->age);
 }
 
 void UpdateTableAge() {
