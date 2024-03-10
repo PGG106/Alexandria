@@ -24,11 +24,12 @@ PACK(struct S_HashEntry {
 
 // Packs the 12-byte entries into 64-byte buckets
 // 5 entries per bucket with 4 bytes of padding
-typedef struct {
-    S_HashEntry entries[ENTRIES_PER_BUCKET];
+struct S_HashBucket {
+    S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
     uint32_t padding;
-} S_HashBucket;
+};
 
+static_assert(sizeof(S_HashEntry) == 12);
 static_assert(sizeof(S_HashBucket) == 64);
 
 struct S_HashTable {

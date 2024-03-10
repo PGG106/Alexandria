@@ -18,13 +18,6 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
     table->pTable.resize(numBuckets);
     ClearHashTable(table);
     std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
-    /*
-    for (int i = 0; i < numBuckets; i++) {
-        for (int j = 0; j < ENTRIES_PER_BUCKET; j++) {
-            std::cout << &HashTable->pTable[i].entries[j].depth << "\n";
-        }
-    }
-    */
 }
 
 bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
@@ -47,6 +40,16 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
     S_HashEntry* tte = &bucket->entries[0];
     for (int i = 1; i < ENTRIES_PER_BUCKET; i++) {
         S_HashEntry* entry = &bucket->entries[i];
+
+        if (!tte->ttKey) {
+            break;
+        }
+
+        if (!entry->ttKey) {
+            tte = entry;
+            break;
+        }
+
         if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
             > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
             tte = entry;
