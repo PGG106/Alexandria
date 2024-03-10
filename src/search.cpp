@@ -606,8 +606,9 @@ moves_loop:
         if (totalMoves > 1 + pvNode && depth >= 3) {
 
             // Get base reduction value
-            int depthReduction = reductions[isQuiet][depth][totalMoves];
+            int depthReduction = 1;
             if((isQuiet || !ttPv)){
+            depthReduction = reductions[isQuiet][depth][totalMoves];
             // Fuck
             if (cutNode)
                 depthReduction += 2;
