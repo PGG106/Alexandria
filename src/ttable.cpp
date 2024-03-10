@@ -18,6 +18,13 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
     table->pTable.resize(numBuckets);
     ClearHashTable(table);
     std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
+    /*
+    for (int i = 0; i < numBuckets; i++) {
+        for (int j = 0; j < ENTRIES_PER_BUCKET; j++) {
+            std::cout << &HashTable->pTable[i].entries[j].depth << "\n";
+        }
+    }
+    */
 }
 
 bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
