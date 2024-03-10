@@ -49,8 +49,8 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
             break;
         }
 
-        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
-            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
+        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 8
+            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 8) {
             tte = entry;
         }
     }
@@ -63,8 +63,7 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
     // Overwrite less valuable entries (cheapest checks first)
     if (   bound == HFEXACT
         || key32 != tte->ttKey
-        || depth + 5 + 2 * pv > tte->depth
-        || AgeFromTT(tte->ageBoundPV) != TTAge) {
+        || depth + 5 + 2 * pv > tte->depth) {
         tte->ttKey = key32;
         tte->ageBoundPV = PackToTT(bound, wasPV, TTAge);
         tte->score = static_cast<int16_t>(score);
