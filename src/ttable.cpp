@@ -17,7 +17,7 @@ void InitHashTable(S_HashTable* table, uint64_t MB) {
     const uint64_t numBuckets = (hashSize / sizeof(S_HashBucket)) - 3;
     table->pTable.resize(numBuckets);
     ClearHashTable(table);
-    std::cout << "HashTable init complete with " << numBuckets << "buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
+    std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
 bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte) {
@@ -146,12 +146,6 @@ uint8_t AgeFromTT(uint8_t ageBoundPV) {
 
 uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
     return static_cast<uint8_t>(bound + (wasPV << 2) + (age << 3));
-}
-
-void UpdateEntryAge(uint8_t &ageBoundPV) {
-    const uint8_t bound = BoundFromTT(ageBoundPV);
-    const bool formerPV = FormerPV(ageBoundPV);
-    ageBoundPV = PackToTT(bound, formerPV, HashTable->age);
 }
 
 void UpdateTableAge() {
