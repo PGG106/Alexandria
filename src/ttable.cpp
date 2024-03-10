@@ -83,7 +83,7 @@ int GetHashfull() {
                 hit++;
         }
     }
-    return hit / 2;
+    return hit / (2 * ENTRIES_PER_BUCKET);
 }
 
 uint64_t Index(const ZobristKey posKey) {
