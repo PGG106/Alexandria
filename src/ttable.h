@@ -16,7 +16,7 @@ PACK(struct S_HashEntry {
 });
 
 PACK(struct S_HashBucket {
-    S_HashEntry entries[ENTRIES_PER_BUCKET];
+    S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
 });
 
 struct S_HashTable {
