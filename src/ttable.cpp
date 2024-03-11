@@ -37,14 +37,14 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
-    const TTKey key32 = static_cast<TTKey>(key);
+    const TTKey key16 = static_cast<TTKey>(key);
     const uint8_t TTAge = HashTable->age;
     S_HashBucket* bucket = &HashTable->pTable[index];
     S_HashEntry* tte = &bucket->entries[0];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         S_HashEntry* entry = &bucket->entries[i];
 
-        if (!entry->ttKey || entry->ttKey == key32) {
+        if (!entry->ttKey || entry->ttKey == key16) {
             tte = entry;
             break;
         }
@@ -57,15 +57,14 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
 
     // Replacement strategy taken from Stockfish
     // Preserve any existing move for the same position
-    if (move || key32 != tte->ttKey)
+    if (move || key16 != tte->ttKey)
         tte->move = move;
 
     // Overwrite less valuable entries (cheapest checks first)
     if (   bound == HFEXACT
-        || key32 != tte->ttKey
-        || depth + 5 + 2 * pv > tte->depth
-        || AgeFromTT(tte->ageBoundPV) != TTAge) {
-        tte->ttKey = key32;
+        || key16 != tte->ttKey
+        || depth + 5 + 2 * pv > tte->depth) {
+        tte->ttKey = key16;
         tte->ageBoundPV = PackToTT(bound, wasPV, TTAge);
         tte->score = static_cast<int16_t>(score);
         tte->eval = eval;

@@ -8,7 +8,7 @@
 // define bitboard data type
 using Bitboard = uint64_t;
 // define poskey data type
-using TTKey = uint32_t;
+using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 

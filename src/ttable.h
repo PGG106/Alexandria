@@ -4,13 +4,13 @@
 #include "types.h"
 #include <vector>
 
-constexpr int ENTRIES_PER_BUCKET = 5;
+constexpr int ENTRIES_PER_BUCKET = 3;
 
-// 12 bytes:
+// 10 bytes:
 // 2 for move
 // 2 for score
 // 2 for eval
-// 4 for key
+// 2 for key
 // 1 for depth
 // 1 for age + bound + PV
 PACK(struct S_HashEntry {
@@ -22,15 +22,15 @@ PACK(struct S_HashEntry {
     uint8_t ageBoundPV = HFNONE; // lower 2 bits is bound, 3rd bit is PV, next 5 is age
 });
 
-// Packs the 12-byte entries into 64-byte buckets
-// 5 entries per bucket with 4 bytes of padding
+// Packs the 10-byte entries into 32-byte buckets
+// 3 entries per bucket with 2 bytes of padding
 struct S_HashBucket {
     S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
-    uint32_t padding;
+    uint16_t padding;
 };
 
-static_assert(sizeof(S_HashEntry) == 12);
-static_assert(sizeof(S_HashBucket) == 64);
+static_assert(sizeof(S_HashEntry) == 10);
+static_assert(sizeof(S_HashBucket) == 32);
 
 struct S_HashTable {
     std::vector<S_HashBucket> pTable;
