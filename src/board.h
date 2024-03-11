@@ -156,7 +156,7 @@ struct S_SearchINFO {
 
 // castling rights update constants
 constexpr int castling_rights[64] = {
-     7, 15, 15, 15, 3,  15, 15, 11,
+     7, 15, 15, 15,  3, 15, 15, 11,
     15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15,
