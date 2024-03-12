@@ -11,10 +11,10 @@
 // Remove a piece from a square
 void ClearPiece(const int piece, const int from, S_Board* pos) {
     const int color = Color[piece];
-    HashKey(pos, PieceKeys[piece][from]);
     pop_bit(pos->bitboards[piece], from);
-    pos->pieces[from] = EMPTY;
     pop_bit(pos->occupancies[color], from);
+    pos->pieces[from] = EMPTY;
+    HashKey(pos, PieceKeys[piece][from]);
 }
 
 // Add a piece to a square
@@ -86,8 +86,8 @@ void MakeUCIMove(const int move, S_Board* pos) {
     pos->plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
-    // if a pawn was moved reset the 50 move rule counter
-    if (GetPieceType(piece) == PAWN)
+    // if a pawn was moved or a capture was played reset the 50 move rule counter
+    if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
     // handling capture moves
@@ -97,10 +97,6 @@ void MakeUCIMove(const int move, S_Board* pos) {
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
         ClearPiece(pieceCap, capturedPieceLocation, pos);
-
-        pos->history[pos->hisPly].capture = pieceCap;
-        // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
     }
 
     // increment ply counters
@@ -197,8 +193,8 @@ void MakeMove(const int move, S_Board* pos) {
     pos->plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
-    // if a pawn was moved reset the 50 move rule counter
-    if (GetPieceType(piece) == PAWN)
+    // if a pawn was moved or a capture was played reset the 50 move rule counter
+    if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
     // handling capture moves
@@ -210,8 +206,6 @@ void MakeMove(const int move, S_Board* pos) {
         ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
 
         pos->history[pos->hisPly].capture = pieceCap;
-        // a capture was played so reset 50 move rule counter
-        pos->fiftyMove = 0;
     }
 
     // increment ply counters
@@ -301,12 +295,12 @@ void UnmakeMove(const int move, S_Board* pos) {
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
-  
+
     pos->accumStackHead--;
 
     // handle pawn promotions
     if (promotion) {
-        const int promoted_piece = GetPiece(getPromotedPiecetype(move),pos->side^1);
+        const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side ^ 1);
         ClearPiece(promoted_piece, targetSquare, pos);
     }
 
@@ -395,4 +389,3 @@ void TakeNullMove(S_Board* pos) {
     pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }
-
