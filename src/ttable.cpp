@@ -27,14 +27,13 @@ bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         *tte = bucket->entries[i];
         if (tte->ttKey == static_cast<TTKey>(posKey)) {
-            UpdateEntryAge(tte->ageBoundPV);
             return true;
         }
     }
     return false;
 }
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV) {
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     const TTKey key16 = static_cast<TTKey>(key);
@@ -49,8 +48,8 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
             break;
         }
 
-        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 8
-            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 8) {
+        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
+            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
             tte = entry;
         }
     }
@@ -63,11 +62,12 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
     // Overwrite less valuable entries (cheapest checks first)
     if (   bound == HFEXACT
         || key16 != tte->ttKey
-        || depth + 5 + 2 * pv > tte->depth) {
+        || depth + 5 + 2 * pv > tte->depth
+        || AgeFromTT(tte->ageBoundPV) != TTAge) {
         tte->ttKey = key16;
         tte->ageBoundPV = PackToTT(bound, wasPV, TTAge);
         tte->score = static_cast<int16_t>(score);
-        tte->eval = eval;
+        tte->eval = static_cast<int16_t>(eval);
         tte->depth = static_cast<uint8_t>(depth);
     }
 }
