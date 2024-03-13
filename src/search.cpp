@@ -749,7 +749,6 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         td->info.stopped = true;
     }
 
-    // If position is a draw return a randomized draw score to avoid 3-fold blindness
     if (MaterialDraw(pos))
         return 0;
 
