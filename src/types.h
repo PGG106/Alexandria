@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#define NAME "Alexandria-6.0.14"
+#define NAME "Alexandria-6.0.15"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
