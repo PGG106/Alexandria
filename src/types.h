@@ -1,14 +1,14 @@
 #pragma once
 #include <cstdint>
 
-#define NAME "Alexandria-6.0.14"
+#define NAME "Alexandria-6.0.15"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 // define bitboard data type
 using Bitboard = uint64_t;
 // define poskey data type
-using TTKey = uint32_t;
+using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 

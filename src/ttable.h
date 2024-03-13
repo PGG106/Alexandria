@@ -4,24 +4,43 @@
 #include "types.h"
 #include <vector>
 
+constexpr int ENTRIES_PER_BUCKET = 3;
+
+// 10 bytes:
+// 2 for move
+// 2 for score
+// 2 for eval
+// 2 for key
+// 1 for depth
+// 1 for age + bound + PV
 PACK(struct S_HashEntry {
     int16_t move = NOMOVE;
     int16_t score = SCORE_NONE;
     int16_t eval = SCORE_NONE;
     TTKey ttKey = 0;
     uint8_t depth = 0;
-    uint8_t ageBoundPV = HFNONE;
-    // lower 2 bits is bound, 3rd bit is PV, next 5 is age
+    uint8_t ageBoundPV = HFNONE; // lower 2 bits is bound, 3rd bit is PV, next 5 is age
 });
 
+// Packs the 10-byte entries into 32-byte buckets
+// 3 entries per bucket with 2 bytes of padding
+struct S_HashBucket {
+    S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
+    uint16_t padding;
+};
+
+static_assert(sizeof(S_HashEntry) == 10);
+static_assert(sizeof(S_HashBucket) == 32);
+
 struct S_HashTable {
-    std::vector<S_HashEntry> pTable;
+    std::vector<S_HashBucket> pTable;
     uint8_t age;
 };
 
 extern S_HashTable HashTable[1];
 
-constexpr uint8_t MAX_AGE = 1 << 5;
+constexpr uint8_t MAX_AGE = 1 << 5; // must be power of 2
+constexpr uint8_t AGE_MASK = MAX_AGE - 1;
 
 void ClearHashTable(S_HashTable* table);
 // Initialize an Hashtable of size MB
@@ -29,7 +48,7 @@ void InitHashTable(S_HashTable* table, uint64_t MB);
 
 [[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV);
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV);
 
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
 

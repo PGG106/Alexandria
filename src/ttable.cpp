@@ -8,48 +8,66 @@
 S_HashTable HashTable[1];
 
 void ClearHashTable(S_HashTable* table) {
-    std::fill(table->pTable.begin(), table->pTable.end(), S_HashEntry());
+    std::fill(table->pTable.begin(), table->pTable.end(), S_HashBucket());
     table->age = 1;
 }
 
 void InitHashTable(S_HashTable* table, uint64_t MB) {
     const uint64_t hashSize = 0x100000 * MB;
-    const uint64_t numEntries = (hashSize / sizeof(S_HashEntry)) - 3;
-    table->pTable.resize(numEntries);
+    const uint64_t numBuckets = (hashSize / sizeof(S_HashBucket)) - 3;
+    table->pTable.resize(numBuckets);
     ClearHashTable(table);
-    std::cout << "HashTable init complete with " << numEntries << " entries\n";
+    std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
-bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte){
+bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
+
     const uint64_t index = Index(posKey);
-
-    *tte = HashTable->pTable[index];
-    bool ttHit = tte->ttKey == static_cast<TTKey>(posKey);
-    if (ttHit)
-        UpdateEntryAge(tte->ageBoundPV);
-
-    return ttHit;
+    S_HashBucket *bucket = &HashTable->pTable[index];
+    for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
+        *tte = bucket->entries[i];
+        if (tte->ttKey == static_cast<TTKey>(posKey)) {
+            return true;
+        }
+    }
+    return false;
 }
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t eval, const int bound, const int depth, const bool pv, const bool wasPV) {
+void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
-    S_HashEntry* tte = &HashTable->pTable[index];
+    const TTKey key16 = static_cast<TTKey>(key);
+    const uint8_t TTAge = HashTable->age;
+    S_HashBucket* bucket = &HashTable->pTable[index];
+    S_HashEntry* tte = &bucket->entries[0];
+    for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
+        S_HashEntry* entry = &bucket->entries[i];
+
+        if (!entry->ttKey || entry->ttKey == key16) {
+            tte = entry;
+            break;
+        }
+
+        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
+            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
+            tte = entry;
+        }
+    }
 
     // Replacement strategy taken from Stockfish
     // Preserve any existing move for the same position
-    if (move || static_cast<TTKey>(key) != HashTable->pTable[index].ttKey)
+    if (move || key16 != tte->ttKey)
         tte->move = move;
 
     // Overwrite less valuable entries (cheapest checks first)
     if (   bound == HFEXACT
-        || static_cast<TTKey>(key) != tte->ttKey
+        || key16 != tte->ttKey
         || depth + 5 + 2 * pv > tte->depth
-        || AgeFromTT(tte->ageBoundPV) != HashTable->age) {
-        tte->ttKey = static_cast<TTKey>(key);
-        tte->ageBoundPV = PackToTT(bound, wasPV, HashTable->age);
+        || AgeFromTT(tte->ageBoundPV) != TTAge) {
+        tte->ttKey = key16;
+        tte->ageBoundPV = PackToTT(bound, wasPV, TTAge);
         tte->score = static_cast<int16_t>(score);
-        tte->eval = eval;
+        tte->eval = static_cast<int16_t>(eval);
         tte->depth = static_cast<uint8_t>(depth);
     }
 }
@@ -57,11 +75,14 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int16_t
 int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
-        S_HashEntry *tte = &HashTable->pTable[i];
-        if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable->age)
-            hit++;
+        const S_HashBucket *bucket = &HashTable->pTable[i];
+        for (int idx = 0; idx < ENTRIES_PER_BUCKET; idx++) {
+            const S_HashEntry *tte = &bucket->entries[idx];
+            if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable->age)
+                hit++;
+        }
     }
-    return hit / 2;
+    return hit / (2 * ENTRIES_PER_BUCKET);
 }
 
 uint64_t Index(const ZobristKey posKey) {
@@ -82,7 +103,7 @@ void prefetch(const void* addr) {
 }
 
 void TTPrefetch(const ZobristKey posKey) {
-    prefetch(&HashTable->pTable[Index(posKey)]);
+    prefetch(&HashTable->pTable[Index(posKey)].entries[0]);
 }
 
 
@@ -113,7 +134,7 @@ int MoveFromTT(S_Board *pos, int16_t packed_move) {
     if (packed_move == NOMOVE)
         return NOMOVE;
 
-    int piece = pos->PieceOn(From(packed_move));
+    const int piece = pos->PieceOn(From(packed_move));
     return (packed_move | (piece << 16));
 }
 
@@ -134,11 +155,11 @@ uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
 }
 
 void UpdateEntryAge(uint8_t &ageBoundPV) {
-    uint8_t bound = BoundFromTT(ageBoundPV);
-    bool formerPV = FormerPV(ageBoundPV);
+    const uint8_t bound = BoundFromTT(ageBoundPV);
+    const bool formerPV = FormerPV(ageBoundPV);
     ageBoundPV = PackToTT(bound, formerPV, HashTable->age);
 }
 
 void UpdateTableAge() {
-    HashTable->age = (HashTable->age + 1) % MAX_AGE;
+    HashTable->age = (HashTable->age + 1) & AGE_MASK;
 }
