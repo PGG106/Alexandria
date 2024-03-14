@@ -41,14 +41,22 @@ static bool IsRepetition(const S_Board* pos, const bool pvNode) {
 static bool Is50MrDraw(S_Board* pos) {
 
     if (pos->Get50mrCounter() >= 100) {
+
         // If there's no risk we are being checkmated return true
         if (!pos->checkers)
             return true;
+
         // if we are in check make sure it's not checkmate 
-        S_MOVELIST move_list[1];
+        S_MOVELIST moveList[1];
         // generate moves
-        GenerateMoves(move_list, pos);
-        return move_list->count > 0;
+        GenerateMoves(moveList, pos);
+        for (int i = 0; i < moveList->count; i++) {
+            const int move = moveList->moves[i].move;
+            if (IsLegal(pos, move)) {
+                return true; // We have at least one legal move, so it is a draw
+            }
+        }
+        return false; // We have no legal moves, it is checkmate
     }
 
     return false;
