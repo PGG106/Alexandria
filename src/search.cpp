@@ -512,6 +512,8 @@ moves_loop:
         if (isQuiet && SkipQuiets)
             continue;
 
+        const bool killerOrCounter = move == mp.killer0 || move == mp.killer1 || move == mp.counter;
+
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
@@ -528,6 +530,14 @@ moves_loop:
 
                 // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
                 const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves]);
+
+                // History pruning
+                if (isQuiet
+                    && !killerOrCounter
+                    && lmrDepth < 7
+                    && GetHistoryScore(pos,sd,move,ss) < -2500 * lmrDepth) {
+                    SkipQuiets = true;
+                }
 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
@@ -617,7 +627,7 @@ moves_loop:
                 depthReduction += 1;
 
             // Reduce less if the move is a refutation
-            if (move == mp.killer0 || move == mp.killer1 || move == mp.counter)
+            if (killerOrCounter)
                 depthReduction -= 1;
 
             // Reduce less if we have been on the PV
