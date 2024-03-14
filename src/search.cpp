@@ -535,7 +535,7 @@ moves_loop:
                 if (isQuiet
                     && !killerOrCounter
                     && lmrDepth < 7
-                    && GetHistoryScore(pos,sd,move,ss) < -2500 * lmrDepth) {
+                    && GetHistoryScore(pos,sd,move,ss) < -3000 * depth) {
                     SkipQuiets = true;
                 }
 
