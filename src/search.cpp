@@ -47,11 +47,11 @@ static bool Is50MrDraw(S_Board* pos) {
             return true;
 
         // if we are in check make sure it's not checkmate 
-        S_MOVELIST moveList[1];
+        S_MOVELIST moveList;
         // generate moves
-        GenerateMoves(moveList, pos);
-        for (int i = 0; i < moveList->count; i++) {
-            const int move = moveList->moves[i].move;
+        GenerateMoves(&moveList, pos);
+        for (int i = 0; i < moveList.count; i++) {
+            const int move = moveList.moves[i].move;
             if (IsLegal(pos, move)) {
                 return true; // We have at least one legal move, so it is a draw
             }
