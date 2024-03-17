@@ -4,8 +4,11 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <immintrin.h>
 #include "incbin/incbin.h"
+
+#if defined(USE_AVX512) || defined(USE_AVX2)
+#include <immintrin.h>
+#endif
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).

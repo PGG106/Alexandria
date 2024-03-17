@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+
+#if defined(USE_AVX512) || defined(USE_AVX2)
 #include <immintrin.h>
+#endif
 
 constexpr int INPUT_WEIGHTS = 768;
 constexpr int HIDDEN_SIZE = 1024;
