@@ -1,7 +1,6 @@
 #include "ttable.h"
 #include "assert.h"
 #include "io.h"
-#include "xmmintrin.h"
 #include <cstring>
 #include <iostream>
 
