@@ -205,11 +205,12 @@ void MakeMove(const int move, S_Board* pos) {
         assert(GetPieceType(pieceCap) != KING);
         ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
 
-        pos->history[pos->hisPly].capture = pieceCap;
+        pos->history[pos->historyStackHead].capture = pieceCap;
     }
 
     // increment ply counters
     pos->hisPly++;
+    pos->historyStackHead++;
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -280,6 +281,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     // quiet moves
 
     pos->hisPly--;
+    pos->historyStackHead--;
 
     restorePreviousBoardState(pos);
 
@@ -312,7 +314,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     // handle captures
     if (capture) {
         // Retrieve the captured piece we have to restore
-        const int piececap = pos->history[pos->hisPly].capture;
+        const int piececap = pos->history[pos->historyStackHead].capture;
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         AddPiece(piececap, capturedPieceLocation, pos);
     }
@@ -363,6 +365,7 @@ void MakeNullMove(S_Board* pos) {
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->hisPly++;
+    pos->historyStackHead++;
     pos->fiftyMove++;
     pos->plyFromNull = 0;
 
@@ -382,6 +385,7 @@ void MakeNullMove(S_Board* pos) {
 // Take back a null move
 void TakeNullMove(S_Board* pos) {
     pos->hisPly--;
+    pos->historyStackHead--;
 
     restorePreviousBoardState(pos);
 

@@ -51,7 +51,8 @@ public:
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
-    S_Undo    history[1024];
+    int historyStackHead = 0;
+    S_Undo    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     std::vector<NNUEIndices> NNUEAdd = {};

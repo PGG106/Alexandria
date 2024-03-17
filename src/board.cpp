@@ -460,22 +460,22 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->hisPly].fiftyMove = pos->fiftyMove;
-    pos->history[pos->hisPly].enPas = pos->enPas;
-    pos->history[pos->hisPly].castlePerm = pos->castleperm;
-    pos->history[pos->hisPly].plyFromNull = pos->plyFromNull;
-    pos->history[pos->hisPly].checkers = pos->checkers;
-    pos->history[pos->hisPly].checkMask = pos->checkMask;
-    pos->history[pos->hisPly].pinned = pos->pinned;
+    pos->history[pos->historyStackHead].fiftyMove = pos->fiftyMove;
+    pos->history[pos->historyStackHead].enPas = pos->enPas;
+    pos->history[pos->historyStackHead].castlePerm = pos->castleperm;
+    pos->history[pos->historyStackHead].plyFromNull = pos->plyFromNull;
+    pos->history[pos->historyStackHead].checkers = pos->checkers;
+    pos->history[pos->historyStackHead].checkMask = pos->checkMask;
+    pos->history[pos->historyStackHead].pinned = pos->pinned;
 }
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->enPas = pos->history[pos->hisPly].enPas;
-    pos->fiftyMove = pos->history[pos->hisPly].fiftyMove;
-    pos->castleperm = pos->history[pos->hisPly].castlePerm;
-    pos->plyFromNull = pos->history[pos->hisPly].plyFromNull;
-    pos->checkers = pos->history[pos->hisPly].checkers;
-    pos->checkMask = pos->history[pos->hisPly].checkMask;
-    pos->pinned = pos->history[pos->hisPly].pinned;
+    pos->enPas = pos->history[pos->historyStackHead].enPas;
+    pos->fiftyMove = pos->history[pos->historyStackHead].fiftyMove;
+    pos->castleperm = pos->history[pos->historyStackHead].castlePerm;
+    pos->plyFromNull = pos->history[pos->historyStackHead].plyFromNull;
+    pos->checkers = pos->history[pos->historyStackHead].checkers;
+    pos->checkMask = pos->history[pos->historyStackHead].checkMask;
+    pos->pinned = pos->history[pos->historyStackHead].pinned;
 }
