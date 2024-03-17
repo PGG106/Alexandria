@@ -286,66 +286,7 @@ void UnmakeMove(const int move, S_Board* pos) {
     pos->NNUEAdd.clear();
     pos->NNUESub.clear();
 
-    // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
-    const int piece = Piece(move);
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
-
     pos->accumStackHead--;
-
-    // handle pawn promotions
-    if (promotion) {
-        const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side ^ 1);
-        ClearPiece(promoted_piece, targetSquare, pos);
-    }
-
-    // move piece
-    MovePiece(piece, targetSquare, sourceSquare, pos);
-
-    const int SOUTH = pos->side == WHITE ? -8 : 8;
-
-    // handle captures
-    if (capture) {
-        // Retrieve the captured piece we have to restore
-        const int piececap = pos->history[pos->hisPly].capture;
-        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        AddPiece(piececap, capturedPieceLocation, pos);
-    }
-
-    // handle castling moves
-    if (castling) {
-        // switch target square
-        switch (targetSquare) {
-            // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece(WR, f1, h1, pos);
-            break;
-
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece(WR, d1, a1, pos);
-            break;
-
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece(BR, f8, h8, pos);
-            break;
-
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece(BR, d8, a8, pos);
-            break;
-        }
-    }
 
     // change side
     pos->ChangeSide();

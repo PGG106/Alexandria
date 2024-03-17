@@ -467,6 +467,9 @@ void saveBoardState(S_Board* pos) {
     pos->history[pos->hisPly].checkers = pos->checkers;
     pos->history[pos->hisPly].checkMask = pos->checkMask;
     pos->history[pos->hisPly].pinned = pos->pinned;
+    std::memcpy(pos->history[pos->hisPly].occupancies, pos->occupancies, sizeof(pos->occupancies));
+    std::memcpy(pos->history[pos->hisPly].bitboards, pos->bitboards, sizeof(pos->bitboards));
+    std::memcpy(pos->history[pos->hisPly].pieces, pos->pieces, sizeof(pos->pieces));
 }
 
 void restorePreviousBoardState(S_Board* pos)
@@ -478,4 +481,7 @@ void restorePreviousBoardState(S_Board* pos)
     pos->checkers = pos->history[pos->hisPly].checkers;
     pos->checkMask = pos->history[pos->hisPly].checkMask;
     pos->pinned = pos->history[pos->hisPly].pinned;
+    std::memcpy(pos->occupancies, pos->history[pos->hisPly].occupancies,  sizeof(pos->occupancies));
+    std::memcpy(pos->bitboards, pos->history[pos->hisPly].bitboards,  sizeof(pos->bitboards));
+    std::memcpy(pos->pieces, pos->history[pos->hisPly].pieces,  sizeof(pos->pieces));
 }

@@ -34,6 +34,9 @@ struct S_Undo {
     Bitboard checkers = 0ULL;
     Bitboard checkMask = fullCheckmask;
     Bitboard pinned;
+    int pieces[Board_sq_num];
+    Bitboard bitboards[12] = {};
+    Bitboard occupancies[2] = {};
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
