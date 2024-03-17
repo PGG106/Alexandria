@@ -5,25 +5,25 @@
 #include <cstring>
 #include <iostream>
 
-S_HashTable HashTable[1];
+S_HashTable HashTable;
 
-void ClearHashTable(S_HashTable* table) {
-    std::fill(table->pTable.begin(), table->pTable.end(), S_HashBucket());
-    table->age = 1;
+void ClearHashTable() {
+    std::fill(HashTable.pTable.begin(), HashTable.pTable.end(), S_HashBucket());
+    HashTable.age = 1;
 }
 
-void InitHashTable(S_HashTable* table, uint64_t MB) {
+void InitHashTable(uint64_t MB) {
     const uint64_t hashSize = 0x100000 * MB;
     const uint64_t numBuckets = (hashSize / sizeof(S_HashBucket)) - 3;
-    table->pTable.resize(numBuckets);
-    ClearHashTable(table);
+    HashTable.pTable.resize(numBuckets);
+    ClearHashTable();
     std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
 bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
 
     const uint64_t index = Index(posKey);
-    S_HashBucket *bucket = &HashTable->pTable[index];
+    S_HashBucket *bucket = &HashTable.pTable[index];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         *tte = bucket->entries[i];
         if (tte->ttKey == static_cast<TTKey>(posKey)) {
@@ -37,8 +37,8 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eva
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     const TTKey key16 = static_cast<TTKey>(key);
-    const uint8_t TTAge = HashTable->age;
-    S_HashBucket* bucket = &HashTable->pTable[index];
+    const uint8_t TTAge = HashTable.age;
+    S_HashBucket* bucket = &HashTable.pTable[index];
     S_HashEntry* tte = &bucket->entries[0];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         S_HashEntry* entry = &bucket->entries[i];
@@ -75,10 +75,10 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eva
 int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
-        const S_HashBucket *bucket = &HashTable->pTable[i];
+        const S_HashBucket *bucket = &HashTable.pTable[i];
         for (int idx = 0; idx < ENTRIES_PER_BUCKET; idx++) {
             const S_HashEntry *tte = &bucket->entries[idx];
-            if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable->age)
+            if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable.age)
                 hit++;
         }
     }
@@ -87,9 +87,9 @@ int GetHashfull() {
 
 uint64_t Index(const ZobristKey posKey) {
 #ifdef __SIZEOF_INT128__
-    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(HashTable->pTable.size())) >> 64));
+    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(HashTable.pTable.size())) >> 64));
 #else 
-    return posKey % HashTable->pTable.size();
+    return posKey % HashTable.pTable.size();
 #endif
 }
 
@@ -103,7 +103,7 @@ void prefetch(const void* addr) {
 }
 
 void TTPrefetch(const ZobristKey posKey) {
-    prefetch(&HashTable->pTable[Index(posKey)].entries[0]);
+    prefetch(&HashTable.pTable[Index(posKey)].entries[0]);
 }
 
 
@@ -157,9 +157,9 @@ uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
 void UpdateEntryAge(uint8_t &ageBoundPV) {
     const uint8_t bound = BoundFromTT(ageBoundPV);
     const bool formerPV = FormerPV(ageBoundPV);
-    ageBoundPV = PackToTT(bound, formerPV, HashTable->age);
+    ageBoundPV = PackToTT(bound, formerPV, HashTable.age);
 }
 
 void UpdateTableAge() {
-    HashTable->age = (HashTable->age + 1) & AGE_MASK;
+    HashTable.age = (HashTable.age + 1) & AGE_MASK;
 }
