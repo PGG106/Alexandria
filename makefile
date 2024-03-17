@@ -5,7 +5,7 @@ _ROOT       := $(_THIS)
 EVALFILE     = $(NETWORK_NAME)
 CXX         := g++
 TARGET      := Alexandria
-WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wold-style-cast -Wundef -pedantic
+WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS    :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
 
@@ -14,10 +14,6 @@ NATIVE       = -march=native
 NAME        := Alexandria
 
 TMPDIR = .tmp
-
-ifeq ($(CXX), g++)
-WARNINGS += -Wlogical-op
-endif
 
 # Detect Clang
 ifeq ($(CXX), clang++)
