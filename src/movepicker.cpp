@@ -61,9 +61,7 @@ void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
         }
     }
     // swap the move with the best score with the move in place moveNum
-    S_MOVE temp = moveList->moves[moveNum];
-    moveList->moves[moveNum] = moveList->moves[bestNum];
-    moveList->moves[bestNum] = temp;
+    std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
 void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
