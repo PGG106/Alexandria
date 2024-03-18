@@ -828,7 +828,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
             && !inCheck
             && !isPromo(move)
             &&  BoardHasNonPawns(pos, pos->side)) {
-            if (totalMoves > 4)
+            if (totalMoves > 2)
                 break;
 
             // Futility pruning. If static eval is far below alpha, only search moves that win material.
