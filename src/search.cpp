@@ -18,9 +18,9 @@
 #include "io.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const S_Board* pos, const bool pvNode) {
+static bool IsRepetition(const S_Board* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
-    int counter = 1;
+    int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
     // Get the point our search should start from
@@ -29,9 +29,14 @@ static bool IsRepetition(const S_Board* pos, const bool pvNode) {
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
         if (pos->played_positions[startingPoint - index] == pos->posKey) {
-            // we found a repetition
+
+            // we found a 2-fold repetition within the search tree
+            if (index < pos->historyStackHead)
+                return true;
+
             counter++;
-            if (counter >= 2 + pvNode)
+            // we found a 3-fold repetition which occurred in part before or at root
+            if (counter >= 2)
                 return true;
         }
     return false;
@@ -63,9 +68,9 @@ static bool Is50MrDraw(S_Board* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(S_Board* pos, const bool pvNode) {
+bool IsDraw(S_Board* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
-    return IsRepetition(pos, pvNode)
+    return IsRepetition(pos)
         || Is50MrDraw(pos)
         || MaterialDraw(pos);
 }
@@ -348,8 +353,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
 
     // Check for early return conditions
     if (!rootNode) {
-        // If position is a draw return a randomized draw score to avoid 3-fold blindness
-        if (IsDraw(pos, pvNode))
+        // If position is a draw return a draw score
+        if (IsDraw(pos))
             return 0;
 
         // If we reached maxdepth we return a static evaluation of the position
@@ -757,8 +762,8 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         td->info.stopped = true;
     }
 
-    // If position is a draw return a randomized draw score to avoid 3-fold blindness
-    if (IsDraw(pos, pvNode))
+    // If position is a draw return a draw score
+    if (IsDraw(pos))
         return 0;
 
     // If we reached maxdepth we return a static evaluation of the position
