@@ -37,14 +37,14 @@ struct S_HashTable {
     uint8_t age;
 };
 
-extern S_HashTable HashTable[1];
+extern S_HashTable HashTable;
 
 constexpr uint8_t MAX_AGE = 1 << 5; // must be power of 2
 constexpr uint8_t AGE_MASK = MAX_AGE - 1;
 
-void ClearHashTable(S_HashTable* table);
+void ClearHashTable();
 // Initialize an Hashtable of size MB
-void InitHashTable(S_HashTable* table, uint64_t MB);
+void InitHashTable(uint64_t MB);
 
 [[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
 

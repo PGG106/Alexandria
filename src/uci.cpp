@@ -17,7 +17,7 @@
 #include "eval.h"
 
 // convert a move to coordinate notation to internal notation
-int ParseMove(const std::string& move_string, S_Board* pos) {
+int ParseMove(const std::string& moveString, S_Board* pos) {
     // create move list instance
     S_MOVELIST moveList[1];
 
@@ -25,10 +25,10 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
     GenerateMoves(moveList, pos);
 
     // parse source square
-    const int sourceSquare = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
+    const int sourceSquare = (moveString[0] - 'a') + (8 - (moveString[1] - '0')) * 8;
 
     // parse target square
-    const int targetSquare = (move_string[2] - 'a') + (8 - (move_string[3] - '0')) * 8;
+    const int targetSquare = (moveString[2] - 'a') + (8 - (moveString[3] - '0')) * 8;
 
     // loop over the moves within a move list
     for (int move_count = 0; move_count < moveList->count; move_count++) {
@@ -41,19 +41,19 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
             if (isPromo(move)) {
                 switch (getPromotedPiecetype(move)) {
                 case QUEEN:
-                    if (move_string[4] == 'q')
+                    if (moveString[4] == 'q')
                         return move;
                     break;
                 case ROOK:
-                    if (move_string[4] == 'r')
+                    if (moveString[4] == 'r')
                     return move;
                     break;
                 case BISHOP:
-                    if (move_string[4] == 'b')
+                    if (moveString[4] == 'b')
                     return move;
                     break;
                 case KNIGHT:
-                    if (move_string[4] == 'n')
+                    if (moveString[4] == 'n')
                     return move;
                     break;
                 }
@@ -64,7 +64,7 @@ int ParseMove(const std::string& move_string, S_Board* pos) {
             return move;
         }
     }
-    std::cout << "Illegal move parsed: " << move_string;
+    std::cout << "Illegal move parsed: " << moveString;
     // return illegal move
     return NOMOVE;
 }
@@ -271,7 +271,7 @@ void UciLoop(int argc, char** argv) {
             if (tokens.at(2) == "Hash") {
                 uci_options->Hash = std::stoi(tokens.at(4));
                 std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
-                InitHashTable(HashTable, uci_options->Hash);
+                InitHashTable(uci_options->Hash);
             }
             else if (tokens.at(2) == "Threads") {
                 uci_options->Threads = std::stoi(tokens.at(4));

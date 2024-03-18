@@ -13,7 +13,7 @@ struct Movepicker {
     S_Board* pos;
     Search_data* sd;
     Search_stack* ss;
-    S_MOVELIST moveList[1];
+    S_MOVELIST moveList;
     int idx;
     int stage;
     int ttMove;

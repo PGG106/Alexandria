@@ -6,7 +6,7 @@
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
 void ScoreMoves(Movepicker* mp) {
-    S_MOVELIST* moveList = mp->moveList;
+    S_MOVELIST* moveList = &mp->moveList;
     S_Board* pos = mp->pos;
     Search_data* sd = mp->sd;
     Search_stack* ss = mp->ss;
@@ -61,9 +61,7 @@ void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
         }
     }
     // swap the move with the best score with the move in place moveNum
-    S_MOVE temp = moveList->moves[moveNum];
-    moveList->moves[moveNum] = moveList->moves[bestNum];
-    moveList->moves[bestNum] = temp;
+    std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
 void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
@@ -87,32 +85,31 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
         ++mp->stage;
         return mp->ttMove;
 
-    case GEN_MOVES: {
+    case GEN_MOVES:
         if (mp->capturesOnly) {
-            GenerateCaptures(mp->moveList, mp->pos);
+            GenerateCaptures(&mp->moveList, mp->pos);
         }
         else {
-            GenerateMoves(mp->moveList, mp->pos);
+            GenerateMoves(&mp->moveList, mp->pos);
         }
         ScoreMoves(mp);
         ++mp->stage;
         [[fallthrough]];
-    }
-    case PICK_MOVES: {
-        while (mp->idx < mp->moveList->count) {
-            partialInsertionSort(mp->moveList, mp->idx);
-            const int move = mp->moveList->moves[mp->idx].move;
+
+    case PICK_MOVES:
+        while (mp->idx < mp->moveList.count) {
+            partialInsertionSort(&mp->moveList, mp->idx);
+            const int move = mp->moveList.moves[mp->idx].move;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
 
-            if (skipNonGood && mp->moveList->moves[mp->idx-1].score < goodCaptureMin)
+            if (skipNonGood && mp->moveList.moves[mp->idx-1].score < goodCaptureMin)
                 return NOMOVE;
 
             return move;
         }
         return NOMOVE;
-    }
     }
     return NOMOVE;
 }

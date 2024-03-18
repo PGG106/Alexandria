@@ -15,7 +15,7 @@ unsigned long long nodes;
 // perft driver
 void PerftDriver(int depth, S_Board* pos) {
     // create move list instance
-    S_MOVELIST move_list[1];
+    S_MOVELIST moveList;
 
     // Non bulk Counting
     if (depth == 0) {
@@ -24,11 +24,11 @@ void PerftDriver(int depth, S_Board* pos) {
     }
 
     // generate moves
-    GenerateMoves(move_list, pos);
+    GenerateMoves(&moveList, pos);
 
     // loop over generated moves
-    for (int move_count = 0; move_count < move_list->count; move_count++) {
-        int move = move_list->moves[move_count].move;
+    for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+        int move = moveList.moves[moveCount].move;
         if (!IsLegal(pos, move))
             continue;
 
@@ -49,17 +49,17 @@ unsigned long long PerftTest(int depth, S_Board* pos) {
     std::cout << ("\n     Performance test\n\n");
 
     // create move list instance
-    S_MOVELIST move_list[1];
+    S_MOVELIST moveList;
 
     // generate moves
-    GenerateMoves(move_list, pos);
+    GenerateMoves(&moveList, pos);
 
     // init start time
     long start = GetTimeMs();
 
     // loop over generated moves
-    for (int move_count = 0; move_count < move_list->count; move_count++) {
-        const int move = move_list->moves[move_count].move;
+    for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+        const int move = moveList.moves[moveCount].move;
 
         if (!IsLegal(pos, move))
             continue;

@@ -66,15 +66,15 @@ const char* benchmarkfens[52] = {
 void StartBench(int depth) {
     // init all
     InitAll();
-    S_UciOptions uci_options[1];
+    S_UciOptions uciOptions;
     S_ThreadData* td(new S_ThreadData());
     uint64_t totalNodes = 0;
-    InitHashTable(HashTable, 64);
+    InitHashTable(64);
     auto start = std::chrono::steady_clock::now();
     for (int positions = 0; positions < 52; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
-        RootSearch(depth, td, uci_options);
+        RootSearch(depth, td, &uciOptions);
         totalNodes += td->info.nodes;
     }
     auto end = std::chrono::steady_clock::now();
@@ -88,7 +88,7 @@ void BenchInference() {
     // init all
     InitAll();
     S_ThreadData* td(new S_ThreadData());
-    InitHashTable(HashTable, 64);
+    InitHashTable(64);
     int dummy_eval = 0;
     int64_t sum = 0;
     int count = 100000000;
