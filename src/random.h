@@ -10,6 +10,3 @@ extern unsigned int random_state;
 
 // generate 64-bit pseudo legal numbers
 [[nodiscard]] Bitboard GetRandomBitboardNumber();
-
-// generate magic number candidate
-[[nodiscard]] Bitboard GenerateMagicNumber();

@@ -34,9 +34,3 @@ Bitboard GetRandomBitboardNumber() {
     // return random number
     return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
 }
-
-// generate magic number candidate
-Bitboard GenerateMagicNumber() {
-    return GetRandomBitboardNumber() & GetRandomBitboardNumber() &
-        GetRandomBitboardNumber();
-}
