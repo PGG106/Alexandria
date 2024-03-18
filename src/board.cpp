@@ -43,10 +43,6 @@ void ResetInfo(S_SearchINFO* info) {
     info->nodeset = false;
 }
 
-int SquareDistance(int a, int b) {
-    return std::max(abs(get_file[a] - get_file[b]), abs(get_rank[a] - get_rank[b]));
-}
-
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos) {
 

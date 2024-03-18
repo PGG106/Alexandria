@@ -185,8 +185,6 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 // NNUE
 extern NNUE nnue;
 
-[[nodiscard]] int SquareDistance(int a, int b);
-
 // parse FEN string
 void ParseFen(const std::string& command, S_Board* pos);
 // Get fen string from board
