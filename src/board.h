@@ -25,7 +25,7 @@ extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-struct S_Undo {
+struct S_boardState {
     int castlePerm = 15;
     int capture = EMPTY;
     int enPas = 0;
@@ -52,7 +52,7 @@ public:
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
     int historyStackHead = 0;
-    S_Undo    history[MAXPLY];
+    S_boardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     std::vector<NNUEIndices> NNUEAdd = {};
