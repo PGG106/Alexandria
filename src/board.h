@@ -65,10 +65,11 @@ public:
     Bitboard checkers;
     Bitboard checkMask = fullCheckmask;
   
-    NNUE::accumulator accumStack[256];
+    NNUE::accumulator accumStack[MAXPLY];
     int accumStackHead;
 
     inline NNUE::accumulator& AccumulatorTop() {
+        assert(accumStackHead <= MAXPLY);
         return accumStack[accumStackHead-1];
     }
 
