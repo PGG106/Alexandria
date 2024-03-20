@@ -108,7 +108,7 @@ void InitSlidersAttacks() {
 
                 // init magic index
                 uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >>
-                    (64 - bishop_relevant_bits[square]);
+                    (64 - bishop_relevant_bits);
 
                 // init bishop attacks
                 bishop_attacks[square][magic_index] =
@@ -137,7 +137,7 @@ void InitSlidersAttacks() {
 
             // init magic index
             uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
-                (64 - rook_relevant_bits[square]);
+                (64 - rook_relevant_bits);
 
             // init rook attacks
             rook_attacks[square][magic_index] =
