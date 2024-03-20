@@ -60,4 +60,4 @@ template <bool pvNode>
 [[nodiscard]] bool SEE(const S_Board* pos, const int move, const int threshold);
 
 // Checks if the current position is a draw
-[[nodiscard]] bool IsDraw(S_Board* pos, const bool pvNode);
+[[nodiscard]] bool IsDraw(S_Board* pos);
