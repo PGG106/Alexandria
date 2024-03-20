@@ -363,21 +363,21 @@ void MakeNullMove(S_Board* pos) {
     saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
+    // Update the zobrist key asap so we can prefetch
+    if (GetEpSquare(pos) != no_sq)
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+    pos->ChangeSide();
+    HashKey(pos, SideKey);
+    TTPrefetch(pos->GetPoskey());
 
     pos->hisPly++;
     pos->historyStackHead++;
     pos->fiftyMove++;
     pos->plyFromNull = 0;
 
-    // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
     // reset enpassant square
     pos->enPas = no_sq;
 
-    pos->ChangeSide();
-    HashKey(pos, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
 }
