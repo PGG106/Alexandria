@@ -4,7 +4,7 @@
 
 struct Position;
 struct MoveList;
-struct S_ThreadData;
+struct ThreadData;
 struct S_UciOptions;
 
 void PrintBitboard(const Bitboard bitboard);
@@ -23,4 +23,4 @@ void PrintMoveList(const MoveList* list);
 
 [[nodiscard]] char* FormatMove(const int move);
 
-void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options);
+void PrintUciOutput(const int score, const int depth, const ThreadData* td, const S_UciOptions* options);

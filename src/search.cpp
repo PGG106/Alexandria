@@ -76,7 +76,7 @@ bool IsDraw(Position* pos) {
 }
 
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
-void ClearForSearch(S_ThreadData* td) {
+void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
     SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
@@ -184,7 +184,7 @@ int GetBestMove(const PvTable* pvTable) {
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
+void RootSearch(int depth, ThreadData* td, S_UciOptions* options) {
     // Init a thread_data object for each helper thread that doesn't have one already
     for (int i = threads_data.size(); i < options->Threads - 1; i++) {
         threads_data.emplace_back();
@@ -212,7 +212,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 }
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search, calls the AspirationWindowSearch function and handles the console output
-void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptions* options) {
+void SearchPosition(int startDepth, int finalDepth, ThreadData* td, S_UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
     int averageScore = SCORE_NONE;
@@ -257,7 +257,7 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
     }
 }
 
-int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
+int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score = 0;
     td->RootDepth = depth;
     SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
@@ -318,7 +318,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 // Negamax alpha beta search
 template <bool pvNode>
-int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, SearchStack* ss) {
+int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, SearchStack* ss) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
@@ -747,7 +747,7 @@ moves_loop:
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-int Quiescence(int alpha, int beta, S_ThreadData* td, SearchStack* ss) {
+int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;

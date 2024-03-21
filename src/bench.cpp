@@ -67,7 +67,7 @@ void StartBench(int depth) {
     // init all
     InitAll();
     S_UciOptions uciOptions;
-    S_ThreadData* td(new S_ThreadData());
+    ThreadData* td(new ThreadData());
     uint64_t totalNodes = 0;
     InitHashTable(64);
     auto start = std::chrono::steady_clock::now();
@@ -87,7 +87,7 @@ void StartBench(int depth) {
 void BenchInference() {
     // init all
     InitAll();
-    S_ThreadData* td(new S_ThreadData());
+    ThreadData* td(new ThreadData());
     InitHashTable(64);
     int dummy_eval = 0;
     int64_t sum = 0;

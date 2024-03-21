@@ -3,7 +3,7 @@
 // global vector of search threads
 std::vector<std::thread> threads;
 // global vector of thread_datas
-std::vector<S_ThreadData> threads_data;
+std::vector<ThreadData> threads_data;
 
 uint64_t GetTotalNodes() {
     uint64_t nodes = 0ULL;

@@ -22,7 +22,7 @@ struct SearchData {
 };
 
 // a collection of all the data a thread needs to conduct a search
-struct S_ThreadData {
+struct ThreadData {
     int id = 0;
     Position pos;
     SearchData sd;
@@ -34,24 +34,24 @@ struct S_ThreadData {
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state
-void ClearForSearch(S_ThreadData* td);
+void ClearForSearch(ThreadData* td);
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options);
+void RootSearch(int depth, ThreadData* td, S_UciOptions* options);
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the Negamax function and handles the console output
-void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOptions* options);
+void SearchPosition(int start_depth, int final_depth, ThreadData* td, S_UciOptions* options);
 
 // Sets up aspiration windows and starts a Negamax search
-[[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td);
+[[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td);
 
 // Negamax alpha beta search
 template <bool pvNode>
-[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, SearchStack* ss);
+[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, SearchStack* ss);
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-[[nodiscard]] int Quiescence(int alpha, int beta, S_ThreadData* td, SearchStack* ss);
+[[nodiscard]] int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss);
 
 // Gets best move from PV table
 [[nodiscard]] int GetBestMove(const PvTable* pvTable);

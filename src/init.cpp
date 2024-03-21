@@ -209,7 +209,7 @@ void InitAll() {
     nnue.init("nn.net");
 }
 
-void InitNewGame(S_ThreadData* td) {
+void InitNewGame(ThreadData* td) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;

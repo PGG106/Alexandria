@@ -50,7 +50,7 @@ bool StopEarly(const SearchInfo* info) {
     return (info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt;
 }
 
-void ScaleTm(S_ThreadData* td, const int bestMoveStabilityFactor) {
+void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor) {
     constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move

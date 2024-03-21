@@ -205,7 +205,7 @@ void UciLoop(int argc, char** argv) {
 
     bool parsed_position = false;
     S_UciOptions uci_options[1];
-    S_ThreadData* td(new S_ThreadData());
+    ThreadData* td(new ThreadData());
     std::thread main_thread;
     state threads_state = Idle;
     // print engine info
