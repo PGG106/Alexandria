@@ -19,10 +19,10 @@
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
-    MoveList moveList[1];
+    MoveList moveList;
 
     // generate moves
-    GenerateMoves(moveList, pos);
+    GenerateMoves(&moveList, pos);
 
     // parse source square
     const int sourceSquare = (moveString[0] - 'a') + (8 - (moveString[1] - '0')) * 8;
@@ -31,9 +31,9 @@ int ParseMove(const std::string& moveString, Position* pos) {
     const int targetSquare = (moveString[2] - 'a') + (8 - (moveString[3] - '0')) * 8;
 
     // loop over the moves within a move list
-    for (int move_count = 0; move_count < moveList->count; move_count++) {
+    for (int move_count = 0; move_count < moveList.count; move_count++) {
         // init move
-        const int move = moveList->moves[move_count].move;
+        const int move = moveList.moves[move_count].move;
         // make sure source & target squares are available within the generated move
         if (sourceSquare == From(move) &&
             targetSquare == To(move)) {
@@ -204,7 +204,7 @@ void UciLoop(int argc, char** argv) {
     }
 
     bool parsed_position = false;
-    S_UciOptions uci_options[1];
+    S_UciOptions uciOptions;
     ThreadData* td(new ThreadData());
     std::thread main_thread;
     state threads_state = Idle;
@@ -258,7 +258,7 @@ void UciLoop(int argc, char** argv) {
             // Start search in a separate thread
             if (search) {
                 threads_state = Search;
-                main_thread = std::thread(RootSearch, td->info.depth, td, uci_options);
+                main_thread = std::thread(RootSearch, td->info.depth, td, &uciOptions);
             }
         }
 
@@ -269,13 +269,13 @@ void UciLoop(int argc, char** argv) {
                 continue;
             }
             if (tokens.at(2) == "Hash") {
-                uci_options->Hash = std::stoi(tokens.at(4));
-                std::cout << "Set Hash to " << uci_options->Hash << " MB\n";
-                InitHashTable(uci_options->Hash);
+                uciOptions.Hash = std::stoi(tokens.at(4));
+                std::cout << "Set Hash to " << uciOptions.Hash << " MB\n";
+                InitHashTable(uciOptions.Hash);
             }
             else if (tokens.at(2) == "Threads") {
-                uci_options->Threads = std::stoi(tokens.at(4));
-                std::cout << "Set Threads to " << uci_options->Threads << "\n";
+                uciOptions.Threads = std::stoi(tokens.at(4));
+                std::cout << "Set Threads to " << uciOptions.Threads << "\n";
             }
 #ifdef TUNE
             else {
@@ -378,13 +378,13 @@ void UciLoop(int argc, char** argv) {
 
         else if (input == "see") {
             // create move list instance
-            MoveList move_list[1];
+            MoveList moveList;
 
             // generate moves
-            GenerateMoves(move_list, &td->pos);
+            GenerateMoves(&moveList, &td->pos);
             printf("SEE thresholds\n");
-            for (int i = 0; i < move_list->count; i++) {
-                int move = move_list->moves[i].move;
+            for (int i = 0; i < moveList.count; i++) {
+                int move = moveList.moves[i].move;
                 for (int j = 1200; j > -1200; j--) {
                     if (SEE(&td->pos, move, j)) {
                         printf(" move number %d  %s SEE result: %d \n", i + 1, FormatMove(move), j);
