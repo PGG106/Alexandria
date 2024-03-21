@@ -8,7 +8,7 @@ struct S_MOVE {
 };
 
 // move list structure
-struct S_MOVELIST {
+struct MoveList {
     // moves
     S_MOVE moves[256];
 

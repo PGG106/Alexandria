@@ -6,7 +6,7 @@
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
 void ScoreMoves(Movepicker* mp) {
-    S_MOVELIST* moveList = &mp->moveList;
+    MoveList* moveList = &mp->moveList;
     Position* pos = mp->pos;
     Search_data* sd = mp->sd;
     Search_stack* ss = mp->ss;
@@ -49,7 +49,7 @@ void ScoreMoves(Movepicker* mp) {
     }
 }
 
-void partialInsertionSort(S_MOVELIST* moveList, const int moveNum) {
+void partialInsertionSort(MoveList* moveList, const int moveNum) {
     int bestScore = moveList->moves[moveNum].score;
     int bestNum = moveNum;
     // starting at the number of the current move and stopping at the end of the list

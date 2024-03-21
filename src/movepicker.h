@@ -1,7 +1,7 @@
 #pragma once
 #include "search.h"
 
-struct S_MOVELIST;
+struct MoveList;
 
 enum {
     PICK_TT,
@@ -13,7 +13,7 @@ struct Movepicker {
     Position* pos;
     Search_data* sd;
     Search_stack* ss;
-    S_MOVELIST moveList;
+    MoveList moveList;
     int idx;
     int stage;
     int ttMove;

@@ -52,7 +52,7 @@ static bool Is50MrDraw(Position* pos) {
             return true;
 
         // if we are in check make sure it's not checkmate 
-        S_MOVELIST moveList;
+        MoveList moveList;
         // generate moves
         GenerateMoves(&moveList, pos);
         for (int i = 0; i < moveList.count; i++) {
@@ -509,7 +509,7 @@ moves_loop:
     InitMP(&mp, pos, sd, ss, ttMove, false);
 
     // Keep track of the played quiet and noisy moves
-    S_MOVELIST quietMoves, noisyMoves;
+    MoveList quietMoves, noisyMoves;
     quietMoves.count = 0, noisyMoves.count = 0;
 
     // loop over moves within a movelist

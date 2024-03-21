@@ -152,7 +152,7 @@ char* FormatMove(const int move) {
     return Move;
 }
 
-void PrintMoveList(const S_MOVELIST* list) {
+void PrintMoveList(const MoveList* list) {
     for (int index = 0; index < list->count; ++index) {
         int move = list->moves[index].move;
         int score = list->moves[index].score;

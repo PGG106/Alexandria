@@ -19,7 +19,7 @@
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
-    S_MOVELIST moveList[1];
+    MoveList moveList[1];
 
     // generate moves
     GenerateMoves(moveList, pos);
@@ -378,7 +378,7 @@ void UciLoop(int argc, char** argv) {
 
         else if (input == "see") {
             // create move list instance
-            S_MOVELIST move_list[1];
+            MoveList move_list[1];
 
             // generate moves
             GenerateMoves(move_list, &td->pos);

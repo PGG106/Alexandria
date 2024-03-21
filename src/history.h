@@ -3,10 +3,10 @@
 struct Position;
 struct Search_data;
 struct Search_stack;
-struct S_MOVELIST;
+struct MoveList;
 
 // Functions used to update the history heuristics
-void UpdateHistories(const Position* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const S_MOVELIST* quietMoves, const S_MOVELIST* noisyMoves);
+void UpdateHistories(const Position* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const MoveList* quietMoves, const MoveList* noisyMoves);
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
 // Getters for the history heuristics

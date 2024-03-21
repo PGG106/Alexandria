@@ -10,12 +10,12 @@
 
 // leaf nodes (number of positions reached during the test of the move generator
 // at a given depth)
-unsigned long long nodes;
+uint64_t nodes;
 
 // perft driver
 void PerftDriver(int depth, Position* pos) {
     // create move list instance
-    S_MOVELIST moveList;
+    MoveList moveList;
 
     // Non bulk Counting
     if (depth == 0) {
@@ -49,7 +49,7 @@ unsigned long long PerftTest(int depth, Position* pos) {
     std::cout << ("\n     Performance test\n\n");
 
     // create move list instance
-    S_MOVELIST moveList;
+    MoveList moveList;
 
     // generate moves
     GenerateMoves(&moveList, pos);

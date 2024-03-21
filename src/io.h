@@ -3,7 +3,7 @@
 #include "types.h"
 
 struct Position;
-struct S_MOVELIST;
+struct MoveList;
 struct S_ThreadData;
 struct S_UciOptions;
 
@@ -19,7 +19,7 @@ void PrintAttackedSquares(const Position* pos, const int side);
 void PrintMove(const int move);
 
 // print move list
-void PrintMoveList(const S_MOVELIST* list);
+void PrintMoveList(const MoveList* list);
 
 [[nodiscard]] char* FormatMove(const int move);
 

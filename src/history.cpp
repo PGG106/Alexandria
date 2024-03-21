@@ -49,7 +49,7 @@ void updateCapthistScore(const Position* pos, Search_data* sd, int move, int bon
 }
 
 // Update all histories
-void UpdateHistories(const Position* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const S_MOVELIST* quietMoves, const S_MOVELIST* noisyMoves) {
+void UpdateHistories(const Position* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const MoveList* quietMoves, const MoveList* noisyMoves) {
     const int bonus = history_bonus(depth);
     if (!isTactical(bestMove))
     {
