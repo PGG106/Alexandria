@@ -5,7 +5,7 @@
 #include "misc.h"
 
 // Calculate how much time to spend on searching a move
-void Optimum(S_SearchINFO* info, int time, int inc) {
+void Optimum(SearchInfo* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
     if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
@@ -45,7 +45,7 @@ void Optimum(S_SearchINFO* info, int time, int inc) {
     }
 }
 
-bool StopEarly(const S_SearchINFO* info) {
+bool StopEarly(const SearchInfo* info) {
     // check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
     return (info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt;
 }
@@ -62,12 +62,12 @@ void ScaleTm(S_ThreadData* td, const int bestMoveStabilityFactor) {
 
 }
 
-bool NodesOver(const S_SearchINFO* info) {
+bool NodesOver(const SearchInfo* info) {
     // check if we used all the nodes/movetime we had or if we used more than our lowerbound of time
     return info->nodeset && info->nodes > info->nodeslimit;
 }
 
-bool TimeOver(const S_SearchINFO* info) {
+bool TimeOver(const SearchInfo* info) {
     // check if more than Maxtime passed and we have to stop
     return NodesOver(info) || ((info->timeset || info->movetimeset)
                                && ((info->nodes & 1023) == 1023)

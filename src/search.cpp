@@ -78,7 +78,7 @@ bool IsDraw(Position* pos) {
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(S_ThreadData* td) {
     // Extract data structures from ThreadData
-    S_SearchINFO* info = &td->info;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     // Clean the Pv array
@@ -260,7 +260,7 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
 int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
     int score = 0;
     td->RootDepth = depth;
-    Search_stack stack[MAXDEPTH + 4], *ss = stack + 4;
+    SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
     // Explicitely clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
@@ -318,11 +318,11 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 // Negamax alpha beta search
 template <bool pvNode>
-int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, Search_stack* ss) {
+int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, SearchStack* ss) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
@@ -747,10 +747,10 @@ moves_loop:
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
+int Quiescence(int alpha, int beta, S_ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     const bool inCheck = pos->checkers;
     // tte is an hashtable entry, it will store the values fetched from the TT
     S_HashEntry tte;

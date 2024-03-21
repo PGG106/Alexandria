@@ -4,7 +4,7 @@
 #include "position.h"
 #include "uci.h"
 
-struct Search_stack {
+struct SearchStack {
     int excludedMove = {};
     int16_t staticEval = {};
     int move = {};
@@ -13,7 +13,7 @@ struct Search_stack {
     int doubleExtensions = 0;
 };
 
-struct Search_data {
+struct SearchData {
     int searchHistory[2][Board_sq_num][Board_sq_num] = {};
     // Piece, To, Captured
     int captHist[12][Board_sq_num][6] = {};
@@ -25,8 +25,8 @@ struct Search_data {
 struct S_ThreadData {
     int id = 0;
     Position pos;
-    Search_data sd;
-    S_SearchINFO info;
+    SearchData sd;
+    SearchInfo info;
     PvTable pvTable;
     uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};
     int RootDepth;
@@ -47,11 +47,11 @@ void SearchPosition(int start_depth, int final_depth, S_ThreadData* td, S_UciOpt
 
 // Negamax alpha beta search
 template <bool pvNode>
-[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, Search_stack* ss);
+[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, SearchStack* ss);
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-[[nodiscard]] int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss);
+[[nodiscard]] int Quiescence(int alpha, int beta, S_ThreadData* td, SearchStack* ss);
 
 // Gets best move from PV table
 [[nodiscard]] int GetBestMove(const PvTable* pvTable);

@@ -25,7 +25,7 @@ extern int reductions[2][MAXDEPTH][MAXPLY];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
-struct S_boardState {
+struct BoardState {
     int castlePerm = 15;
     int capture = EMPTY;
     int enPas = 0;
@@ -52,7 +52,7 @@ public:
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
     int historyStackHead = 0;
-    S_boardState    history[MAXPLY];
+    BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
     std::vector<NNUEIndices> NNUEAdd = {};
@@ -131,7 +131,7 @@ struct PvTable {
 
 extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
 // Hold the data from the uci input to set search parameters and some search data to populate the uci output
-struct S_SearchINFO {
+struct SearchInfo {
     // search start time
     uint64_t starttime = 0;
     // search time initial lower bound if present
@@ -195,7 +195,7 @@ void ParseFen(const std::string& command, Position* pos);
 // Parse a string of moves in coordinate format and plays them
 void parse_moves(const std::string& moves, Position* pos);
 
-void ResetInfo(S_SearchINFO* info);
+void ResetInfo(SearchInfo* info);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 [[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);

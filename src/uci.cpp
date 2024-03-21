@@ -106,7 +106,7 @@ void ParsePosition(const std::string& command, Position* pos) {
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
-bool ParseGo(const std::string& line, S_SearchINFO* info, Position* pos) {
+bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
     ResetInfo(info);
     int depth = -1, movetime = -1;
     int movestogo;

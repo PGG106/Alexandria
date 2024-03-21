@@ -8,8 +8,8 @@
 void ScoreMoves(Movepicker* mp) {
     MoveList* moveList = &mp->moveList;
     Position* pos = mp->pos;
-    Search_data* sd = mp->sd;
-    Search_stack* ss = mp->ss;
+    SearchData* sd = mp->sd;
+    SearchStack* ss = mp->ss;
     // Loop through all the move in the movelist
     for (int i = 0; i < moveList->count; i++) {
         int move = moveList->moves[i].move;
@@ -64,7 +64,7 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
     std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
-void InitMP(Movepicker* mp, Position* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     mp->pos = pos;
     mp->sd = sd;

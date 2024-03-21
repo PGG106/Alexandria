@@ -4,7 +4,7 @@
 #include <string>
 
 struct Position;
-struct S_SearchINFO;
+struct SearchInfo;
 
 struct S_UciOptions {
     uint64_t Hash = 16;
@@ -22,7 +22,7 @@ extern bool tryhardmode;
 void ParsePosition(const std::string& command, Position* pos);
 
 // parse UCI "go" command
-[[nodiscard]] bool ParseGo(const std::string& line, S_SearchINFO* info, Position* pos);
+[[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos);
 
 // main UCI loop
 void UciLoop(int argc, char** argv);

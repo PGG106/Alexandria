@@ -28,7 +28,7 @@ void ResetBoard(Position* pos) {
     pos->plyFromNull = 0;
 }
 
-void ResetInfo(S_SearchINFO* info) {
+void ResetInfo(SearchInfo* info) {
     info->depth = 0;
     info->nodes = 0;
     info->starttime = 0;

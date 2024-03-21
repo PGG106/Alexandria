@@ -212,8 +212,8 @@ void InitAll() {
 void InitNewGame(S_ThreadData* td) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     CleanHistories(sd);
