@@ -66,7 +66,7 @@ const char* benchmarkfens[52] = {
 void StartBench(int depth) {
     // init all
     InitAll();
-    S_UciOptions uciOptions;
+    UciOptions uciOptions;
     ThreadData* td(new ThreadData());
     uint64_t totalNodes = 0;
     InitHashTable(64);

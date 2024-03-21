@@ -184,7 +184,7 @@ int GetBestMove(const PvTable* pvTable) {
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, ThreadData* td, S_UciOptions* options) {
+void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     // Init a thread_data object for each helper thread that doesn't have one already
     for (int i = threads_data.size(); i < options->Threads - 1; i++) {
         threads_data.emplace_back();
@@ -212,7 +212,7 @@ void RootSearch(int depth, ThreadData* td, S_UciOptions* options) {
 }
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search, calls the AspirationWindowSearch function and handles the console output
-void SearchPosition(int startDepth, int finalDepth, ThreadData* td, S_UciOptions* options) {
+void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
     int averageScore = SCORE_NONE;

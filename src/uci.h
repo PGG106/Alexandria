@@ -6,7 +6,7 @@
 struct Position;
 struct SearchInfo;
 
-struct S_UciOptions {
+struct UciOptions {
     uint64_t Hash = 16;
     int MultiPV = 1;
     int Threads = 1;

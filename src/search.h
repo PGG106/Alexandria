@@ -37,10 +37,10 @@ struct ThreadData {
 void ClearForSearch(ThreadData* td);
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, ThreadData* td, S_UciOptions* options);
+void RootSearch(int depth, ThreadData* td, UciOptions* options);
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search , calls the Negamax function and handles the console output
-void SearchPosition(int start_depth, int final_depth, ThreadData* td, S_UciOptions* options);
+void SearchPosition(int start_depth, int final_depth, ThreadData* td, UciOptions* options);
 
 // Sets up aspiration windows and starts a Negamax search
 [[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td);
