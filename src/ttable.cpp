@@ -8,22 +8,22 @@
 S_HashTable HashTable;
 
 void ClearHashTable() {
-    std::fill(HashTable.pTable.begin(), HashTable.pTable.end(), S_HashBucket());
+    std::fill(HashTable.pTable.begin(), HashTable.pTable.end(), HashBucket());
     HashTable.age = 1;
 }
 
 void InitHashTable(uint64_t MB) {
     const uint64_t hashSize = 0x100000 * MB;
-    const uint64_t numBuckets = (hashSize / sizeof(S_HashBucket)) - 3;
+    const uint64_t numBuckets = (hashSize / sizeof(HashBucket)) - 3;
     HashTable.pTable.resize(numBuckets);
     ClearHashTable();
     std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
-bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry *tte) {
+bool ProbeHashEntry(const ZobristKey posKey, HashEntry *tte) {
 
     const uint64_t index = Index(posKey);
-    S_HashBucket *bucket = &HashTable.pTable[index];
+    HashBucket *bucket = &HashTable.pTable[index];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         *tte = bucket->entries[i];
         if (tte->ttKey == static_cast<TTKey>(posKey)) {
@@ -38,10 +38,10 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eva
     const uint64_t index = Index(key);
     const TTKey key16 = static_cast<TTKey>(key);
     const uint8_t TTAge = HashTable.age;
-    S_HashBucket* bucket = &HashTable.pTable[index];
-    S_HashEntry* tte = &bucket->entries[0];
+    HashBucket* bucket = &HashTable.pTable[index];
+    HashEntry* tte = &bucket->entries[0];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
-        S_HashEntry* entry = &bucket->entries[i];
+        HashEntry* entry = &bucket->entries[i];
 
         if (!entry->ttKey || entry->ttKey == key16) {
             tte = entry;
@@ -75,9 +75,9 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eva
 int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
-        const S_HashBucket *bucket = &HashTable.pTable[i];
+        const HashBucket *bucket = &HashTable.pTable[i];
         for (int idx = 0; idx < ENTRIES_PER_BUCKET; idx++) {
-            const S_HashEntry *tte = &bucket->entries[idx];
+            const HashEntry *tte = &bucket->entries[idx];
             if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable.age)
                 hit++;
         }

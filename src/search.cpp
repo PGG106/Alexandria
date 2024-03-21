@@ -331,7 +331,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int eval;
     bool improving = false;
     int score = -MAXSCORE;
-    S_HashEntry tte;
+    HashEntry tte;
 
     const int excludedMove = ss->excludedMove;
 
@@ -753,7 +753,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     SearchInfo* info = &td->info;
     const bool inCheck = pos->checkers;
     // tte is an hashtable entry, it will store the values fetched from the TT
-    S_HashEntry tte;
+    HashEntry tte;
     int bestScore;
 
     // check if more than Maxtime passed and we have to stop

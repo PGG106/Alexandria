@@ -13,7 +13,7 @@ constexpr int ENTRIES_PER_BUCKET = 3;
 // 2 for key
 // 1 for depth
 // 1 for age + bound + PV
-PACK(struct S_HashEntry {
+PACK(struct HashEntry {
     int16_t move = NOMOVE;
     int16_t score = SCORE_NONE;
     int16_t eval = SCORE_NONE;
@@ -24,16 +24,16 @@ PACK(struct S_HashEntry {
 
 // Packs the 10-byte entries into 32-byte buckets
 // 3 entries per bucket with 2 bytes of padding
-struct S_HashBucket {
-    S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
+struct HashBucket {
+    HashEntry entries[ENTRIES_PER_BUCKET] = {};
     uint16_t padding;
 };
 
-static_assert(sizeof(S_HashEntry) == 10);
-static_assert(sizeof(S_HashBucket) == 32);
+static_assert(sizeof(HashEntry) == 10);
+static_assert(sizeof(HashBucket) == 32);
 
 struct S_HashTable {
-    std::vector<S_HashBucket> pTable;
+    std::vector<HashBucket> pTable;
     uint8_t age;
 };
 
@@ -46,7 +46,7 @@ void ClearHashTable();
 // Initialize an Hashtable of size MB
 void InitHashTable(uint64_t MB);
 
-[[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
+[[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, HashEntry* tte);
 
 void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV);
 
