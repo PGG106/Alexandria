@@ -54,8 +54,8 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
     // update castling rights
-    pos->castleperm &= castling_rights[source_square];
-    pos->castleperm &= castling_rights[target_square];
+    pos->boardState.castlePerm &= castling_rights[source_square];
+    pos->boardState.castlePerm &= castling_rights[target_square];
     // Xor the new one
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 }
@@ -82,13 +82,13 @@ void MakeUCIMove(const int move, S_Board* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.fiftyMove++;
+    pos->boardState.plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
@@ -111,11 +111,11 @@ void MakeUCIMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + SOUTH;
+        pos->boardState.enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -159,13 +159,13 @@ void MakeUCIMove(const int move, S_Board* pos) {
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
 }
 
 // make move on chess board
@@ -189,13 +189,13 @@ void MakeMove(const int move, S_Board* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
+    pos->boardState.fiftyMove++;
+    pos->boardState.plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
@@ -221,11 +221,11 @@ void MakeMove(const int move, S_Board* pos) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
-        pos->enPas = targetSquare + SOUTH;
+        pos->boardState.enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
@@ -268,13 +268,13 @@ void MakeMove(const int move, S_Board* pos) {
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
 }
 
 void UnmakeMove(const int move, S_Board* pos) {
@@ -372,11 +372,11 @@ void MakeNullMove(S_Board* pos) {
 
     pos->hisPly++;
     pos->historyStackHead++;
-    pos->fiftyMove++;
-    pos->plyFromNull = 0;
+    pos->boardState.fiftyMove++;
+    pos->boardState.plyFromNull = 0;
 
     // reset enpassant square
-    pos->enPas = no_sq;
+    pos->boardState.enPas = no_sq;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);

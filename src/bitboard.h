@@ -20,6 +20,6 @@ inline int popLsb(Bitboard& bitboard) {
     return square;
 }
 
-inline int CountBits(Bitboard bitboard) {
+[[nodiscard]] inline int CountBits(Bitboard bitboard) {
     return std::popcount(bitboard);
 }

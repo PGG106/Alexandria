@@ -25,8 +25,8 @@ void ResetBoard(S_Board* pos) {
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
     }
-    pos->castleperm = 0; 
-    pos->plyFromNull = 0;
+    pos->boardState.castlePerm = 0;
+    pos->boardState.plyFromNull = 0;
 }
 
 void ResetInfo(S_SearchINFO* info) {
@@ -125,16 +125,16 @@ void ParseFen(const std::string& command, S_Board* pos) {
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->castleperm) |= WKCA;
+            (pos->boardState.castlePerm) |= WKCA;
             break;
         case 'Q':
-            (pos->castleperm) |= WQCA;
+            (pos->boardState.castlePerm) |= WQCA;
             break;
         case 'k':
-            (pos->castleperm) |= BKCA;
+            (pos->boardState.castlePerm) |= BKCA;
             break;
         case 'q':
-            (pos->castleperm) |= BQCA;
+            (pos->boardState.castlePerm) |= BQCA;
             break;
         case '-':
             break;
@@ -148,18 +148,18 @@ void ParseFen(const std::string& command, S_Board* pos) {
         const int rank = 8 - (ep_square[1] - '0');
 
         // init enpassant square
-        pos->enPas = rank * 8 + file;
+        pos->boardState.enPas = rank * 8 + file;
     }
     // no enpassant square
     else
-        pos->enPas = no_sq;
+        pos->boardState.enPas = no_sq;
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
-        pos->fiftyMove = std::stoi(fifty_move);
+        pos->boardState.fiftyMove = std::stoi(fifty_move);
     }
     else {
-        pos->fiftyMove = 0;
+        pos->boardState.fiftyMove = 0;
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
@@ -183,13 +183,13 @@ void ParseFen(const std::string& command, S_Board* pos) {
     UpdatePinsAndCheckers(pos, pos->side);
 
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->boardState.checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex(pos->boardState.checkers);
+        pos->boardState.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->boardState.checkMask = fullCheckmask;
 
     // Update nnue accumulator to reflect board state
     Accumulate(pos->accumStack[0], pos);
@@ -394,17 +394,17 @@ void UpdatePinsAndCheckers(S_Board* pos, const int side) {
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
-    pos->pinned = 0ULL;
-    pos->checkers = pawnCheckers | knightCheckers;
+    pos->boardState.pinned = 0ULL;
+    pos->boardState.checkers = pawnCheckers | knightCheckers;
 
     while (sliderAttacks) {
         const int sq = popLsb(sliderAttacks);
         const Bitboard blockers = (RayBetween(kingSquare, sq) | (1ULL << sq)) & pos->Occupancy(side);
         const int numBlockers = CountBits(blockers);
         if (!numBlockers)
-            pos->checkers |= 1ULL << sq;
+            pos->boardState.checkers |= 1ULL << sq;
         else if (numBlockers == 1)
-            pos->pinned |= blockers;
+            pos->boardState.pinned |= blockers;
     }
 }
 
@@ -413,7 +413,7 @@ Bitboard RayBetween(int square1, int square2) {
 }
 
 int GetEpSquare(const S_Board* pos) {
-    return pos->enPas;
+    return pos->boardState.enPas;
 }
 
 uint64_t GetMaterialValue(const S_Board* pos) {
@@ -456,22 +456,22 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
 }
 
 void saveBoardState(S_Board* pos) {
-    pos->history[pos->historyStackHead].fiftyMove = pos->fiftyMove;
-    pos->history[pos->historyStackHead].enPas = pos->enPas;
-    pos->history[pos->historyStackHead].castlePerm = pos->castleperm;
-    pos->history[pos->historyStackHead].plyFromNull = pos->plyFromNull;
-    pos->history[pos->historyStackHead].checkers = pos->checkers;
-    pos->history[pos->historyStackHead].checkMask = pos->checkMask;
-    pos->history[pos->historyStackHead].pinned = pos->pinned;
+    pos->history[pos->historyStackHead].fiftyMove = pos->boardState.fiftyMove;
+    pos->history[pos->historyStackHead].enPas = pos->boardState.enPas;
+    pos->history[pos->historyStackHead].castlePerm = pos->boardState.castlePerm;
+    pos->history[pos->historyStackHead].plyFromNull = pos->boardState.plyFromNull;
+    pos->history[pos->historyStackHead].checkers = pos->boardState.checkers;
+    pos->history[pos->historyStackHead].checkMask = pos->boardState.checkMask;
+    pos->history[pos->historyStackHead].pinned = pos->boardState.pinned;
 }
 
 void restorePreviousBoardState(S_Board* pos)
 {
-    pos->enPas = pos->history[pos->historyStackHead].enPas;
-    pos->fiftyMove = pos->history[pos->historyStackHead].fiftyMove;
-    pos->castleperm = pos->history[pos->historyStackHead].castlePerm;
-    pos->plyFromNull = pos->history[pos->historyStackHead].plyFromNull;
-    pos->checkers = pos->history[pos->historyStackHead].checkers;
-    pos->checkMask = pos->history[pos->historyStackHead].checkMask;
-    pos->pinned = pos->history[pos->historyStackHead].pinned;
+    pos->boardState.enPas = pos->history[pos->historyStackHead].enPas;
+    pos->boardState.fiftyMove = pos->history[pos->historyStackHead].fiftyMove;
+    pos->boardState.castlePerm = pos->history[pos->historyStackHead].castlePerm;
+    pos->boardState.plyFromNull = pos->history[pos->historyStackHead].plyFromNull;
+    pos->boardState.checkers = pos->history[pos->historyStackHead].checkers;
+    pos->boardState.checkMask = pos->history[pos->historyStackHead].checkMask;
+    pos->boardState.pinned = pos->history[pos->historyStackHead].pinned;
 }

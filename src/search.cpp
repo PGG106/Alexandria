@@ -22,7 +22,7 @@ static bool IsRepetition(const S_Board* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
-    int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    int distance = std::min(pos->Get50mrCounter(), pos->boardState.plyFromNull);
     // Get the point our search should start from
     int startingPoint = pos->played_positions.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
@@ -48,7 +48,7 @@ static bool Is50MrDraw(S_Board* pos) {
     if (pos->Get50mrCounter() >= 100) {
 
         // If there's no risk we are being checkmated return true
-        if (!pos->checkers)
+        if (!pos->boardState.checkers)
             return true;
 
         // if we are in check make sure it's not checkmate 
@@ -326,7 +326,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->boardState.checkers;
     const bool rootNode = (ss->ply == 0);
     int eval;
     bool improving = false;
@@ -638,7 +638,7 @@ moves_loop:
                 depthReduction -= 1 + cutNode;
 
             // Decrease the reduction for moves that give check
-            if (pos->checkers)
+            if (pos->boardState.checkers)
                 depthReduction -= 1;
 
             // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
@@ -751,7 +751,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     S_Board* pos = &td->pos;
     Search_data* sd = &td->sd;
     S_SearchINFO* info = &td->info;
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->boardState.checkers;
     // tte is an hashtable entry, it will store the values fetched from the TT
     S_HashEntry tte;
     int bestScore;

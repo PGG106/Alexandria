@@ -43,11 +43,8 @@ public:
     // if there's a piece, or if the square is invalid
 
     int side = -1; // what side has to move
-    int enPas = no_sq; // if enpassant is possible and in which square
-    int fiftyMove = 0; // Counter for the 50 moves rule
     int hisPly = 0; // total number of halfmoves
-    int plyFromNull = 0;
-    int castleperm = 0;
+    S_boardState boardState;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     // stores the state of the board  rollback purposes
@@ -57,13 +54,10 @@ public:
     std::vector<ZobristKey> played_positions = {};
     std::vector<NNUEIndices> NNUEAdd = {};
     std::vector<NNUEIndices> NNUESub = {};
-    Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    Bitboard checkers;
-    Bitboard checkMask = fullCheckmask;
   
     NNUE::accumulator accumStack[MAXPLY];
     int accumStackHead;
@@ -112,11 +106,11 @@ public:
     }
 
     inline int Get50mrCounter() const {
-        return fiftyMove;
+        return boardState.fiftyMove;
     }
 
     inline int GetCastlingPerm() const {
-        return castleperm;
+        return boardState.castlePerm;
     }
 
     inline void ChangeSide() {

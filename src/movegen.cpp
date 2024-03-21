@@ -65,8 +65,8 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     if (!capOnly) {
         Bitboard push = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & ~0xFF000000000000FFULL;
         Bitboard doublePush = NORTH(push, color) & ~pos->Occupancy(BOTH) & rank4BB;
-        push &= pos->checkMask;
-        doublePush &= pos->checkMask;
+        push &= pos->boardState.checkMask;
+        doublePush &= pos->boardState.checkMask;
         while (push) {
             const int to = popLsb(push);
             AddMove(encode_move(to - north, to, pawnType, Movetype::Quiet), list);
@@ -78,7 +78,7 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 
     // Push promotions
-    Bitboard pushPromo = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & 0xFF000000000000FFULL & pos->checkMask;
+    Bitboard pushPromo = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & 0xFF000000000000FFULL & pos->boardState.checkMask;
     while (pushPromo) {
         const int to = popLsb(pushPromo);
         AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
@@ -88,8 +88,8 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 
     // Captures and capture-promotions
-    Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->checkMask;
-    Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->checkMask;
+    Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->boardState.checkMask;
+    Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->boardState.checkMask;
     while (captBB1) {
         const int to = popLsb(captBB1);
         const int from = to - north + 1;
@@ -133,7 +133,7 @@ static inline void PseudoLegalKnightMoves(S_Board* pos, int color, S_MOVELIST* l
     const int knightType = GetPiece(KNIGHT, color);
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & pos->checkMask & (capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color));
+        Bitboard possible_moves = knight_attacks[from] & pos->boardState.checkMask & (capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color));
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -147,7 +147,7 @@ static inline void PseudoLegalBishopMoves(S_Board* pos, int color, S_MOVELIST* l
     const int bishopType = GetPiece(BISHOP, color);
     while (bishops) {
         const int from = popLsb(bishops);
-        Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & pos->checkMask;
+        Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & pos->boardState.checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
             const int to = popLsb(possible_moves);
@@ -162,7 +162,7 @@ static inline void PseudoLegalRookMoves(S_Board* pos, int color, S_MOVELIST* lis
     const int rookType = GetPiece(ROOK, color);
     while (rooks) {
         const int from = popLsb(rooks);
-        Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & pos->checkMask;
+        Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & pos->boardState.checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
             const int to = popLsb(possible_moves);
@@ -177,7 +177,7 @@ static inline void PseudoLegalQueenMoves(S_Board* pos, int color, S_MOVELIST* li
     const int queenType = GetPiece(QUEEN, color);
     while (queens) {
         const int from = popLsb(queens);
-        Bitboard possible_moves = (GetRookAttacks(from, pos->Occupancy(BOTH)) | GetBishopAttacks(from, pos->Occupancy(BOTH))) & pos->checkMask;
+        Bitboard possible_moves = (GetRookAttacks(from, pos->Occupancy(BOTH)) | GetBishopAttacks(from, pos->Occupancy(BOTH))) & pos->boardState.checkMask;
         possible_moves &= capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color);
         while (possible_moves) {
             const int to = popLsb(possible_moves);
@@ -196,7 +196,7 @@ static inline void PseudoLegalKingMoves(S_Board* pos, int color, S_MOVELIST* lis
         Movetype movetype = capOnly || pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
         AddMove(encode_move(from, to, kingType, movetype), list);
     }
-    if (capOnly || pos->checkers)
+    if (capOnly || pos->boardState.checkers)
         return;
 
     if (color == WHITE) {
@@ -222,7 +222,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) {
     // init move count
     move_list->count = 0;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
     if (checks < 2) {
         PseudoLegalPawnMoves(pos, pos->side, move_list, false);
         PseudoLegalKnightMoves(pos, pos->side, move_list, false);
@@ -238,7 +238,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
     // init move count
     move_list->count = 0;
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->boardState.checkers);
     if (checks < 2) {
         PseudoLegalPawnMoves(pos, pos->side, move_list, true);
         PseudoLegalKnightMoves(pos, pos->side, move_list, true);
@@ -289,7 +289,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     if (isCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
+    if ((CountBits(pos->boardState.checkers) >= 2) && pieceType != KING)
         return false;
 
     const int NORTH = pos->side == WHITE ? -8 : 8;
@@ -377,7 +377,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
 
         case KING:
             if (isCastle(move)) {
-                if (pos->checkers)
+                if (pos->boardState.checkers)
                     return false;
 
                 if (std::abs(to - from) != 2)
@@ -448,11 +448,11 @@ bool IsLegal(S_Board* pos, int move) {
         AddPiece(king, ksq, pos);
         return isLegal;
     }
-    else if (pos->pinned & (1ULL << from)) {
-        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+    else if (pos->boardState.pinned & (1ULL << from)) {
+        return !pos->boardState.checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
-    else if (pos->checkers) {
-        return (1ULL << to) & pos->checkMask;
+    else if (pos->boardState.checkers) {
+        return (1ULL << to) & pos->boardState.checkMask;
     }
     else
         return true;
