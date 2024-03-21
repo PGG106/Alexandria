@@ -18,7 +18,7 @@
 #include "io.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const S_Board* pos) {
+static bool IsRepetition(const Position* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
@@ -43,7 +43,7 @@ static bool IsRepetition(const S_Board* pos) {
 }
 
 // Returns true if the position is a draw via the 50mr rule
-static bool Is50MrDraw(S_Board* pos) {
+static bool Is50MrDraw(Position* pos) {
 
     if (pos->Get50mrCounter() >= 100) {
 
@@ -68,7 +68,7 @@ static bool Is50MrDraw(S_Board* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(S_Board* pos) {
+bool IsDraw(Position* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
     return IsRepetition(pos)
         || Is50MrDraw(pos)
@@ -97,7 +97,7 @@ void ClearForSearch(S_ThreadData* td) {
 }
 
 // returns a bitboard of all the attacks to a specific square
-static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
+static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
     Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
@@ -110,7 +110,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 }
 
 // inspired by the Weiss engine
-bool SEE(const S_Board* pos, const int move, const int threshold) {
+bool SEE(const Position* pos, const int move, const int threshold) {
 
     if (isPromo(move))
         return true;
@@ -320,7 +320,7 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 template <bool pvNode>
 int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, Search_stack* ss) {
     // Extract data structures from ThreadData
-    S_Board* pos = &td->pos;
+    Position* pos = &td->pos;
     Search_data* sd = &td->sd;
     S_SearchINFO* info = &td->info;
     PvTable* pvTable = &td->pvTable;
@@ -748,7 +748,7 @@ moves_loop:
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
 int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
-    S_Board* pos = &td->pos;
+    Position* pos = &td->pos;
     Search_data* sd = &td->sd;
     S_SearchINFO* info = &td->info;
     const bool inCheck = pos->checkers;

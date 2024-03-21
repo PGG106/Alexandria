@@ -1,4 +1,4 @@
-#include "board.h"
+#include "position.h"
 #include "attack.h"
 #include "magic.h"
 #include "random.h"
@@ -211,7 +211,7 @@ void InitAll() {
 
 void InitNewGame(S_ThreadData* td) {
     // Extract data structures from ThreadData
-    S_Board* pos = &td->pos;
+    Position* pos = &td->pos;
     Search_data* sd = &td->sd;
     S_SearchINFO* info = &td->info;
     PvTable* pvTable = &td->pvTable;

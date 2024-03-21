@@ -2,6 +2,6 @@
 
 #include "types.h"
 
-struct S_Board;
+struct Position;
 
-[[nodiscard]] Bitboard GeneratePosKey(const S_Board* pos);
+[[nodiscard]] Bitboard GeneratePosKey(const Position* pos);

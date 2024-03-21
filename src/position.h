@@ -37,7 +37,7 @@ struct S_boardState {
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
-struct S_Board {
+struct Position {
 public:
     int pieces[Board_sq_num]; // array that stores for every square of the board
     // if there's a piece, or if the square is invalid
@@ -187,33 +187,33 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 extern NNUE nnue;
 
 // parse FEN string
-void ParseFen(const std::string& command, S_Board* pos);
+void ParseFen(const std::string& command, Position* pos);
 // Get fen string from board
-[[nodiscard]] std::string GetFen(const S_Board* pos);
+[[nodiscard]] std::string GetFen(const Position* pos);
 // Parse a string of moves in coordinate format and plays them
-void parse_moves(const std::string& moves, S_Board* pos);
+void parse_moves(const std::string& moves, Position* pos);
 
 void ResetInfo(S_SearchINFO* info);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-[[nodiscard]] Bitboard GetPieceBB(const S_Board* pos, const int piecetype);
+[[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);
 // Returns the threats bitboard of the pieces of <side> color
-[[nodiscard]] Bitboard getThreats(const S_Board* pos, const int side);
+[[nodiscard]] Bitboard getThreats(const Position* pos, const int side);
 // Returns whether the opponent of <side> has a guaranteed SEE > 0
-[[nodiscard]] bool oppCanWinMaterial(const S_Board* pos, const int side);
+[[nodiscard]] bool oppCanWinMaterial(const Position* pos, const int side);
 // Return a piece based on the type and the color
 [[nodiscard]] int GetPiece(const int piecetype, const int color);
 // Returns the piece_type of a piece
 [[nodiscard]] int GetPieceType(const int piece);
 // Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
-[[nodiscard]] bool BoardHasNonPawns(const S_Board* pos, const int side);
+[[nodiscard]] bool BoardHasNonPawns(const Position* pos, const int side);
 // Get on what square of the board the king of color c resides
-[[nodiscard]] int KingSQ(const S_Board* pos, const int c);
-void UpdatePinsAndCheckers(S_Board* pos, const int side);
+[[nodiscard]] int KingSQ(const Position* pos, const int c);
+void UpdatePinsAndCheckers(Position* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
-[[nodiscard]] int GetEpSquare(const S_Board* pos);
-[[nodiscard]] uint64_t GetMaterialValue(const S_Board* pos);
-void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos);
-ZobristKey keyAfter(const S_Board* pos, const int move);
-void saveBoardState(S_Board* pos);
-void restorePreviousBoardState(S_Board* pos);
+[[nodiscard]] int GetEpSquare(const Position* pos);
+[[nodiscard]] uint64_t GetMaterialValue(const Position* pos);
+void Accumulate(NNUE::accumulator& board_accumulator, Position* pos);
+ZobristKey keyAfter(const Position* pos, const int move);
+void saveBoardState(Position* pos);
+void restorePreviousBoardState(Position* pos);

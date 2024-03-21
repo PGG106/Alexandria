@@ -1,10 +1,10 @@
 #include "hashkey.h"
 #include <cassert>
 #include "init.h"
-#include "board.h"
+#include "position.h"
 
 // Generates zobrist key from scratch
-Bitboard GeneratePosKey(const S_Board* pos) {
+Bitboard GeneratePosKey(const Position* pos) {
     Bitboard finalkey = 0;
     // for every square
     for (int sq = 0; sq < 64; ++sq) {

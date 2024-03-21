@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-struct S_Board;
+struct Position;
 struct S_ThreadData;
 
 extern Bitboard PieceKeys[12][64];

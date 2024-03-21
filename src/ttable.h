@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.h"
+#include "position.h"
 #include "types.h"
 #include <vector>
 
@@ -62,7 +62,7 @@ int ScoreFromTT(int score, int ply);
 
 int16_t MoveToTT(int move);
 
-int MoveFromTT(S_Board *pos, int16_t packed_move);
+int MoveFromTT(Position *pos, int16_t packed_move);
 
 uint8_t BoundFromTT(uint8_t ageBoundPV);
 

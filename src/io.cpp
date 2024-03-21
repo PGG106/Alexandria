@@ -45,7 +45,7 @@ void PrintBitboard(const Bitboard bitboard) {
 }
 
 // print board
-void PrintBoard(const S_Board* pos) {
+void PrintBoard(const Position* pos) {
     // print offset
     std::cout << "\n";
 
@@ -102,7 +102,7 @@ void PrintBoard(const S_Board* pos) {
 }
 
 // print attacked squares
-void PrintAttackedSquares(const S_Board* pos, const int side) {
+void PrintAttackedSquares(const Position* pos, const int side) {
     std::cout << "\n";
 
     // loop over board ranks

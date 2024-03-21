@@ -1,6 +1,6 @@
 #include "history.h"
 #include <cstring>
-#include "board.h"
+#include "position.h"
 #include "move.h"
 #include "search.h"
 
@@ -14,7 +14,7 @@ int history_bonus(const int depth) {
     return std::min(16 * (depth + 1) * (depth + 1), 1200);
 }
 
-void updateHHScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
+void updateHHScore(const Position* pos, Search_data* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / 32768;
     // Update move score
@@ -38,7 +38,7 @@ void updateSingleCHScore(Search_data* sd, const Search_stack* ss, const int move
     }
 }
 
-void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonus) {
+void updateCapthistScore(const Position* pos, Search_data* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / 32768;
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
@@ -49,7 +49,7 @@ void updateCapthistScore(const S_Board* pos, Search_data* sd, int move, int bonu
 }
 
 // Update all histories
-void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const S_MOVELIST* quietMoves, const S_MOVELIST* noisyMoves) {
+void UpdateHistories(const Position* pos, Search_data* sd, Search_stack* ss, const int depth, const int bestMove, const S_MOVELIST* quietMoves, const S_MOVELIST* noisyMoves) {
     const int bonus = history_bonus(depth);
     if (!isTactical(bestMove))
     {
@@ -78,7 +78,7 @@ void UpdateHistories(const S_Board* pos, Search_data* sd, Search_stack* ss, cons
 }
 
 // Returns the history score of a move
-int GetHHScore(const S_Board* pos, const Search_data* sd, const int move) {
+int GetHHScore(const Position* pos, const Search_data* sd, const int move) {
     return sd->searchHistory[pos->side][From(move)][To(move)];
 }
 
@@ -95,14 +95,14 @@ int GetSingleCHScore(const Search_data* sd, const Search_stack* ss, const int mo
 }
 
 // Returns the history score of a move
-int GetCapthistScore(const S_Board* pos, const Search_data* sd, const int move) {
+int GetCapthistScore(const Position* pos, const Search_data* sd, const int move) {
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
     return sd->captHist[Piece(move)][To(move)][capturedPiece];
 }
 
-int GetHistoryScore(const S_Board* pos, const Search_data* sd, const int move, const Search_stack* ss) {
+int GetHistoryScore(const Position* pos, const Search_data* sd, const int move, const Search_stack* ss) {
     if (!isTactical(move))
         return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
     else

@@ -10,7 +10,7 @@ enum {
 };
 
 struct Movepicker {
-    S_Board* pos;
+    Position* pos;
     Search_data* sd;
     Search_stack* ss;
     S_MOVELIST moveList;
@@ -24,5 +24,5 @@ struct Movepicker {
     int SEEThreshold;
 };
 
-void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = SCORE_NONE);
+void InitMP(Movepicker* mp, Position* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = SCORE_NONE);
 int NextMove(Movepicker* mp, const bool skipNonGood);

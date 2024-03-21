@@ -1,9 +1,9 @@
 #include "eval.h"
-#include "board.h"
+#include "position.h"
 #include <algorithm>
 
 // if we don't have enough material to mate consider the position a draw
-bool MaterialDraw(const S_Board* pos) {
+bool MaterialDraw(const Position* pos) {
     // If we only have kings on the board then it's a draw
     if (pos->PieceCount() == 2)
         return true;
@@ -23,12 +23,12 @@ bool MaterialDraw(const S_Board* pos) {
     return false;
 }
 
-static inline float MaterialScale(const S_Board* pos) {
+static inline float MaterialScale(const Position* pos) {
     return 700 + GetMaterialValue(pos) / 32;
 }
 
 // position evaluation
-int EvalPosition(S_Board* pos) {
+int EvalPosition(Position* pos) {
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     bool stm = (pos->side == WHITE);
     int eval = nnue.output(pos->accumStack[pos->accumStackHead-1], stm);

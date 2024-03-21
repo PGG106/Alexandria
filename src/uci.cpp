@@ -10,14 +10,14 @@
 #include "init.h"
 #include "io.h"
 #include "threads.h"
-#include "board.h"
+#include "position.h"
 #include "movegen.h"
 #include <iostream>
 #include "tune.h"
 #include "eval.h"
 
 // convert a move to coordinate notation to internal notation
-int ParseMove(const std::string& moveString, S_Board* pos) {
+int ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
     S_MOVELIST moveList[1];
 
@@ -70,7 +70,7 @@ int ParseMove(const std::string& moveString, S_Board* pos) {
 }
 
 // parse UCI "position" command
-void ParsePosition(const std::string& command, S_Board* pos) {
+void ParsePosition(const std::string& command, Position* pos) {
     // parse UCI "startpos" command
     if (command.find("startpos") != std::string::npos) {
         // init chess board with start position
@@ -106,7 +106,7 @@ void ParsePosition(const std::string& command, S_Board* pos) {
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
-bool ParseGo(const std::string& line, S_SearchINFO* info, S_Board* pos) {
+bool ParseGo(const std::string& line, S_SearchINFO* info, Position* pos) {
     ResetInfo(info);
     int depth = -1, movetime = -1;
     int movestogo;

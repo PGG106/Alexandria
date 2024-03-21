@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "board.h"
+#include "position.h"
 #include "uci.h"
 
 struct Search_stack {
@@ -24,7 +24,7 @@ struct Search_data {
 // a collection of all the data a thread needs to conduct a search
 struct S_ThreadData {
     int id = 0;
-    S_Board pos;
+    Position pos;
     Search_data sd;
     S_SearchINFO info;
     PvTable pvTable;
@@ -57,7 +57,7 @@ template <bool pvNode>
 [[nodiscard]] int GetBestMove(const PvTable* pvTable);
 
 // inspired by the Weiss engine
-[[nodiscard]] bool SEE(const S_Board* pos, const int move, const int threshold);
+[[nodiscard]] bool SEE(const Position* pos, const int move, const int threshold);
 
 // Checks if the current position is a draw
-[[nodiscard]] bool IsDraw(S_Board* pos);
+[[nodiscard]] bool IsDraw(Position* pos);

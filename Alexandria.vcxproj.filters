@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\board.h">
+    <ClInclude Include="src\position.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="src\hashkey.h">
@@ -98,7 +98,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\board.cpp">
+    <ClCompile Include="src\position.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="src\hashkey.cpp">

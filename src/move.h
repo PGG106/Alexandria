@@ -1,6 +1,6 @@
 #pragma once
 
-struct S_Board;
+struct Position;
 
 struct S_MOVE {
     int move;

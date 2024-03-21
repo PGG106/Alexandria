@@ -1,5 +1,5 @@
 #include "perft.h"
-#include "board.h"
+#include "position.h"
 #include "piece_data.h"
 #include "io.h"
 #include "makemove.h"
@@ -13,7 +13,7 @@
 unsigned long long nodes;
 
 // perft driver
-void PerftDriver(int depth, S_Board* pos) {
+void PerftDriver(int depth, Position* pos) {
     // create move list instance
     S_MOVELIST moveList;
 
@@ -44,7 +44,7 @@ void PerftDriver(int depth, S_Board* pos) {
 }
 
 // perft test
-unsigned long long PerftTest(int depth, S_Board* pos) {
+unsigned long long PerftTest(int depth, Position* pos) {
     nodes = 0;
     std::cout << ("\n     Performance test\n\n");
 

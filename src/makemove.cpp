@@ -2,14 +2,14 @@
 #include "bitboard.h"
 #include "makemove.h"
 #include "ttable.h"
-#include "board.h"
+#include "position.h"
 #include "hashkey.h"
 #include "init.h"
 #include "io.h"
 #include "movegen.h"
 
 // Remove a piece from a square
-void ClearPiece(const int piece, const int from, S_Board* pos) {
+void ClearPiece(const int piece, const int from, Position* pos) {
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
     pop_bit(pos->occupancies[color], from);
@@ -18,7 +18,7 @@ void ClearPiece(const int piece, const int from, S_Board* pos) {
 }
 
 // Add a piece to a square
-void AddPiece(const int piece, const int to, S_Board* pos) {
+void AddPiece(const int piece, const int to, Position* pos) {
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
@@ -27,30 +27,30 @@ void AddPiece(const int piece, const int to, S_Board* pos) {
 }
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
-void ClearPieceNNUE(const int piece, const int sq, S_Board* pos) {
+void ClearPieceNNUE(const int piece, const int sq, Position* pos) {
     pos->NNUESub.emplace_back(nnue.GetIndex(piece, sq));
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
-void AddPieceNNUE(const int piece, const int to, S_Board* pos) {
+void AddPieceNNUE(const int piece, const int to, Position* pos) {
     pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
     AddPiece(piece, to, pos);
 }
 
 // Move a piece from square to to square from without updating the NNUE weights
-void MovePiece(const int piece, const int from, const int to, S_Board* pos) {
+void MovePiece(const int piece, const int from, const int to, Position* pos) {
     ClearPiece(piece, from, pos);
     AddPiece(piece, to, pos);
 }
 
 // Move a piece from square to to square from
-void MovePieceNNUE(const int piece, const int from, const int to, S_Board* pos) {
+void MovePieceNNUE(const int piece, const int from, const int to, Position* pos) {
     ClearPieceNNUE(piece, from, pos);
     AddPieceNNUE(piece, to, pos);
 }
 
-void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
+void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
     // update castling rights
@@ -60,12 +60,12 @@ void UpdateCastlingPerms(S_Board* pos, int source_square, int target_square) {
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
 }
 
-void inline HashKey(S_Board* pos, ZobristKey key) {
+void inline HashKey(Position* pos, ZobristKey key) {
     pos->posKey ^= key;
 }
 
 // make move on chess board
-void MakeUCIMove(const int move, S_Board* pos) {
+void MakeUCIMove(const int move, Position* pos) {
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -169,7 +169,7 @@ void MakeUCIMove(const int move, S_Board* pos) {
 }
 
 // make move on chess board
-void MakeMove(const int move, S_Board* pos) {
+void MakeMove(const int move, Position* pos) {
     saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -277,7 +277,7 @@ void MakeMove(const int move, S_Board* pos) {
         pos->checkMask = fullCheckmask;
 }
 
-void UnmakeMove(const int move, S_Board* pos) {
+void UnmakeMove(const int move, Position* pos) {
     // quiet moves
 
     pos->hisPly--;
@@ -359,7 +359,7 @@ void UnmakeMove(const int move, S_Board* pos) {
 }
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
-void MakeNullMove(S_Board* pos) {
+void MakeNullMove(Position* pos) {
     saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -383,7 +383,7 @@ void MakeNullMove(S_Board* pos) {
 }
 
 // Take back a null move
-void TakeNullMove(S_Board* pos) {
+void TakeNullMove(Position* pos) {
     pos->hisPly--;
     pos->historyStackHead--;
 

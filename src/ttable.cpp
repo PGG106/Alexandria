@@ -129,7 +129,7 @@ int16_t MoveToTT(int move) {
     return (move & 0xffff);
 }
 
-int MoveFromTT(S_Board *pos, int16_t packed_move) {
+int MoveFromTT(Position *pos, int16_t packed_move) {
     // It's important to preserve a move being null even it's being unpacked
     if (packed_move == NOMOVE)
         return NOMOVE;
