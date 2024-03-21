@@ -3,7 +3,6 @@
 #include "makemove.h"
 #include "ttable.h"
 #include "position.h"
-#include "hashkey.h"
 #include "init.h"
 #include "io.h"
 #include "movegen.h"
