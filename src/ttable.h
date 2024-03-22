@@ -1,6 +1,6 @@
 #pragma once
 
-#include "board.h"
+#include "position.h"
 #include "types.h"
 #include <vector>
 
@@ -13,7 +13,7 @@ constexpr int ENTRIES_PER_BUCKET = 3;
 // 2 for key
 // 1 for depth
 // 1 for age + bound + PV
-PACK(struct S_HashEntry {
+PACK(struct TTEntry {
     int16_t move = NOMOVE;
     int16_t score = SCORE_NONE;
     int16_t eval = SCORE_NONE;
@@ -24,31 +24,31 @@ PACK(struct S_HashEntry {
 
 // Packs the 10-byte entries into 32-byte buckets
 // 3 entries per bucket with 2 bytes of padding
-struct S_HashBucket {
-    S_HashEntry entries[ENTRIES_PER_BUCKET] = {};
+struct TTBucket {
+    TTEntry entries[ENTRIES_PER_BUCKET] = {};
     uint16_t padding;
 };
 
-static_assert(sizeof(S_HashEntry) == 10);
-static_assert(sizeof(S_HashBucket) == 32);
+static_assert(sizeof(TTEntry) == 10);
+static_assert(sizeof(TTBucket) == 32);
 
-struct S_HashTable {
-    std::vector<S_HashBucket> pTable;
+struct TTable {
+    std::vector<TTBucket> pTable;
     uint8_t age;
 };
 
-extern S_HashTable HashTable;
+extern TTable TT;
 
 constexpr uint8_t MAX_AGE = 1 << 5; // must be power of 2
 constexpr uint8_t AGE_MASK = MAX_AGE - 1;
 
-void ClearHashTable();
-// Initialize an Hashtable of size MB
-void InitHashTable(uint64_t MB);
+void ClearTT();
+// Initialize an TT of size MB
+void InitTT(uint64_t MB);
 
-[[nodiscard]] bool ProbeHashEntry(const ZobristKey posKey, S_HashEntry* tte);
+[[nodiscard]] bool ProbeTTEntry(const ZobristKey posKey, TTEntry* tte);
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV);
+void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV);
 
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
 
@@ -62,7 +62,7 @@ int ScoreFromTT(int score, int ply);
 
 int16_t MoveToTT(int move);
 
-int MoveFromTT(S_Board *pos, int16_t packed_move);
+int MoveFromTT(Position *pos, int16_t packed_move);
 
 uint8_t BoundFromTT(uint8_t ageBoundPV);
 

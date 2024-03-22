@@ -1,9 +1,8 @@
 #include <bit>
 #include <cassert>
 #include "bitboard.h"
-#include "board.h"
+#include "position.h"
 #include "piece_data.h"
-#include "hashkey.h"
 #include "makemove.h"
 #include "movegen.h"
 #include "misc.h"
@@ -15,7 +14,7 @@
 NNUE nnue = NNUE();
 
 // Reset the position to a clean state
-void ResetBoard(S_Board* pos) {
+void ResetBoard(Position* pos) {
     // reset board position (pos->pos->bitboards)
     std::memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
 
@@ -29,7 +28,7 @@ void ResetBoard(S_Board* pos) {
     pos->plyFromNull = 0;
 }
 
-void ResetInfo(S_SearchINFO* info) {
+void ResetInfo(SearchInfo* info) {
     info->depth = 0;
     info->nodes = 0;
     info->starttime = 0;
@@ -43,8 +42,36 @@ void ResetInfo(S_SearchINFO* info) {
     info->nodeset = false;
 }
 
+// Generates zobrist key from scratch
+Bitboard GeneratePosKey(const Position* pos) {
+    Bitboard finalkey = 0;
+    // for every square
+    for (int sq = 0; sq < 64; ++sq) {
+        // get piece on that square
+        int piece = pos->pieces[sq];
+        // if it's not empty add that piece to the zobrist key
+        if (piece != EMPTY) {
+            assert(piece >= WP && piece <= BK);
+            finalkey ^= PieceKeys[piece][sq];
+        }
+    }
+    // include side in the key
+    if (pos->side == BLACK) {
+        finalkey ^= SideKey;
+    }
+    // include the ep square in the key
+    if (GetEpSquare(pos) != no_sq) {
+        assert(pos->enPas >= 0 && pos->enPas < 64);
+        finalkey ^= enpassant_keys[GetEpSquare(pos)];
+    }
+    assert(pos->castleperm >= 0 && pos->castleperm <= 15);
+    // add to the key the status of the castling permissions
+    finalkey ^= CastleKeys[pos->GetCastlingPerm()];
+    return finalkey;
+}
+
 // parse FEN string
-void ParseFen(const std::string& command, S_Board* pos) {
+void ParseFen(const std::string& command, Position* pos) {
 
     ResetBoard(pos);
 
@@ -196,7 +223,7 @@ void ParseFen(const std::string& command, S_Board* pos) {
     pos->accumStackHead = 1;
 }
 
-std::string GetFen(const S_Board* pos) {
+std::string GetFen(const Position* pos) {
     std::string pos_string;
     std::string turn;
     std::string castle_perm;
@@ -264,7 +291,7 @@ std::string GetFen(const S_Board* pos) {
 }
 
 // parses the moves part of a fen string and plays all the moves included
-void parse_moves(const std::string& moves, S_Board* pos) {
+void parse_moves(const std::string& moves, Position* pos) {
     std::vector<std::string> move_tokens = split_command(moves);
     // loop over moves within a move string
     for (size_t i = 0; i < move_tokens.size(); i++) {
@@ -276,11 +303,11 @@ void parse_moves(const std::string& moves, S_Board* pos) {
 }
 
 // Returns the bitboard of a piecetype
-Bitboard GetPieceBB(const S_Board* pos, const int piecetype) {
+Bitboard GetPieceBB(const Position* pos, const int piecetype) {
     return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
 }
 
-bool oppCanWinMaterial(const S_Board* pos, const int side) {
+bool oppCanWinMaterial(const Position* pos, const int side) {
     Bitboard occ = pos->Occupancy(BOTH);
     Bitboard  us = pos->Occupancy(side);
     Bitboard oppPawns = pos->GetPieceColorBB(PAWN, side ^ 1);
@@ -318,7 +345,7 @@ bool oppCanWinMaterial(const S_Board* pos, const int side) {
     return false;
 }
 
-Bitboard getThreats(const S_Board* pos, const int side) {
+Bitboard getThreats(const Position* pos, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
     Bitboard occ = pos->Occupancy(BOTH);
     uint64_t threats = 0;
@@ -377,16 +404,16 @@ int GetPieceType(const int piece) {
 }
 
 // Returns true if side has at least one piece on the board that isn't a pawn or the king, false otherwise
-bool BoardHasNonPawns(const S_Board* pos, const int side) {
+bool BoardHasNonPawns(const Position* pos, const int side) {
     return pos->Occupancy(side) ^ pos->GetPieceColorBB(PAWN, side) ^ pos->GetPieceColorBB(KING, side);
 }
 
 // Get on what square of the board the king of color c resides
-int KingSQ(const S_Board* pos, const int c) {
+int KingSQ(const Position* pos, const int c) {
     return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
 }
 
-void UpdatePinsAndCheckers(S_Board* pos, const int side) {
+void UpdatePinsAndCheckers(Position* pos, const int side) {
     Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
@@ -412,11 +439,11 @@ Bitboard RayBetween(int square1, int square2) {
     return SQUARES_BETWEEN_BB[square1][square2];
 }
 
-int GetEpSquare(const S_Board* pos) {
+int GetEpSquare(const Position* pos) {
     return pos->enPas;
 }
 
-uint64_t GetMaterialValue(const S_Board* pos) {
+uint64_t GetMaterialValue(const Position* pos) {
     int pawns = CountBits(GetPieceBB(pos, PAWN));
     int knights = CountBits(GetPieceBB(pos, KNIGHT));
     int bishops = CountBits(GetPieceBB(pos, BISHOP));
@@ -426,7 +453,7 @@ uint64_t GetMaterialValue(const S_Board* pos) {
     return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishops * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
 }
 
-void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
+void Accumulate(NNUE::accumulator& board_accumulator, Position* pos) {
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] = net.featureBias[i];
         board_accumulator[1][i] = net.featureBias[i];
@@ -440,7 +467,7 @@ void Accumulate(NNUE::accumulator& board_accumulator, S_Board* pos) {
 }
 
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
-ZobristKey keyAfter(const S_Board* pos, const int move) {
+ZobristKey keyAfter(const Position* pos, const int move) {
 
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -455,7 +482,7 @@ ZobristKey keyAfter(const S_Board* pos, const int move) {
     return newKey;
 }
 
-void saveBoardState(S_Board* pos) {
+void saveBoardState(Position* pos) {
     pos->history[pos->historyStackHead].fiftyMove = pos->fiftyMove;
     pos->history[pos->historyStackHead].enPas = pos->enPas;
     pos->history[pos->historyStackHead].castlePerm = pos->castleperm;
@@ -465,7 +492,7 @@ void saveBoardState(S_Board* pos) {
     pos->history[pos->historyStackHead].pinned = pos->pinned;
 }
 
-void restorePreviousBoardState(S_Board* pos)
+void restorePreviousBoardState(Position* pos)
 {
     pos->enPas = pos->history[pos->historyStackHead].enPas;
     pos->fiftyMove = pos->history[pos->historyStackHead].fiftyMove;

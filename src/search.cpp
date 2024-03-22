@@ -18,7 +18,7 @@
 #include "io.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const S_Board* pos) {
+static bool IsRepetition(const Position* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
@@ -43,7 +43,7 @@ static bool IsRepetition(const S_Board* pos) {
 }
 
 // Returns true if the position is a draw via the 50mr rule
-static bool Is50MrDraw(S_Board* pos) {
+static bool Is50MrDraw(Position* pos) {
 
     if (pos->Get50mrCounter() >= 100) {
 
@@ -52,7 +52,7 @@ static bool Is50MrDraw(S_Board* pos) {
             return true;
 
         // if we are in check make sure it's not checkmate 
-        S_MOVELIST moveList;
+        MoveList moveList;
         // generate moves
         GenerateMoves(&moveList, pos);
         for (int i = 0; i < moveList.count; i++) {
@@ -68,7 +68,7 @@ static bool Is50MrDraw(S_Board* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(S_Board* pos) {
+bool IsDraw(Position* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
     return IsRepetition(pos)
         || Is50MrDraw(pos)
@@ -76,9 +76,9 @@ bool IsDraw(S_Board* pos) {
 }
 
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
-void ClearForSearch(S_ThreadData* td) {
+void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
-    S_SearchINFO* info = &td->info;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     // Clean the Pv array
@@ -97,7 +97,7 @@ void ClearForSearch(S_ThreadData* td) {
 }
 
 // returns a bitboard of all the attacks to a specific square
-static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
+static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
     Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
@@ -110,7 +110,7 @@ static inline Bitboard AttacksTo(const S_Board* pos, int to, Bitboard occ) {
 }
 
 // inspired by the Weiss engine
-bool SEE(const S_Board* pos, const int move, const int threshold) {
+bool SEE(const Position* pos, const int move, const int threshold) {
 
     if (isPromo(move))
         return true;
@@ -184,7 +184,7 @@ int GetBestMove(const PvTable* pvTable) {
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
-void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
+void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     // Init a thread_data object for each helper thread that doesn't have one already
     for (int i = threads_data.size(); i < options->Threads - 1; i++) {
         threads_data.emplace_back();
@@ -212,7 +212,7 @@ void RootSearch(int depth, S_ThreadData* td, S_UciOptions* options) {
 }
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search, calls the AspirationWindowSearch function and handles the console output
-void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptions* options) {
+void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
     int averageScore = SCORE_NONE;
@@ -257,10 +257,10 @@ void SearchPosition(int startDepth, int finalDepth, S_ThreadData* td, S_UciOptio
     }
 }
 
-int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
+int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score = 0;
     td->RootDepth = depth;
-    Search_stack stack[MAXDEPTH + 4], *ss = stack + 4;
+    SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
     // Explicitely clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
@@ -318,11 +318,11 @@ int AspirationWindowSearch(int prev_eval, int depth, S_ThreadData* td) {
 
 // Negamax alpha beta search
 template <bool pvNode>
-int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td, Search_stack* ss) {
+int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, SearchStack* ss) {
     // Extract data structures from ThreadData
-    S_Board* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+    Position* pos = &td->pos;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
@@ -331,7 +331,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     int eval;
     bool improving = false;
     int score = -MAXSCORE;
-    S_HashEntry tte;
+    TTEntry tte;
 
     const int excludedMove = ss->excludedMove;
 
@@ -369,7 +369,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = excludedMove ? false : ProbeHashEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = excludedMove ? false : ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -419,7 +419,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, S_ThreadData* td
         eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
             // Save the eval into the TT
-            StoreHashEntry(pos->posKey, NOMOVE, SCORE_NONE, eval, HFNONE, 0, pvNode, ttPv);
+            StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, eval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
@@ -509,7 +509,7 @@ moves_loop:
     InitMP(&mp, pos, sd, ss, ttMove, false);
 
     // Keep track of the played quiet and noisy moves
-    S_MOVELIST quietMoves, noisyMoves;
+    MoveList quietMoves, noisyMoves;
     quietMoves.count = 0, noisyMoves.count = 0;
 
     // loop over moves within a movelist
@@ -740,20 +740,20 @@ moves_loop:
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
     if (!excludedMove)
-        StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
 
     return bestScore;
 }
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
-    S_Board* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
+    Position* pos = &td->pos;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     const bool inCheck = pos->checkers;
-    // tte is an hashtable entry, it will store the values fetched from the TT
-    S_HashEntry tte;
+    // tte is an TT entry, it will store the values fetched from the TT
+    TTEntry tte;
     int bestScore;
 
     // check if more than Maxtime passed and we have to stop
@@ -771,7 +771,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
         return inCheck ? 0 : EvalPosition(pos);
 
     // ttHit is true if and only if we find something in the TT
-    const bool ttHit = ProbeHashEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -882,7 +882,7 @@ int Quiescence(int alpha, int beta, S_ThreadData* td, Search_stack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }

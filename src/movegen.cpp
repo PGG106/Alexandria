@@ -4,11 +4,11 @@
 #include "init.h"
 #include "magic.h"
 #include "makemove.h"
-#include "board.h"
+#include "position.h"
 #include "move.h"
 
 // is the square given in input attacked by the current given side
-bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
+bool IsSquareAttacked(const Position* pos, const int square, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
     Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
@@ -31,8 +31,8 @@ bool IsSquareAttacked(const S_Board* pos, const int square, const int side) {
 }
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
-bool MoveExists(S_Board* pos, const int move) {
-    S_MOVELIST list;
+bool MoveExists(Position* pos, const int move) {
+    MoveList list;
     GenerateMoves(&list, pos);
 
     for (int moveNum = 0; moveNum < list.count; ++moveNum) {
@@ -43,7 +43,7 @@ bool MoveExists(S_Board* pos, const int move) {
     return false;
 }
 // function that adds a move to the move list
-void AddMove(const int move, S_MOVELIST* list) {
+void AddMove(const int move, MoveList* list) {
     list->moves[list->count].move = move;
     list->moves[list->count].score = 0;
     list->count++;
@@ -53,7 +53,7 @@ static inline Bitboard NORTH(const Bitboard in, const int color) {
     return color == WHITE ? in >> 8 : in << 8;
 }
 
-static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list, bool capOnly) {
 
     const Bitboard enemy = pos->Occupancy(color ^ 1);
     const Bitboard ourPawns = pos->GetPieceColorBB(PAWN, color);
@@ -128,7 +128,7 @@ static inline void PseudoLegalPawnMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 }
 
-static inline void PseudoLegalKnightMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* list, bool capOnly) {
     Bitboard knights = pos->GetPieceColorBB(KNIGHT, color);
     const int knightType = GetPiece(KNIGHT, color);
     while (knights) {
@@ -142,7 +142,7 @@ static inline void PseudoLegalKnightMoves(S_Board* pos, int color, S_MOVELIST* l
     }
 }
 
-static inline void PseudoLegalBishopMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalBishopMoves(Position* pos, int color, MoveList* list, bool capOnly) {
     Bitboard bishops = pos->GetPieceColorBB(BISHOP, color);
     const int bishopType = GetPiece(BISHOP, color);
     while (bishops) {
@@ -157,7 +157,7 @@ static inline void PseudoLegalBishopMoves(S_Board* pos, int color, S_MOVELIST* l
     }
 }
 
-static inline void PseudoLegalRookMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalRookMoves(Position* pos, int color, MoveList* list, bool capOnly) {
     Bitboard rooks = pos->GetPieceColorBB(ROOK, color);
     const int rookType = GetPiece(ROOK, color);
     while (rooks) {
@@ -172,7 +172,7 @@ static inline void PseudoLegalRookMoves(S_Board* pos, int color, S_MOVELIST* lis
     }
 }
 
-static inline void PseudoLegalQueenMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalQueenMoves(Position* pos, int color, MoveList* list, bool capOnly) {
     Bitboard queens = pos->GetPieceColorBB(QUEEN, color);
     const int queenType = GetPiece(QUEEN, color);
     while (queens) {
@@ -187,7 +187,7 @@ static inline void PseudoLegalQueenMoves(S_Board* pos, int color, S_MOVELIST* li
     }
 }
 
-static inline void PseudoLegalKingMoves(S_Board* pos, int color, S_MOVELIST* list, bool capOnly) {
+static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list, bool capOnly) {
     const int kingType = GetPiece(KING, color);
     const int from = KingSQ(pos, color);
     Bitboard possible_moves = king_attacks[from] & (capOnly ? pos->Occupancy(color ^ 1) : ~pos->Occupancy(color));
@@ -218,7 +218,7 @@ static inline void PseudoLegalKingMoves(S_Board* pos, int color, S_MOVELIST* lis
 }
 
 // generate all moves
-void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) {
+void GenerateMoves(MoveList* move_list, Position* pos) {
     // init move count
     move_list->count = 0;
 
@@ -234,7 +234,7 @@ void GenerateMoves(S_MOVELIST* move_list, S_Board* pos) {
 }
 
 // generate all captures
-void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
+void GenerateCaptures(MoveList* move_list, Position* pos) {
     // init move count
     move_list->count = 0;
 
@@ -250,7 +250,7 @@ void GenerateCaptures(S_MOVELIST* move_list, S_Board* pos) {
 }
 
 // Pseudo-legality test inspired by Koivisto
-bool IsPseudoLegal(S_Board* pos, int move) {
+bool IsPseudoLegal(Position* pos, int move) {
 
     if (move == NOMOVE)
         return false;
@@ -407,7 +407,7 @@ bool IsPseudoLegal(S_Board* pos, int move) {
     return true;
 }
 
-bool IsLegal(S_Board* pos, int move) {
+bool IsLegal(Position* pos, int move) {
 
     const int color = pos->side;
     const int ksq = KingSQ(pos, color);

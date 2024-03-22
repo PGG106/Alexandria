@@ -1,7 +1,7 @@
 #pragma once
 #include "search.h"
 
-struct S_MOVELIST;
+struct MoveList;
 
 enum {
     PICK_TT,
@@ -10,10 +10,10 @@ enum {
 };
 
 struct Movepicker {
-    S_Board* pos;
-    Search_data* sd;
-    Search_stack* ss;
-    S_MOVELIST moveList;
+    Position* pos;
+    SearchData* sd;
+    SearchStack* ss;
+    MoveList moveList;
     int idx;
     int stage;
     int ttMove;
@@ -24,5 +24,5 @@ struct Movepicker {
     int SEEThreshold;
 };
 
-void InitMP(Movepicker* mp, S_Board* pos, Search_data* sd, Search_stack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = SCORE_NONE);
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = SCORE_NONE);
 int NextMove(Movepicker* mp, const bool skipNonGood);

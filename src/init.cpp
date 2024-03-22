@@ -1,4 +1,4 @@
-#include "board.h"
+#include "position.h"
 #include "attack.h"
 #include "magic.h"
 #include "random.h"
@@ -205,15 +205,15 @@ void InitAll() {
     initHashKeys();
     InitReductions();
     // Init TT
-    InitHashTable(16);
+    InitTT(16);
     nnue.init("nn.net");
 }
 
-void InitNewGame(S_ThreadData* td) {
+void InitNewGame(ThreadData* td) {
     // Extract data structures from ThreadData
-    S_Board* pos = &td->pos;
-    Search_data* sd = &td->sd;
-    S_SearchINFO* info = &td->info;
+    Position* pos = &td->pos;
+    SearchData* sd = &td->sd;
+    SearchInfo* info = &td->info;
     PvTable* pvTable = &td->pvTable;
 
     CleanHistories(sd);
@@ -238,8 +238,8 @@ void InitNewGame(S_ThreadData* td) {
     info->stopped = 0;
     info->nodes = 0;
     info->seldepth = 0;
-    // Reset hash table
-    ClearHashTable();
+    // Clear TT
+    ClearTT();
 
     // Empty threads and thread data
     StopHelperThreads();

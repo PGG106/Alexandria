@@ -45,7 +45,7 @@ void PrintBitboard(const Bitboard bitboard) {
 }
 
 // print board
-void PrintBoard(const S_Board* pos) {
+void PrintBoard(const Position* pos) {
     // print offset
     std::cout << "\n";
 
@@ -102,7 +102,7 @@ void PrintBoard(const S_Board* pos) {
 }
 
 // print attacked squares
-void PrintAttackedSquares(const S_Board* pos, const int side) {
+void PrintAttackedSquares(const Position* pos, const int side) {
     std::cout << "\n";
 
     // loop over board ranks
@@ -152,7 +152,7 @@ char* FormatMove(const int move) {
     return Move;
 }
 
-void PrintMoveList(const S_MOVELIST* list) {
+void PrintMoveList(const MoveList* list) {
     for (int index = 0; index < list->count; ++index) {
         int move = list->moves[index].move;
         int score = list->moves[index].score;
@@ -174,7 +174,7 @@ std::string Pick_color(int score) {
 }
 
 // Prints the uci output
-void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options) {
+void PrintUciOutput(const int score, const int depth, const ThreadData* td, const UciOptions* options) {
     // We are benching the engine and we don't care about the output
     if (tryhardmode)
         return;

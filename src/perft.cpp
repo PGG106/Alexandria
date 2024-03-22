@@ -1,5 +1,5 @@
 #include "perft.h"
-#include "board.h"
+#include "position.h"
 #include "piece_data.h"
 #include "io.h"
 #include "makemove.h"
@@ -10,12 +10,12 @@
 
 // leaf nodes (number of positions reached during the test of the move generator
 // at a given depth)
-unsigned long long nodes;
+uint64_t nodes;
 
 // perft driver
-void PerftDriver(int depth, S_Board* pos) {
+void PerftDriver(int depth, Position* pos) {
     // create move list instance
-    S_MOVELIST moveList;
+    MoveList moveList;
 
     // Non bulk Counting
     if (depth == 0) {
@@ -44,12 +44,12 @@ void PerftDriver(int depth, S_Board* pos) {
 }
 
 // perft test
-unsigned long long PerftTest(int depth, S_Board* pos) {
+unsigned long long PerftTest(int depth, Position* pos) {
     nodes = 0;
     std::cout << ("\n     Performance test\n\n");
 
     // create move list instance
-    S_MOVELIST moveList;
+    MoveList moveList;
 
     // generate moves
     GenerateMoves(&moveList, pos);

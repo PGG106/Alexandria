@@ -1,16 +1,16 @@
 #pragma once
 
-struct S_Board;
+struct Position;
 
-struct S_MOVE {
+struct ScoredMove {
     int move;
     int score;
 };
 
 // move list structure
-struct S_MOVELIST {
+struct MoveList {
     // moves
-    S_MOVE moves[256];
+    ScoredMove moves[256];
 
     // move count
     int count;

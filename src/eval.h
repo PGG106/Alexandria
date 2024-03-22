@@ -1,8 +1,8 @@
 #pragma once
 
-struct S_Board;
+struct Position;
 
 // Returns if the position is a draw because there isn't enough mating material
-[[nodiscard]] bool MaterialDraw(const S_Board* pos);
+[[nodiscard]] bool MaterialDraw(const Position* pos);
 // position evaluation
-[[nodiscard]] int EvalPosition(S_Board* pos);
+[[nodiscard]] int EvalPosition(Position* pos);

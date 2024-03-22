@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "board.h"
+#include "position.h"
 
 // not A file constant
 constexpr Bitboard not_a_file = 18374403900871474942ULL;

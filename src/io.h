@@ -2,25 +2,25 @@
 
 #include "types.h"
 
-struct S_Board;
-struct S_MOVELIST;
-struct S_ThreadData;
-struct S_UciOptions;
+struct Position;
+struct MoveList;
+struct ThreadData;
+struct UciOptions;
 
 void PrintBitboard(const Bitboard bitboard);
 
 // print board
-void PrintBoard(const S_Board* pos);
+void PrintBoard(const Position* pos);
 
 // print attacked squares
-void PrintAttackedSquares(const S_Board* pos, const int side);
+void PrintAttackedSquares(const Position* pos, const int side);
 
 // print move (for UCI purposes)
 void PrintMove(const int move);
 
 // print move list
-void PrintMoveList(const S_MOVELIST* list);
+void PrintMoveList(const MoveList* list);
 
 [[nodiscard]] char* FormatMove(const int move);
 
-void PrintUciOutput(const int score, const int depth, const S_ThreadData* td, const S_UciOptions* options);
+void PrintUciOutput(const int score, const int depth, const ThreadData* td, const UciOptions* options);
