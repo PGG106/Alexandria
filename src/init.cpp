@@ -205,7 +205,7 @@ void InitAll() {
     initHashKeys();
     InitReductions();
     // Init TT
-    InitHashTable(16);
+    InitTT(16);
     nnue.init("nn.net");
 }
 
@@ -238,8 +238,8 @@ void InitNewGame(ThreadData* td) {
     info->stopped = 0;
     info->nodes = 0;
     info->seldepth = 0;
-    // Reset hash table
-    ClearHashTable();
+    // Clear TT
+    ClearTT();
 
     // Empty threads and thread data
     StopHelperThreads();

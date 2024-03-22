@@ -5,25 +5,25 @@
 #include <cstring>
 #include <iostream>
 
-S_HashTable HashTable;
+TTable TT;
 
-void ClearHashTable() {
-    std::fill(HashTable.pTable.begin(), HashTable.pTable.end(), HashBucket());
-    HashTable.age = 1;
+void ClearTT() {
+    std::fill(TT.pTable.begin(), TT.pTable.end(), TTBucket());
+    TT.age = 1;
 }
 
-void InitHashTable(uint64_t MB) {
+void InitTT(uint64_t MB) {
     const uint64_t hashSize = 0x100000 * MB;
-    const uint64_t numBuckets = (hashSize / sizeof(HashBucket)) - 3;
-    HashTable.pTable.resize(numBuckets);
-    ClearHashTable();
-    std::cout << "HashTable init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
+    const uint64_t numBuckets = (hashSize / sizeof(TTBucket)) - 3;
+    TT.pTable.resize(numBuckets);
+    ClearTT();
+    std::cout << "TT init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
-bool ProbeHashEntry(const ZobristKey posKey, HashEntry *tte) {
+bool ProbeTTEntry(const ZobristKey posKey, TTEntry *tte) {
 
     const uint64_t index = Index(posKey);
-    HashBucket *bucket = &HashTable.pTable[index];
+    TTBucket *bucket = &TT.pTable[index];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         *tte = bucket->entries[i];
         if (tte->ttKey == static_cast<TTKey>(posKey)) {
@@ -33,15 +33,15 @@ bool ProbeHashEntry(const ZobristKey posKey, HashEntry *tte) {
     return false;
 }
 
-void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
+void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     const TTKey key16 = static_cast<TTKey>(key);
-    const uint8_t TTAge = HashTable.age;
-    HashBucket* bucket = &HashTable.pTable[index];
-    HashEntry* tte = &bucket->entries[0];
+    const uint8_t TTAge = TT.age;
+    TTBucket* bucket = &TT.pTable[index];
+    TTEntry* tte = &bucket->entries[0];
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
-        HashEntry* entry = &bucket->entries[i];
+        TTEntry* entry = &bucket->entries[i];
 
         if (!entry->ttKey || entry->ttKey == key16) {
             tte = entry;
@@ -75,10 +75,10 @@ void StoreHashEntry(const ZobristKey key, const int16_t move, int score, int eva
 int GetHashfull() {
     int hit = 0;
     for (int i = 0; i < 2000; i++) {
-        const HashBucket *bucket = &HashTable.pTable[i];
+        const TTBucket *bucket = &TT.pTable[i];
         for (int idx = 0; idx < ENTRIES_PER_BUCKET; idx++) {
-            const HashEntry *tte = &bucket->entries[idx];
-            if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == HashTable.age)
+            const TTEntry *tte = &bucket->entries[idx];
+            if (tte->ttKey != 0 && AgeFromTT(tte->ageBoundPV) == TT.age)
                 hit++;
         }
     }
@@ -87,9 +87,9 @@ int GetHashfull() {
 
 uint64_t Index(const ZobristKey posKey) {
 #ifdef __SIZEOF_INT128__
-    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(HashTable.pTable.size())) >> 64));
+    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(TT.pTable.size())) >> 64));
 #else 
-    return posKey % HashTable.pTable.size();
+    return posKey % TT.pTable.size();
 #endif
 }
 
@@ -103,7 +103,7 @@ void prefetch(const void* addr) {
 }
 
 void TTPrefetch(const ZobristKey posKey) {
-    prefetch(&HashTable.pTable[Index(posKey)].entries[0]);
+    prefetch(&TT.pTable[Index(posKey)].entries[0]);
 }
 
 
@@ -157,9 +157,9 @@ uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
 void UpdateEntryAge(uint8_t &ageBoundPV) {
     const uint8_t bound = BoundFromTT(ageBoundPV);
     const bool formerPV = FormerPV(ageBoundPV);
-    ageBoundPV = PackToTT(bound, formerPV, HashTable.age);
+    ageBoundPV = PackToTT(bound, formerPV, TT.age);
 }
 
 void UpdateTableAge() {
-    HashTable.age = (HashTable.age + 1) & AGE_MASK;
+    TT.age = (TT.age + 1) & AGE_MASK;
 }

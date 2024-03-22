@@ -331,7 +331,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int eval;
     bool improving = false;
     int score = -MAXSCORE;
-    HashEntry tte;
+    TTEntry tte;
 
     const int excludedMove = ss->excludedMove;
 
@@ -369,7 +369,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = excludedMove ? false : ProbeHashEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = excludedMove ? false : ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -419,7 +419,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         eval = ss->staticEval = EvalPosition(pos);
         if (!excludedMove)
             // Save the eval into the TT
-            StoreHashEntry(pos->posKey, NOMOVE, SCORE_NONE, eval, HFNONE, 0, pvNode, ttPv);
+            StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, eval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
@@ -740,7 +740,7 @@ moves_loop:
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
     if (!excludedMove)
-        StoreHashEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
 
     return bestScore;
 }
@@ -752,8 +752,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
     const bool inCheck = pos->checkers;
-    // tte is an hashtable entry, it will store the values fetched from the TT
-    HashEntry tte;
+    // tte is an TT entry, it will store the values fetched from the TT
+    TTEntry tte;
     int bestScore;
 
     // check if more than Maxtime passed and we have to stop
@@ -771,7 +771,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         return inCheck ? 0 : EvalPosition(pos);
 
     // ttHit is true if and only if we find something in the TT
-    const bool ttHit = ProbeHashEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -882,7 +882,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreHashEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }
