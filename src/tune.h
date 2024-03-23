@@ -11,8 +11,6 @@ To add a variable for tuning we call the addTune function in initTunables, this 
 3) do some cursed getter macro wizardry with the TUNE_PARAM macro
 */
 
-#define TUNE
-
 // Very cursed macro wizardry to set and fetch the values without having to manually swap in hashtable accesses, partially stolen from SP
 // Start with the case where we are actually tuning
 #ifdef TUNE
@@ -71,10 +69,23 @@ inline void InitTunable() {
 	addTune("tmScaleGuard", "int", 7, 3, 10, 1, 0.0020);
 	addTune("aspWinDelta", "int", 12, 3, 18, 2, 0.0020);
 	addTune("aspWinDepth", "int", 3, 2, 6, 1, 0.0020);
+	addTune("aspWinDeltaMultiplier", "int", 144, 110, 200, 7, 0.0020);
+	addTune("rfpDepth", "int", 10, 7, 12, 1, 0.0020);
+	addTune("rfpMultiplier", "int", 91, 45, 130, 10, 0.0020);
 }
 
 // Giant wasteland of tunable params
-TUNE_PARAM(iirDepth, 4);
+// Tm stuff
 TUNE_PARAM(tmScaleGuard, 7);
+// Asp Win stuff
 TUNE_PARAM(aspWinDelta, 12);
 TUNE_PARAM(aspWinDepth,  3);
+TUNE_PARAM(aspWinDeltaMultiplier, 144);
+// Search
+// IIR
+TUNE_PARAM(iirDepth, 4);
+// RFP
+TUNE_PARAM(rfpDepth, 10);
+TUNE_PARAM(rfpMultiplier, 91);
+
+

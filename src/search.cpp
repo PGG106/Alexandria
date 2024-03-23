@@ -311,7 +311,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= 1.44;
+        delta *= aspWinDeltaMultiplier() / 100.0;
     }
     return score;
 }
@@ -436,9 +436,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     if (!pvNode) {
         // Reverse futility pruning
-        if (   depth < 10
+        if (   depth < rfpDepth()
             && abs(eval) < MATE_FOUND
-            && eval - 91 * (depth - improving) >= beta)
+            && eval - rfpMultiplier() * (depth - improving) >= beta)
             return eval;
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high, 
