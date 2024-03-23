@@ -237,7 +237,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 previousBestMove = GetBestMove(&td->pvTable);
             }
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
-            if (   td->RootDepth > tmScaleGuard()
+            if (   td->RootDepth > 7
                 && td->info.timeset) {
                 ScaleTm(td, bestMoveStabilityFactor);
             }
@@ -271,13 +271,13 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->ply = i;
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
-    int delta = aspWinDelta();
+    int delta = 12;
     // define initial alpha beta bounds
     int alpha = -MAXSCORE;
     int beta = MAXSCORE;
 
     // only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-    if (depth >= aspWinDepth()) {
+    if (depth >= 3) {
         alpha = std::max(-MAXSCORE, prev_eval - delta);
         beta = std::min(prev_eval + delta, MAXSCORE);
     }
@@ -311,7 +311,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= aspWinDeltaMultiplier() / 100.0;
+        delta *= 1.44;
     }
     return score;
 }
@@ -387,7 +387,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (depth >= iirDepth() && ttBound == HFNONE)
+    if (depth >= 4 && ttBound == HFNONE)
         depth--;
 
     // clean killers and excluded move for the next ply
@@ -436,9 +436,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     if (!pvNode) {
         // Reverse futility pruning
-        if (   depth < rfpDepth()
+        if (   depth < 10
             && abs(eval) < MATE_FOUND
-            && eval - rfpMultiplier() * (depth - improving) >= beta)
+            && eval - 91 * (depth - improving) >= beta)
             return eval;
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high, 

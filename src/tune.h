@@ -53,19 +53,3 @@ extern std::unordered_map<std::string, tunable_param> tunableParams;
 const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end);
 // Handles the update of a variable being tuned
 bool updateTuneVariable(std::string tune_variable_name, int value);
-
-// Giant wasteland of tunable params
-// Tm stuff
-TUNE_PARAM(tmScaleGuard, 7, 3, 10, 1, 0.0020);
-// Asp Win stuff
-TUNE_PARAM(aspWinDelta, 12, 3, 18, 2, 0.0020);
-TUNE_PARAM(aspWinDepth, 3, 2, 6, 1, 0.0020);
-TUNE_PARAM(aspWinDeltaMultiplier, 144, 110, 200, 7, 0.0020);
-// Search
-// IIR
-TUNE_PARAM(iirDepth, 4, 1, 7, 1, 0.0020);
-// RFP
-TUNE_PARAM(rfpDepth, 10, 7, 12, 1, 0.0020);
-TUNE_PARAM(rfpMultiplier, 91, 45, 130, 10, 0.0020);
-
-
