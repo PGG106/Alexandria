@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -11,81 +13,59 @@ To add a variable for tuning we call the addTune function in initTunables, this 
 3) do some cursed getter macro wizardry with the TUNE_PARAM macro
 */
 
-// Very cursed macro wizardry to set and fetch the values without having to manually swap in hashtable accesses, partially stolen from SP
+// Very cursed macro wizardry to set and fetch the values without having to manually swap in hashtable accesses, it's good because Ciekce did this
 // Start with the case where we are actually tuning
 #ifdef TUNE
-#define TUNE_PARAM(Name, Default) \
-        inline auto Name() { return tunedValues[#Name]; }
+#define TUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
+        inline const int& tuned_##Name = addTune(#Name, Default, Default, Min, Max, C_end, R_end); \
+        inline int Name() { return tuned_##Name; }
 #else
-#define TUNE_PARAM(Name, Default) \
-		constexpr auto Name() -> int { return Default; }
+#define TUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
+        constexpr int Name() { return Default; }
 #endif
 
 // This class acts as a fancy string constructor, it's used just to store all the info OB wants for a tune
-class tunable_param {
-public:
-	std::string name;
-	std::string type;
-	float currValue;
-	float minValue;
-	float maxValue;
-	float C_end;
-	float R_end;
-	tunable_param(std::string param_name, std::string param_type, float param_curr_value, float param_min_value, float param_max_value, float param_C_end, float param_R_end) {
-		this->name = param_name;
-		this->type = param_type;
-		this->currValue = param_curr_value;
-		this->minValue = param_min_value;
-		this->maxValue = param_max_value;
-		this->C_end = param_C_end;
-		this->R_end = param_R_end;
-	}
+struct tunable_param {
+    std::string name;
+    int defaultValue;
+    int currValue;
+    int minValue;
+    int maxValue;
+    float C_end;
+    float R_end;
 
-	friend std::ostream& operator<<(std::ostream& os, const tunable_param& param)
-	{
-		os << param.name << ", ";
-		os << param.type << ", ";
-		os << param.currValue << ", ";
-		os << param.minValue << ", ";
-		os << param.maxValue << ", ";
-		os << param.C_end << ", ";
-		os << param.R_end;
-		return os;
-	}
+    friend std::ostream& operator<<(std::ostream& os, const tunable_param& param)
+    {
+        os << param.name << ", ";
+        os << "int, ";
+        os << param.currValue << ", ";
+        os << param.minValue << ", ";
+        os << param.maxValue << ", ";
+        os << param.C_end << ", ";
+        os << param.R_end;
+        return os;
+    }
 };
 
 // Data structures to handle the output of the params and the value setting at runtime
-extern std::vector<tunable_param> tunableParams;
-extern std::unordered_map<std::string, int> tunedValues;
+extern std::unordered_map<std::string, tunable_param> tunableParams;
 // Actual functions to init and update variables
-void addTune(std::string name, std::string type, int curr_value, int min_value, int max_value, float C_end, float R_end);
+const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end);
 // Handles the update of a variable being tuned
 void updateTuneVariable(std::string tune_variable_name, int value);
 
-
-inline void InitTunable() {
-	// Example
-	addTune("iirDepth", "int", 4, 1, 7, 1, 0.0020);
-	addTune("tmScaleGuard", "int", 7, 3, 10, 1, 0.0020);
-	addTune("aspWinDelta", "int", 12, 3, 18, 2, 0.0020);
-	addTune("aspWinDepth", "int", 3, 2, 6, 1, 0.0020);
-	addTune("aspWinDeltaMultiplier", "int", 144, 110, 200, 7, 0.0020);
-	addTune("rfpDepth", "int", 10, 7, 12, 1, 0.0020);
-	addTune("rfpMultiplier", "int", 91, 45, 130, 10, 0.0020);
-}
-
 // Giant wasteland of tunable params
 // Tm stuff
-TUNE_PARAM(tmScaleGuard, 7);
+TUNE_PARAM(tmScaleGuard, 7, 3, 10, 1, 0.0020);
 // Asp Win stuff
-TUNE_PARAM(aspWinDelta, 12);
-TUNE_PARAM(aspWinDepth,  3);
-TUNE_PARAM(aspWinDeltaMultiplier, 144);
+TUNE_PARAM(aspWinDelta, 12, 3, 18, 2, 0.0020);
+TUNE_PARAM(aspWinDepth, 3, 2, 6, 1, 0.0020);
+TUNE_PARAM(aspWinDeltaMultiplier, 144, 110, 200, 7, 0.0020);
 // Search
 // IIR
-TUNE_PARAM(iirDepth, 4);
+TUNE_PARAM(iirDepth, 4, 1, 7, 1, 0.0020);
 // RFP
-TUNE_PARAM(rfpDepth, 10);
-TUNE_PARAM(rfpMultiplier, 91);
+TUNE_PARAM(rfpDepth, 10, 7, 12, 1, 0.0020);
+TUNE_PARAM(rfpMultiplier, 91, 45, 130, 10, 0.0020);
 
 

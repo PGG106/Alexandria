@@ -1,14 +1,15 @@
 #include "tune.h"
+std::unordered_map<std::string, tunable_param> tunableParams;
 
-std::vector<tunable_param> tunableParams;
-std::unordered_map<std::string, int> tunedValues;
-
-void addTune(std::string name, std::string type, int curr_value, int min_value, int max_value, float C_end, float R_end) {
-    tunableParams.emplace_back(name, type, curr_value, min_value, max_value, C_end, R_end);
-    tunedValues.emplace(name, curr_value);
+const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end)
+{
+    tunable_param &param = tunableParams[name];
+    param = tunable_param{name, defaultValue, curr_value, min_value, max_value, C_end, R_end};
+    return param.currValue;
 }
 
 void updateTuneVariable(std::string tune_variable_name, int value)
 {
-    tunedValues[tune_variable_name] = value;
+    tunable_param &param = tunableParams[tune_variable_name];
+    param.currValue = value;
 }
