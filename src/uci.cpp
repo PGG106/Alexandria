@@ -337,7 +337,13 @@ void UciLoop(int argc, char** argv) {
 #ifdef TUNE
             for (const auto &[key, param] : tunableParams)
                 {
-                    std::cout << param << "\n";
+                    std::cout << "option name " + param.name;
+                    std::cout << " type spin default ";
+                    std::cout << param.currValue;
+                    std::cout << " min ";
+                    std::cout << param.minValue;
+                    std::cout << " max ";
+                    std::cout << param.maxValue << "\n";
                 }
 #endif
             std::cout << "uciok\n";
