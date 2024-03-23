@@ -19,7 +19,7 @@ void ScoreMoves(Movepicker* mp) {
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
             // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
             if (capturedPiece == EMPTY) capturedPiece = PAWN;
-            moveList->moves[i].score = PieceValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
+            moveList->moves[i].score = SEEValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
             // Good captures get played before any move that isn't a promotion or a TT move
             // Bad captures are always played last, no matter how bad the history score of a quiet is, it will never be played after a bad capture
             int SEEThreshold = mp->SEEThreshold != SCORE_NONE ? mp->SEEThreshold : -moveList->moves[i].score / 64;

@@ -120,14 +120,14 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 
     int target = pos->PieceOn(to);
     // Making the move and not losing it must beat the threshold
-    int value = PieceValue[target] - threshold;
+    int value = SEEValue[target] - threshold;
 
     if (value < 0)
         return false;
 
     int attacker = pos->PieceOn(from);
     // Trivial if we still beat the threshold after losing the piece
-    value -= PieceValue[attacker];
+    value -= SEEValue[attacker];
 
     if (value >= 0)
         return true;
@@ -159,7 +159,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 
         side ^= 1;
 
-        value = -value - 1 - PieceValue[pt];
+        value = -value - 1 - SEEValue[pt];
 
         // Value beats threshold, or can't beat threshold (negamaxed)
         if (value >= 0) {
