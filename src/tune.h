@@ -11,6 +11,8 @@ To add a variable for tuning we call the addTune function in initTunables, this 
 3) do some cursed getter macro wizardry with the TUNE_PARAM macro
 */
 
+#define TUNE
+
 // Very cursed macro wizardry to set and fetch the values without having to manually swap in hashtable accesses, partially stolen from SP
 // Start with the case where we are actually tuning
 #ifdef TUNE
@@ -65,8 +67,14 @@ void updateTuneVariable(std::string tune_variable_name, int value);
 
 inline void InitTunable() {
 	// Example
-	addTune("iirDepth", "int", 4, 1, 7, 122, 254);
+	addTune("iirDepth", "int", 4, 1, 7, 1, 0.0020);
+	addTune("tmScaleGuard", "int", 7, 3, 10, 1, 0.0020);
+	addTune("aspWinDelta", "int", 12, 3, 18, 2, 0.0020);
+	addTune("aspWinDepth", "int", 3, 2, 6, 1, 0.0020);
 }
 
 // Giant wasteland of tunable params
 TUNE_PARAM(iirDepth, 4);
+TUNE_PARAM(tmScaleGuard, 7);
+TUNE_PARAM(aspWinDelta, 12);
+TUNE_PARAM(aspWinDepth,  3);
