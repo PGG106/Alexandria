@@ -130,9 +130,9 @@ ifneq ($(findstring gcc, $(CC)),)
 endif
 
 ifneq ($(findstring clang, $(CC)),)
-	PGOMERGE = llvm-profdata merge -output=alex.profdata *.profraw
+	PGOMERGE = llvm-profdata merge -output=alexandria.profdata *.profraw
 	PGOGEN   = -fprofile-instr-generate
-	PGOUSE   = -fprofile-instr-use=alex.profdata
+	PGOUSE   = -fprofile-instr-use=alexandria.profdata
 endif
 
 # Add network name and Evalfile
