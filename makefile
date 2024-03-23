@@ -122,6 +122,19 @@ ifeq ($(build), debug)
 	endif
 endif
 
+# Get what pgo flags we should be using
+
+ifneq ($(findstring gcc, $(CC)),)
+	PGOGEN   = -fprofile-generate
+	PGOUSE   = -fprofile-use
+endif
+
+ifneq ($(findstring clang, $(CC)),)
+	PGOMERGE = llvm-profdata merge -output=alexandria.profdata *.profraw
+	PGOGEN   = -fprofile-instr-generate
+	PGOUSE   = -fprofile-instr-use=alexandria.profdata
+endif
+
 # Add network name and Evalfile
 CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE)\"
 
@@ -144,3 +157,12 @@ $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
 
 -include $(DEPENDS)
+
+
+# Usual disservin yoink for makefile related stuff
+pgo:
+	$(CXX) $(CXXFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	./$(EXE) bench
+	$(PGO_MERGE)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d  profdata
