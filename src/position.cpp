@@ -443,16 +443,6 @@ int GetEpSquare(const Position* pos) {
     return pos->enPas;
 }
 
-uint64_t GetMaterialValue(const Position* pos) {
-    int pawns = CountBits(GetPieceBB(pos, PAWN));
-    int knights = CountBits(GetPieceBB(pos, KNIGHT));
-    int bishops = CountBits(GetPieceBB(pos, BISHOP));
-    int rooks = CountBits(GetPieceBB(pos, ROOK));
-    int queens = CountBits(GetPieceBB(pos, QUEEN));
-
-    return pawns * PieceValue[PAWN] + knights * PieceValue[KNIGHT] + bishops * PieceValue[BISHOP] + rooks * PieceValue[ROOK] + queens * PieceValue[QUEEN];
-}
-
 void Accumulate(NNUE::accumulator& board_accumulator, Position* pos) {
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         board_accumulator[0][i] = net.featureBias[i];

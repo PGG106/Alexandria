@@ -16,15 +16,21 @@ bool MaterialDraw(const Position* pos) {
         if ((CountBits(GetPieceBB(pos, KNIGHT)) == 2))
             return true;
         // KB v KB
-        else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB( BISHOP, WHITE)) == 1)
+        else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
             return true;
     }
 
     return false;
 }
 
-static inline float MaterialScale(const Position* pos) {
-    return 700 + GetMaterialValue(pos) / 32;
+static inline int ScaleMaterial(const Position* pos, int eval) {
+    const int knights = CountBits(GetPieceBB(pos, KNIGHT));
+    const int bishops = CountBits(GetPieceBB(pos, BISHOP));
+    const int rooks = CountBits(GetPieceBB(pos, ROOK));
+    const int queens = CountBits(GetPieceBB(pos, QUEEN));
+    const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
+    // Scale between [0.75, 1.00]
+    return eval * (192 + phase) / 256;
 }
 
 // position evaluation
@@ -32,7 +38,7 @@ int EvalPosition(Position* pos) {
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     bool stm = (pos->side == WHITE);
     int eval = nnue.output(pos->accumStack[pos->accumStackHead-1], stm);
-    eval = (eval * MaterialScale(pos)) / 1024;
+    eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);

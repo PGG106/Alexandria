@@ -3,7 +3,7 @@
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
-#define NAME "Alexandria-6.0.17"
+#define NAME "Alexandria-6.0.18"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -107,8 +107,8 @@ constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
                                 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 // Contains the material Values of the pieces
-constexpr int PieceValue[15] = { 100, 300, 300, 450, 900, 0,
-                                 100, 300, 300, 450, 900, 0, 0, 0, 0 };
+constexpr int SEEValue[15] = { 100, 422, 422, 642, 1015, 0,
+                               100, 422, 422, 642, 1015, 0, 0, 0, 0 };
 
 enum {
     queenPromotionScore = 2000000001,

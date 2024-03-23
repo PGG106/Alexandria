@@ -214,7 +214,6 @@ void ResetInfo(SearchInfo* info);
 void UpdatePinsAndCheckers(Position* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 [[nodiscard]] int GetEpSquare(const Position* pos);
-[[nodiscard]] uint64_t GetMaterialValue(const Position* pos);
 void Accumulate(NNUE::accumulator& board_accumulator, Position* pos);
 ZobristKey keyAfter(const Position* pos, const int move);
 void saveBoardState(Position* pos);
