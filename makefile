@@ -124,12 +124,12 @@ endif
 
 # Get what pgo flags we should be using
 
-ifneq ($(findstring gcc, $(CC)),)
+ifneq ($(findstring gcc, $(CCX)),)
 	PGOGEN   = -fprofile-generate
 	PGOUSE   = -fprofile-use
 endif
 
-ifneq ($(findstring clang, $(CC)),)
+ifneq ($(findstring clang, $(CCX)),)
 	PGOMERGE = llvm-profdata merge -output=alexandria.profdata *.profraw
 	PGOGEN   = -fprofile-instr-generate
 	PGOUSE   = -fprofile-instr-use=alexandria.profdata
