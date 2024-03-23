@@ -8,8 +8,15 @@ const int &addTune(std::string name, int defaultValue, int curr_value, int min_v
     return param.currValue;
 }
 
-void updateTuneVariable(std::string tune_variable_name, int value)
+bool updateTuneVariable(std::string tune_variable_name, int value)
 {
-    tunable_param &param = tunableParams[tune_variable_name];
-    param.currValue = value;
+    auto iter = tunableParams.find(tune_variable_name);
+
+    if (iter == tunableParams.end())
+    {
+        return false;
+    }
+
+    iter->second.currValue = value;
+    return true;
 }

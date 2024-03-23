@@ -52,7 +52,7 @@ extern std::unordered_map<std::string, tunable_param> tunableParams;
 // Actual functions to init and update variables
 const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end);
 // Handles the update of a variable being tuned
-void updateTuneVariable(std::string tune_variable_name, int value);
+bool updateTuneVariable(std::string tune_variable_name, int value);
 
 // Giant wasteland of tunable params
 // Tm stuff
