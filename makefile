@@ -148,7 +148,6 @@ clean:
 	@rm -rf $(TMPDIR) *.o  $(DEPENDS) *.d
 
 $(TARGET): $(OBJECTS)
-	$(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
