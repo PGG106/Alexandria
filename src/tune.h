@@ -46,10 +46,14 @@ struct tunable_param {
         return os;
     }
 };
-
-// Data structures to handle the output of the params and the value setting at runtime
-extern std::unordered_map<std::string, tunable_param> tunableParams;
+inline std::unordered_map<std::string, tunable_param> tunableParams() 
+{
+    static std::unordered_map<std::string, tunable_param> tunableParams{};
+    return tunableParams;
+}
 // Actual functions to init and update variables
 const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end);
 // Handles the update of a variable being tuned
 bool updateTuneVariable(std::string tune_variable_name, int value);
+
+TUNE_PARAM(MADEUPSHIT,10,10,10,1,1)
