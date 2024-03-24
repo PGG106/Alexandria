@@ -329,7 +329,7 @@ void UciLoop(int argc, char** argv) {
         else if (input == "uci") {
             // print engine info
             std::cout << "id name " << NAME << "\n";
-            std::cout << "id author PGG and Contributors\n";
+            std::cout << "id author Zuppa, CJ and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
 #ifdef TUNE
