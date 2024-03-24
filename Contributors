@@ -1,4 +1,5 @@
 # Everyone that significantly contributed to Alex code (in alphabetical order)
+Ciekce - the entirety of the tuning setup
 Cosmo - relative NNUE inference code
 Disservin - Makefile and CI PR
 fireandice - Writing SIMD so we don't have to

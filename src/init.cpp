@@ -194,9 +194,6 @@ void InitAll() {
         SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
 #endif
-#ifdef TUNE
-    InitTunable();
-#endif
     // init leaper pieces attacks
     InitLeapersAttacks();
     // init slider pieces attacks

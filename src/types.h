@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+// include the tune stuff here to give it global visibility
+#include "tune.h"
 
 #define NAME "Alexandria-6.1.0"
 

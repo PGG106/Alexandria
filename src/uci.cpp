@@ -212,8 +212,10 @@ void UciLoop(int argc, char** argv) {
     std::cout << NAME << "\n";
 
 #ifdef TUNE
-    for (tunable_param param : tunableParams)
+    for (const auto &[key, param] : tunableParams())
+    {
         std::cout << param << "\n";
+    }
 #endif
 
     // main loop
@@ -333,7 +335,8 @@ void UciLoop(int argc, char** argv) {
             std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
 #ifdef TUNE
-            for (tunable_param param : tunableParams) {
+            for (const auto &[key, param] : tunableParams())
+            {
                 std::cout << "option name " + param.name;
                 std::cout << " type spin default ";
                 std::cout << param.currValue;
@@ -355,7 +358,8 @@ void UciLoop(int argc, char** argv) {
 
         // spsa info dump
         else if (input == "tune") {
-            for (tunable_param param : tunableParams) {
+            for (const auto &[key, param] : tunableParams())
+            {
                 std::cout << param << "\n";
             }
         }
