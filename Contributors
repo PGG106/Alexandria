@@ -1,6 +1,6 @@
 # Everyone that significantly contributed to Alex code (in alphabetical order)
+Ciekce - the entirety of the tuning setup
 Cosmo - relative NNUE inference code
-cj5716 - Several gainers
 Disservin - Makefile and CI PR
 fireandice - Writing SIMD so we don't have to
 Gabe - Fat speedup
