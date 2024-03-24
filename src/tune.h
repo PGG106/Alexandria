@@ -46,7 +46,7 @@ struct tunable_param {
         return os;
     }
 };
-inline std::unordered_map<std::string, tunable_param> tunableParams() 
+inline std::unordered_map<std::string, tunable_param> &tunableParams()
 {
     static std::unordered_map<std::string, tunable_param> tunableParams{};
     return tunableParams;
