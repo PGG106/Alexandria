@@ -56,4 +56,4 @@ const int &addTune(std::string name, int defaultValue, int curr_value, int min_v
 // Handles the update of a variable being tuned
 bool updateTuneVariable(std::string tune_variable_name, int value);
 
-TUNE_PARAM(MADEUPSHIT,10,10,10,1,1)
+TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
