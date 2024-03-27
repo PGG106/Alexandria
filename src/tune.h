@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-#define TUNE
 
 /*
 How tuning works in alex, a brief summary:
@@ -56,4 +55,7 @@ const int &addTune(std::string name, int defaultValue, int curr_value, int min_v
 // Handles the update of a variable being tuned
 bool updateTuneVariable(std::string tune_variable_name, int value);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-reference"
 TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
+#pragma GCC diagnostic pop
