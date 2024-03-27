@@ -16,6 +16,9 @@ To add a variable for tuning we call the addTune function in initTunables, this 
 // Start with the case where we are actually tuning
 #ifdef TUNE
 #define TUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wdangling-reference"
+        #pragma GCC diagnostic pop
         inline const int& tuned_##Name = addTune(#Name, Default, Default, Min, Max, C_end, R_end); \
         inline int Name() { return tuned_##Name; }
 #else
@@ -55,7 +58,4 @@ const int &addTune(std::string name, int defaultValue, int curr_value, int min_v
 // Handles the update of a variable being tuned
 bool updateTuneVariable(std::string tune_variable_name, int value);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdangling-reference"
 TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
-#pragma GCC diagnostic pop
