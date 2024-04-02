@@ -86,12 +86,10 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
         return mp->ttMove;
 
     case GEN_MOVES:
-        if (mp->capturesOnly) {
-            GenerateCaptures(&mp->moveList, mp->pos);
-        }
-        else {
-            GenerateMoves(&mp->moveList, mp->pos);
-        }
+
+        GenerateMoves(&mp->moveList, mp->pos, mp->capturesOnly ? MOVEGEN_NOISY
+                                                               : MOVEGEN_ALL);
+
         ScoreMoves(mp);
         ++mp->stage;
         [[fallthrough]];

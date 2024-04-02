@@ -54,7 +54,7 @@ static bool Is50MrDraw(Position* pos) {
         // if we are in check make sure it's not checkmate 
         MoveList moveList;
         // generate moves
-        GenerateMoves(&moveList, pos);
+        GenerateMoves(&moveList, pos, MOVEGEN_ALL);
         for (int i = 0; i < moveList.count; i++) {
             const int move = moveList.moves[i].move;
             if (IsLegal(pos, move)) {
