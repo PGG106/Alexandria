@@ -5,8 +5,15 @@ struct MoveList;
 
 enum {
     PICK_TT,
-    GEN_MOVES,
-    PICK_MOVES
+    GEN_NOISY,
+    PICK_GOOD_NOISY,
+    PICK_KILLER_0,
+    PICK_KILLER_1,
+    PICK_COUNTER,
+    GEN_QUIETS,
+    PICK_QUIETS,
+    GEN_BAD_NOISY,
+    PICK_BAD_NOISY
 };
 
 struct Movepicker {
@@ -14,6 +21,7 @@ struct Movepicker {
     SearchData* sd;
     SearchStack* ss;
     MoveList moveList;
+    MoveList badCaptureList;
     int idx;
     int stage;
     int ttMove;
