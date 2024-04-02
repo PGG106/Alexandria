@@ -10,7 +10,7 @@
 
 constexpr int INPUT_WEIGHTS = 768;
 constexpr int HIDDEN_SIZE = 1024;
-constexpr int OUTPUT_BUCKETS = 1;
+constexpr int OUTPUT_BUCKETS = 8;
 
 using NNUEIndices = std::pair<std::size_t, std::size_t>;
 
