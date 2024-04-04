@@ -102,7 +102,7 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
 
     case PICK_KILLER_1:
         if (mp->capturesOnly) {
-            mp->stage = PICK_BAD_NOISY;
+            mp->stage = GEN_BAD_NOISY;
             goto top;
         }
         ++mp->stage;
@@ -135,8 +135,6 @@ int NextMove(Movepicker* mp, const bool skipNonGood) {
         while (mp->idx < mp->moveList.count) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const int move = mp->moveList.moves[mp->idx].move;
-            const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold = mp->SEEThreshold != SCORE_NONE ? mp->SEEThreshold : -score / 64;
             ++mp->idx;
             if (   move == mp->ttMove
                 || move == mp->killer0
