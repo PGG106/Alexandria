@@ -24,7 +24,7 @@ void PerftDriver(int depth, Position* pos) {
     }
 
     // generate moves
-    GenerateMoves(&moveList, pos);
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
 
     // loop over generated moves
     for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
@@ -52,7 +52,7 @@ unsigned long long PerftTest(int depth, Position* pos) {
     MoveList moveList;
 
     // generate moves
-    GenerateMoves(&moveList, pos);
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
 
     // init start time
     long start = GetTimeMs();

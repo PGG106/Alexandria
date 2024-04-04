@@ -10,10 +10,10 @@ struct ScoredMove {
 // move list structure
 struct MoveList {
     // moves
-    ScoredMove moves[256];
+    ScoredMove moves[256] = {};
 
     // move count
-    int count;
+    int count = 0;
 };
 
 enum class Movetype {

@@ -11,40 +11,17 @@ void ScoreMoves(Movepicker* mp) {
     SearchData* sd = mp->sd;
     SearchStack* ss = mp->ss;
     // Loop through all the move in the movelist
-    for (int i = 0; i < moveList->count; i++) {
+    for (int i = mp->idx; i < moveList->count; i++) {
         int move = moveList->moves[i].move;
-        // We have no need to sort the TT move first since the ttmove always gets played before movegen if it's an acceptable move.
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
             // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
             if (capturedPiece == EMPTY) capturedPiece = PAWN;
             moveList->moves[i].score = SEEValue[capturedPiece] * 32 + GetCapthistScore(pos, sd, move);
-            // Good captures get played before any move that isn't a promotion or a TT move
-            // Bad captures are always played last, no matter how bad the history score of a quiet is, it will never be played after a bad capture
-            int SEEThreshold = mp->SEEThreshold != SCORE_NONE ? mp->SEEThreshold : -moveList->moves[i].score / 64;
-            moveList->moves[i].score += SEE(pos, move, SEEThreshold) ? goodCaptureScore : badCaptureScore;
-            continue;
         }
-        // First killer move always comes after the TT move,the promotions and the good captures and before anything else
-        else if (move == mp->killer0) {
-            moveList->moves[i].score = killerMoveScore0;
-            continue;
-        }
-        // Second killer move always comes after the first one
-        else if (move == mp->killer1) {
-            moveList->moves[i].score = killerMoveScore1;
-            continue;
-        }
-        // After the killer moves try the Counter moves
-        else if (move == mp->counter) {
-            moveList->moves[i].score = counterMoveScore;
-            continue;
-        }
-        // if the move isn't in any of the previous categories score it according to the history heuristic
         else {
             moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss);
-            continue;
         }
     }
 }
@@ -64,49 +41,136 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
     std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold) {
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType) {
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+    mp->movepickerType = movepickerType;
     mp->pos = pos;
     mp->sd = sd;
     mp->ss = ss;
-    mp->ttMove = (!capturesOnly || isTactical(ttMove)) && IsPseudoLegal(pos, ttMove) ? ttMove : NOMOVE;
+    mp->ttMove = ttMove;
     mp->idx = 0;
-    mp->stage = mp->ttMove ? PICK_TT : GEN_MOVES;
-    mp->capturesOnly = capturesOnly;
-    mp->SEEThreshold = SEEThreshold;
+    mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
     mp->killer0 = ss->searchKillers[0];
     mp->killer1 = ss->searchKillers[1];
     mp->counter = sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)];
 }
 
-int NextMove(Movepicker* mp, const bool skipNonGood) {
+int NextMove(Movepicker* mp, const bool skip) {
+    top:
+    if (skip) {
+        // In search, the skip variable is used to dictate whether we skip quiet moves
+        if (   mp->movepickerType == SEARCH
+            && mp->stage > PICK_GOOD_NOISY
+            && mp->stage < GEN_BAD_NOISY) {
+            mp->stage = GEN_BAD_NOISY;
+        }
+
+        // In qsearch, the skip variable is used to dictate whether we skip quiet moves and bad captures
+        if (   mp->movepickerType == QSEARCH
+            && mp->stage > PICK_GOOD_NOISY) {
+            return NOMOVE;
+        }
+    }
     switch (mp->stage) {
     case PICK_TT:
         ++mp->stage;
+        // If we are in qsearch and not in check, skip quiet TT moves
+        if (mp->movepickerType == QSEARCH && skip && !isTactical(mp->ttMove))
+            goto top;
+
+        // If the TT move if not pseudo legal we skip it too
+        if (!IsPseudoLegal(mp->pos, mp->ttMove))
+            goto top;
+
         return mp->ttMove;
 
-    case GEN_MOVES:
-        if (mp->capturesOnly) {
-            GenerateCaptures(&mp->moveList, mp->pos);
-        }
-        else {
-            GenerateMoves(&mp->moveList, mp->pos);
-        }
+    case GEN_NOISY:
+        GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_NOISY);
         ScoreMoves(mp);
         ++mp->stage;
-        [[fallthrough]];
+        goto top;
 
-    case PICK_MOVES:
+    case PICK_GOOD_NOISY:
         while (mp->idx < mp->moveList.count) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const int move = mp->moveList.moves[mp->idx].move;
+            const int score = mp->moveList.moves[mp->idx].score;
+            const int SEEThreshold = mp->movepickerType == SEARCH ? -score / 64 : -108;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
 
-            if (skipNonGood && mp->moveList.moves[mp->idx-1].score < goodCaptureMin)
-                return NOMOVE;
+            if (!SEE(mp->pos, move, SEEThreshold)) {
+                AddMove(move, score, &mp->badCaptureList);
+                continue;
+            }
 
+            assert(isTactical(move));
+
+            return move;
+        }
+        ++mp->stage;
+        goto top;
+
+    case PICK_KILLER_0:
+        ++mp->stage;
+        if (!isTactical(mp->killer0) && IsPseudoLegal(mp->pos, mp->killer0))
+            return mp->killer0;
+
+        goto top;
+
+    case PICK_KILLER_1:
+        ++mp->stage;
+        if (!isTactical(mp->killer1) && IsPseudoLegal(mp->pos, mp->killer1))
+            return mp->killer1;
+
+        goto top;
+
+    case PICK_COUNTER:
+        ++mp->stage;
+        if (!isTactical(mp->counter) && IsPseudoLegal(mp->pos, mp->counter))
+            return mp->counter;
+
+        goto top;
+
+    case GEN_QUIETS:
+        GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
+        ScoreMoves(mp);
+        ++mp->stage;
+        goto top;
+
+    case PICK_QUIETS:
+        while (mp->idx < mp->moveList.count) {
+            partialInsertionSort(&mp->moveList, mp->idx);
+            const int move = mp->moveList.moves[mp->idx].move;
+            ++mp->idx;
+            if (   move == mp->ttMove
+                || move == mp->killer0
+                || move == mp->killer1
+                || move == mp->counter)
+                continue;
+
+            assert(!isTactical(move));
+            return move;
+        }
+        ++mp->stage;
+        goto top;
+
+    case GEN_BAD_NOISY:
+        // Nothing to generate lol, just reset mp->idx
+        mp->idx = 0;
+        ++mp->stage;
+        goto top;
+
+    case PICK_BAD_NOISY:
+        while (mp->idx < mp->badCaptureList.count) {
+            partialInsertionSort(&mp->badCaptureList, mp->idx);
+            const int move = mp->badCaptureList.moves[mp->idx].move;
+            ++mp->idx;
+            if (move == mp->ttMove)
+                continue;
+
+            assert(isTactical(move));
             return move;
         }
         return NOMOVE;

@@ -54,7 +54,7 @@ static bool Is50MrDraw(Position* pos) {
         // if we are in check make sure it's not checkmate 
         MoveList moveList;
         // generate moves
-        GenerateMoves(&moveList, pos);
+        GenerateMoves(&moveList, pos, MOVEGEN_ALL);
         for (int i = 0; i < moveList.count; i++) {
             const int move = moveList.moves[i].move;
             if (IsLegal(pos, move)) {
@@ -503,17 +503,17 @@ moves_loop:
     int bestMove = NOMOVE;
 
     int totalMoves = 0;
-    bool SkipQuiets = false;
+    bool skipQuiets = false;
 
     Movepicker mp;
-    InitMP(&mp, pos, sd, ss, ttMove, false);
+    InitMP(&mp, pos, sd, ss, ttMove, SEARCH);
 
     // Keep track of the played quiet and noisy moves
     MoveList quietMoves, noisyMoves;
     quietMoves.count = 0, noisyMoves.count = 0;
 
     // loop over moves within a movelist
-    while ((move = NextMove(&mp, false)) != NOMOVE) {
+    while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
 
         if (move == excludedMove || !IsLegal(pos, move))
             continue;
@@ -522,21 +522,18 @@ moves_loop:
 
         const bool isQuiet = !isTactical(move);
 
-        if (isQuiet && SkipQuiets)
-            continue;
-
         const int moveHistory = GetHistoryScore(pos, sd, move, ss);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -MATE_FOUND) {
 
-            if (!SkipQuiets) {
+            if (!skipQuiets) {
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (!pvNode
                     && !inCheck
                     && totalMoves > lmp_margin[depth][improving]) {
-                    SkipQuiets = true;
+                    skipQuiets = true;
                 }
 
                 // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
@@ -546,7 +543,7 @@ moves_loop:
                 if (!inCheck
                     && lmrDepth < 11
                     && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
-                    SkipQuiets = true;
+                    skipQuiets = true;
                 }
             }
 
@@ -815,14 +812,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
-    InitMP(&mp, pos, sd, ss, ttMove, !inCheck, -108);
+    InitMP(&mp, pos, sd, ss, ttMove, QSEARCH);
 
     int bestmove = NOMOVE;
     int move = NOMOVE;
     int totalMoves = 0;
 
     // loop over moves within the movelist
-    while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
+    while ((move = NextMove(&mp, !inCheck || bestScore > -MATE_FOUND)) != NOMOVE) {
 
         if (!IsLegal(pos, move))
             continue;

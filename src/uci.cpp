@@ -22,7 +22,7 @@ int ParseMove(const std::string& moveString, Position* pos) {
     MoveList moveList;
 
     // generate moves
-    GenerateMoves(&moveList, pos);
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
 
     // parse source square
     const int sourceSquare = (moveString[0] - 'a') + (8 - (moveString[1] - '0')) * 8;
@@ -385,7 +385,7 @@ void UciLoop(int argc, char** argv) {
             MoveList moveList;
 
             // generate moves
-            GenerateMoves(&moveList, &td->pos);
+            GenerateMoves(&moveList, &td->pos, MOVEGEN_NOISY);
             printf("SEE thresholds\n");
             for (int i = 0; i < moveList.count; i++) {
                 int move = moveList.moves[i].move;
