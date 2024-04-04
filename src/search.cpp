@@ -261,7 +261,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score = 0;
     td->RootDepth = depth;
     SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
-    // Explicitely clean stack
+    // Explicitly clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
@@ -369,7 +369,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = excludedMove ? false : ProbeTTEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = !excludedMove && ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);

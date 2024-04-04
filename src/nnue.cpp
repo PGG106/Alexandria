@@ -31,6 +31,7 @@ Network net;
 // invaluable help and the immense patience
 
 void NNUE::init(const char* file) {
+
     // open the nn file
     FILE* nn = fopen(file, "rb");
 
@@ -38,13 +39,13 @@ void NNUE::init(const char* file) {
     if (nn) {
         // initialize an accumulator for every input of the second layer
         size_t read = 0;
-        size_t fileSize = sizeof(Network);
-        size_t objectsExpected = fileSize / sizeof(int16_t);
+        const size_t fileSize = sizeof(Network);
+        const size_t objectsExpected = fileSize / sizeof(int16_t);
 
         read += fread(net.featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
         read += fread(net.featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
-        read += fread(net.outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2, nn);
-        read += fread(&net.outputBias, sizeof(int16_t), 1, nn);
+        read += fread(net.outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2 * OUTPUT_BUCKETS, nn);
+        read += fread(net.outputBias, sizeof(int16_t), OUTPUT_BUCKETS, nn);
 
         if (read != objectsExpected) {
             std::cout << "Error loading the net, aborting ";
@@ -62,10 +63,23 @@ void NNUE::init(const char* file) {
         std::memcpy(net.featureBias, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t));
         memoryIndex += HIDDEN_SIZE * sizeof(int16_t);
 
-        std::memcpy(net.outputWeights, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t) * 2);
-        memoryIndex += HIDDEN_SIZE * sizeof(int16_t) * 2;
-        std::memcpy(&net.outputBias, &gEVALData[memoryIndex], 1 * sizeof(int16_t));
+        std::memcpy(net.outputWeights, &gEVALData[memoryIndex], HIDDEN_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t));
+        memoryIndex += HIDDEN_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t);
+        std::memcpy(net.outputBias, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
     }
+
+    int16_t transposedOutputWeights[HIDDEN_SIZE * 2 * OUTPUT_BUCKETS];
+    for (int weight = 0; weight < 2 * HIDDEN_SIZE; ++weight)
+    {
+        for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket)
+        {
+            const int srcIdx = weight * OUTPUT_BUCKETS + bucket;
+            const int dstIdx = bucket * 2 * HIDDEN_SIZE + weight;
+            transposedOutputWeights[dstIdx] = net.outputWeights[srcIdx];
+        }
+    }
+    std::memcpy(net.outputWeights, transposedOutputWeights, HIDDEN_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
+
 }
 
 #if defined(USE_AVX512)
@@ -202,7 +216,7 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
     #endif
 }
 
-int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whiteToMove) {
+int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whiteToMove, const int outputBucket) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
     const int16_t* us;
@@ -214,8 +228,10 @@ int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whit
         us = board_accumulator[1].data();
         them = board_accumulator[0].data();
     }
-    int32_t output = flatten(us, net.outputWeights) + flatten(them, net.outputWeights + HIDDEN_SIZE);
-    return (output / QA + net.outputBias) * 400 / (QA * QB);
+    const int32_t bucketOffset = 2 * HIDDEN_SIZE * outputBucket;
+    int32_t output =   flatten(us, net.outputWeights + bucketOffset)
+                     + flatten(them, net.outputWeights + HIDDEN_SIZE + bucketOffset);
+    return (output / QA + net.outputBias[outputBucket]) * 400 / (QA * QB);
 }
 
 NNUEIndices NNUE::GetIndex(const int piece, const int square) {
