@@ -1,5 +1,6 @@
 #pragma once
 #include "search.h"
+#include <cstdint>
 
 struct MoveList;
 
@@ -16,7 +17,13 @@ enum {
     PICK_BAD_NOISY
 };
 
+enum MovepickerType : uint8_t {
+    SEARCH,
+    QSEARCH
+};
+
 struct Movepicker {
+    MovepickerType movepickerType;
     Position* pos;
     SearchData* sd;
     SearchStack* ss;
@@ -28,9 +35,7 @@ struct Movepicker {
     int killer0;
     int killer1;
     int counter;
-    bool capturesOnly;
-    int SEEThreshold;
 };
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const bool capturesOnly, const int SEEThreshold = SCORE_NONE);
-int NextMove(Movepicker* mp, const bool skipNonGood);
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType);
+int NextMove(Movepicker* mp, const bool skip);
