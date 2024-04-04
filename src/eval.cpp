@@ -15,7 +15,7 @@ bool MaterialDraw(const Position* pos) {
         // KNN v K, KN v KN
         if ((CountBits(GetPieceBB(pos, KNIGHT)) == 2))
             return true;
-        // KB v KB
+            // KB v KB
         else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
             return true;
     }
@@ -35,9 +35,9 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 
 int EvalPositionRaw(Position* pos) {
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-    bool stm = pos->side == WHITE;
-    int pieceCount = pos->PieceCount();
-    int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
+    const bool stm = pos->side == WHITE;
+    const int pieceCount = pos->PieceCount();
+    const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     return nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
 }
 

@@ -39,8 +39,8 @@ void NNUE::init(const char* file) {
     if (nn) {
         // initialize an accumulator for every input of the second layer
         size_t read = 0;
-        size_t fileSize = sizeof(Network);
-        size_t objectsExpected = fileSize / sizeof(int16_t);
+        const size_t fileSize = sizeof(Network);
+        const size_t objectsExpected = fileSize / sizeof(int16_t);
 
         read += fread(net.featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
         read += fread(net.featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
