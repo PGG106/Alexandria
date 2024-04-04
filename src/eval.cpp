@@ -15,7 +15,7 @@ bool MaterialDraw(const Position* pos) {
         // KNN v K, KN v KN
         if ((CountBits(GetPieceBB(pos, KNIGHT)) == 2))
             return true;
-            // KB v KB
+        // KB v KB
         else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
             return true;
     }
