@@ -39,7 +39,7 @@ struct BoardState {
 
 struct Position {
 public:
-    int pieces[Board_sq_num]; // array that stores for every square of the board
+    int pieces[64]; // array that stores for every square of the board
     // if there's a piece, or if the square is invalid
 
     int side = -1; // what side has to move
@@ -129,7 +129,7 @@ struct PvTable {
     int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 };
 
-extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
+extern Bitboard SQUARES_BETWEEN_BB[64][64];
 // Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct SearchInfo {
     // search start time
