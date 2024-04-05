@@ -14,10 +14,10 @@ struct SearchStack {
 };
 
 struct SearchData {
-    int searchHistory[2][Board_sq_num][Board_sq_num] = {};
+    int searchHistory[2][4096] = {};
     // Piece, To, Captured
-    int captHist[12][Board_sq_num][6] = {};
-    int counterMoves[Board_sq_num][Board_sq_num] = {};
+    int captHist[12][64][6] = {};
+    int counterMoves[4096] = {};
     int contHist[12][64][12][64] = {};
 };
 
@@ -28,7 +28,7 @@ struct ThreadData {
     SearchData sd;
     SearchInfo info;
     PvTable pvTable;
-    uint64_t nodeSpentTable[Board_sq_num][Board_sq_num] = {};
+    uint64_t nodeSpentTable[4096] = {};
     int RootDepth;
     int nmpPlies;
 };

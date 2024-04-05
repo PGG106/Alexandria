@@ -52,7 +52,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
     mp->killer0 = ss->searchKillers[0];
     mp->killer1 = ss->searchKillers[1];
-    mp->counter = sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)];
+    mp->counter = sd->counterMoves[FromTo((ss - 1)->move)];
 }
 
 int NextMove(Movepicker* mp, const bool skip) {

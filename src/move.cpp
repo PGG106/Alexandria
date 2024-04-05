@@ -5,19 +5,23 @@ int encode_move(const int source, const int target, const int piece, const Movet
 }
 
 int From(const int move) {
-    return move & 0x3f;
+    return move & 0x3F;
 }
 
 int To(const int move) {
-    return ((move & 0xfc0) >> 6);
+    return ((move & 0xFC0) >> 6);
+}
+
+int FromTo(const int move) {
+    return move & 0xFFF;
 }
 
 int GetMovetype(const int move) {
-    return ((move & 0xf000) >> 12);
+    return ((move & 0xF000) >> 12);
 }
 
 int Piece(const int move) {
-    return ((move & 0xf0000) >> 16);
+    return ((move & 0xF0000) >> 16);
 }
 
 bool isEnpassant(const int move) {

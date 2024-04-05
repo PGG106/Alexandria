@@ -675,7 +675,7 @@ moves_loop:
         UnmakeMove(move, pos);
         if (   td->id == 0
             && rootNode)
-            td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodesBeforeSearch;
+            td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
         if (info->stopped)
             return 0;
@@ -710,7 +710,7 @@ moves_loop:
 
                         // Save counterMoves
                         if (ss->ply >= 1)
-                            sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
+                            sd->counterMoves[FromTo((ss - 1)->move)] = move;
                     }
                     // Update the history heuristics based on the new best move
                     UpdateHistories(pos, sd, ss, depth + (eval <= alpha), bestMove, &quietMoves, &noisyMoves);

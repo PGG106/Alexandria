@@ -205,21 +205,8 @@ void InitNewGame(ThreadData* td) {
     PvTable* pvTable = &td->pvTable;
 
     CleanHistories(sd);
-
-    // Clean the Pv array
-    for (int index = 0; index < MAXDEPTH + 1; ++index) {
-        pvTable->pvLength[index] = 0;
-        for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
-            pvTable->pvArray[index][index2] = NOMOVE;
-        }
-    }
-
-    // Clean the Counter moves array
-    for (int index = 0; index < Board_sq_num; ++index) {
-        for (int index2 = 0; index2 < Board_sq_num; ++index2) {
-            sd->counterMoves[index][index2] = NOMOVE;
-        }
-    }
+    std::memset(pvTable, 0, sizeof(pvTable));
+    std::memset(sd->counterMoves, NOMOVE, sizeof(sd->counterMoves));
 
     // Reset plies and search info
     info->starttime = GetTimeMs();
