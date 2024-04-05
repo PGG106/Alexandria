@@ -16,12 +16,16 @@ int FromTo(const int move) {
     return move & 0xFFF;
 }
 
-int GetMovetype(const int move) {
-    return ((move & 0xF000) >> 12);
-}
-
 int Piece(const int move) {
     return ((move & 0xF0000) >> 16);
+}
+
+int PieceTo(const int move) {
+    return (Piece(move) << 6) | To(move);
+}
+
+int GetMovetype(const int move) {
+    return ((move & 0xF000) >> 12);
 }
 
 bool isEnpassant(const int move) {
