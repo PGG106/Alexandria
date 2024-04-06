@@ -446,7 +446,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
             && eval >= beta
-            && ss->ply
             && (ss - 1)->move != NOMOVE
             && depth >= nmpDepth()
             && ss->ply >= td->nmpPlies
