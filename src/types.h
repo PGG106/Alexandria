@@ -109,15 +109,3 @@ constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 // Contains the material Values of the pieces
 constexpr int SEEValue[15] = { 100, 422, 422, 642, 1015, 0,
                                100, 422, 422, 642, 1015, 0, 0, 0, 0 };
-
-enum {
-    queenPromotionScore = 2000000001,
-    knightPromotionScore = 2000000000,
-    goodCaptureScore = 1000000000,
-    goodCaptureMin = 900000000,
-    killerMoveScore0 = 800000000,
-    killerMoveScore1 = 700000000,
-    counterMoveScore= 600000000,
-    badCaptureScore = -1000000,
-    badPromotionScore = -2000000001
-};
