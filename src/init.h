@@ -12,9 +12,7 @@ extern Bitboard CastleKeys[16];
 
 void InitNewGame(ThreadData* td);
 
-void InitLeapersAttacks();
-
 // init slider piece's attack tables
-void InitSlidersAttacks();
+void InitAttackTables();
 
 void InitAll();

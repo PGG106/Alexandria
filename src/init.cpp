@@ -69,10 +69,10 @@ void initHashKeys() {
     SideKey = GetRandomBitboardNumber();
 }
 
-// init leaper pieces attacks
-void InitLeapersAttacks() {
-    // loop over 64 board squares
+// init attack tables for all the piece types, indexable by square
+void InitAttackTables() {
     for (int square = 0; square < Board_sq_num; square++) {
+
         // init pawn attacks
         pawn_attacks[WHITE][square] = MaskPawnAttacks(WHITE, square);
         pawn_attacks[BLACK][square] = MaskPawnAttacks(BLACK, square);
@@ -82,26 +82,21 @@ void InitLeapersAttacks() {
 
         // init king attacks
         king_attacks[square] = MaskKingAttacks(square);
-    }
-}
 
-// init slider piece's attack tables
-void InitSlidersAttacks() {
-    // Init bishop attacks
-    for (int square = 0; square < Board_sq_num; square++) {
+        // init bishop attacks
         bishop_masks[square] = MaskBishopAttacks(square);
 
         // init current mask
         Bitboard bishop_mask = bishop_masks[square];
 
-        // init relevant occupancy bit count
+        // get the relevant occupancy bit count
         int relevant_bits_count = CountBits(bishop_mask);
 
-        // init occupancy indicies
-        int occupancy_indicies = (1 << relevant_bits_count);
+        // init occupancy indices
+        int occupancy_indices = (1 << relevant_bits_count);
 
-        // loop over occupancy indicies
-        for (int index = 0; index < occupancy_indicies; index++) {
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
                 // init current occupancy variation
                 Bitboard occupancy =
                     SetOccupancy(index, relevant_bits_count, bishop_mask);
@@ -114,34 +109,32 @@ void InitSlidersAttacks() {
                 bishop_attacks[square][magic_index] =
                     BishopAttacksOnTheFly(square, occupancy);
         }
-    }
-    // Init rook attacks
-    for (int square = 0; square < Board_sq_num; square++) {
-        // init rook masks
+
+        // init rook attacks
         rook_masks[square] = MaskRookAttacks(square);
 
         // init current mask
         Bitboard rook_mask = rook_masks[square];
 
         // init relevant occupancy bit count
-        int relevant_bits_count = CountBits(rook_mask);
+        relevant_bits_count = CountBits(rook_mask);
 
-        // init occupancy indicies
-        int occupancy_indicies = (1 << relevant_bits_count);
+        // init occupancy indices
+        occupancy_indices = (1 << relevant_bits_count);
 
-        // loop over occupancy indicies
-        for (int index = 0; index < occupancy_indicies; index++) {
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
             // init current occupancy variation
             Bitboard occupancy =
-                SetOccupancy(index, relevant_bits_count, rook_mask);
+                    SetOccupancy(index, relevant_bits_count, rook_mask);
 
             // init magic index
             uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >>
-                (64 - rook_relevant_bits);
+                                                                            (64 - rook_relevant_bits);
 
             // init rook attacks
             rook_attacks[square][magic_index] =
-                RookAttacksOnTheFly(square, occupancy);
+                    RookAttacksOnTheFly(square, occupancy);
         }
     }
 }
@@ -194,10 +187,8 @@ void InitAll() {
         SetConsoleMode(stdoutHandle, flags | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
 #endif
-    // init leaper pieces attacks
-    InitLeapersAttacks();
-    // init slider pieces attacks
-    InitSlidersAttacks();
+    // init attacks tables
+    InitAttackTables();
     initializeLookupTables();
     initHashKeys();
     InitReductions();
