@@ -1,10 +1,8 @@
-#include <bit>
 #include <cassert>
 #include "bitboard.h"
 #include "position.h"
 #include "piece_data.h"
 #include "makemove.h"
-#include "movegen.h"
 #include "misc.h"
 #include "uci.h"
 #include "attack.h"

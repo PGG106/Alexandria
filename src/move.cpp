@@ -1,5 +1,4 @@
 #include "move.h"
-#include "position.h"
 
 int encode_move(const int source, const int target, const int piece, const Movetype movetype) {
     return (source) | (target << 6) | (static_cast<int>(movetype) << 12) | (piece << 16);

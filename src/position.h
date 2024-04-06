@@ -7,7 +7,7 @@
 #include <vector>
 #include "bitboard.h"
 #include "nnue.h"
-#include "stdint.h"
+#include <cstdint>
 #include "move.h"
 #include "types.h"
 

@@ -1,8 +1,7 @@
 #include "ttable.h"
-#include "assert.h"
+#include <cassert>
 #include "io.h"
 #include "xmmintrin.h"
-#include <cstring>
 #include <iostream>
 
 TTable TT;

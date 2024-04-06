@@ -1,11 +1,8 @@
-#include <iostream>
 #include "bitboard.h"
 #include "makemove.h"
 #include "ttable.h"
 #include "position.h"
 #include "init.h"
-#include "io.h"
-#include "movegen.h"
 
 // Remove a piece from a square
 void ClearPiece(const int piece, const int from, Position* pos) {

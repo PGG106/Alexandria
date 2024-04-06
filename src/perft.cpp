@@ -1,7 +1,6 @@
 #include "perft.h"
 #include "position.h"
 #include "piece_data.h"
-#include "io.h"
 #include "makemove.h"
 #include "misc.h"
 #include "movegen.h"
