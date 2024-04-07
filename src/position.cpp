@@ -32,7 +32,6 @@ void ResetInfo(SearchInfo* info) {
     info->starttime = 0;
     info->stoptimeOpt = 0;
     info->stoptimeMax = 0;
-    info->infinite = 0;
     info->movestogo = -1;
     info->stopped = false;
     info->timeset = false;

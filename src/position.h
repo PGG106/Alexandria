@@ -139,7 +139,6 @@ struct SearchInfo {
     int movestogo = -1;
     uint64_t nodes = 0;
     uint64_t nodeslimit = 0;
-    bool infinite = false;
 
     bool stopped = false;
 };
