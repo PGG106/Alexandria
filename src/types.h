@@ -16,7 +16,6 @@ using ZobristKey = uint64_t;
 
 constexpr int MAXPLY = 128;
 constexpr int MAXDEPTH = MAXPLY;
-constexpr int Board_sq_num = 64;
 constexpr int NOMOVE = 0;
 constexpr int MATE_SCORE = 32000;
 constexpr int MATE_FOUND = MATE_SCORE - MAXPLY;
@@ -56,15 +55,15 @@ constexpr int get_file[64] = { 0, 1, 2, 3, 4, 5, 6, 7,
                                0, 1, 2, 3, 4, 5, 6, 7,
                                0, 1, 2, 3, 4, 5, 6, 7 };
 
-// extract diagonal from a square [square]
-constexpr int get_diagonal[Board_sq_num] = { 14, 13, 12, 11, 10,  9,  8,  7,
-                                             13, 12, 11, 10,  9,  8,  7,  6,
-                                             12, 11, 10,  9,  8,  7,  6,  5,
-                                             11, 10,  9,  8,  7,  6,  5,  4,
-                                             10,  9,  8,  7,  6,  5,  4,  3,
-                                              9,  8,  7,  6,  5,  4,  3,  2,
-                                              8,  7,  6,  5,  4,  3,  2,  1,
-                                              7,  6,  5,  4,  3,  2,  1,  0 };
+// Lookup to get the diagonal of a square
+constexpr int get_diagonal[64] = { 14, 13, 12, 11, 10,  9,  8,  7,
+                                   13, 12, 11, 10,  9,  8,  7,  6,
+                                   12, 11, 10,  9,  8,  7,  6,  5,
+                                   11, 10,  9,  8,  7,  6,  5,  4,
+                                   10,  9,  8,  7,  6,  5,  4,  3,
+                                    9,  8,  7,  6,  5,  4,  3,  2,
+                                    8,  7,  6,  5,  4,  3,  2,  1,
+                                    7,  6,  5,  4,  3,  2,  1,  0 };
 
 // encode pieces
 enum {
@@ -109,3 +108,4 @@ constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 // Contains the material Values of the pieces
 constexpr int SEEValue[15] = { 100, 422, 422, 642, 1015, 0,
                                100, 422, 422, 642, 1015, 0, 0, 0, 0 };
+

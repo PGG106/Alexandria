@@ -52,7 +52,7 @@ void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval,
 
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
 
-int GetHashfull();
+[[nodiscard]] int GetHashfull();
 
 void TTPrefetch(const ZobristKey posKey);
 
@@ -71,7 +71,5 @@ bool FormerPV(uint8_t ageBoundPV);
 uint8_t AgeFromTT(uint8_t ageBoundPV);
 
 uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age);
-
-void UpdateEntryAge(uint8_t &ageBoundPV);
 
 void UpdateTableAge();

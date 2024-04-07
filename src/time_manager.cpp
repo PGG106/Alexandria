@@ -54,7 +54,7 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor) {
     constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
-    const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[From(bestmove)][To(bestmove)]) / static_cast<double>(td->info.nodes);
+    const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[FromTo(bestmove)]) / static_cast<double>(td->info.nodes);
     const double nodeScalingFactor = (1.52 - bestMoveNodesFraction) * 1.74;
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed

@@ -32,7 +32,6 @@ void ResetInfo(SearchInfo* info) {
     info->starttime = 0;
     info->stoptimeOpt = 0;
     info->stoptimeMax = 0;
-    info->infinite = 0;
     info->movestogo = -1;
     info->stopped = false;
     info->timeset = false;
@@ -412,7 +411,7 @@ int KingSQ(const Position* pos, const int c) {
 }
 
 void UpdatePinsAndCheckers(Position* pos, const int side) {
-    Bitboard them = pos->Occupancy(side ^ 1);
+    const Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
     const Bitboard knightCheckers = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];

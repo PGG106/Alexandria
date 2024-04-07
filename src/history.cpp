@@ -18,7 +18,7 @@ void updateHHScore(const Position* pos, SearchData* sd, int move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / 32768;
     // Update move score
-    sd->searchHistory[pos->side][From(move)][To(move)] += scaledBonus;
+    sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
 void updateCHScore(SearchData* sd, const SearchStack* ss, const int move, const int bonus) {
@@ -34,7 +34,7 @@ void updateSingleCHScore(SearchData* sd, const SearchStack* ss, const int move, 
     if (ss->ply >= offset) {
         const int previousMove = (ss - offset)->move;
         const int scaledBonus = bonus - GetSingleCHScore(sd, ss, move, offset) * std::abs(bonus) / 65536;
-        sd->contHist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)] += scaledBonus;
+        sd->contHist[PieceTo(previousMove)][PieceTo(move)] += scaledBonus;
     }
 }
 
@@ -45,7 +45,7 @@ void updateCapthistScore(const Position* pos, SearchData* sd, int move, int bonu
     // If we captured an empty piece this means the move is a promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
     // Update move score
-    sd->captHist[Piece(move)][To(move)][capturedPiece] += scaledBonus;
+    sd->captHist[PieceTo(move)][capturedPiece] += scaledBonus;
 }
 
 // Update all histories
@@ -79,7 +79,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 
 // Returns the history score of a move
 int GetHHScore(const Position* pos, const SearchData* sd, const int move) {
-    return sd->searchHistory[pos->side][From(move)][To(move)];
+    return sd->searchHistory[pos->side][FromTo(move)];
 }
 
 // Returns the history score of a move
@@ -91,7 +91,7 @@ int GetCHScore(const SearchData* sd, const SearchStack* ss, const int move) {
 
 int GetSingleCHScore(const SearchData* sd, const SearchStack* ss, const int move, const int offset) {
     const int previousMove = (ss - offset)->move;
-    return previousMove ? sd->contHist[Piece(previousMove)][To(previousMove)][Piece(move)][To(move)] : 0;
+    return previousMove ? sd->contHist[PieceTo(previousMove)][PieceTo(move)] : 0;
 }
 
 // Returns the history score of a move
@@ -99,7 +99,7 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const int move) 
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
-    return sd->captHist[Piece(move)][To(move)][capturedPiece];
+    return sd->captHist[PieceTo(move)][capturedPiece];
 }
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const int move, const SearchStack* ss) {

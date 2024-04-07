@@ -258,7 +258,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
 }
 
 int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
-    int score = 0;
+    int score;
     td->RootDepth = depth;
     SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
     // Explicitly clean stack
@@ -329,7 +329,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const bool inCheck = pos->checkers;
     const bool rootNode = (ss->ply == 0);
     int eval;
-    bool improving = false;
+    bool improving;
     int score = -MAXSCORE;
     TTEntry tte;
 
@@ -498,7 +498,7 @@ moves_loop:
     // old value of alpha
     const int old_alpha = alpha;
     int bestScore = -MAXSCORE;
-    int move = NOMOVE;
+    int move;
     int bestMove = NOMOVE;
 
     int totalMoves = 0;
@@ -675,7 +675,7 @@ moves_loop:
         UnmakeMove(move, pos);
         if (   td->id == 0
             && rootNode)
-            td->nodeSpentTable[From(move)][To(move)] += info->nodes - nodesBeforeSearch;
+            td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
         if (info->stopped)
             return 0;
@@ -710,7 +710,7 @@ moves_loop:
 
                         // Save counterMoves
                         if (ss->ply >= 1)
-                            sd->counterMoves[From((ss - 1)->move)][To((ss - 1)->move)] = move;
+                            sd->counterMoves[FromTo((ss - 1)->move)] = move;
                     }
                     // Update the history heuristics based on the new best move
                     UpdateHistories(pos, sd, ss, depth + (eval <= alpha), bestMove, &quietMoves, &noisyMoves);
@@ -814,7 +814,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     InitMP(&mp, pos, sd, ss, ttMove, QSEARCH);
 
     int bestmove = NOMOVE;
-    int move = NOMOVE;
+    int move;
     int totalMoves = 0;
 
     // loop over moves within the movelist

@@ -91,9 +91,9 @@ void ParsePosition(const std::string& command, Position* pos) {
 
     // if there are moves to be played in the fen play them
     if (command.find("moves") != std::string::npos) {
-        int string_start = command.find("moves") + 6;
+        auto string_start = command.find("moves") + 6;
         // Avoid looking for a moves that doesn't exist in the case of "position startpos moves <blank>" (Needed for Scid support)
-        if (!(string_start > command.length())) {
+        if (command.length() >= string_start) {
             std::string moves_substr = command.substr(string_start, std::string::npos);
             parse_moves(moves_substr, pos);
         }
@@ -229,7 +229,7 @@ void UciLoop(int argc, char** argv) {
         }
 
         // make sure input is available
-        if (!input.length()) {
+        if (input.empty()) {
             // continue the loop
             continue;
         }

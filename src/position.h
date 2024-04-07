@@ -39,7 +39,7 @@ struct BoardState {
 
 struct Position {
 public:
-    int pieces[Board_sq_num]; // array that stores for every square of the board
+    int pieces[64]; // array that stores for every square of the board
     // if there's a piece, or if the square is invalid
 
     int side = -1; // what side has to move
@@ -73,14 +73,6 @@ public:
         return accumStack[accumStackHead-1];
     }
 
-    inline Bitboard Us() const {
-        return occupancies[side];
-    }
-
-    inline Bitboard Enemy() const {
-        return occupancies[side ^ 1];
-    }
-
     inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
         if (occupancySide == BOTH)
@@ -101,10 +93,6 @@ public:
     inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
         return pieces[square];
-    }
-
-    inline int GetSide() const {
-        return side;
     }
 
     inline ZobristKey GetPoskey() const {
@@ -129,7 +117,7 @@ struct PvTable {
     int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 };
 
-extern Bitboard SQUARES_BETWEEN_BB[Board_sq_num][Board_sq_num];
+extern Bitboard SQUARES_BETWEEN_BB[64][64];
 // Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct SearchInfo {
     // search start time
@@ -151,7 +139,6 @@ struct SearchInfo {
     int movestogo = -1;
     uint64_t nodes = 0;
     uint64_t nodeslimit = 0;
-    bool infinite = false;
 
     bool stopped = false;
 };
