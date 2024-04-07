@@ -40,7 +40,7 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
     AddPiece(piece, to, pos);
 }
 
-// Move a piece from square to to square from
+// Move a piece from the [to] square to the [from] square
 void MovePieceNNUE(const int piece, const int from, const int to, Position* pos) {
     ClearPieceNNUE(piece, from, pos);
     AddPieceNNUE(piece, to, pos);
