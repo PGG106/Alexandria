@@ -52,7 +52,7 @@ void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval,
 
 [[nodiscard]] uint64_t Index(const ZobristKey posKey);
 
-int GetHashfull();
+[[nodiscard]] int GetHashfull();
 
 void TTPrefetch(const ZobristKey posKey);
 
