@@ -412,7 +412,7 @@ int KingSQ(const Position* pos, const int c) {
 }
 
 void UpdatePinsAndCheckers(Position* pos, const int side) {
-    Bitboard them = pos->Occupancy(side ^ 1);
+    const Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
     const Bitboard knightCheckers = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];

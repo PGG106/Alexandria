@@ -73,14 +73,6 @@ public:
         return accumStack[accumStackHead-1];
     }
 
-    inline Bitboard Us() const {
-        return occupancies[side];
-    }
-
-    inline Bitboard Enemy() const {
-        return occupancies[side ^ 1];
-    }
-
     inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
         if (occupancySide == BOTH)
@@ -101,10 +93,6 @@ public:
     inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
         return pieces[square];
-    }
-
-    inline int GetSide() const {
-        return side;
     }
 
     inline ZobristKey GetPoskey() const {
