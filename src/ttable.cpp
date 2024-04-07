@@ -153,12 +153,6 @@ uint8_t PackToTT(uint8_t bound, bool wasPV, uint8_t age) {
     return static_cast<uint8_t>(bound + (wasPV << 2) + (age << 3));
 }
 
-void UpdateEntryAge(uint8_t &ageBoundPV) {
-    const uint8_t bound = BoundFromTT(ageBoundPV);
-    const bool formerPV = FormerPV(ageBoundPV);
-    ageBoundPV = PackToTT(bound, formerPV, TT.age);
-}
-
 void UpdateTableAge() {
     TT.age = (TT.age + 1) & AGE_MASK;
 }
