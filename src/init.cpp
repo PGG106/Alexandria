@@ -84,7 +84,7 @@ void InitAttackTables() {
 
         bishop_masks[square] = MaskBishopAttacks(square);
 
-        // init current mask
+        // init bishop mask
         Bitboard bishop_mask = bishop_masks[square];
 
         // get the relevant occupancy bit count
@@ -107,7 +107,7 @@ void InitAttackTables() {
 
         rook_masks[square] = MaskRookAttacks(square);
 
-        // init current mask
+        // init rook mask
         Bitboard rook_mask = rook_masks[square];
 
         // init relevant occupancy bit count
@@ -196,7 +196,15 @@ void InitNewGame(ThreadData* td) {
     PvTable* pvTable = &td->pvTable;
 
     CleanHistories(sd);
-    std::memset(pvTable, 0, sizeof(pvTable));
+
+    // Clean the PV Table
+    for (int index = 0; index < MAXDEPTH + 1; ++index) {
+        pvTable->pvLength[index] = 0;
+        for (int index2 = 0; index2 < MAXDEPTH + 1; ++index2) {
+            pvTable->pvArray[index][index2] = NOMOVE;
+        }
+    }
+
     std::memset(sd->counterMoves, NOMOVE, sizeof(sd->counterMoves));
 
     // Reset plies and search info
