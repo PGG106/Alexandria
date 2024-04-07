@@ -69,15 +69,6 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     const int north = color == WHITE ? -8 : 8;
     const bool genNoisy = type & MOVEGEN_NOISY;
     const bool genQuiet = type & MOVEGEN_QUIET;
-    Bitboard moveMask = 0ULL; // We restrict the number of squares the pawn can travel to
-
-    // The type requested includes noisy moves
-    if (genNoisy)
-        moveMask |= pos->Occupancy(color ^ 1);
-
-    // The type requested includes quiet moves
-    if (genQuiet)
-        moveMask |= ~pos->Occupancy(BOTH);
 
     // Quiet moves (ie push/double-push)
     if (genQuiet) {
