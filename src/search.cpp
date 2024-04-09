@@ -83,7 +83,6 @@ void ClearForSearch(ThreadData* td) {
 
     // Clean the Pv array
     std::memset(pvTable, 0, sizeof(td->pvTable));
-
     // Clean the node table
     std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
     // Reset plies and search info
@@ -264,8 +263,11 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     // Explicitly clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
-        (ss + i)->staticEval = SCORE_NONE;
         (ss + i)->excludedMove = NOMOVE;
+        (ss + i)->searchKillers[0] = NOMOVE;
+        (ss + i)->searchKillers[1] = NOMOVE;
+        (ss + i)->staticEval = SCORE_NONE;
+        (ss + i)->doubleExtensions = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
