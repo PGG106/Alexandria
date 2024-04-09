@@ -5,12 +5,13 @@
 #include "uci.h"
 
 struct SearchStack {
-    int excludedMove = {};
-    int16_t staticEval = {};
+    // don't init, it will be init by search before entering the negamax method
+    int excludedMove;
+    int16_t staticEval;
     int move = {};
     int ply;
-    int searchKillers[2] = {};
-    int doubleExtensions = 0;
+    int searchKillers[2];
+    int doubleExtensions;
 };
 
 struct SearchData {
@@ -26,8 +27,9 @@ struct ThreadData {
     Position pos;
     SearchData sd;
     SearchInfo info;
+    // Since this 2 tables need to be cleaned after each search we just initialize (and subsequently clean them) elsewhere
     PvTable pvTable;
-    uint64_t nodeSpentTable[64 * 64] = {};
+    uint64_t nodeSpentTable[64 * 64];
     int RootDepth;
     int nmpPlies;
 };
