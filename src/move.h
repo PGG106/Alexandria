@@ -9,10 +9,7 @@ struct ScoredMove {
 
 // move list structure
 struct MoveList {
-    // moves
-    ScoredMove moves[256] = {};
-
-    // move count
+    ScoredMove moves[256];
     int count = 0;
 };
 
