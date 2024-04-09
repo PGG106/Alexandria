@@ -334,8 +334,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     TTEntry tte;
 
     const int excludedMove = ss->excludedMove;
-
-    pvTable->pvLength[ss->ply] = ss->ply;
+    if (!excludedMove) {
+        // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
+        pvTable->pvLength[ss->ply] = ss->ply;
+    }
 
     // Check for the highest depth reached in search to report it to the cli
     if (ss->ply > info->seldepth)
@@ -441,7 +443,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && eval - 91 * (depth - improving) >= beta)
             return eval;
 
-        // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high, 
+        // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
