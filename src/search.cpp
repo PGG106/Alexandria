@@ -530,6 +530,9 @@ moves_loop:
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -MATE_FOUND) {
 
+            // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves]);
+
             if (!skipQuiets) {
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
@@ -538,9 +541,6 @@ moves_loop:
                     && totalMoves > lmp_margin[depth][improving]) {
                     skipQuiets = true;
                 }
-
-                // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-                const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves]);
 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
@@ -552,7 +552,7 @@ moves_loop:
 
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
             if (    depth <= 8
-                && !SEE(pos, move, see_margin[depth][isQuiet]))
+                && !SEE(pos, move, see_margin[lmrDepth][isQuiet]))
                 continue;
         }
 
