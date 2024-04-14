@@ -21,20 +21,19 @@ void updateHHScore(const Position* pos, SearchData* sd, int move, int bonus) {
     sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
-void updateCHScore(SearchData* sd, const SearchStack* ss, const int move, const int bonus) {
+void updateCHScore(SearchStack* ss, const int move, const int bonus) {
     // Average out the bonus across the 3 conthist entries
-    const int scaledBonus = bonus - GetCHScore(sd, ss, move) * std::abs(bonus) / 32768;
+    const int scaledBonus = bonus - GetCHScore(ss, move) * std::abs(bonus) / 32768;
     // Update move score
-    updateSingleCHScore(sd, ss, move, scaledBonus, 1);
-    updateSingleCHScore(sd, ss, move, scaledBonus, 2);
-    updateSingleCHScore(sd, ss, move, scaledBonus, 4);
+    updateSingleCHScore(ss, move, scaledBonus, 1);
+    updateSingleCHScore(ss, move, scaledBonus, 2);
+    updateSingleCHScore(ss, move, scaledBonus, 4);
 }
 
-void updateSingleCHScore(SearchData* sd, const SearchStack* ss, const int move, const int bonus, const int offset) {
-    if (ss->ply >= offset) {
-        const int previousMove = (ss - offset)->move;
-        const int scaledBonus = bonus - GetSingleCHScore(sd, ss, move, offset) * std::abs(bonus) / 65536;
-        sd->contHist[PieceTo(previousMove)][PieceTo(move)] += scaledBonus;
+void updateSingleCHScore(SearchStack* ss, const int move, const int bonus, const int offset) {
+    if ((ss - offset)->move) {
+        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / 65536;
+        (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
     }
 }
 
@@ -55,14 +54,14 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
     {
         // increase bestMove HH and CH score
         updateHHScore(pos, sd, bestMove, bonus);
-        updateCHScore(sd, ss, bestMove, bonus);
+        updateCHScore(ss, bestMove, bonus);
         // Loop through all the quiet moves
         for (int i = 0; i < quietMoves->count; i++) {
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const int move = quietMoves->moves[i].move;
             if (move == bestMove) continue;
             updateHHScore(pos, sd, move, -bonus);
-            updateCHScore(sd, ss, move, -bonus);
+            updateCHScore(ss, move, -bonus);
         }
     }
     else {
@@ -83,15 +82,15 @@ int GetHHScore(const Position* pos, const SearchData* sd, const int move) {
 }
 
 // Returns the history score of a move
-int GetCHScore(const SearchData* sd, const SearchStack* ss, const int move) {
-    return   GetSingleCHScore(sd, ss, move, 1)
-           + GetSingleCHScore(sd, ss, move, 2)
-           + GetSingleCHScore(sd, ss, move, 4);
+int GetCHScore(const SearchStack* ss, const int move) {
+    return   GetSingleCHScore(ss, move, 1)
+           + GetSingleCHScore(ss, move, 2)
+           + GetSingleCHScore(ss, move, 4);
 }
 
-int GetSingleCHScore(const SearchData* sd, const SearchStack* ss, const int move, const int offset) {
-    const int previousMove = (ss - offset)->move;
-    return previousMove ? sd->contHist[PieceTo(previousMove)][PieceTo(move)] : 0;
+int GetSingleCHScore(const SearchStack* ss, const int move, const int offset) {
+    return (ss - offset)->move ? (*((ss - offset)->contHistEntry))[PieceTo(move)]
+                               : 0;
 }
 
 // Returns the history score of a move
@@ -104,7 +103,7 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const int move) 
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const int move, const SearchStack* ss) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + 2 * GetCHScore(sd, ss, move);
+        return GetHHScore(pos, sd, move) + 2 * GetCHScore(ss, move);
     else
         return GetCapthistScore(pos, sd, move);
 }

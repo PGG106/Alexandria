@@ -259,6 +259,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
 int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score;
     td->RootDepth = depth;
+    SearchData* sd = &td->sd;
     SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
     // Explicitly clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
@@ -268,9 +269,11 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->searchKillers[1] = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
         (ss + i)->doubleExtensions = 0;
+        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
+        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
     int delta = 12;
@@ -457,6 +460,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             ss->move = NOMOVE;
             const int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
+            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             MakeNullMove(pos);
 
@@ -603,8 +607,10 @@ moves_loop:
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
+
         // Play the move
         MakeMove(move, pos);
+        ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // Add any played move to the matching list
         if (isQuiet)
@@ -663,7 +669,7 @@ moves_loop:
 
                 int bonus = score > alpha ? history_bonus(depth)
                                           : -history_bonus(depth);
-                updateCHScore(sd, ss, move, bonus);
+                updateCHScore(ss, move, bonus);
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
