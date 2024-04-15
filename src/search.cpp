@@ -111,23 +111,33 @@ static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
 // inspired by the Weiss engine
 bool SEE(const Position* pos, const int move, const int threshold) {
 
-    if (isPromo(move))
-        return true;
+    if (isCastle(move) || isEnpassant(move))
+        return threshold <= 0;
 
     int to = To(move);
     int from = From(move);
 
     int target = pos->PieceOn(to);
-    // Making the move and not losing it must beat the threshold
+    int promo = getPromotedPiecetype(move);
     int value = SEEValue[target] - threshold;
 
+    // If we promote, we get the promoted piece and lose the pawn
+    if (isPromo(move))
+        value += SEEValue[promo] - SEEValue[PAWN];
+
+    // If we can't beat the threshold despite capturing the piece,
+    // it is impossible to beat the threshold
     if (value < 0)
         return false;
 
     int attacker = pos->PieceOn(from);
-    // Trivial if we still beat the threshold after losing the piece
-    value -= SEEValue[attacker];
 
+    // If we get captured, we lose the moved piece,
+    // or the promoted piece in the case of promotions
+    value -= isPromo(move) ? SEEValue[promo] : SEEValue[attacker];
+
+    // If we still beat the threshold after losing the piece,
+    // we are guaranteed to beat the threshold
     if (value >= 0)
         return true;
 
@@ -138,7 +148,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard rooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-    int side = !Color[attacker];
+    int side = Color[attacker] ^ 1;
 
     // Make captures until one side runs out, or fail to beat threshold
     while (true) {

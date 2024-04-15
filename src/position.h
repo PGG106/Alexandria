@@ -186,22 +186,35 @@ void ResetInfo(SearchInfo* info);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 [[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);
+
 // Returns the threats bitboard of the pieces of <side> color
 [[nodiscard]] Bitboard getThreats(const Position* pos, const int side);
+
 // Returns whether the opponent of <side> has a guaranteed SEE > 0
 [[nodiscard]] bool oppCanWinMaterial(const Position* pos, const int side);
+
 // Return a piece based on the type and the color
 [[nodiscard]] int GetPiece(const int piecetype, const int color);
+
 // Returns the piece_type of a piece
 [[nodiscard]] int GetPieceType(const int piece);
+
 // Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 [[nodiscard]] bool BoardHasNonPawns(const Position* pos, const int side);
+
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const Position* pos, const int c);
+
 void UpdatePinsAndCheckers(Position* pos, const int side);
+
 Bitboard RayBetween(int square1, int square2);
+
 [[nodiscard]] int GetEpSquare(const Position* pos);
+
 void Accumulate(NNUE::accumulator& board_accumulator, Position* pos);
+
 ZobristKey keyAfter(const Position* pos, const int move);
+
 void saveBoardState(Position* pos);
+
 void restorePreviousBoardState(Position* pos);
