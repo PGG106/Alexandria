@@ -111,13 +111,14 @@ static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
 // inspired by the Weiss engine
 bool SEE(const Position* pos, const int move, const int threshold) {
 
-    if (isCastle(move) || isEnpassant(move))
+    // We can't win any material from castling, nor can we lose any
+    if (isCastle(move))
         return threshold <= 0;
 
     int to = To(move);
     int from = From(move);
 
-    int target = pos->PieceOn(to);
+    int target = isEnpassant(move) ? PAWN : pos->PieceOn(to);
     int promo = getPromotedPiecetype(move);
     int value = SEEValue[target] - threshold;
 
@@ -143,6 +144,9 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 
     // It doesn't matter if the to square is occupied or not
     Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << to);
+    if (isEnpassant(move))
+        occupied ^= GetEpSquare(pos);
+
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
     Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
@@ -848,7 +852,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck
-            && !isPromo(move)
             &&  BoardHasNonPawns(pos, pos->side)) {
             const int futilityBase = ss->staticEval + 192;
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
