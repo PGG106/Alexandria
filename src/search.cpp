@@ -111,34 +111,48 @@ static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
 // inspired by the Weiss engine
 bool SEE(const Position* pos, const int move, const int threshold) {
 
-    if (isPromo(move))
-        return true;
+    // We can't win any material from castling, nor can we lose any
+    if (isCastle(move))
+        return threshold <= 0;
 
     int to = To(move);
     int from = From(move);
 
-    int target = pos->PieceOn(to);
-    // Making the move and not losing it must beat the threshold
+    int target = isEnpassant(move) ? PAWN : pos->PieceOn(to);
+    int promo = getPromotedPiecetype(move);
     int value = SEEValue[target] - threshold;
 
+    // If we promote, we get the promoted piece and lose the pawn
+    if (isPromo(move))
+        value += SEEValue[promo] - SEEValue[PAWN];
+
+    // If we can't beat the threshold despite capturing the piece,
+    // it is impossible to beat the threshold
     if (value < 0)
         return false;
 
     int attacker = pos->PieceOn(from);
-    // Trivial if we still beat the threshold after losing the piece
-    value -= SEEValue[attacker];
 
+    // If we get captured, we lose the moved piece,
+    // or the promoted piece in the case of promotions
+    value -= isPromo(move) ? SEEValue[promo] : SEEValue[attacker];
+
+    // If we still beat the threshold after losing the piece,
+    // we are guaranteed to beat the threshold
     if (value >= 0)
         return true;
 
     // It doesn't matter if the to square is occupied or not
     Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from) ^ (1ULL << to);
+    if (isEnpassant(move))
+        occupied ^= GetEpSquare(pos);
+
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
     Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard rooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-    int side = !Color[attacker];
+    int side = Color[attacker] ^ 1;
 
     // Make captures until one side runs out, or fail to beat threshold
     while (true) {
@@ -838,7 +852,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck
-            && !isPromo(move)
             &&  BoardHasNonPawns(pos, pos->side)) {
             const int futilityBase = ss->staticEval + 192;
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
