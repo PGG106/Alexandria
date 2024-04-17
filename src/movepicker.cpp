@@ -42,6 +42,11 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
 }
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType) {
+
+    const int killer0 = ss->searchKillers[0];
+    const int killer1 = ss->searchKillers[1];
+    const int counter = sd->counterMoves[FromTo((ss - 1)->move)];
+
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
     mp->movepickerType = movepickerType;
     mp->pos = pos;
@@ -50,9 +55,9 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->ttMove = ttMove;
     mp->idx = 0;
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
-    mp->killer0 = ss->searchKillers[0];
-    mp->killer1 = ss->searchKillers[1];
-    mp->counter = sd->counterMoves[FromTo((ss - 1)->move)];
+    mp->killer0 = isTactical(killer0) ? NOMOVE : killer0;
+    mp->killer1 = isTactical(killer1) ? NOMOVE : killer1;
+    mp->counter = isTactical(counter) || counter == killer0 || counter == killer1 ? NOMOVE : counter;
 }
 
 int NextMove(Movepicker* mp, const bool skip) {
@@ -114,21 +119,21 @@ int NextMove(Movepicker* mp, const bool skip) {
 
     case PICK_KILLER_0:
         ++mp->stage;
-        if (!isTactical(mp->killer0) && IsPseudoLegal(mp->pos, mp->killer0))
+        if (IsPseudoLegal(mp->pos, mp->killer0))
             return mp->killer0;
 
         goto top;
 
     case PICK_KILLER_1:
         ++mp->stage;
-        if (!isTactical(mp->killer1) && IsPseudoLegal(mp->pos, mp->killer1))
+        if (IsPseudoLegal(mp->pos, mp->killer1))
             return mp->killer1;
 
         goto top;
 
     case PICK_COUNTER:
         ++mp->stage;
-        if (!isTactical(mp->counter) && IsPseudoLegal(mp->pos, mp->counter))
+        if (IsPseudoLegal(mp->pos, mp->counter))
             return mp->counter;
 
         goto top;
