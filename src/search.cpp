@@ -549,7 +549,7 @@ moves_loop:
             &&  bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves]);
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves] + moveHistory / 16384);
 
             if (!skipQuiets) {
 
