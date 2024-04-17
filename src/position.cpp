@@ -407,7 +407,7 @@ bool BoardHasNonPawns(const Position* pos, const int side) {
 
 // Get on what square of the board the king of color c resides
 int KingSQ(const Position* pos, const int c) {
-    return (GetLsbIndex(pos->GetPieceColorBB( KING, c)));
+    return GetLsbIndex(pos->GetPieceColorBB(KING, c));
 }
 
 void UpdatePinsAndCheckers(Position* pos, const int side) {
