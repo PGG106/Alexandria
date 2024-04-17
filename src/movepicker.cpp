@@ -55,9 +55,9 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->ttMove = ttMove;
     mp->idx = 0;
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
-    mp->killer0 = isTactical(killer0) ? NOMOVE : killer0;
-    mp->killer1 = isTactical(killer1) ? NOMOVE : killer1;
-    mp->counter = isTactical(counter) || counter == killer0 || counter == killer1 ? NOMOVE : counter;
+    mp->killer0 = killer0 != ttMove ? killer0 : NOMOVE;
+    mp->killer1 = killer1 != ttMove ? killer1 : NOMOVE;
+    mp->counter = counter != ttMove && counter != killer0 && counter != killer1 ? counter : NOMOVE;
 }
 
 int NextMove(Movepicker* mp, const bool skip) {
