@@ -12,7 +12,7 @@ void ScoreMoves(Movepicker* mp) {
     SearchStack* ss = mp->ss;
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
-        int move = moveList->moves[i].move;
+        const int move = moveList->moves[i].move;
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));

@@ -531,7 +531,6 @@ moves_loop:
 
     // Keep track of the played quiet and noisy moves
     MoveList quietMoves, noisyMoves;
-    quietMoves.count = 0, noisyMoves.count = 0;
 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
