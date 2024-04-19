@@ -10,7 +10,7 @@ struct SearchStack {
     int16_t staticEval;
     int move;
     int ply;
-    int searchKillers[2];
+    int searchKiller;
     int doubleExtensions;
     int (*contHistEntry)[12 * 64];
 };
