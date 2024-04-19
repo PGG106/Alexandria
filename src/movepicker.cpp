@@ -119,14 +119,12 @@ int NextMove(Movepicker* mp, const bool skip) {
         ++mp->stage;
         if (IsPseudoLegal(mp->pos, mp->killer0))
             return mp->killer0;
-
         goto top;
 
     case PICK_COUNTER:
         ++mp->stage;
         if (IsPseudoLegal(mp->pos, mp->counter))
             return mp->counter;
-
         goto top;
 
     case GEN_QUIETS:
@@ -169,6 +167,10 @@ int NextMove(Movepicker* mp, const bool skip) {
             return move;
         }
         return NOMOVE;
+
+    default:
+        // we should never end up here because a movepicker stage should be always be valid and accounted for
+        assert(false);
+        __builtin_unreachable();
     }
-    return NOMOVE;
 }
