@@ -46,7 +46,6 @@ bool MoveExists(Position* pos, const int move) {
 // function that adds a (not yet scored) move to a move list
 void AddMove(const int move, MoveList* list) {
     list->moves[list->count].move = move;
-    list->moves[list->count].score = 0;
     list->count++;
 }
 
