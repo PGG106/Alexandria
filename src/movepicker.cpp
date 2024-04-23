@@ -43,7 +43,7 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType) {
 
-    const int killer0 = ss->searchKiller;
+    const int killer = ss->searchKiller;
     const int counter = sd->counterMoves[FromTo((ss - 1)->move)];
 
     nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
@@ -54,8 +54,8 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->ttMove = ttMove;
     mp->idx = 0;
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
-    mp->killer0 = killer0 != ttMove ? killer0 : NOMOVE;
-    mp->counter = counter != ttMove && counter != killer0 ? counter : NOMOVE;
+    mp->killer = killer != ttMove ? killer : NOMOVE;
+    mp->counter = counter != ttMove && counter != killer ? counter : NOMOVE;
 }
 
 int NextMove(Movepicker* mp, const bool skip) {
@@ -115,10 +115,10 @@ int NextMove(Movepicker* mp, const bool skip) {
         ++mp->stage;
         goto top;
 
-    case PICK_KILLER_0:
+    case PICK_KILLER:
         ++mp->stage;
-        if (IsPseudoLegal(mp->pos, mp->killer0))
-            return mp->killer0;
+        if (IsPseudoLegal(mp->pos, mp->killer))
+            return mp->killer;
         goto top;
 
     case PICK_COUNTER:
@@ -139,7 +139,7 @@ int NextMove(Movepicker* mp, const bool skip) {
             const int move = mp->moveList.moves[mp->idx].move;
             ++mp->idx;
             if (   move == mp->ttMove
-                || move == mp->killer0
+                || move == mp->killer
                 || move == mp->counter)
                 continue;
 

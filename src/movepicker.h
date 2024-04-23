@@ -8,7 +8,7 @@ enum {
     PICK_TT,
     GEN_NOISY,
     PICK_GOOD_NOISY,
-    PICK_KILLER_0,
+    PICK_KILLER,
     PICK_COUNTER,
     GEN_QUIETS,
     PICK_QUIETS,
@@ -31,7 +31,7 @@ struct Movepicker {
     int idx;
     int stage;
     int ttMove;
-    int killer0;
+    int killer;
     int counter;
 };
 

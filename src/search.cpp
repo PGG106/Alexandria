@@ -647,7 +647,7 @@ moves_loop:
                 depthReduction += 1;
 
             // Reduce less if the move is a refutation
-            if (move == mp.killer0 || move == mp.counter)
+            if (move == mp.killer || move == mp.counter)
                 depthReduction -= 1;
 
             // Reduce less if we have been on the PV
