@@ -15,11 +15,14 @@ To add a variable for tuning we call the addTune function in initTunables, this 
 // Very cursed macro wizardry to set and fetch the values without having to manually swap in hashtable accesses, it's good because Ciekce did this
 // Start with the case where we are actually tuning
 #ifdef TUNE
+#define STRINGIFY(x) #x
+#define HELPER1(x) STRINGIFY(GCC diagnostic ignored x)
+#define GCC_WARNING(x) _Pragma(HELPER1(x))
 #define TUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wdangling-reference"
-        #pragma GCC diagnostic pop
+        _Pragma("GCC diagnostic push") \
+        GCC_WARNING("-Wdangling-reference")               \
         inline const int& tuned_##Name = addTune(#Name, Default, Default, Min, Max, C_end, R_end); \
+        _Pragma("GCC diagnostic pop") \
         inline int Name() { return tuned_##Name; }
 #else
 #define TUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
