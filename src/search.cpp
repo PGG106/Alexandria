@@ -481,9 +481,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             TakeNullMove(pos);
 
-            if (info->stopped)
-                return 0;
-
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
                 // Don't return unproven mates but still return beta
