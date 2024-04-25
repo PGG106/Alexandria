@@ -134,7 +134,7 @@ int MoveFromTT(Position *pos, int16_t packed_move) {
         return NOMOVE;
 
     const int piece = pos->PieceOn(From(packed_move));
-    return (packed_move | (piece << 16));
+    return (static_cast<int>(static_cast<uint16_t>(packed_move)) | (piece << 16));
 }
 
 uint8_t BoundFromTT(uint8_t ageBoundPV) {
