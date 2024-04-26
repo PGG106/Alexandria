@@ -279,16 +279,11 @@ void UnmakeMove(const int move, Position* pos) {
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
 
     pos->accumStackHead--;
 
     // handle pawn promotions
-    if (promotion) {
+    if (isPromo(move)) {
         const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side ^ 1);
         ClearPiece(promoted_piece, targetSquare, pos);
     }
@@ -296,18 +291,17 @@ void UnmakeMove(const int move, Position* pos) {
     // move piece
     MovePiece(piece, targetSquare, sourceSquare, pos);
 
-    const int SOUTH = pos->side == WHITE ? -8 : 8;
-
     // handle captures
-    if (capture) {
+    if (isCapture(move)) {
+        const int SOUTH = pos->side == WHITE ? -8 : 8;
         // Retrieve the captured piece we have to restore
         const int piececap = pos->history[pos->historyStackHead].capture;
-        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
+        const int capturedPieceLocation = isEnpassant(move) ? targetSquare + SOUTH : targetSquare;
         AddPiece(piececap, capturedPieceLocation, pos);
     }
 
     // handle castling moves
-    if (castling) {
+    if (isCastle(move)) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
