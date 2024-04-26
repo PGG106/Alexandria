@@ -72,6 +72,8 @@ void MakeUCIMove(const int move, Position* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
+    pos->hisPly++;
+
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const bool capture = isCapture(move);
@@ -89,8 +91,6 @@ void MakeUCIMove(const int move, Position* pos) {
         ClearPiece(pieceCap, capturedPieceLocation, pos);
     }
 
-    // increment ply counters
-    pos->hisPly++;
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -161,7 +161,7 @@ void MakeUCIMove(const int move, Position* pos) {
 // make move on chess board
 void MakeMove(const int move, Position* pos) {
     saveBoardState(pos);
-    // Store position key in the array of searched position
+    // Store position key in the array of searched position for 3fold detection
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
@@ -173,9 +173,10 @@ void MakeMove(const int move, Position* pos) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
-    // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
+    pos->hisPly++;
+
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const bool capture = isCapture(move);
@@ -195,8 +196,6 @@ void MakeMove(const int move, Position* pos) {
         pos->history[pos->historyStackHead].capture = pieceCap;
     }
 
-    // increment ply counters
-    pos->hisPly++;
     pos->historyStackHead++;
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
@@ -265,10 +264,10 @@ void MakeMove(const int move, Position* pos) {
 }
 
 void UnmakeMove(const int move, Position* pos) {
-    // quiet moves
 
     pos->hisPly--;
     pos->historyStackHead--;
+    pos->accumStackHead--;
 
     restorePreviousBoardState(pos);
 
@@ -279,8 +278,6 @@ void UnmakeMove(const int move, Position* pos) {
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
-
-    pos->accumStackHead--;
 
     // handle pawn promotions
     if (isPromo(move)) {
