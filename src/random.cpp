@@ -1,17 +1,17 @@
 #include "random.h"
 
 // pseudo random number state
-unsigned int random_state = 1804289383;
+uint64_t random_state = 6379633040001738036;
 
 // generate 32-bit pseudo legal numbers
-unsigned int GetRandomU32Number() {
+uint64_t GetRandomU64Number() {
     // get current state
-    unsigned int number = random_state;
+    uint64_t number = random_state;
 
     // XOR shift algorithm
     number ^= number << 13;
-    number ^= number >> 17;
-    number ^= number << 5;
+    number ^= number >> 7;
+    number ^= number << 17;
 
     // update random number state
     random_state = number;
@@ -22,15 +22,5 @@ unsigned int GetRandomU32Number() {
 
 // generate 64-bit pseudo legal numbers
 Bitboard GetRandomBitboardNumber() {
-    // define 4 random numbers
-    Bitboard n1, n2, n3, n4;
-
-    // init random numbers slicing 16 bits from MS1B side
-    n1 = static_cast<Bitboard>((GetRandomU32Number())) & 0xFFFF;
-    n2 = static_cast<Bitboard>((GetRandomU32Number())) & 0xFFFF;
-    n3 = static_cast<Bitboard>((GetRandomU32Number())) & 0xFFFF;
-    n4 = static_cast<Bitboard>((GetRandomU32Number())) & 0xFFFF;
-
-    // return random number
-    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
+    return static_cast<Bitboard>(GetRandomU64Number());
 }
