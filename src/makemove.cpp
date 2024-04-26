@@ -278,14 +278,14 @@ void UnmakeMove(const int move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
+    // move piece
+    MovePiece(piece, targetSquare, sourceSquare, pos);
+
     // handle pawn promotions
     if (isPromo(move)) {
         const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side ^ 1);
         ClearPiece(promoted_piece, targetSquare, pos);
     }
-
-    // move piece
-    MovePiece(piece, targetSquare, sourceSquare, pos);
 
     // handle captures
     if (isCapture(move)) {
