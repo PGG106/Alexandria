@@ -63,31 +63,25 @@ void inline HashKey(Position* pos, ZobristKey key) {
 // make move on chess board
 void MakeUCIMove(const int move, Position* pos) {
 
-    // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->posKey);
-
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool doublePush = isDP(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
+
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
+    const bool capture = isCapture(move);
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
+        const bool enpass = isEnpassant(move);
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
@@ -100,24 +94,24 @@ void MakeUCIMove(const int move, Position* pos) {
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotion ? promotedPiece : piece, targetSquare, pos);
+    AddPiece(isPromo(move) ? promotedPiece : piece, targetSquare, pos);
 
     // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
+    if (GetEpSquare(pos) != no_sq){
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
-    // reset enpassant square
-    pos->enPas = no_sq;
+        // reset enpassant square
+        pos->enPas = no_sq;
+    }
 
     // handle double pawn push
-    if (doublePush) {
+    if (isDP(move)) {
         pos->enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
 
     // handle castling moves
-    if (castling) {
+    if (isCastle(move)) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
@@ -178,23 +172,20 @@ void MakeMove(const int move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool doublePush = isDP(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
+
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
+    const bool capture = isCapture(move);
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
     // handling capture moves
     if (capture) {
+        const bool enpass = isEnpassant(move);
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
@@ -210,24 +201,24 @@ void MakeMove(const int move, Position* pos) {
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(promotion ? promotedPiece : piece, targetSquare, pos);
+    AddPieceNNUE(isPromo(move) ? promotedPiece : piece, targetSquare, pos);
 
     // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
+    if (GetEpSquare(pos) != no_sq){
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
-    // reset enpassant square
-    pos->enPas = no_sq;
+        // reset enpassant square
+        pos->enPas = no_sq;
+    }
 
     // handle double pawn push
-    if (doublePush) {
+    if (isDP(move)) {
         pos->enPas = targetSquare + SOUTH;
         // hash enpassant
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
 
     // handle castling moves
-    if (castling) {
+    if (isCastle(move)) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
