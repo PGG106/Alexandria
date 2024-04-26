@@ -62,7 +62,6 @@ void inline HashKey(Position* pos, ZobristKey key) {
 
 // make move on chess board
 void MakeUCIMove(const int move, Position* pos) {
-
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -339,11 +338,13 @@ void UnmakeMove(const int move, Position* pos) {
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos) {
     saveBoardState(pos);
-    // Store position key in the array of searched position
+    // Store position key in the array of searched position for 3fold detection
     pos->played_positions.emplace_back(pos->posKey);
     // Update the zobrist key asap so we can prefetch
-    if (GetEpSquare(pos) != no_sq)
+    if (GetEpSquare(pos) != no_sq){
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        pos->enPas = no_sq;
+    }
     pos->ChangeSide();
     HashKey(pos, SideKey);
     TTPrefetch(pos->GetPoskey());
@@ -352,9 +353,6 @@ void MakeNullMove(Position* pos) {
     pos->historyStackHead++;
     pos->fiftyMove++;
     pos->plyFromNull = 0;
-
-    // reset enpassant square
-    pos->enPas = no_sq;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
