@@ -62,27 +62,25 @@ void inline HashKey(Position* pos, ZobristKey key) {
 
 // make move on chess board
 void MakeUCIMove(const int move, Position* pos) {
-    // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-
+    // parse move flag
+    const bool capture = isCapture(move);
+    const bool enpass = isEnpassant(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
     pos->hisPly++;
 
-    const int SOUTH = pos->side == WHITE ? 8 : -8;
-
-    const bool capture = isCapture(move);
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
+    const int SOUTH = pos->side == WHITE ? 8 : -8;
     // handling capture moves
     if (capture) {
-        const bool enpass = isEnpassant(move);
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
@@ -96,11 +94,11 @@ void MakeUCIMove(const int move, Position* pos) {
     AddPiece(isPromo(move) ? promotedPiece : piece, targetSquare, pos);
 
     // Reset EP square
-    if (GetEpSquare(pos) != no_sq){
+    if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-        // reset enpassant square
-        pos->enPas = no_sq;
-    }
+
+    // reset enpassant square
+    pos->enPas = no_sq;
 
     // handle double pawn push
     if (isDP(move)) {
@@ -114,28 +112,28 @@ void MakeUCIMove(const int move, Position* pos) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece(WR, h1, f1, pos);
-            break;
+            case (g1):
+                // move H rook
+                MovePiece(WR, h1, f1, pos);
+                break;
 
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece(WR, a1, d1, pos);
-            break;
+                // white castles queen side
+            case (c1):
+                // move A rook
+                MovePiece(WR, a1, d1, pos);
+                break;
 
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece(BR, h8, f8, pos);
-            break;
+                // black castles king side
+            case (g8):
+                // move H rook
+                MovePiece(BR, h8, f8, pos);
+                break;
 
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece(BR, a8, d8, pos);
-            break;
+                // black castles queen side
+            case (c8):
+                // move A rook
+                MovePiece(BR, a8, d8, pos);
+                break;
         }
     }
 
@@ -160,7 +158,7 @@ void MakeUCIMove(const int move, Position* pos) {
 // make move on chess board
 void MakeMove(const int move, Position* pos) {
     saveBoardState(pos);
-    // Store position key in the array of searched position for 3fold detection
+    // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
     pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
@@ -171,21 +169,22 @@ void MakeMove(const int move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
+    // parse move flag
+    const bool capture = isCapture(move);
+    const bool enpass = isEnpassant(move);
 
+    // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
     pos->hisPly++;
 
-    const int SOUTH = pos->side == WHITE ? 8 : -8;
-
-    const bool capture = isCapture(move);
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN || capture)
         pos->fiftyMove = 0;
 
+    const int SOUTH = pos->side == WHITE ? 8 : -8;
     // handling capture moves
     if (capture) {
-        const bool enpass = isEnpassant(move);
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
@@ -202,11 +201,11 @@ void MakeMove(const int move, Position* pos) {
     AddPieceNNUE(isPromo(move) ? promotedPiece : piece, targetSquare, pos);
 
     // Reset EP square
-    if (GetEpSquare(pos) != no_sq){
+    if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-        // reset enpassant square
-        pos->enPas = no_sq;
-    }
+
+    // reset enpassant square
+    pos->enPas = no_sq;
 
     // handle double pawn push
     if (isDP(move)) {
@@ -220,28 +219,28 @@ void MakeMove(const int move, Position* pos) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
-        case (g1):
-            // move H rook
-            MovePieceNNUE(WR, h1, f1, pos);
-            break;
+            case (g1):
+                // move H rook
+                MovePieceNNUE(WR, h1, f1, pos);
+                break;
 
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePieceNNUE(WR, a1, d1, pos);
-            break;
+                // white castles queen side
+            case (c1):
+                // move A rook
+                MovePieceNNUE(WR, a1, d1, pos);
+                break;
 
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePieceNNUE(BR, h8, f8, pos);
-            break;
+                // black castles king side
+            case (g8):
+                // move H rook
+                MovePieceNNUE(BR, h8, f8, pos);
+                break;
 
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePieceNNUE(BR, a8, d8, pos);
-            break;
+                // black castles queen side
+            case (c8):
+                // move A rook
+                MovePieceNNUE(BR, a8, d8, pos);
+                break;
         }
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
@@ -263,10 +262,8 @@ void MakeMove(const int move, Position* pos) {
 }
 
 void UnmakeMove(const int move, Position* pos) {
-
     pos->hisPly--;
     pos->historyStackHead--;
-    pos->accumStackHead--;
 
     restorePreviousBoardState(pos);
 
@@ -278,8 +275,7 @@ void UnmakeMove(const int move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
-    // move piece
-    MovePiece(piece, targetSquare, sourceSquare, pos);
+    pos->accumStackHead--;
 
     // handle pawn promotions
     if (isPromo(move)) {
@@ -287,9 +283,13 @@ void UnmakeMove(const int move, Position* pos) {
         ClearPiece(promoted_piece, targetSquare, pos);
     }
 
+    // move piece
+    MovePiece(piece, targetSquare, sourceSquare, pos);
+
+    const int SOUTH = pos->side == WHITE ? -8 : 8;
+
     // handle captures
     if (isCapture(move)) {
-        const int SOUTH = pos->side == WHITE ? -8 : 8;
         // Retrieve the captured piece we have to restore
         const int piececap = pos->history[pos->historyStackHead].capture;
         const int capturedPieceLocation = isEnpassant(move) ? targetSquare + SOUTH : targetSquare;
@@ -301,28 +301,28 @@ void UnmakeMove(const int move, Position* pos) {
         // switch target square
         switch (targetSquare) {
             // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece(WR, f1, h1, pos);
-            break;
+            case (g1):
+                // move H rook
+                MovePiece(WR, f1, h1, pos);
+                break;
 
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece(WR, d1, a1, pos);
-            break;
+                // white castles queen side
+            case (c1):
+                // move A rook
+                MovePiece(WR, d1, a1, pos);
+                break;
 
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece(BR, f8, h8, pos);
-            break;
+                // black castles king side
+            case (g8):
+                // move H rook
+                MovePiece(BR, f8, h8, pos);
+                break;
 
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece(BR, d8, a8, pos);
-            break;
+                // black castles queen side
+            case (c8):
+                // move A rook
+                MovePiece(BR, d8, a8, pos);
+                break;
         }
     }
 
@@ -338,13 +338,11 @@ void UnmakeMove(const int move, Position* pos) {
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos) {
     saveBoardState(pos);
-    // Store position key in the array of searched position for 3fold detection
+    // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
     // Update the zobrist key asap so we can prefetch
-    if (GetEpSquare(pos) != no_sq){
+    if (GetEpSquare(pos) != no_sq)
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-        pos->enPas = no_sq;
-    }
     pos->ChangeSide();
     HashKey(pos, SideKey);
     TTPrefetch(pos->GetPoskey());
@@ -353,6 +351,9 @@ void MakeNullMove(Position* pos) {
     pos->historyStackHead++;
     pos->fiftyMove++;
     pos->plyFromNull = 0;
+
+    // reset enpassant square
+    pos->enPas = no_sq;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
