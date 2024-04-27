@@ -4,6 +4,12 @@
 #include "position.h"
 #include "init.h"
 
+void MakeCastle(const int move, Position *Position);
+
+void MakeDP(const int move, Position *pPosition);
+
+void MakeEp(const int move, Position *pos);
+
 // Remove a piece from a square
 void ClearPiece(const int piece, const int from, Position* pos) {
     const int color = Color[piece];
@@ -173,11 +179,6 @@ void MakeMove(const int move, Position* pos) {
     pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
     pos->accumStackHead++;
 
-    // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
-    const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     const bool capture = isCapture(move);
     const bool doublePush = isDP(move);
@@ -187,50 +188,142 @@ void MakeMove(const int move, Position* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
+    pos->hisPly++;
+
+    if(castling){
+        MakeCastle(move,pos);
+    }
+    else if(doublePush){
+        MakeDP(move,pos);
+    }
+    else if(enpass){
+        MakeEp(move,pos);
+    }
+    else {
+        // parse move
+        const int sourceSquare = From(move);
+        const int targetSquare = To(move);
+        const int piece = Piece(move);
+        const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
+
+        // if a pawn was moved or a capture was played reset the 50 move rule counter
+        if (GetPieceType(piece) == PAWN || capture)
+            pos->fiftyMove = 0;
+
+        // handling capture moves
+        if (capture) {
+            const int pieceCap = pos->pieces[targetSquare];
+            const int capturedPieceLocation = targetSquare;
+            assert(pieceCap != EMPTY);
+            assert(GetPieceType(pieceCap) != KING);
+            ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
+
+            pos->history[pos->historyStackHead].capture = pieceCap;
+        }
+
+        pos->historyStackHead++;
+        // Remove the piece fom the square it moved from
+        ClearPieceNNUE(piece, sourceSquare, pos);
+        // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+        AddPieceNNUE(promotion ? promotedPiece : piece, targetSquare, pos);
+
+        // Reset EP square
+        if (GetEpSquare(pos) != no_sq){
+            HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+            // reset enpassant square
+            pos->enPas = no_sq;
+        }
+
+        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+    }
+    // change side
+    pos->ChangeSide();
+    // Xor the new side into the key
+    HashKey(pos, SideKey);
+    // Update pinmasks and checkers
+    UpdatePinsAndCheckers(pos, pos->side);
+    // If we are in check get the squares between the checking piece and the king
+    if (pos->checkers) {
+        const int kingSquare = KingSQ(pos, pos->side);
+        const int pieceLocation = GetLsbIndex(pos->checkers);
+        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+    }
+    else
+        pos->checkMask = fullCheckmask;
+}
+
+void MakeEp(const int move, Position* pos) {
+    pos->fiftyMove = 0;
+
+    // parse move
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
-    // if a pawn was moved or a capture was played reset the 50 move rule counter
-    if (GetPieceType(piece) == PAWN || capture)
-        pos->fiftyMove = 0;
+    const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
+    pos->history[pos->historyStackHead].capture = pieceCap;
+    const int capturedPieceLocation = targetSquare + SOUTH;
+    ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
 
-    // handling capture moves
-    if (capture) {
-        const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
-        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        assert(pieceCap != EMPTY);
-        assert(GetPieceType(pieceCap) != KING);
-        ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
-
-        pos->history[pos->historyStackHead].capture = pieceCap;
-    }
-
-    // increment ply counters
-    pos->hisPly++;
     pos->historyStackHead++;
+
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(promotion ? promotedPiece : piece, targetSquare, pos);
+    AddPieceNNUE(piece, targetSquare, pos);
 
     // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
-    // reset enpassant square
+    assert(GetEpSquare(pos) != no_sq);
+    HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     pos->enPas = no_sq;
+}
 
-    // handle double pawn push
-    if (doublePush) {
-        pos->enPas = targetSquare + SOUTH;
-        // hash enpassant
+void MakeDP(const int move, Position* pos)
+{
+    pos->fiftyMove = 0;
+    pos->historyStackHead++;
+    // parse move
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+
+    // Remove the piece fom the square it moved from
+    ClearPieceNNUE(piece, sourceSquare, pos);
+    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    AddPieceNNUE(piece, targetSquare, pos);
+    // Reset EP square
+    if (GetEpSquare(pos) != no_sq) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        // reset enpassant square
+        pos->enPas = no_sq;
+    }
+    // Add new ep square
+    const int SOUTH = pos->side == WHITE ? 8 : -8;
+    pos->enPas = targetSquare + SOUTH;
+    HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+}
+
+void MakeCastle(const int move, Position* pos) {
+    pos->historyStackHead++;
+    // parse move
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+    // Remove the piece fom the square it moved from
+    ClearPieceNNUE(piece, sourceSquare, pos);
+    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    AddPieceNNUE(piece, targetSquare, pos);
+
+    // Reset EP square
+    if (GetEpSquare(pos) != no_sq){
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        pos->enPas = no_sq;
     }
 
-    // handle castling moves
-    if (castling) {
-        // switch target square
-        switch (targetSquare) {
-            // white castles king side
+    // move the rook
+    switch (targetSquare) {
+        // white castles king side
         case (g1):
             // move H rook
             MovePieceNNUE(WR, h1, f1, pos);
@@ -253,24 +346,8 @@ void MakeMove(const int move, Position* pos) {
             // move A rook
             MovePieceNNUE(BR, a8, d8, pos);
             break;
-        }
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-
-    // change side
-    pos->ChangeSide();
-    // Xor the new side into the key
-    HashKey(pos, SideKey);
-    // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos, pos->side);
-    // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
-        const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
-    }
-    else
-        pos->checkMask = fullCheckmask;
 }
 
 void UnmakeMove(const int move, Position* pos) {
