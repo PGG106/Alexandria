@@ -216,6 +216,34 @@ void MakeQuiet(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+void MakeCapture(const int move, Position* pos) {
+    // parse move
+    const int sourceSquare = From(move);
+    const int targetSquare = To(move);
+    const int piece = Piece(move);
+
+    pos->fiftyMove = 0;
+
+    const int pieceCap = pos->pieces[targetSquare];
+    assert(pieceCap != EMPTY);
+    assert(GetPieceType(pieceCap) != KING);
+    ClearPieceNNUE(pieceCap, targetSquare, pos);
+    pos->history[pos->historyStackHead].capture = pieceCap;
+
+    pos->historyStackHead++;
+
+    MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
+
+    // Reset EP square
+    if (GetEpSquare(pos) != no_sq){
+        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        // reset enpassant square
+        pos->enPas = no_sq;
+    }
+
+    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+}
+
 void MakeDP(const int move, Position* pos)
 {
     pos->fiftyMove = 0;
@@ -384,32 +412,7 @@ void MakeMove(const int move, Position* pos) {
         MakeQuiet(move,pos);
     }
     else {
-        // parse move
-        const int sourceSquare = From(move);
-        const int targetSquare = To(move);
-        const int piece = Piece(move);
-
-        pos->fiftyMove = 0;
-
-        const int pieceCap = pos->pieces[targetSquare];
-        const int capturedPieceLocation = targetSquare;
-        assert(pieceCap != EMPTY);
-        assert(GetPieceType(pieceCap) != KING);
-        ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
-        pos->history[pos->historyStackHead].capture = pieceCap;
-
-        pos->historyStackHead++;
-
-        MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
-
-        // Reset EP square
-        if (GetEpSquare(pos) != no_sq){
-            HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-            // reset enpassant square
-            pos->enPas = no_sq;
-        }
-
-        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+        MakeCapture(move, pos);
     }
     // change side
     pos->ChangeSide();
