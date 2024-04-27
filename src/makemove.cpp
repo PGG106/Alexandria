@@ -514,8 +514,10 @@ void MakeNullMove(Position* pos) {
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
     // Update the zobrist key asap so we can prefetch
-    if (GetEpSquare(pos) != no_sq)
+    if (GetEpSquare(pos) != no_sq) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        pos->enPas = no_sq;
+    }
     pos->ChangeSide();
     HashKey(pos, SideKey);
     TTPrefetch(pos->GetPoskey());
@@ -524,9 +526,6 @@ void MakeNullMove(Position* pos) {
     pos->historyStackHead++;
     pos->fiftyMove++;
     pos->plyFromNull = 0;
-
-    // reset enpassant square
-    pos->enPas = no_sq;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
