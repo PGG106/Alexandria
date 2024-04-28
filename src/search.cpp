@@ -619,12 +619,8 @@ moves_loop:
         // Play the move
         MakeMove(move, pos);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
-
         // Add any played move to the matching list
-        if (isQuiet)
-            AddMove(move, &quietMoves);
-        else
-            AddMove(move, &noisyMoves);
+        AddMove(move, isQuiet ? &quietMoves : &noisyMoves);
 
         // increment nodes count
         info->nodes++;
