@@ -61,7 +61,6 @@ void inline HashKey(Position* pos, ZobristKey key) {
 }
 
 void MakeCastle(const int move, Position* pos) {
-    pos->historyStackHead++;
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -120,8 +119,6 @@ void MakeEp(const int move, Position* pos) {
     const int capturedPieceLocation = targetSquare + SOUTH;
     ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
 
-    pos->historyStackHead++;
-
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -142,8 +139,6 @@ void MakePromo(const int move, Position* pos) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
-    pos->historyStackHead++;
-    
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -176,8 +171,6 @@ void MakePromocapture(const int move, Position* pos) {
 
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    pos->historyStackHead++;
-
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -203,7 +196,6 @@ void MakeQuiet(const int move, Position* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    pos->historyStackHead++;
     MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
 
     // Reset EP square
@@ -230,8 +222,6 @@ void MakeCapture(const int move, Position* pos) {
     ClearPieceNNUE(pieceCap, targetSquare, pos);
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    pos->historyStackHead++;
-
     MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
 
     // Reset EP square
@@ -245,9 +235,8 @@ void MakeCapture(const int move, Position* pos) {
 }
 
 void MakeDP(const int move, Position* pos)
-{
-    pos->fiftyMove = 0;
-    pos->historyStackHead++;
+{   pos->fiftyMove = 0;
+
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -414,6 +403,7 @@ void MakeMove(const int move, Position* pos) {
     else {
         MakeCapture(move, pos);
     }
+    pos->historyStackHead++;
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
