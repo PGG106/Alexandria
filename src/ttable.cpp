@@ -88,7 +88,7 @@ uint64_t Index(const ZobristKey posKey) {
 #ifdef __SIZEOF_INT128__
     return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(TT.pTable.size())) >> 64));
 #else
-    // Workaround to use the correect bits when indexing the TT on a platform with no int128 support, code s̶t̶o̶l̶e̶n̶ f̶r̶o̶m̶ provided by Nanopixel
+    // Workaround to use the correct bits when indexing the TT on a platform with no int128 support, code s̶t̶o̶l̶e̶n̶ f̶r̶o̶m̶ provided by Nanopixel
     uint64_t xlo = static_cast<uint32_t>(posKey);
     uint64_t xhi = posKey >> 32;
     uint64_t nlo = static_cast<uint32_t>(TT.pTable.size());

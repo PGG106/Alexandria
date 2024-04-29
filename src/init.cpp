@@ -52,21 +52,21 @@ int see_margin[MAXDEPTH][2];
 void initHashKeys() {
     for (int Typeindex = WP; Typeindex <= BK; ++Typeindex) {
         for (int Numberindex = 0; Numberindex < 64; ++Numberindex) {
-            PieceKeys[Typeindex][Numberindex] = GetRandomBitboardNumber();
+            PieceKeys[Typeindex][Numberindex] = GetRandomU64Number();
         }
     }
     // loop over board squares
     for (int square = 0; square < 64; square++)
         // init random enpassant keys
-        enpassant_keys[square] = GetRandomBitboardNumber();
+        enpassant_keys[square] = GetRandomU64Number();
 
     // loop over castling keys
     for (int index = 0; index < 16; index++)
         // init castling keys
-        CastleKeys[index] = GetRandomBitboardNumber();
+        CastleKeys[index] = GetRandomU64Number();
 
     // init random side key
-    SideKey = GetRandomBitboardNumber();
+    SideKey = GetRandomU64Number();
 }
 
 // init attack tables for all the piece types, indexable by square
