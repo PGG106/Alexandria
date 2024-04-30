@@ -371,38 +371,43 @@ void MakeMove(const int move, Position* pos) {
     pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
     pos->accumStackHead++;
 
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool doublePush = isDP(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
     pos->hisPly++;
 
-    if(castling){
-        MakeCastle(move,pos);
+    int mask = (
+        isPromo(move) +
+        isCapture(move) * 2 +
+        isEnpassant(move) * 2 +
+        isCastle(move) * 5 +
+        isDP(move) * 6
+    );
+
+    switch (mask){
+        case 0b000:
+            MakeQuiet(move, pos);
+            break;
+        case 0b001:
+            MakePromo(move, pos);
+            break;
+        case 0b010:
+            MakeCapture(move, pos);
+            break;
+        case 0b011:
+            MakePromocapture(move, pos);
+            break;
+        case 0b100:
+            MakeEp(move, pos);
+            break;
+        case 0b101:
+            MakeCastle(move, pos);
+            break;
+        case 0b110:
+            MakeDP(move, pos);
+            break;
     }
-    else if(doublePush){
-        MakeDP(move,pos);
-    }
-    else if(enpass){
-        MakeEp(move,pos);
-    }
-    else if(promotion && capture){
-        MakePromocapture(move,pos);
-    }
-    else if(promotion){
-        MakePromo(move,pos);
-    }
-    else if(!capture){
-        MakeQuiet(move,pos);
-    }
-    else {
-        MakeCapture(move, pos);
-    }
+
     pos->historyStackHead++;
     // change side
     pos->ChangeSide();
