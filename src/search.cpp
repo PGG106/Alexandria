@@ -834,15 +834,21 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
         totalMoves++;
 
-        // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck
             &&  BoardHasNonPawns(pos, pos->side)) {
+
+            // Futility pruning. If static eval is far below alpha, only search moves that win material.
             const int futilityBase = ss->staticEval + 192;
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
                 bestScore = std::max(futilityBase, bestScore);
                 continue;
             }
+
+            // Reverse Futility SEE pruning.
+            // If our SEE score is so good that we can beat beta + a large margin, we can return a fail high early.
+            if (SEE(pos, move, beta - ss->staticEval + 439))
+                return beta;
         }
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
