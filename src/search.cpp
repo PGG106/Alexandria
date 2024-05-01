@@ -847,8 +847,10 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
             // Reverse Futility SEE pruning.
             // If our SEE score is so good that we can beat beta + a large margin, we can return a fail high early.
-            if (SEE(pos, move, beta - ss->staticEval + 439))
-                return beta;
+            if (SEE(pos, move, beta - ss->staticEval + 439)) {
+                bestScore = beta;
+                break;
+            }
         }
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
