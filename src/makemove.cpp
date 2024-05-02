@@ -434,7 +434,6 @@ void UnmakeMove(const int move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
-    const int piece = Piece(move);
     // parse move flag
     const bool capture = isCapture(move);
     const bool enpass = isEnpassant(move);
@@ -443,19 +442,16 @@ void UnmakeMove(const int move, Position* pos) {
 
     pos->accumStackHead--;
 
-    // handle pawn promotions
-    if (promotion) {
-        const int promoted_piece = GetPiece(getPromotedPiecetype(move), pos->side ^ 1);
-        ClearPiece(promoted_piece, targetSquare, pos);
-    }
+    const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
 
-    // move piece
-    MovePiece(piece, targetSquare, sourceSquare, pos);
-
-    const int SOUTH = pos->side == WHITE ? -8 : 8;
+    // clear the piece on the target square
+    ClearPiece(piece, targetSquare, pos);
+    // no matter what add back the piece that was originally moved, ignoring any promotion
+    AddPiece(Piece(move), sourceSquare, pos);
 
     // handle captures
     if (capture) {
+        const int SOUTH = pos->side == WHITE ? -8 : 8;
         // Retrieve the captured piece we have to restore
         const int piececap = pos->history[pos->historyStackHead].capture;
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
