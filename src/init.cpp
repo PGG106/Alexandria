@@ -1,14 +1,15 @@
 #include "position.h"
 #include "attack.h"
+#include "cuckoo.h"
 #include "magic.h"
 #include "random.h"
-#include "stdint.h"
-#include <cmath>
 #include "misc.h"
 #include "search.h"
 #include "ttable.h"
 #include "threads.h"
 #include "history.h"
+#include <cstdint>
+#include <cmath>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -51,8 +52,8 @@ int see_margin[MAXDEPTH][2];
 // Initialize the Zobrist keys
 void initHashKeys() {
     for (int Typeindex = WP; Typeindex <= BK; ++Typeindex) {
-        for (int Numberindex = 0; Numberindex < 64; ++Numberindex) {
-            PieceKeys[Typeindex][Numberindex] = GetRandomU64Number();
+        for (int squareIndex = 0; squareIndex < 64; ++squareIndex) {
+            PieceKeys[Typeindex][squareIndex] = GetRandomU64Number();
         }
     }
     // loop over board squares
@@ -167,6 +168,42 @@ void InitReductions() {
     }
 }
 
+void initCuckoo(){
+    // keep a total tally of the table entries to sanity check the init
+    int count = 0;
+    // Reset any previously initialized value
+    keys.fill(0);
+    cuckooMoves.fill(NOMOVE);
+
+    for(int piece = WN; piece <= BK; piece++) {
+        if (piece == BP) continue;
+        for (int square0 = 0; square0 < 64; square0++) {
+            for (int square1 = square0 + 1; square1 < 64; square1++) {
+
+                // check if a piece of piecetype standing on square0 could attack square1
+                const Bitboard possibleattackoverlapthing = GetPieceTypeNonPawnAttacksToSquare(GetPieceType(piece), square0,0) & (1ULL << square1);
+                if (possibleattackoverlapthing == 0ULL)
+                    continue;
+                int move = encode_move(square0,square1,PAWN,Movetype::Quiet);
+                ZobristKey key = PieceKeys[piece][square0] ^ PieceKeys[piece][square1] ^ SideKey;
+                uint32_t slot = H1(key);
+                while (true)
+                {
+                    std::swap(keys[slot], key);
+                    std::swap(cuckooMoves[slot], move);
+
+                    if (move == NOMOVE)
+                        break;
+
+                    slot = slot == H1(key) ? H2(key) : H1(key);
+                }
+                ++count;
+            }
+        }
+    }
+    assert(count == 3668);
+}
+
 void InitAll() {
     setvbuf(stdout, NULL, _IONBF, 0);
     // Force windows to display colors
@@ -186,6 +223,7 @@ void InitAll() {
     // Init TT
     InitTT(16);
     nnue.init("nn.net");
+    initCuckoo();
 }
 
 void InitNewGame(ThreadData* td) {
