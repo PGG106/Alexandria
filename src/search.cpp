@@ -783,6 +783,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     if (ss->ply >= MAXDEPTH - 1)
         return inCheck ? 0 : EvalPosition(pos);
 
+    // Upcoming repetition detection
+    if (alpha < 0 && hasGameCycle(pos,ss->ply))
+    {
+        alpha = 0;
+        if (alpha >= beta)
+            return alpha;
+    }
+
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;

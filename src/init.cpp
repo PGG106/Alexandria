@@ -181,7 +181,7 @@ void initCuckoo(){
             for (int square1 = square0 + 1; square1 < 64; square1++) {
 
                 // check if a piece of piecetype standing on square0 could attack square1
-                const Bitboard possibleattackoverlapthing = GetPieceTypeNonPawnAttacksToSquare(GetPieceType(piece), square0,0) & (1ULL << square1);
+                const Bitboard possibleattackoverlapthing = GetPieceTypeNonPawnAttacksToSquare(GetPieceType(piece), square0, 0) & (1ULL << square1);
                 if (possibleattackoverlapthing == 0ULL)
                     continue;
                 int move = encode_move(square0,square1,PAWN,Movetype::Quiet);
