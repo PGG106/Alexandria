@@ -490,7 +490,8 @@ void restorePreviousBoardState(Position* pos)
     pos->checkMask = pos->history[pos->historyStackHead].checkMask;
     pos->pinned = pos->history[pos->historyStackHead].pinned;
 }
-bool has_game_cycle(Position* pos, int ply) {
+
+bool hasGameCycle(Position* pos, int ply) {
 
     int end = std::min(pos->Get50mrCounter(), pos->plyFromNull);
 

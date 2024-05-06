@@ -218,3 +218,5 @@ ZobristKey keyAfter(const Position* pos, const int move);
 void saveBoardState(Position* pos);
 
 void restorePreviousBoardState(Position* pos);
+
+bool hasGameCycle(Position* pos, int ply);

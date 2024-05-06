@@ -386,6 +386,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         beta = std::min(beta, MATE_SCORE - ss->ply - 1);
         if (alpha >= beta)
             return alpha;
+
+        // Upcoming repetition detection
+        if (alpha < 0 && hasGameCycle(pos,ss->ply))
+        {
+            alpha = 0;
+            if (alpha >= beta)
+                return alpha;
+        }
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
