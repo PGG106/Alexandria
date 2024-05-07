@@ -223,3 +223,19 @@ Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     // return occupancy map
     return occupancy;
 }
+
+Bitboard GetPieceTypeNonPawnAttacksToSquare(int piecetype,  int pieceSquare, Bitboard occ) {
+    assert(piecetype <= KING);
+    if(piecetype == KNIGHT)
+        return knight_attacks[pieceSquare];
+    if(piecetype == BISHOP)
+        return GetBishopAttacks(pieceSquare, occ);
+    if(piecetype == ROOK)
+        return GetRookAttacks(pieceSquare, occ);
+    if(piecetype == QUEEN)
+        return GetQueenAttacks(pieceSquare, occ);
+    if(piecetype == KING)
+        return king_attacks[pieceSquare];
+
+    __builtin_unreachable();
+}

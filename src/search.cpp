@@ -386,6 +386,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         beta = std::min(beta, MATE_SCORE - ss->ply - 1);
         if (alpha >= beta)
             return alpha;
+
+        // Upcoming repetition detection
+        if (alpha < 0 && hasGameCycle(pos,ss->ply))
+        {
+            alpha = 0;
+            if (alpha >= beta)
+                return alpha;
+        }
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
@@ -774,6 +782,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
         return inCheck ? 0 : EvalPosition(pos);
+
+    // Upcoming repetition detection
+    if (alpha < 0 && hasGameCycle(pos,ss->ply))
+    {
+        alpha = 0;
+        if (alpha >= beta)
+            return alpha;
+    }
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
