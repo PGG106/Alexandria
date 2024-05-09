@@ -45,7 +45,7 @@ Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
 
-int reductions[2][MAXDEPTH][MAXPLY];
+int reductions[2][MAXDEPTH][64];
 int lmp_margin[MAXDEPTH][2];
 int see_margin[MAXDEPTH][2];
 
@@ -152,7 +152,7 @@ void InitReductions() {
     reductions[1][0][0] = 0;
 
     for (int i = 1; i < MAXDEPTH; i++) {
-        for (int j = 1; j < MAXDEPTH; j++) {
+        for (int j = 1; j < 64; j++) {
             reductions[0][i][j] = -0.25 + log(i) * log(j) / 2.25;
             reductions[1][i][j] = +1.00 + log(i) * log(j) / 2.00;
         }

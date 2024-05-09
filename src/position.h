@@ -21,7 +21,7 @@
 #endif
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
-extern int reductions[2][MAXDEPTH][MAXPLY];
+extern int reductions[2][MAXDEPTH][64];
 extern int lmp_margin[MAXDEPTH][2];
 extern int see_margin[MAXDEPTH][2];
 
