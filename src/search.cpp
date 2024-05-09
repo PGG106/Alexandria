@@ -551,7 +551,7 @@ moves_loop:
             &&  bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][totalMoves] + moveHistory / 16384);
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][std::min(totalMoves, 63)] + moveHistory / 16384);
 
             if (!skipQuiets) {
 
@@ -637,7 +637,7 @@ moves_loop:
         if (totalMoves > 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            int depthReduction = reductions[isQuiet][depth][totalMoves];
+            int depthReduction = reductions[isQuiet][depth][std::min(totalMoves, 63)];
 
             // Fuck
             if (cutNode)
