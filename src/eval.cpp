@@ -34,7 +34,7 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 }
 
 int EvalPositionRaw(Position* pos) {
-    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
+    nnue.update(pos, pos->NNUEAdd, pos->NNUESub);
     const bool stm = pos->side == WHITE;
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);

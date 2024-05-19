@@ -367,8 +367,6 @@ void MakeMove(const int move, Position* pos) {
     saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
-
-    pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
     pos->accumStackHead++;
 
     // parse move flag
