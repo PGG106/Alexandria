@@ -98,10 +98,6 @@ void ParsePosition(const std::string& command, Position* pos) {
             parse_moves(moves_substr, pos);
         }
     }
-
-    // Update accumulator state to reflect the new position
-    Accumulate(pos->accumStack[0], pos);
-    pos->accumStackHead = 1;
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
@@ -368,8 +364,7 @@ void UciLoop(int argc, char** argv) {
                 ParsePosition("position startpos", &td->pos);
             }
             // print position eval
-            std::cout << "Raw eval: " << EvalPositionRaw(&td->pos) << std::endl;
-            std::cout << "Scaled eval: " << EvalPosition(&td->pos) << std::endl;
+            std::cout << "eval: " << EvalPosition(&td->pos) << std::endl;
         }
 
         else if (input == "bench") {

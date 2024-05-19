@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include "bitboard.h"
-#include "nnue.h"
 #include <cstdint>
 #include "move.h"
 #include "types.h"
@@ -55,8 +54,6 @@ public:
     BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
-    std::vector<NNUEIndices> NNUEAdd = {};
-    std::vector<NNUEIndices> NNUESub = {};
     Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
@@ -64,14 +61,6 @@ public:
     Bitboard occupancies[2] = {};
     Bitboard checkers;
     Bitboard checkMask = fullCheckmask;
-  
-    NNUE::accumulator accumStack[MAXPLY];
-    int accumStackHead;
-
-    inline NNUE::accumulator& AccumulatorTop() {
-        assert(accumStackHead <= MAXPLY);
-        return accumStack[accumStackHead-1];
-    }
 
     inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
@@ -170,9 +159,6 @@ const constexpr char* square_to_coordinates[] = {
 // ASCII pieces
 constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
-// NNUE
-extern NNUE nnue;
-
 // Generates zobrist key from scratch
 [[nodiscard]] Bitboard GeneratePosKey(const Position* pos);
 // parse FEN string
@@ -210,8 +196,6 @@ void UpdatePinsAndCheckers(Position* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 
 [[nodiscard]] int GetEpSquare(const Position* pos);
-
-void Accumulate(NNUE::accumulator& board_accumulator, Position* pos);
 
 ZobristKey keyAfter(const Position* pos, const int move);
 

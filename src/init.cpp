@@ -222,7 +222,6 @@ void InitAll() {
     InitReductions();
     // Init TT
     InitTT(16);
-    nnue.init("nn.net");
     initCuckoo();
 }
 

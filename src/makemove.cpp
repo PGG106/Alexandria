@@ -24,13 +24,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, Position* pos) {
-    pos->NNUESub.emplace_back(nnue.GetIndex(piece, sq));
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, Position* pos) {
-    pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
     AddPiece(piece, to, pos);
 }
 
@@ -368,9 +366,6 @@ void MakeMove(const int move, Position* pos) {
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
-    pos->accumStack[pos->accumStackHead] = pos->AccumulatorTop();
-    pos->accumStackHead++;
-
     // parse move flag
     const bool capture = isCapture(move);
     const bool doublePush = isDP(move);
@@ -428,9 +423,6 @@ void UnmakeMove(const int move, Position* pos) {
 
     restorePreviousBoardState(pos);
 
-    pos->NNUEAdd.clear();
-    pos->NNUESub.clear();
-
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -439,8 +431,6 @@ void UnmakeMove(const int move, Position* pos) {
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
-
-    pos->accumStackHead--;
 
     const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
 

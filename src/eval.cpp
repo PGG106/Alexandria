@@ -23,30 +23,33 @@ bool MaterialDraw(const Position* pos) {
     return false;
 }
 
-static inline int ScaleMaterial(const Position* pos, int eval) {
-    const int knights = CountBits(GetPieceBB(pos, KNIGHT));
-    const int bishops = CountBits(GetPieceBB(pos, BISHOP));
-    const int rooks = CountBits(GetPieceBB(pos, ROOK));
-    const int queens = CountBits(GetPieceBB(pos, QUEEN));
-    const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
-    // Scale between [0.75, 1.00]
-    return eval * (192 + phase) / 256;
+// position evaluation
+int materialScore(Position* pos) {
+    int white_pawns = SEEValue[PAWN] * CountBits(pos->GetPieceColorBB(PAWN,WHITE));
+    int white_knights = SEEValue[KNIGHT] * CountBits(pos->GetPieceColorBB(KNIGHT,WHITE));
+    int white_bishops = SEEValue[BISHOP] * CountBits(pos->GetPieceColorBB(BISHOP,WHITE));
+    int white_rooks = SEEValue[ROOK] * CountBits(pos->GetPieceColorBB(ROOK,WHITE));
+    int white_queens = SEEValue[QUEEN] * CountBits(pos->GetPieceColorBB(QUEEN,WHITE));
+
+    int white_score = white_pawns + white_knights + white_bishops + white_rooks + white_queens;
+
+    int black_pawns = SEEValue[PAWN] * CountBits(pos->GetPieceColorBB(PAWN,BLACK));
+    int black_knights = SEEValue[KNIGHT] * CountBits(pos->GetPieceColorBB(KNIGHT,BLACK));
+    int black_bishops = SEEValue[BISHOP] * CountBits(pos->GetPieceColorBB(BISHOP,BLACK));
+    int black_rooks = SEEValue[ROOK] * CountBits(pos->GetPieceColorBB(ROOK,BLACK));
+    int black_queens = SEEValue[QUEEN] * CountBits(pos->GetPieceColorBB(QUEEN,BLACK));
+
+    int black_score = black_pawns + black_knights + black_bishops + black_rooks + black_queens;
+
+
+    return white_score - black_score;
 }
 
-int EvalPositionRaw(Position* pos) {
-    nnue.update(pos->AccumulatorTop(), pos->NNUEAdd, pos->NNUESub);
-    const bool stm = pos->side == WHITE;
-    const int pieceCount = pos->PieceCount();
-    const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-    return nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
-}
+
 
 // position evaluation
 int EvalPosition(Position* pos) {
-    int eval = EvalPositionRaw(pos);
-    eval = ScaleMaterial(pos, eval);
-    eval = eval * (200 - pos->Get50mrCounter()) / 200;
-    // Clamp eval to avoid it somehow being a mate score
-    eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
-    return eval;
+    int score = pos->side == WHITE  ?  materialScore(pos) : -materialScore(pos);
+    score += (pos->GetPoskey() % 4);
+    return score;
 }
