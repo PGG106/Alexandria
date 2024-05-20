@@ -156,13 +156,13 @@ void NNUE::addSubSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NN
     auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
     auto whiteSub1 = &net.featureWeights[whiteSubIdx1 * HIDDEN_SIZE];
     auto whiteSub2 = &net.featureWeights[whiteSubIdx2 * HIDDEN_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
         new_acc[0][i] = prev_acc[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
     }
     auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
     auto blackSub1 = &net.featureWeights[blackSubIdx1 * HIDDEN_SIZE];
     auto blackSub2 = &net.featureWeights[blackSubIdx2 * HIDDEN_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
         new_acc[1][i] = prev_acc[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
     }
 }
