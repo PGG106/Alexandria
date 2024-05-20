@@ -70,7 +70,7 @@ public:
 
     inline NNUE::accumulator& AccumulatorTop() {
         assert(accumStackHead <= MAXPLY);
-        return accumStack[accumStackHead-1];
+        return accumStack[accumStackHead - 1];
     }
 
     inline Bitboard Occupancy(const int occupancySide) const {
