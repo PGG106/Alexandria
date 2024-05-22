@@ -42,7 +42,7 @@ void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval,
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         TTEntry* entry = &bucket->entries[i];
 
-        if (!entry->ttKey || entry->ttKey == key16) {
+        if (entry->ttKey == key16) {
             tte = entry;
             break;
         }
