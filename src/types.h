@@ -14,7 +14,7 @@ using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 
-constexpr int MAXPLY = 128;
+constexpr int MAXPLY = 256;
 constexpr int MAXDEPTH = MAXPLY;
 constexpr int NOMOVE = 0;
 constexpr int MATE_SCORE = 32000;
