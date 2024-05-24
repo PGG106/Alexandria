@@ -1,8 +1,10 @@
 #include "ttable.h"
-#include <cassert>
 #include "io.h"
-#include "xmmintrin.h"
 #include <iostream>
+// This include breaks on non x86 target platforms
+#if defined(__INTEL_COMPILER) || defined(_MSC_VER)
+#include "xmmintrin.h"
+#endif
 
 TTable TT;
 
