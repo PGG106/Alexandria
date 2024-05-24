@@ -551,14 +551,14 @@ moves_loop:
             &&  bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][depth][std::min(totalMoves, 63)] + moveHistory / 16384);
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / 16384);
 
             if (!skipQuiets) {
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (!pvNode
                     && !inCheck
-                    && totalMoves > lmp_margin[depth][improving]) {
+                    && totalMoves > lmp_margin[std::min(depth, 63)][improving]) {
                     skipQuiets = true;
                 }
 
@@ -572,14 +572,14 @@ moves_loop:
 
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
             if (    depth <= 8
-                && !SEE(pos, move, see_margin[lmrDepth][isQuiet]))
+                && !SEE(pos, move, see_margin[std::min(lmrDepth, 63)][isQuiet]))
                 continue;
         }
 
         int extension = 0;
         // Limit Extensions to try and curb search explosions
         if (ss->ply < td->RootDepth * 2) {
-            // Search extension
+            // Singular Extensions
             if (   !rootNode
                 &&  depth >= 7
                 &&  move == ttMove
@@ -637,7 +637,7 @@ moves_loop:
         if (totalMoves > 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            int depthReduction = reductions[isQuiet][depth][std::min(totalMoves, 63)];
+            int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
             // Fuck
             if (cutNode)
