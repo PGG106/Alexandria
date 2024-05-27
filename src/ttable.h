@@ -24,7 +24,7 @@ PACK(struct TTEntry {
 
 // Packs the 10-byte entries into 32-byte buckets
 // 3 entries per bucket with 2 bytes of padding
-struct TTBucket {
+struct alignas(32) TTBucket {
     TTEntry entries[ENTRIES_PER_BUCKET] = {};
     uint16_t padding;
 };
