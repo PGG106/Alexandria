@@ -3,7 +3,6 @@
 #include "movegen.h"
 #include "piece_data.h"
 #include "history.h"
-#include "misc.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
 void ScoreMoves(Movepicker* mp) {
@@ -99,7 +98,7 @@ int NextMove(Movepicker* mp, const bool skip) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const int move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold = -score / 64 + 218;
+            const int SEEThreshold = -score / 64 + 109;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
