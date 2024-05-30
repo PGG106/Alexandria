@@ -46,7 +46,6 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     const int killer = ss->searchKiller;
     const int counter = sd->counterMoves[FromTo((ss - 1)->move)];
 
-    nnue.update(pos, pos->NNUEAdd, pos->NNUESub);
     mp->movepickerType = movepickerType;
     mp->pos = pos;
     mp->sd = sd;

@@ -51,8 +51,6 @@ public:
     BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
-    std::vector<NNUEIndices> NNUEAdd = {};
-    std::vector<NNUEIndices> NNUESub = {};
     Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
@@ -61,10 +59,10 @@ public:
     Bitboard checkers;
     Bitboard checkMask = fullCheckmask;
   
-    NNUE::accumulator accumStack[MAXPLY];
+    NNUE::Accumulator accumStack[MAXPLY];
     int accumStackHead;
 
-    inline NNUE::accumulator& AccumulatorTop() {
+    inline NNUE::Accumulator& AccumulatorTop() {
         assert(accumStackHead <= MAXPLY);
         return accumStack[accumStackHead - 1];
     }
@@ -206,8 +204,6 @@ void UpdatePinsAndCheckers(Position* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 
 [[nodiscard]] int GetEpSquare(const Position* pos);
-
-void Accumulate(NNUE::accumulator& board_accumulator, Position* pos);
 
 ZobristKey keyAfter(const Position* pos, const int move);
 

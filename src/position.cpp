@@ -217,7 +217,7 @@ void ParseFen(const std::string& command, Position* pos) {
         pos->checkMask = fullCheckmask;
 
     // Update nnue accumulator to reflect board state
-    Accumulate(pos->accumStack[0], pos);
+    nnue.accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
 }
 
@@ -439,19 +439,6 @@ Bitboard RayBetween(int square1, int square2) {
 
 int GetEpSquare(const Position* pos) {
     return pos->enPas;
-}
-
-void Accumulate(NNUE::accumulator& board_accumulator, Position* pos) {
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[0][i] = net.featureBias[i];
-        board_accumulator[1][i] = net.featureBias[i];
-    }
-
-    for (int i = 0; i < 64; i++) {
-        bool input = pos->pieces[i] != EMPTY;
-        if (!input) continue;
-        nnue.add(board_accumulator, pos->pieces[i], i);
-    }
 }
 
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling

@@ -93,61 +93,74 @@ constexpr int32_t REQUIRED_ITERS = HIDDEN_SIZE / CHUNK_SIZE;
 constexpr int32_t QA = 255;
 constexpr int32_t QB = 64;
 
-void NNUE::add(NNUE::accumulator& board_accumulator, const int piece, const int to) {
-    auto [whiteIdx, blackIdx] = GetIndex(piece, to);
-    auto whiteAdd = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
-    auto blackAdd = &net.featureWeights[blackIdx * HIDDEN_SIZE];
+void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[0][i] += whiteAdd[i];
+        board_accumulator.values[0][i] = net.featureBias[i];
+        board_accumulator.values[1][i] = net.featureBias[i];
     }
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator[1][i] += blackAdd[i];
+
+    for (int i = 0; i < 64; i++) {
+        bool input = pos->pieces[i] != EMPTY;
+        if (!input) continue;
+        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i);
+        auto whiteAdd = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
+        auto blackAdd = &net.featureWeights[blackIdx * HIDDEN_SIZE];
+        for (int j = 0; j < HIDDEN_SIZE; j++) {
+            board_accumulator.values[0][j] += whiteAdd[j];
+        }
+        for (int j = 0; j < HIDDEN_SIZE; j++) {
+            board_accumulator.values[1][j] += blackAdd[j];
+        }
     }
 }
 
-void NNUE::update(Position *pos, std::vector<NNUEIndices>& NNUEAdd, std::vector<NNUEIndices>& NNUESub) {
-    int adds = NNUEAdd.size();
-    int subs = NNUESub.size();
+void NNUE::update(NNUE::Accumulator *acc) {
+
+    int adds = acc->NNUEAdd.size();
+    int subs = acc->NNUESub.size();
 
     if (adds == 0 && subs == 0)
         return;
 
+    if (!(acc - 1)->NNUEAdd.empty() && !(acc - 1)->NNUESub.empty())
+        update(acc - 1);
+
     // Quiets
     if (adds == 1 && subs == 1) {
-        addSub(pos->accumStack[pos->accumStackHead - 1], pos->accumStack[pos->accumStackHead - 2], NNUEAdd[0], NNUESub[0]);
+        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
     }
     // Captures
     else if (adds == 1 && subs == 2) {
-        addSubSub(pos->accumStack[pos->accumStackHead - 1], pos->accumStack[pos->accumStackHead - 2], NNUEAdd[0], NNUESub[0], NNUESub[1]);
+        addSubSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0], acc->NNUESub[1]);
     }
     // Castling
     else {
-        addSub(pos->accumStack[pos->accumStackHead - 1], pos->accumStack[pos->accumStackHead - 2], NNUEAdd[0], NNUESub[0]);
-        addSub(pos->accumStack[pos->accumStackHead - 1], pos->accumStack[pos->accumStackHead - 1], NNUEAdd[1], NNUESub[1]);
-        // Note that for second addSub, we put accumStack[pos->accumStackHead - 1] instead of 2 because we are updating on top of
+        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
+        addSub(acc, acc, acc->NNUEAdd[1], acc->NNUESub[1]);
+        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
         // the half-updated accumulator
     }
     // Reset the add and sub vectors
-    NNUEAdd.clear();
-    NNUESub.clear();
+    acc->NNUEAdd.clear();
+    acc->NNUESub.clear();
 }
 
-void NNUE::addSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NNUEIndices add, NNUEIndices sub) {
+void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
     auto [whiteAddIdx, blackAddIdx] = add;
     auto [whiteSubIdx, blackSubIdx] = sub;
     auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
     auto whiteSub = &net.featureWeights[whiteSubIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        new_acc[0][i] = prev_acc[0][i] - whiteSub[i] + whiteAdd[i];
+        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub[i] + whiteAdd[i];
     }
     auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
     auto blackSub = &net.featureWeights[blackSubIdx * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        new_acc[1][i] = prev_acc[1][i] - blackSub[i] + blackAdd[i];
+        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub[i] + blackAdd[i];
     }
 }
 
-void NNUE::addSubSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
+void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
 
     auto [whiteAddIdx, blackAddIdx] = add;
     auto [whiteSubIdx1, blackSubIdx1] = sub1;
@@ -157,13 +170,13 @@ void NNUE::addSubSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NN
     auto whiteSub1 = &net.featureWeights[whiteSubIdx1 * HIDDEN_SIZE];
     auto whiteSub2 = &net.featureWeights[whiteSubIdx2 * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        new_acc[0][i] = prev_acc[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
+        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
     }
     auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
     auto blackSub1 = &net.featureWeights[blackSubIdx1 * HIDDEN_SIZE];
     auto blackSub2 = &net.featureWeights[blackSubIdx2 * HIDDEN_SIZE];
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        new_acc[1][i] = prev_acc[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
+        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
     }
 }
 
@@ -218,17 +231,17 @@ int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
     #endif
 }
 
-int32_t NNUE::output(const NNUE::accumulator& board_accumulator, const bool whiteToMove, const int outputBucket) {
+int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whiteToMove, const int outputBucket) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
     const int16_t* us;
     const int16_t* them;
     if (whiteToMove) {
-        us = board_accumulator[0].data();
-        them = board_accumulator[1].data();
+        us = board_accumulator.values[0].data();
+        them = board_accumulator.values[1].data();
     } else {
-        us = board_accumulator[1].data();
-        them = board_accumulator[0].data();
+        us = board_accumulator.values[1].data();
+        them = board_accumulator.values[0].data();
     }
     const int32_t bucketOffset = 2 * HIDDEN_SIZE * outputBucket;
     int32_t output =   flatten(us, net.outputWeights + bucketOffset)
