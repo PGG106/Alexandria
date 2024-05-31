@@ -7,7 +7,7 @@
 
 #if defined(USE_AVX512)
 using vepi16 = __m512i;
-using vepi32 = __m512i; 
+using vepi32 = __m512i;
 
 inline vepi16  vec_zero_epi16() { return _mm512_setzero_si512(); }
 inline vepi32  vec_zero_epi32() { return _mm512_setzero_si512(); }
@@ -22,7 +22,7 @@ inline int32_t vec_reduce_add_epi32(const vepi32 vec) { return _mm512_reduce_add
 
 #elif defined(USE_AVX2)
 using vepi16 = __m256i;
-using vepi32 = __m256i; 
+using vepi32 = __m256i;
 
 inline vepi16  vec_zero_epi16() { return _mm256_setzero_si256(); }
 inline vepi32  vec_zero_epi32() { return _mm256_setzero_si256(); }
