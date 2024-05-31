@@ -26,15 +26,27 @@ struct Position;
 
 class NNUE {
 public:
-    using accumulator = std::array<std::array<int16_t, HIDDEN_SIZE>, 2>;
+    struct Accumulator {
+        std::array<std::array<int16_t, HIDDEN_SIZE>, 2> values;
+        std::vector<NNUEIndices> NNUEAdd = {};
+        std::vector<NNUEIndices> NNUESub = {};
 
-    void init(const char* file);
-    void add(NNUE::accumulator& board_accumulator, const int piece, const int to);
-    void update(Position *pos, std::vector<NNUEIndices>& NNUEAdd, std::vector<NNUEIndices>& NNUESub);
-    void addSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NNUEIndices add, NNUEIndices sub);
-    void addSubSub(NNUE::accumulator& new_acc, NNUE::accumulator& prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
+        void AppendAddIndex(NNUEIndices index) {
+            NNUEAdd.emplace_back(index);
+        }
+
+        void AppendSubIndex(NNUEIndices index) {
+            NNUESub.emplace_back(index);
+        }
+    };
+
+    void init(const char *file);
+    void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
+    void update(NNUE::Accumulator *acc);
+    void addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
+    void addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
     [[nodiscard]] int32_t flatten(const int16_t *acc, const int16_t *weights);
-    [[nodiscard]] int32_t output(const NNUE::accumulator& board_accumulator, const bool whiteToMove, const int outputBucket);
+    [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
     [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square);
     #if defined(USE_AVX2)
     [[nodiscard]] int32_t horizontal_add(const __m256i sum);
