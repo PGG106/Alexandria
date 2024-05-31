@@ -3,7 +3,7 @@
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
-#define NAME "Alexandria-7.0.2"
+#define NAME "Alexandria-7.0.3"
 
 #define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
