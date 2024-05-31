@@ -24,13 +24,13 @@ void AddPiece(const int piece, const int to, Position* pos) {
 
 // Remove a piece from a square while also deactivating the nnue weights tied to the piece
 void ClearPieceNNUE(const int piece, const int sq, Position* pos) {
-    pos->NNUESub.emplace_back(nnue.GetIndex(piece, sq));
+    pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, sq));
     ClearPiece(piece, sq, pos);
 }
 
 // Add a piece to a square while also activating the nnue weights tied to the piece
 void AddPieceNNUE(const int piece, const int to, Position* pos) {
-    pos->NNUEAdd.emplace_back(nnue.GetIndex(piece, to));
+    pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to));
     AddPiece(piece, to, pos);
 }
 
@@ -426,8 +426,8 @@ void UnmakeMove(const int move, Position* pos) {
 
     restorePreviousBoardState(pos);
 
-    pos->NNUEAdd.clear();
-    pos->NNUESub.clear();
+    pos->AccumulatorTop().NNUEAdd.clear();
+    pos->AccumulatorTop().NNUESub.clear();
 
     // parse move
     const int sourceSquare = From(move);
