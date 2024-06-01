@@ -10,7 +10,7 @@
 // is the square given in input attacked by the current given side
 bool IsSquareAttacked(const Position* pos, const int square, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
-    Bitboard occ = pos->Occupancy(BOTH);
+    const Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
     if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
         return true;
@@ -64,6 +64,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     const Bitboard enemy = pos->Occupancy(color ^ 1);
     const Bitboard ourPawns = pos->GetPieceColorBB(PAWN, color);
     const Bitboard rank4BB = color == WHITE ? 0x000000FF00000000ULL : 0x00000000FF000000ULL;
+    const Bitboard freeSquares = ~pos->Occupancy(BOTH);
     const int pawnType = GetPiece(PAWN, pos->side);
     const int north = color == WHITE ? -8 : 8;
     const bool genNoisy = type & MOVEGEN_NOISY;
@@ -71,8 +72,8 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
 
     // Quiet moves (ie push/double-push)
     if (genQuiet) {
-        Bitboard push = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & ~0xFF000000000000FFULL;
-        Bitboard doublePush = NORTH(push, color) & ~pos->Occupancy(BOTH) & rank4BB;
+        Bitboard push = NORTH(ourPawns, color) & freeSquares & ~0xFF000000000000FFULL;
+        Bitboard doublePush = NORTH(push, color) & freeSquares & rank4BB;
         push &= pos->checkMask;
         doublePush &= pos->checkMask;
         while (push) {
@@ -88,7 +89,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     if (genNoisy) {
 
         // Push promotions
-        Bitboard pushPromo = NORTH(ourPawns, color) & ~pos->Occupancy(BOTH) & 0xFF000000000000FFULL & pos->checkMask;
+        Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL & pos->checkMask;
         while (pushPromo) {
             const int to = popLsb(pushPromo);
             AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
@@ -159,7 +160,7 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
         Bitboard possible_moves = knight_attacks[from] & moveMask & pos->checkMask;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
-            Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, knightType, movetype), list);
         }
     }
@@ -185,7 +186,7 @@ static inline void PseudoLegalBishopMoves(Position* pos, int color, MoveList* li
         Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->checkMask;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
-            Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+            const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
             AddMove(encode_move(from, to, bishopType, movetype), list);
         }
     }
@@ -268,23 +269,24 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
     // Only generate castling moves if we are generating quiets
     // Castling is illegal in check
     if (genQuiet && !pos->checkers) {
+        const Bitboard occ = pos->Occupancy(BOTH);
+        const int castlePerms = pos->GetCastlingPerm();
         if (color == WHITE) {
             // king side castling is available
-            if ((pos->GetCastlingPerm() & WKCA) && !(pos->Occupancy(BOTH) & 0x6000000000000000ULL))
+            if ((castlePerms & WKCA) && !(occ & 0x6000000000000000ULL))
                 AddMove(encode_move(e1, g1, WK, Movetype::KSCastle), list);
 
             // queen side castling is available
-            if ((pos->GetCastlingPerm() & WQCA) && !(pos->Occupancy(BOTH) & 0x0E00000000000000ULL))
+            if ((castlePerms & WQCA) && !(occ & 0x0E00000000000000ULL))
                 AddMove(encode_move(e1, c1, WK, Movetype::QSCastle), list);
         }
-
         else {
             // king side castling is available
-            if ((pos->GetCastlingPerm() & BKCA) && !(pos->Occupancy(BOTH) & 0x0000000000000060ULL))
+            if ((castlePerms & BKCA) && !(occ & 0x0000000000000060ULL))
                 AddMove(encode_move(e8, g8, BK, Movetype::KSCastle), list);
 
             // queen side castling is available
-            if ((pos->GetCastlingPerm() & BQCA) && !(pos->Occupancy(BOTH) & 0x000000000000000EULL))
+            if ((castlePerms & BQCA) && !(occ & 0x000000000000000EULL))
                 AddMove(encode_move(e8, c8, BK, Movetype::QSCastle), list);
         }
     }
