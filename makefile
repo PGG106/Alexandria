@@ -1,4 +1,3 @@
-
 NETWORK_NAME = nn.net
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
@@ -8,7 +7,9 @@ TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS    :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
-
+AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
+BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
+AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
 
 # engine name
 NAME        := Alexandria
@@ -49,17 +50,36 @@ ifeq ($(uname_S), Darwin)
 	FLAGS = 
 endif
 
+ARCH_DETECTED =
+PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
+ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
+	ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
+		ARCH_DETECTED = AVX512
+	endif
+endif
+ifeq ($(ARCH_DETECTED),)
+	ifneq ($(findstring __BMI2__, $(PROPERTIES)),)
+		ARCH_DETECTED = BMI2
+	endif
+endif
+ifeq ($(ARCH_DETECTED),)
+	ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
+		ARCH_DETECTED = AVX2
+	endif
+endif
+
 # Remove native for builds
 ifdef build
 	NATIVE =
 else
-	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
-	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
-		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
-			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
-		endif
-	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
-		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	ifeq ($(ARCH_DETECTED), AVX512)
+		CXXFLAGS += $(AVX512FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), BMI2)
+		CXXFLAGS += $(BMI2FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), AVX2)
+		CXXFLAGS += $(AVX2FLAGS)
 	endif
 endif
 
@@ -67,14 +87,15 @@ endif
 ifeq ($(build), native)
 	NATIVE     = -march=native
 	ARCH       = -x86-64-native
-	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
-	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
-		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
-			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
-		endif
-	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
-		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
-	endif	
+	ifeq ($(ARCH_DETECTED), AVX512)
+		CXXFLAGS += $(AVX512FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), BMI2)
+		CXXFLAGS += $(BMI2FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), AVX2)
+		CXXFLAGS += $(AVX2FLAGS)
+	endif
 endif
 
 ifeq ($(build), x86-64)
@@ -92,33 +113,33 @@ endif
 ifeq ($(build), x86-64-avx2)
 	NATIVE    = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
 	ARCH      = -x86-64-avx2
-	CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	CXXFLAGS += $(AVX2FLAGS)
 endif
 
 ifeq ($(build), x86-64-bmi2)
 	NATIVE    = -march=haswell
 	ARCH      = -x86-64-bmi2
-	CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	CXXFLAGS += $(BMI2FLAGS)
 endif
 
 ifeq ($(build), x86-64-avx512)
 	NATIVE    = -march=x86-64-v4 -mtune=znver4
 	ARCH      = -x86-64-avx512
-	CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
+	CXXFLAGS += $(AVX512FLAGS)
 endif
 
 ifeq ($(build), debug)
 	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
 	FLAGS    = -lpthread -lstdc++
-
-	PROPERTIES = $(shell echo | $(CXX) -march=native -E -dM -)
-	ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
-		ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
-			CXXFLAGS += -DUSE_AVX512 -mavx512f -mavx512bw
-		endif
-	else ifneq ($(findstring __AVX2__, $(PROPERTIES)),)
-		CXXFLAGS += -DUSE_AVX2 -mavx2 -mbmi
+	ifeq ($(ARCH_DETECTED), AVX512)
+		CXXFLAGS += $(AVX512FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), BMI2)
+		CXXFLAGS += $(BMI2FLAGS)
+	endif
+	ifeq ($(ARCH_DETECTED), AVX2)
+		CXXFLAGS += $(AVX2FLAGS)
 	endif
 endif
 

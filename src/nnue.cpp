@@ -1,14 +1,11 @@
 #include "nnue.h"
+#include "simd.h"
 #include <algorithm>
 #include "position.h"
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 #include "incbin/incbin.h"
-
-#if defined(USE_AVX512) || defined(USE_AVX2)
-#include <immintrin.h>
-#endif
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
@@ -42,10 +39,10 @@ void NNUE::init(const char* file) {
         const size_t fileSize = sizeof(Network);
         const size_t objectsExpected = fileSize / sizeof(int16_t);
 
-        read += fread(net.featureWeights, sizeof(int16_t), INPUT_WEIGHTS * HIDDEN_SIZE, nn);
-        read += fread(net.featureBias, sizeof(int16_t), HIDDEN_SIZE, nn);
-        read += fread(net.outputWeights, sizeof(int16_t), HIDDEN_SIZE * 2 * OUTPUT_BUCKETS, nn);
-        read += fread(net.outputBias, sizeof(int16_t), OUTPUT_BUCKETS, nn);
+        read += fread(net.FTWeights, sizeof(int16_t), NUM_INPUTS * L1_SIZE, nn);
+        read += fread(net.FTBiases, sizeof(int16_t), L1_SIZE, nn);
+        read += fread(net.L1Weights, sizeof(int16_t), L1_SIZE * 2 * OUTPUT_BUCKETS, nn);
+        read += fread(net.L1Biases, sizeof(int16_t), OUTPUT_BUCKETS, nn);
 
         if (read != objectsExpected) {
             std::cout << "Error loading the net, aborting ";
@@ -58,57 +55,46 @@ void NNUE::init(const char* file) {
     } else {
         // if we don't find the nnue file we use the net embedded in the exe
         uint64_t memoryIndex = 0;
-        std::memcpy(net.featureWeights, &gEVALData[memoryIndex], INPUT_WEIGHTS * HIDDEN_SIZE * sizeof(int16_t));
-        memoryIndex += INPUT_WEIGHTS * HIDDEN_SIZE * sizeof(int16_t);
-        std::memcpy(net.featureBias, &gEVALData[memoryIndex], HIDDEN_SIZE * sizeof(int16_t));
-        memoryIndex += HIDDEN_SIZE * sizeof(int16_t);
+        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], NUM_INPUTS * L1_SIZE * sizeof(int16_t));
+        memoryIndex += NUM_INPUTS * L1_SIZE * sizeof(int16_t);
+        std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
+        memoryIndex += L1_SIZE * sizeof(int16_t);
 
-        std::memcpy(net.outputWeights, &gEVALData[memoryIndex], HIDDEN_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t));
-        memoryIndex += HIDDEN_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t);
-        std::memcpy(net.outputBias, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
+        std::memcpy(net.L1Weights, &gEVALData[memoryIndex], L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t));
+        memoryIndex += L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t);
+        std::memcpy(net.L1Biases, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
     }
 
-    int16_t transposedOutputWeights[HIDDEN_SIZE * 2 * OUTPUT_BUCKETS];
-    for (int weight = 0; weight < 2 * HIDDEN_SIZE; ++weight)
+    int16_t transposedL1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
+    for (int weight = 0; weight < 2 * L1_SIZE; ++weight)
     {
         for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket)
         {
             const int srcIdx = weight * OUTPUT_BUCKETS + bucket;
-            const int dstIdx = bucket * 2 * HIDDEN_SIZE + weight;
-            transposedOutputWeights[dstIdx] = net.outputWeights[srcIdx];
+            const int dstIdx = bucket * 2 * L1_SIZE + weight;
+            transposedL1Weights[dstIdx] = net.L1Weights[srcIdx];
         }
     }
-    std::memcpy(net.outputWeights, transposedOutputWeights, HIDDEN_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
+    std::memcpy(net.L1Weights, transposedL1Weights, L1_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
 
 }
 
-#if defined(USE_AVX512)
-constexpr int32_t CHUNK_SIZE = 32;
-#elif defined(USE_AVX2)
-constexpr int32_t CHUNK_SIZE = 16;
-#else
-constexpr int32_t CHUNK_SIZE = 1;
-#endif
-constexpr int32_t REQUIRED_ITERS = HIDDEN_SIZE / CHUNK_SIZE;
-constexpr int32_t QA = 255;
-constexpr int32_t QB = 64;
-
 void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        board_accumulator.values[0][i] = net.featureBias[i];
-        board_accumulator.values[1][i] = net.featureBias[i];
+    for (int i = 0; i < L1_SIZE; i++) {
+        board_accumulator.values[0][i] = net.FTBiases[i];
+        board_accumulator.values[1][i] = net.FTBiases[i];
     }
 
     for (int i = 0; i < 64; i++) {
         bool input = pos->pieces[i] != EMPTY;
         if (!input) continue;
         auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i);
-        auto whiteAdd = &net.featureWeights[whiteIdx * HIDDEN_SIZE];
-        auto blackAdd = &net.featureWeights[blackIdx * HIDDEN_SIZE];
-        for (int j = 0; j < HIDDEN_SIZE; j++) {
+        auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
+        auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
+        for (int j = 0; j < L1_SIZE; j++) {
             board_accumulator.values[0][j] += whiteAdd[j];
         }
-        for (int j = 0; j < HIDDEN_SIZE; j++) {
+        for (int j = 0; j < L1_SIZE; j++) {
             board_accumulator.values[1][j] += blackAdd[j];
         }
     }
@@ -148,14 +134,14 @@ void NNUE::update(NNUE::Accumulator *acc) {
 void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
     auto [whiteAddIdx, blackAddIdx] = add;
     auto [whiteSubIdx, blackSubIdx] = sub;
-    auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
-    auto whiteSub = &net.featureWeights[whiteSubIdx * HIDDEN_SIZE];
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
+    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
+    auto whiteSub = &net.FTWeights[whiteSubIdx * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
         new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub[i] + whiteAdd[i];
     }
-    auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
-    auto blackSub = &net.featureWeights[blackSubIdx * HIDDEN_SIZE];
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
+    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
+    auto blackSub = &net.FTWeights[blackSubIdx * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
         new_acc->values[1][i] = prev_acc->values[1][i] - blackSub[i] + blackAdd[i];
     }
 }
@@ -166,68 +152,59 @@ void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NN
     auto [whiteSubIdx1, blackSubIdx1] = sub1;
     auto [whiteSubIdx2, blackSubIdx2] = sub2;
 
-    auto whiteAdd = &net.featureWeights[whiteAddIdx * HIDDEN_SIZE];
-    auto whiteSub1 = &net.featureWeights[whiteSubIdx1 * HIDDEN_SIZE];
-    auto whiteSub2 = &net.featureWeights[whiteSubIdx2 * HIDDEN_SIZE];
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
+    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
+    auto whiteSub1 = &net.FTWeights[whiteSubIdx1 * L1_SIZE];
+    auto whiteSub2 = &net.FTWeights[whiteSubIdx2 * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
         new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
     }
-    auto blackAdd = &net.featureWeights[blackAddIdx * HIDDEN_SIZE];
-    auto blackSub1 = &net.featureWeights[blackSubIdx1 * HIDDEN_SIZE];
-    auto blackSub2 = &net.featureWeights[blackSubIdx2 * HIDDEN_SIZE];
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
+    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
+    auto blackSub1 = &net.FTWeights[blackSubIdx1 * L1_SIZE];
+    auto blackSub2 = &net.FTWeights[blackSubIdx2 * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
         new_acc->values[1][i] = prev_acc->values[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
     }
 }
 
-#if defined(USE_AVX2) && !defined(USE_AVX512)
-int32_t NNUE::horizontal_add(const __m256i sum) {
-    auto upper_128 = _mm256_extracti128_si256(sum, 1);
-    auto lower_128 = _mm256_castsi256_si128(sum);
-    auto sum_128 = _mm_add_epi32(upper_128, lower_128);
+int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias) {
+    #if defined(USE_SIMD)
+    vepi32 sum  = vec_zero_epi32();
+    const vepi16 Zero = vec_zero_epi16();
+    const vepi16 One  = vec_set1_epi16(FT_QUANT);
+    int weightOffset = 0;
+    for (const int16_t *acc : {us, them}) {
+        for (int i = 0; i < L1_SIZE; i += CHUNK_SIZE) {
+            vepi16 input   = vec_loadu_epi(reinterpret_cast<const vepi16*>(&acc[i]));
+            vepi16 weight  = vec_loadu_epi(reinterpret_cast<const vepi16*>(&weights[i + weightOffset]));
+            vepi16 clipped = vec_min_epi16(vec_max_epi16(input, Zero), One);
 
-    auto upper_64 = _mm_unpackhi_epi64(sum_128, sum_128);
-    auto sum_64 = _mm_add_epi32(upper_64, sum_128);
+            // In squared clipped relu, we want to do (clipped * clipped) * weight.
+            // However, as clipped * clipped does not fit in an int16 while clipped * weight does,
+            // we instead do mullo(clipped, weight) and then madd by clipped.
+            vepi32 product = vec_madd_epi16(vec_mullo_epi16(clipped, weight), clipped);
+            sum = vec_add_epi32(sum, product);
+        }
 
-    auto upper_32 = _mm_shuffle_epi32(sum_64, 1);
-    auto sum_32 = _mm_add_epi32(upper_32, sum_64);
-
-    return _mm_cvtsi128_si32(sum_32);
-}
-#endif
-
-int32_t NNUE::flatten(const int16_t *acc, const int16_t *weights) {
-    #if defined(USE_AVX512)
-    auto sum = _mm512_setzero_si512();
-    for (int i = 0; i < REQUIRED_ITERS; i++) {
-        auto us_vector = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(acc + i * CHUNK_SIZE));
-        auto weights_vec = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(weights + i * CHUNK_SIZE));
-        auto min = _mm512_set1_epi16(0);
-        auto max = _mm512_set1_epi16(QA);
-        auto clamped = _mm512_min_epi16(_mm512_max_epi16(us_vector, min), max);
-        auto mul = _mm512_madd_epi16(_mm512_mullo_epi16(clamped, weights_vec), clamped);
-        sum = _mm512_add_epi32(sum, mul);
+        weightOffset += L1_SIZE;
     }
-    return _mm512_reduce_add_epi32(sum);
-    #elif defined(USE_AVX2)
-    auto sum = _mm256_setzero_si256();
-    for (int i = 0; i < REQUIRED_ITERS; i++) {
-        auto us_vector = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(acc + i * CHUNK_SIZE));
-        auto weights_vec = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(weights + i * CHUNK_SIZE));
-        auto min = _mm256_set1_epi16(0);
-        auto max = _mm256_set1_epi16(QA);
-        auto clamped = _mm256_min_epi16(_mm256_max_epi16(us_vector, min), max);
-        auto mul = _mm256_madd_epi16(_mm256_mullo_epi16(clamped, weights_vec), clamped);
-        sum = _mm256_add_epi32(sum, mul);
-    }
-    return horizontal_add(sum);
+
+    return (vec_reduce_add_epi32(sum) / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
+
     #else
-    int32_t sum = 0;
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        int32_t clipped = std::clamp(static_cast<int32_t>(acc[i]), 0, QA);
-        sum += clipped * clipped * static_cast<int32_t>(weights[i]);
+    int sum = 0;
+    int weightOffset = 0;
+    for (const int16_t *acc : {us, them}) {
+        for (int i = 0; i < L1_SIZE; ++i) {
+            int16_t input   = acc[i];
+            int16_t weight  = weights[i + weightOffset];
+            int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
+            sum += static_cast<int16_t>(clipped * weight) * clipped;
+        }
+
+        weightOffset += L1_SIZE;
     }
-    return sum;
+
+    return (sum / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
     #endif
 }
 
@@ -243,10 +220,9 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whit
         us = board_accumulator.values[1].data();
         them = board_accumulator.values[0].data();
     }
-    const int32_t bucketOffset = 2 * HIDDEN_SIZE * outputBucket;
-    int32_t output =   flatten(us, net.outputWeights + bucketOffset)
-                     + flatten(them, net.outputWeights + HIDDEN_SIZE + bucketOffset);
-    return (output / QA + net.outputBias[outputBucket]) * 400 / (QA * QB);
+
+    const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
+    return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
 NNUEIndices NNUE::GetIndex(const int piece, const int square) {
