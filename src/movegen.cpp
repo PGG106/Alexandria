@@ -87,7 +87,6 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     }
 
     if (genNoisy) {
-
         // Push promotions
         Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL & pos->checkMask;
         while (pushPromo) {
