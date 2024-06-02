@@ -13,6 +13,7 @@ using Bitboard = uint64_t;
 using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
+using Move = int;
 
 constexpr int MAXPLY = 256;
 constexpr int MAXDEPTH = MAXPLY;

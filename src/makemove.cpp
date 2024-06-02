@@ -60,7 +60,7 @@ void inline HashKey(Position* pos, ZobristKey key) {
     pos->posKey ^= key;
 }
 
-void MakeCastle(const int move, Position* pos) {
+void MakeCastle(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -105,7 +105,7 @@ void MakeCastle(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
-void MakeEp(const int move, Position* pos) {
+void MakeEp(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
     // parse move
@@ -130,7 +130,7 @@ void MakeEp(const int move, Position* pos) {
     pos->enPas = no_sq;
 }
 
-void MakePromo(const int move, Position* pos) {
+void MakePromo(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
     // parse move
@@ -154,7 +154,7 @@ void MakePromo(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
-void MakePromocapture(const int move, Position* pos) {
+void MakePromocapture(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
     // parse move
@@ -186,7 +186,7 @@ void MakePromocapture(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
-void MakeQuiet(const int move, Position* pos) {
+void MakeQuiet(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -208,7 +208,7 @@ void MakeQuiet(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
-void MakeCapture(const int move, Position* pos) {
+void MakeCapture(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
@@ -234,7 +234,7 @@ void MakeCapture(const int move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
-void MakeDP(const int move, Position* pos)
+void MakeDP(const Move move, Position* pos)
 {   pos->fiftyMove = 0;
 
     // parse move
@@ -259,7 +259,7 @@ void MakeDP(const int move, Position* pos)
 }
 
 // make move on chess board
-void MakeUCIMove(const int move, Position* pos) {
+void MakeUCIMove(const Move move, Position* pos) {
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -363,7 +363,7 @@ void MakeUCIMove(const int move, Position* pos) {
 }
 
 // make move on chess board
-void MakeMove(const int move, Position* pos) {
+void MakeMove(const Move move, Position* pos) {
     saveBoardState(pos);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
@@ -418,7 +418,7 @@ void MakeMove(const int move, Position* pos) {
         pos->checkMask = fullCheckmask;
 }
 
-void UnmakeMove(const int move, Position* pos) {
+void UnmakeMove(const Move move, Position* pos) {
     // quiet moves
 
     pos->hisPly--;

@@ -135,17 +135,17 @@ int ScoreFromTT(int score, int ply) {
     return score;
 }
 
-int16_t MoveToTT(int move) {
+int16_t MoveToTT(Move move) {
     return (move & 0xffff);
 }
 
-int MoveFromTT(Position *pos, int16_t packed_move) {
+Move MoveFromTT(Position *pos, int16_t packed_move) {
     // It's important to preserve a move being null even it's being unpacked
     if (packed_move == NOMOVE)
         return NOMOVE;
 
     const int piece = pos->PieceOn(From(packed_move));
-    return (static_cast<int>(static_cast<uint16_t>(packed_move)) | (piece << 16));
+    return (static_cast<Move>(static_cast<uint16_t>(packed_move)) | (piece << 16));
 }
 
 uint8_t BoundFromTT(uint8_t ageBoundPV) {

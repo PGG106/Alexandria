@@ -15,12 +15,12 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 void HashKey(Position* pos, ZobristKey key);
 
 // make move on chess board
-void MakeMove(const int move, Position* pos);
+void MakeMove(const Move move, Position* pos);
 // Reverts the previously played move
-void UnmakeMove(const int move, Position* pos);
+void UnmakeMove(const Move move, Position* pos);
 // makes a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos);
 // Reverts the previously played null move
 void TakeNullMove(Position* pos);
 // Makes a move without setting up the variables to ever reverse it, should only be used on moves that come directly from uci
-void MakeUCIMove(const int move, Position* pos);
+void MakeUCIMove(const Move move, Position* pos);

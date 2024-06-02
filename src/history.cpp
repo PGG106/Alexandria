@@ -14,14 +14,14 @@ int history_bonus(const int depth) {
     return std::min(16 * (depth + 1) * (depth + 1), 1200);
 }
 
-void updateHHScore(const Position* pos, SearchData* sd, int move, int bonus) {
+void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / 32768;
     // Update move score
     sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
-void updateCHScore(SearchStack* ss, const int move, const int bonus) {
+void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
     // Average out the bonus across the 3 conthist entries
     const int scaledBonus = bonus - GetCHScore(ss, move) * std::abs(bonus) / 32768;
     // Update move score
@@ -30,14 +30,14 @@ void updateCHScore(SearchStack* ss, const int move, const int bonus) {
     updateSingleCHScore(ss, move, scaledBonus, 4);
 }
 
-void updateSingleCHScore(SearchStack* ss, const int move, const int bonus, const int offset) {
+void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset) {
     if ((ss - offset)->move) {
         const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / 65536;
         (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
     }
 }
 
-void updateCapthistScore(const Position* pos, SearchData* sd, int move, int bonus) {
+void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-32768;32768] range
     const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / 32768;
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
@@ -48,7 +48,7 @@ void updateCapthistScore(const Position* pos, SearchData* sd, int move, int bonu
 }
 
 // Update all histories
-void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const int bestMove, const MoveList* quietMoves, const MoveList* noisyMoves) {
+void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves) {
     const int bonus = history_bonus(depth);
     if (!isTactical(bestMove))
     {
@@ -77,31 +77,31 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 }
 
 // Returns the history score of a move
-int GetHHScore(const Position* pos, const SearchData* sd, const int move) {
+int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
     return sd->searchHistory[pos->side][FromTo(move)];
 }
 
 // Returns the history score of a move
-int GetCHScore(const SearchStack* ss, const int move) {
+int GetCHScore(const SearchStack* ss, const Move move) {
     return   GetSingleCHScore(ss, move, 1)
            + GetSingleCHScore(ss, move, 2)
            + GetSingleCHScore(ss, move, 4);
 }
 
-int GetSingleCHScore(const SearchStack* ss, const int move, const int offset) {
+int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset) {
     return (ss - offset)->move ? (*((ss - offset)->contHistEntry))[PieceTo(move)]
                                : 0;
 }
 
 // Returns the history score of a move
-int GetCapthistScore(const Position* pos, const SearchData* sd, const int move) {
+int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move) {
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
     return sd->captHist[PieceTo(move)][capturedPiece];
 }
 
-int GetHistoryScore(const Position* pos, const SearchData* sd, const int move, const SearchStack* ss) {
+int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss) {
     if (!isTactical(move))
         return GetHHScore(pos, sd, move) + 2 * GetCHScore(ss, move);
     else

@@ -41,7 +41,7 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
     std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType) {
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType) {
 
     const int killer = ss->searchKiller;
     const int counter = sd->counterMoves[FromTo((ss - 1)->move)];
@@ -57,7 +57,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->counter = counter != ttMove && counter != killer ? counter : NOMOVE;
 }
 
-int NextMove(Movepicker* mp, const bool skip) {
+Move NextMove(Movepicker* mp, const bool skip) {
     top:
     if (skip) {
         // In search, the skip variable is used to dictate whether we skip quiet moves

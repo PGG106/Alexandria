@@ -27,7 +27,7 @@ void PerftDriver(int depth, Position* pos) {
 
     // loop over generated moves
     for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
-        int move = moveList.moves[moveCount].move;
+        Move move = moveList.moves[moveCount].move;
         if (!IsLegal(pos, move))
             continue;
 
@@ -58,7 +58,7 @@ unsigned long long PerftTest(int depth, Position* pos) {
 
     // loop over generated moves
     for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
-        const int move = moveList.moves[moveCount].move;
+        const Move move = moveList.moves[moveCount].move;
 
         if (!IsLegal(pos, move))
             continue;

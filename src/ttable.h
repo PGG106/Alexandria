@@ -60,9 +60,9 @@ int ScoreToTT(int score, int ply);
 
 int ScoreFromTT(int score, int ply);
 
-int16_t MoveToTT(int move);
+int16_t MoveToTT(Move move);
 
-int MoveFromTT(Position *pos, int16_t packed_move);
+Move MoveFromTT(Position *pos, int16_t packed_move);
 
 uint8_t BoundFromTT(uint8_t ageBoundPV);
 
