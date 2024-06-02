@@ -1,6 +1,6 @@
 #include <array>
 #include <cstdint>
-#include "move.h"
+#include "types.h"
 
 extern std::array<uint64_t, 8192> keys;
 extern std::array<Move, 8192> cuckooMoves;

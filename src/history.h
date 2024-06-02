@@ -1,5 +1,6 @@
 #pragma once
-#include "move.h"
+
+#include "types.h"
 
 struct Position;
 struct SearchData;

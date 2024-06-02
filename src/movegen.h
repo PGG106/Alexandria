@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "move.h"
+#include "types.h"
 
 struct Position;
 struct MoveList;
