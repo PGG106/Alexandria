@@ -25,7 +25,7 @@ endif
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	MKDIR   := mkdir
-	CLEAN   := del /S 
+	CLEAN   := del /S /q
 else
 ifeq ($(COMP), MINGW)
 	MKDIR   := mkdir
@@ -172,7 +172,9 @@ EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
 clean:
-	@$(CLEAN) $(TMPDIR) *.o  $(DEPENDS) *.d $(EXE)
+	@$(CLEAN) *.o  $(DEPENDS) *.d $(EXE)
+	@rmdir $(TMPDIR)\src
+	@rmdir $(TMPDIR)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
