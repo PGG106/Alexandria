@@ -176,7 +176,7 @@ EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
 clean:
-	@$(CLEAN) *.o  $(DEPENDS) *.d 2> $(NULL) || $(NOOP)
+	@$(CLEAN) *.o  $(DEPENDS) *.d $(EXE) 2> $(NULL) || $(NOOP)
 	@rmdir $(TMPDIR)\src 2> $(NULL) || $(NOOP)
 	@rmdir $(TMPDIR) 2> $(NULL) || $(NOOP)
 
