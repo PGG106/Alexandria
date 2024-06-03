@@ -4,6 +4,8 @@ _ROOT       := $(_THIS)
 EVALFILE     = $(NETWORK_NAME)
 CXX         := g++
 CLEAN       := rm -rf
+NOOP		:= :
+NULL 	    := /dev/null
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS    :=  -funroll-loops -O3 -flto -fno-exceptions -std=gnu++2a -DNDEBUG $(WARNINGS)
@@ -26,6 +28,8 @@ endif
 ifeq ($(OS), Windows_NT)
 	MKDIR   := mkdir
 	CLEAN   := del /S /q
+	NOOP 	:= cd.
+	NULL	:= NUL
 else
 ifeq ($(COMP), MINGW)
 	MKDIR   := mkdir
@@ -172,9 +176,10 @@ EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
 clean:
-	@$(CLEAN) *.o  $(DEPENDS) *.d $(EXE)
-	@rmdir $(TMPDIR)\src
-	@rmdir $(TMPDIR)
+	@$(CLEAN) *.o  $(DEPENDS) *.d 2> $(NULL) || $(NOOP)
+	@rmdir $(TMPDIR)\src 2> $(NULL) || $(NOOP)
+	@rmdir $(TMPDIR) 2> $(NULL) || $(NOOP)
+
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
