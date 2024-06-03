@@ -35,5 +35,5 @@ struct Movepicker {
     int counter;
 };
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const int ttMove, const MovepickerType movepickerType);
-int NextMove(Movepicker* mp, const bool skip);
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType);
+Move NextMove(Movepicker* mp, const bool skip);

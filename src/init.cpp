@@ -184,7 +184,7 @@ void initCuckoo(){
                 const Bitboard possibleattackoverlapthing = GetPieceTypeNonPawnAttacksToSquare(GetPieceType(piece), square0, 0) & (1ULL << square1);
                 if (possibleattackoverlapthing == 0ULL)
                     continue;
-                int move = encode_move(square0,square1,PAWN,Movetype::Quiet);
+                Move move = encode_move(square0,square1,PAWN,Movetype::Quiet);
                 ZobristKey key = PieceKeys[piece][square0] ^ PieceKeys[piece][square1] ^ SideKey;
                 uint32_t slot = H1(key);
                 while (true)

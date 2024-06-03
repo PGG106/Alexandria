@@ -1,8 +1,9 @@
 #include <array>
 #include <cstdint>
+#include "types.h"
 
 extern std::array<uint64_t, 8192> keys;
-extern std::array<int, 8192> cuckooMoves;
+extern std::array<Move, 8192> cuckooMoves;
 
 constexpr auto H1(uint64_t key)
 {

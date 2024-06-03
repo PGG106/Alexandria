@@ -129,7 +129,7 @@ void PrintAttackedSquares(const Position* pos, const int side) {
 }
 
 // print move (for UCI purposes)
-void PrintMove(const int move) {
+void PrintMove(const Move move) {
     const char* from = square_to_coordinates[From(move)];
     const char* to = square_to_coordinates[To(move)];
 
@@ -139,22 +139,22 @@ void PrintMove(const int move) {
         std::cout << from << to;
 }
 
-char* FormatMove(const int move) {
-    static char Move[6];
+char* FormatMove(const Move move) {
+    static char moveString[6];
     const char* from = square_to_coordinates[From(move)];
     const char* to = square_to_coordinates[To(move)];
 
     if (isPromo(move))
-        snprintf(Move, sizeof(Move), "%s%s%c", from, to, promoted_pieces[getPromotedPiecetype(move)]);
+        snprintf(moveString, sizeof(moveString), "%s%s%c", from, to, promoted_pieces[getPromotedPiecetype(move)]);
     else
-        snprintf(Move, sizeof(Move), "%s%s", from, to);
+        snprintf(moveString, sizeof(moveString), "%s%s", from, to);
 
-    return Move;
+    return moveString;
 }
 
 void PrintMoveList(const MoveList* list) {
     for (int index = 0; index < list->count; ++index) {
-        int move = list->moves[index].move;
+        Move move = list->moves[index].move;
         int score = list->moves[index].score;
         std::cout << "Move: " << index + 1 << " >" << FormatMove(move) << " score: " << score << std::endl;
     }

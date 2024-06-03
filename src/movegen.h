@@ -1,5 +1,7 @@
-#include <cstdint>
 #pragma once
+
+#include <cstdint>
+#include "types.h"
 
 struct Position;
 struct MoveList;
@@ -14,19 +16,19 @@ enum MovegenType : uint8_t {
 [[nodiscard]] bool IsSquareAttacked(const Position* pos, const int square, const int side);
 
 // function that adds a (not yet scored) move to a move list
-void AddMove(const int move, MoveList* list);
+void AddMove(const Move move, MoveList* list);
 
 // function that adds an (already-scored) move to a move list
-void AddMove(const int move, const int score, MoveList* list);
+void AddMove(const Move move, const int score, MoveList* list);
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
-[[nodiscard]] bool MoveExists(Position* pos, const int move);
+[[nodiscard]] bool MoveExists(Position* pos, const Move move);
 
 // Check for move pseudo-legality
-[[nodiscard]] bool IsPseudoLegal(Position* pos, int move);
+[[nodiscard]] bool IsPseudoLegal(Position* pos, Move move);
 
 // Check for move legality
-[[nodiscard]] bool IsLegal(Position* pos, int move);
+[[nodiscard]] bool IsLegal(Position* pos, Move move);
 
 // generate moves
 void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type);

@@ -442,7 +442,7 @@ int GetEpSquare(const Position* pos) {
 }
 
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
-ZobristKey keyAfter(const Position* pos, const int move) {
+ZobristKey keyAfter(const Position* pos, const Move move) {
 
     const int sourceSquare = From(move);
     const int targetSquare = To(move);

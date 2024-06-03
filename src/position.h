@@ -205,7 +205,7 @@ Bitboard RayBetween(int square1, int square2);
 
 [[nodiscard]] int GetEpSquare(const Position* pos);
 
-ZobristKey keyAfter(const Position* pos, const int move);
+ZobristKey keyAfter(const Position* pos, const Move move);
 
 void saveBoardState(Position* pos);
 

@@ -56,7 +56,7 @@ static bool Is50MrDraw(Position* pos) {
         // generate moves
         GenerateMoves(&moveList, pos, MOVEGEN_ALL);
         for (int i = 0; i < moveList.count; i++) {
-            const int move = moveList.moves[i].move;
+            const Move move = moveList.moves[i].move;
             if (IsLegal(pos, move)) {
                 return true; // We have at least one legal move, so it is a draw
             }
@@ -230,7 +230,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     int score = 0;
     int averageScore = SCORE_NONE;
     int bestMoveStabilityFactor = 0;
-    int previousBestMove = NOMOVE;
+    Move previousBestMove = NOMOVE;
     // Clean the position and the search info to start search from a clean state
     ClearForSearch(td);
     UpdateTableAge();
@@ -353,7 +353,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int score = -MAXSCORE;
     TTEntry tte;
 
-    const int excludedMove = ss->excludedMove;
+    const Move excludedMove = ss->excludedMove;
     if (!excludedMove) {
         // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
         pvTable->pvLength[ss->ply] = ss->ply;
@@ -401,7 +401,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
-    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
@@ -525,8 +525,8 @@ moves_loop:
     // old value of alpha
     const int old_alpha = alpha;
     int bestScore = -MAXSCORE;
-    int move;
-    int bestMove = NOMOVE;
+    Move move;
+    Move bestMove = NOMOVE;
 
     int totalMoves = 0;
     bool skipQuiets = false;
@@ -796,7 +796,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
-    const int ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
@@ -843,8 +843,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
     InitMP(&mp, pos, sd, ss, ttMove, QSEARCH);
 
-    int bestmove = NOMOVE;
-    int move;
+    Move bestmove = NOMOVE;
+    Move move;
     int totalMoves = 0;
 
     // loop over moves within the movelist

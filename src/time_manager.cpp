@@ -11,12 +11,12 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
     const int safety_overhead = std::min(300, time / 2);
     time -= safety_overhead;
-    // if we recieved a movetime command we need to spend exactly that amount of time on the move, so we don't scale
+    // if we received a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
         info->stoptimeMax = info->starttime + time;
         info->stoptimeOpt = info->starttime + time;
     }
-    // else If we recieved a movestogo parameter we use total_time/movestogo
+    // else If we received a movestogo parameter we use total_time/movestogo
     else if (info->timeset && info->movestogo != -1) {
         // Divide the time you have left for how many moves you have to play
         const auto basetime = time / info->movestogo;
@@ -30,7 +30,7 @@ void Optimum(SearchInfo* info, int time, int inc) {
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
     }
-    // else if we recieved wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
+    // else if we received wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
     else if (info->timeset) {
         int basetime = time * 0.054 + inc * 0.85;
         // Never use more than 76% of the total time left for a single move

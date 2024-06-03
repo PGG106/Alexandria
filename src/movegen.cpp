@@ -44,7 +44,7 @@ bool MoveExists(Position* pos, const int move) {
 }
 
 // function that adds a (not yet scored) move to a move list
-void AddMove(const int move, MoveList* list) {
+void AddMove(const Move move, MoveList* list) {
     list->moves[list->count].move = move;
     list->count++;
 }
@@ -308,7 +308,7 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
 }
 
 // Pseudo-legality test inspired by Koivisto
-bool IsPseudoLegal(Position* pos, int move) {
+bool IsPseudoLegal(Position* pos, Move move) {
 
     if (move == NOMOVE)
         return false;
@@ -465,7 +465,7 @@ bool IsPseudoLegal(Position* pos, int move) {
     return true;
 }
 
-bool IsLegal(Position* pos, int move) {
+bool IsLegal(Position* pos, Move move) {
 
     const int color = pos->side;
     const int ksq = KingSQ(pos, color);

@@ -386,7 +386,7 @@ void UciLoop(int argc, char** argv) {
             GenerateMoves(&moveList, &td->pos, MOVEGEN_NOISY);
             printf("SEE thresholds\n");
             for (int i = 0; i < moveList.count; i++) {
-                int move = moveList.moves[i].move;
+                Move move = moveList.moves[i].move;
                 for (int j = 1200; j > -1200; j--) {
                     if (SEE(&td->pos, move, j)) {
                         printf(" move number %d  %s SEE result: %d \n", i + 1, FormatMove(move), j);
