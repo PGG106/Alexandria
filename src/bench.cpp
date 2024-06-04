@@ -65,11 +65,11 @@ const char* benchmarkfens[52] = {
 
 void StartBench(int depth) {
     // init all
-    InitAll();
     UciOptions uciOptions;
     ThreadData* td(new ThreadData());
     uint64_t totalNodes = 0;
     InitTT(64);
+    InitNewGame(td);
     auto start = std::chrono::steady_clock::now();
     for (int positions = 0; positions < 52; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
