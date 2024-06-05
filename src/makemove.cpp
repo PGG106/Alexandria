@@ -257,7 +257,9 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 }
 
-// make move on chess board
+// Variant of MakeMove only used to parse moves that come from the uci stream
+// It exists to avoid storing information that isn't local to the search tree, like for example, positions we'll never unmake
+// It does some redundant work because it reuses actual makemove methods, the current suggestion is ignoring this function existence
 void MakeUCIMove(const Move move, Position* pos) {
 
     // Store position key in the array of searched position
@@ -287,8 +289,6 @@ void MakeUCIMove(const Move move, Position* pos) {
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        assert(pieceCap != EMPTY);
-        assert(GetPieceType(pieceCap) != KING);
         ClearPiece(pieceCap, capturedPieceLocation, pos);
     }
 
