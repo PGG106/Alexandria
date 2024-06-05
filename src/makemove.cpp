@@ -4,7 +4,7 @@
 #include "position.h"
 #include "init.h"
 
-// Remove a piece from a square while also deactivating the nnue weights tied to the piece
+// Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
     if constexpr(UPDATE)
@@ -19,7 +19,7 @@ void ClearPiece(const int piece, const int from, Position* pos) {
 template void AddPiece<false>(const int piece, const int to, Position* pos);
 template void AddPiece<true>(const int piece, const int to, Position* pos);
 
-// Add a piece to a square while also activating the nnue weights tied to the piece
+// Add a piece to a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
     if constexpr(UPDATE)
@@ -31,7 +31,7 @@ void AddPiece(const int piece, const int to, Position* pos) {
     HashKey(pos, PieceKeys[piece][to]);
 }
 
-// Move a piece from the [to] square to the [from] square
+// Move a piece from the [to] square to the [from] square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void MovePiece(const int piece, const int from, const int to, Position* pos) {
     ClearPiece<UPDATE>(piece, from, pos);
