@@ -15,8 +15,8 @@ jobs:
       matrix:
         config:
         - {
-            name: "Ubuntu 20.04 GCC",
-            os: ubuntu-20.04,
+            name: "Ubuntu 24.04 GCC",
+            os: ubuntu-24.04,
             compiler: g++,
             comp: gcc,
             shell: 'bash {0}'
