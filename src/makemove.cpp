@@ -4,6 +4,9 @@
 #include "position.h"
 #include "init.h"
 
+template void ClearPiece<false>(const int piece, const int to, Position* pos);
+template void ClearPiece<true>(const int piece, const int to, Position* pos);
+
 // Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
