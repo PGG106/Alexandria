@@ -61,9 +61,9 @@ void MakeCastle(const Move move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(piece, targetSquare, pos);
+    AddPiece<true>(piece, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -76,25 +76,25 @@ void MakeCastle(const Move move, Position* pos) {
         // white castles king side
         case (g1):
             // move H rook
-            MovePiece(WR, h1, f1, pos);
+            MovePiece<true>(WR, h1, f1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePiece(WR, a1, d1, pos);
+            MovePiece<true>(WR, a1, d1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePiece(BR, h8, f8, pos);
+            MovePiece<true>(BR, h8, f8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePiece(BR, a8, d8, pos);
+            MovePiece<true>(BR, a8, d8, pos);
             break;
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
@@ -112,12 +112,12 @@ void MakeEp(const Move move, Position* pos) {
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
     pos->history[pos->historyStackHead].capture = pieceCap;
     const int capturedPieceLocation = targetSquare + SOUTH;
-    ClearPiece(pieceCap, capturedPieceLocation, pos);
+    ClearPiece<true>(pieceCap, capturedPieceLocation, pos);
 
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square
-    AddPiece(piece, targetSquare, pos);
+    AddPiece<true>(piece, targetSquare, pos);
 
     // Reset EP square
     assert(GetEpSquare(pos) != no_sq);
@@ -135,9 +135,9 @@ void MakePromo(const Move move, Position* pos) {
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotedPiece , targetSquare, pos);
+    AddPiece<true>(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -161,14 +161,14 @@ void MakePromocapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPiece(pieceCap, targetSquare, pos);
+    ClearPiece<true>(pieceCap, targetSquare, pos);
 
     pos->history[pos->historyStackHead].capture = pieceCap;
 
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotedPiece , targetSquare, pos);
+    AddPiece<true>(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -190,7 +190,7 @@ void MakeQuiet(const Move move, Position* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    MovePiece(piece,sourceSquare,targetSquare,pos);
+    MovePiece<true>(piece,sourceSquare,targetSquare,pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -213,10 +213,10 @@ void MakeCapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPiece(pieceCap, targetSquare, pos);
+    ClearPiece<true>(pieceCap, targetSquare, pos);
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    MovePiece(piece, sourceSquare, targetSquare, pos);
+    MovePiece<true>(piece, sourceSquare, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -237,9 +237,9 @@ void MakeDP(const Move move, Position* pos)
     const int piece = Piece(move);
 
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(piece, targetSquare, pos);
+    AddPiece<true>(piece, targetSquare, pos);
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
@@ -284,13 +284,13 @@ void MakeUCIMove(const Move move, Position* pos) {
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        ClearPiece(pieceCap, capturedPieceLocation, pos);
+        ClearPiece<true>(pieceCap, capturedPieceLocation, pos);
     }
 
     // increment ply counters
     pos->hisPly++;
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPiece<true>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece<false>(promotion ? promotedPiece : piece, targetSquare, pos);
 
@@ -309,25 +309,25 @@ void MakeUCIMove(const Move move, Position* pos) {
             // white castles king side
         case (g1):
             // move H rook
-            MovePiece(WR, h1, f1, pos);
+            MovePiece<true>(WR, h1, f1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePiece(WR, a1, d1, pos);
+            MovePiece<true>(WR, a1, d1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePiece(BR, h8, f8, pos);
+            MovePiece<true>(BR, h8, f8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePiece(BR, a8, d8, pos);
+            MovePiece<true>(BR, a8, d8, pos);
             break;
         }
     }
