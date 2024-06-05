@@ -41,12 +41,12 @@ void ResetInfo(SearchInfo* info) {
 }
 
 // Generates zobrist key from scratch
-Bitboard GeneratePosKey(const Position* pos) {
+ZobristKey GeneratePosKey(const Position* pos) {
     Bitboard finalkey = 0;
     // for every square
     for (int sq = 0; sq < 64; ++sq) {
         // get piece on that square
-        int piece = pos->pieces[sq];
+        int piece = pos->PieceOn(sq);
         // if it's not empty add that piece to the zobrist key
         if (piece != EMPTY) {
             assert(piece >= WP && piece <= BK);
@@ -66,6 +66,21 @@ Bitboard GeneratePosKey(const Position* pos) {
     // add to the key the status of the castling permissions
     finalkey ^= CastleKeys[pos->GetCastlingPerm()];
     return finalkey;
+}
+
+// Generates zobrist key from scratch
+ZobristKey GeneratePawnKey(const Position* pos) {
+    Bitboard pawnKey = 0ULL;
+    // for every square
+    for (int sq = 0; sq < 64; ++sq) {
+        // get piece on that square
+        int piece = pos->PieceOn(sq);
+        // if it's not empty add that piece to the zobrist key
+        if (piece == WP || piece == BP) {
+            pawnKey ^= PieceKeys[piece][sq];
+        }
+    }
+    return pawnKey;
 }
 
 // parse FEN string
@@ -115,17 +130,10 @@ void ParseFen(const std::string& command, Position* pos) {
                 const int offset = current_char - '0';
 
                 // define piece variable
-                int piece = -1;
+                int piece = pos->PieceOn(square);
 
-                // loop over all piece pos->pos->bitboards
-                for (int bb_piece = WP; bb_piece <= BK; bb_piece++) {
-                    // if there is a piece on current square
-                    if (get_bit(pos->bitboards[bb_piece], square))
-                        // get piece code
-                        piece = bb_piece;
-                }
                 // on empty current square
-                if (piece == -1)
+                if (piece == EMPTY)
                     // decrement file
                     file--;
 
@@ -202,7 +210,9 @@ void ParseFen(const std::string& command, Position* pos) {
         // populate white occupancy bitboard
         pos->occupancies[BLACK] |= pos->bitboards[piece];
 
+    // Set the material keys
     pos->posKey = GeneratePosKey(pos);
+    pos->pawnKey = GeneratePawnKey(pos);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);

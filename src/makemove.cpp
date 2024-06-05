@@ -257,7 +257,9 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 }
 
-// make move on chess board
+// Variant of MakeMove only used to parse moves that come from the uci stream
+// It exists to avoid storing information that isn't local to the search tree, like for example, positions we'll never unmake
+// It does some redundant work because it reuses actual makemove methods, the current suggestion is ignoring this function existence
 void MakeUCIMove(const Move move, Position* pos) {
 
     // Store position key in the array of searched position
@@ -287,8 +289,6 @@ void MakeUCIMove(const Move move, Position* pos) {
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        assert(pieceCap != EMPTY);
-        assert(GetPieceType(pieceCap) != KING);
         ClearPiece(pieceCap, capturedPieceLocation, pos);
     }
 
@@ -298,10 +298,6 @@ void MakeUCIMove(const Move move, Position* pos) {
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece(promotion ? promotedPiece : piece, targetSquare, pos);
-
-    // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 
     // reset enpassant square
     pos->enPas = no_sq;
@@ -347,8 +343,7 @@ void MakeUCIMove(const Move move, Position* pos) {
 
     // change side
     pos->ChangeSide();
-    // Xor the new side into the key
-    HashKey(pos, SideKey);
+
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
@@ -415,6 +410,9 @@ void MakeMove(const Move move, Position* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+    // Make sure a freshly generated zobrist key matches the one we are incrementally updating
+    assert(pos->posKey == GeneratePosKey(pos));
+    assert(pos->pawnKey == GeneratePawnKey(pos));
 }
 
 void UnmakeMove(const Move move, Position* pos) {
