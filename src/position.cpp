@@ -41,7 +41,7 @@ void ResetInfo(SearchInfo* info) {
 }
 
 // Generates zobrist key from scratch
-Bitboard GeneratePosKey(const Position* pos) {
+ZobristKey GeneratePosKey(const Position* pos) {
     Bitboard finalkey = 0;
     // for every square
     for (int sq = 0; sq < 64; ++sq) {

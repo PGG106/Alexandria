@@ -408,6 +408,8 @@ void MakeMove(const Move move, Position* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+    // Make sure a freshly generated zobrist key matches the one we are incrementally updating
+    assert(pos->posKey == GeneratePosKey(pos));
 }
 
 void UnmakeMove(const Move move, Position* pos) {
