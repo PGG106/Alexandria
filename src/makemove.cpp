@@ -121,7 +121,7 @@ void MakeEp(const Move move, Position* pos) {
 
     // Remove the piece fom the square it moved from
     ClearPieceNNUE(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    // Set the piece to the destination square
     AddPieceNNUE(piece, targetSquare, pos);
 
     // Reset EP square
@@ -163,11 +163,10 @@ void MakePromocapture(const Move move, Position* pos) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
-    const int pieceCap = pos->pieces[targetSquare];
-    const int capturedPieceLocation = targetSquare;
+    const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
+    ClearPieceNNUE(pieceCap, targetSquare, pos);
 
     pos->history[pos->historyStackHead].capture = pieceCap;
 
@@ -216,13 +215,13 @@ void MakeCapture(const Move move, Position* pos) {
 
     pos->fiftyMove = 0;
 
-    const int pieceCap = pos->pieces[targetSquare];
+    const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
     ClearPieceNNUE(pieceCap, targetSquare, pos);
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
+    MovePieceNNUE(piece, sourceSquare, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
