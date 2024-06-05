@@ -308,6 +308,9 @@ void parse_moves(const std::string& moves, Position* pos) {
         // make move on the chess board
         MakeUCIMove(move, pos);
     }
+    // don't rely on MakeUCIMove to update the position key
+    pos->posKey = GeneratePosKey(pos);
+    pos->pawnKey = GeneratePawnKey(pos);
 }
 
 // Returns the bitboard of a piecetype
