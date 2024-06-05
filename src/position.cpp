@@ -294,10 +294,12 @@ void parse_moves(const std::string& moves, Position* pos) {
     // loop over moves within a move string
     for (size_t i = 0; i < move_tokens.size(); i++) {
         // parse next move
-        int move = ParseMove(move_tokens[i], pos);
+        const Move move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
         MakeUCIMove(move, pos);
     }
+    // don't rely on MakeUCIMove to update the position key
+    pos->posKey = GeneratePosKey(pos);
 }
 
 // Returns the bitboard of a piecetype

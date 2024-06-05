@@ -299,18 +299,12 @@ void MakeUCIMove(const Move move, Position* pos) {
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece(promotion ? promotedPiece : piece, targetSquare, pos);
 
-    // Reset EP square
-    if (GetEpSquare(pos) != no_sq)
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
-
     // reset enpassant square
     pos->enPas = no_sq;
 
     // handle double pawn push
     if (doublePush) {
         pos->enPas = targetSquare + SOUTH;
-        // hash enpassant
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
     }
 
     // handle castling moves
@@ -347,8 +341,7 @@ void MakeUCIMove(const Move move, Position* pos) {
 
     // change side
     pos->ChangeSide();
-    // Xor the new side into the key
-    HashKey(pos, SideKey);
+
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
