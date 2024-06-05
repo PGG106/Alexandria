@@ -1,5 +1,6 @@
  ## Building
-
+> [!WARNING]
+> Due to a bug present in older gcc versions compiling with versions < 12 isn't officially supported.
 ```bash
 $ git clone https://github.com/PGG106/Alexandria
 $ cd alexandria

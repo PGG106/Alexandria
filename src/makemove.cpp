@@ -4,8 +4,11 @@
 #include "position.h"
 #include "init.h"
 
-// Remove a piece from a square
+// Remove a piece from a square while also deactivating the nnue weights tied to the piece
+template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
+    if constexpr(UPDATE)
+        pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, from));
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
     pop_bit(pos->occupancies[color], from);
@@ -13,8 +16,14 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     HashKey(pos, PieceKeys[piece][from]);
 }
 
-// Add a piece to a square
+template void AddPiece<false>(const int piece, const int to, Position* pos);
+template void AddPiece<true>(const int piece, const int to, Position* pos);
+
+// Add a piece to a square while also activating the nnue weights tied to the piece
+template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
+    if constexpr(UPDATE)
+        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to));
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
@@ -22,28 +31,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
     HashKey(pos, PieceKeys[piece][to]);
 }
 
-// Remove a piece from a square while also deactivating the nnue weights tied to the piece
-void ClearPieceNNUE(const int piece, const int sq, Position* pos) {
-    pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, sq));
-    ClearPiece(piece, sq, pos);
-}
-
-// Add a piece to a square while also activating the nnue weights tied to the piece
-void AddPieceNNUE(const int piece, const int to, Position* pos) {
-    pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to));
-    AddPiece(piece, to, pos);
-}
-
-// Move a piece from square to to square from without updating the NNUE weights
-void MovePiece(const int piece, const int from, const int to, Position* pos) {
-    ClearPiece(piece, from, pos);
-    AddPiece(piece, to, pos);
-}
-
 // Move a piece from the [to] square to the [from] square
-void MovePieceNNUE(const int piece, const int from, const int to, Position* pos) {
-    ClearPieceNNUE(piece, from, pos);
-    AddPieceNNUE(piece, to, pos);
+template <bool UPDATE = true>
+void MovePiece(const int piece, const int from, const int to, Position* pos) {
+    ClearPiece<UPDATE>(piece, from, pos);
+    AddPiece<UPDATE>(piece, to, pos);
 }
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
@@ -66,9 +58,9 @@ void MakeCastle(const Move move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     // Remove the piece fom the square it moved from
-    ClearPieceNNUE(piece, sourceSquare, pos);
+    ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(piece, targetSquare, pos);
+    AddPiece(piece, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -81,25 +73,25 @@ void MakeCastle(const Move move, Position* pos) {
         // white castles king side
         case (g1):
             // move H rook
-            MovePieceNNUE(WR, h1, f1, pos);
+            MovePiece(WR, h1, f1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePieceNNUE(WR, a1, d1, pos);
+            MovePiece(WR, a1, d1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePieceNNUE(BR, h8, f8, pos);
+            MovePiece(BR, h8, f8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePieceNNUE(BR, a8, d8, pos);
+            MovePiece(BR, a8, d8, pos);
             break;
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
@@ -117,12 +109,12 @@ void MakeEp(const Move move, Position* pos) {
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
     pos->history[pos->historyStackHead].capture = pieceCap;
     const int capturedPieceLocation = targetSquare + SOUTH;
-    ClearPieceNNUE(pieceCap, capturedPieceLocation, pos);
+    ClearPiece(pieceCap, capturedPieceLocation, pos);
 
     // Remove the piece fom the square it moved from
-    ClearPieceNNUE(piece, sourceSquare, pos);
+    ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square
-    AddPieceNNUE(piece, targetSquare, pos);
+    AddPiece(piece, targetSquare, pos);
 
     // Reset EP square
     assert(GetEpSquare(pos) != no_sq);
@@ -140,9 +132,9 @@ void MakePromo(const Move move, Position* pos) {
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
     // Remove the piece fom the square it moved from
-    ClearPieceNNUE(piece, sourceSquare, pos);
+    ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(promotedPiece , targetSquare, pos);
+    AddPiece(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -166,14 +158,14 @@ void MakePromocapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPieceNNUE(pieceCap, targetSquare, pos);
+    ClearPiece(pieceCap, targetSquare, pos);
 
     pos->history[pos->historyStackHead].capture = pieceCap;
 
     // Remove the piece fom the square it moved from
-    ClearPieceNNUE(piece, sourceSquare, pos);
+    ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(promotedPiece , targetSquare, pos);
+    AddPiece(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -195,7 +187,7 @@ void MakeQuiet(const Move move, Position* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    MovePieceNNUE(piece,sourceSquare,targetSquare,pos);
+    MovePiece(piece,sourceSquare,targetSquare,pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -218,10 +210,10 @@ void MakeCapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPieceNNUE(pieceCap, targetSquare, pos);
+    ClearPiece(pieceCap, targetSquare, pos);
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    MovePieceNNUE(piece, sourceSquare, targetSquare, pos);
+    MovePiece(piece, sourceSquare, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -242,9 +234,9 @@ void MakeDP(const Move move, Position* pos)
     const int piece = Piece(move);
 
     // Remove the piece fom the square it moved from
-    ClearPieceNNUE(piece, sourceSquare, pos);
+    ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPieceNNUE(piece, targetSquare, pos);
+    AddPiece(piece, targetSquare, pos);
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
@@ -289,7 +281,7 @@ void MakeUCIMove(const Move move, Position* pos) {
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
-        ClearPiece(pieceCap, capturedPieceLocation, pos);
+        ClearPiece<false>(pieceCap, capturedPieceLocation, pos);
     }
 
     // increment ply counters
@@ -297,7 +289,7 @@ void MakeUCIMove(const Move move, Position* pos) {
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotion ? promotedPiece : piece, targetSquare, pos);
+    AddPiece<false>(promotion ? promotedPiece : piece, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq)
@@ -442,9 +434,9 @@ void UnmakeMove(const Move move, Position* pos) {
     const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
 
     // clear the piece on the target square
-    ClearPiece(piece, targetSquare, pos);
+    ClearPiece<false>(piece, targetSquare, pos);
     // no matter what add back the piece that was originally moved, ignoring any promotion
-    AddPiece(Piece(move), sourceSquare, pos);
+    AddPiece<false>(Piece(move), sourceSquare, pos);
 
     // handle captures
     if (capture) {
@@ -452,7 +444,7 @@ void UnmakeMove(const Move move, Position* pos) {
         // Retrieve the captured piece we have to restore
         const int piececap = pos->history[pos->historyStackHead].capture;
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        AddPiece(piececap, capturedPieceLocation, pos);
+        AddPiece<false>(piececap, capturedPieceLocation, pos);
     }
 
     // handle castling moves
@@ -462,25 +454,25 @@ void UnmakeMove(const Move move, Position* pos) {
             // white castles king side
         case (g1):
             // move H rook
-            MovePiece(WR, f1, h1, pos);
+            MovePiece<false>(WR, f1, h1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePiece(WR, d1, a1, pos);
+            MovePiece<false>(WR, d1, a1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePiece(BR, f8, h8, pos);
+            MovePiece<false>(BR, f8, h8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePiece(BR, d8, a8, pos);
+            MovePiece<false>(BR, d8, a8, pos);
             break;
         }
     }
