@@ -284,13 +284,13 @@ void MakeUCIMove(const Move move, Position* pos) {
     if (capture) {
         const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        ClearPiece<true>(pieceCap, capturedPieceLocation, pos);
+        ClearPiece<false>(pieceCap, capturedPieceLocation, pos);
     }
 
     // increment ply counters
     pos->hisPly++;
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<false>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece<false>(promotion ? promotedPiece : piece, targetSquare, pos);
 
@@ -309,25 +309,25 @@ void MakeUCIMove(const Move move, Position* pos) {
             // white castles king side
         case (g1):
             // move H rook
-            MovePiece<true>(WR, h1, f1, pos);
+            MovePiece<false>(WR, h1, f1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePiece<true>(WR, a1, d1, pos);
+            MovePiece<false>(WR, a1, d1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePiece<true>(BR, h8, f8, pos);
+            MovePiece<false>(BR, h8, f8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePiece<true>(BR, a8, d8, pos);
+            MovePiece<false>(BR, a8, d8, pos);
             break;
         }
     }
