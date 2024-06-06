@@ -259,67 +259,16 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
 }
 
-// Variant of MakeMove only used to parse moves that come from the uci stream
-// It exists to avoid storing information that isn't local to the search tree, like for example, positions we'll never unmake
-// It does some redundant work because it reuses actual makemove methods, the current suggestion is ignoring this function existence
-void MakeUCIMove(const Move move, Position* pos) {
-    // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->posKey);
-
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool doublePush = isDP(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
-    // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
-    pos->hisPly++;
-
-    if(castling){
-        MakeCastle<false>(move,pos);
-    }
-    else if(doublePush){
-        MakeDP<false>(move,pos);
-    }
-    else if(enpass){
-        MakeEp<false>(move,pos);
-    }
-    else if(promotion && capture){
-        MakePromocapture<false>(move,pos);
-    }
-    else if(promotion){
-        MakePromo<false>(move,pos);
-    }
-    else if(!capture){
-        MakeQuiet<false>(move,pos);
-    }
-    else {
-        MakeCapture<false>(move, pos);
-    }
-
-    // change side
-    pos->ChangeSide();
-    // Xor the new side into the key
-    HashKey(pos, SideKey);
-    // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos, pos->side);
-    // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
-        const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
-    }
-    else
-        pos->checkMask = fullCheckmask;
-    // Make sure a freshly generated zobrist key matches the one we are incrementally updating
-    assert(pos->posKey == GeneratePosKey(pos));
-}
+template void MakeMove<true>(const Move move, Position* pos);
+template void MakeMove<false>(const Move move, Position* pos);
 
 // make move on chess board
+template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
-    saveBoardState(pos);
+    if constexpr (UPDATE){
+        saveBoardState(pos);
+        pos->accumStackHead++;
+    }
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
     pos->accumStackHead++;
@@ -336,27 +285,31 @@ void MakeMove(const Move move, Position* pos) {
     pos->hisPly++;
 
     if(castling){
-        MakeCastle<true>(move,pos);
+        MakeCastle<UPDATE>(move,pos);
     }
     else if(doublePush){
-        MakeDP<true>(move,pos);
+        MakeDP<UPDATE>(move,pos);
     }
     else if(enpass){
-        MakeEp<true>(move,pos);
+        MakeEp<UPDATE>(move,pos);
     }
     else if(promotion && capture){
-        MakePromocapture<true>(move,pos);
+        MakePromocapture<UPDATE>(move,pos);
     }
     else if(promotion){
-        MakePromo<true>(move,pos);
+        MakePromo<UPDATE>(move,pos);
     }
     else if(!capture){
-        MakeQuiet<true>(move,pos);
+        MakeQuiet<UPDATE>(move,pos);
     }
     else {
-        MakeCapture<true>(move, pos);
+        MakeCapture<UPDATE>(move, pos);
     }
     pos->historyStackHead++;
+
+    if constexpr (UPDATE)
+        pos->historyStackHead++;
+
     // change side
     pos->ChangeSide();
     // Xor the new side into the key

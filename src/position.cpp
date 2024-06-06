@@ -296,7 +296,7 @@ void parse_moves(const std::string& moves, Position* pos) {
         // parse next move
         const Move move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
-        MakeUCIMove(move, pos);
+        MakeMove<false>(move, pos);
     }
     // don't rely on MakeUCIMove to update the position key
     pos->posKey = GeneratePosKey(pos);

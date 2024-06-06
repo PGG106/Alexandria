@@ -32,7 +32,7 @@ void PerftDriver(int depth, Position* pos) {
             continue;
 
         // make move
-        MakeMove(move, pos);
+        MakeMove<true>(move, pos);
 
         // call perft driver recursively
         PerftDriver(depth - 1, pos);
@@ -64,7 +64,7 @@ unsigned long long PerftTest(int depth, Position* pos) {
             continue;
 
         // make move
-        MakeMove(move, pos);
+        MakeMove<true>(move, pos);
 
         // cummulative nodes
         long cummulative_nodes = nodes;

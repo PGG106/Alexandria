@@ -627,7 +627,7 @@ moves_loop:
         ss->move = move;
 
         // Play the move
-        MakeMove(move, pos);
+        MakeMove<true>(move, pos);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
         // Add any played move to the matching list
         AddMove(move, isQuiet ? &quietMoves : &noisyMoves);
@@ -869,7 +869,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
-        MakeMove(move, pos);
+        MakeMove<true>(move, pos);
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
