@@ -55,15 +55,16 @@ void inline HashKey(Position* pos, ZobristKey key) {
     pos->posKey ^= key;
 }
 
+template <bool UPDATE>
 void MakeCastle(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<UPDATE>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<true>(piece, targetSquare, pos);
+    AddPiece<UPDATE>(piece, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -76,30 +77,31 @@ void MakeCastle(const Move move, Position* pos) {
         // white castles king side
         case (g1):
             // move H rook
-            MovePiece<true>(WR, h1, f1, pos);
+            MovePiece<UPDATE>(WR, h1, f1, pos);
             break;
 
             // white castles queen side
         case (c1):
             // move A rook
-            MovePiece<true>(WR, a1, d1, pos);
+            MovePiece<UPDATE>(WR, a1, d1, pos);
             break;
 
             // black castles king side
         case (g8):
             // move H rook
-            MovePiece<true>(BR, h8, f8, pos);
+            MovePiece<UPDATE>(BR, h8, f8, pos);
             break;
 
             // black castles queen side
         case (c8):
             // move A rook
-            MovePiece<true>(BR, a8, d8, pos);
+            MovePiece<UPDATE>(BR, a8, d8, pos);
             break;
     }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+template <bool UPDATE>
 void MakeEp(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
@@ -112,12 +114,12 @@ void MakeEp(const Move move, Position* pos) {
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
     pos->history[pos->historyStackHead].capture = pieceCap;
     const int capturedPieceLocation = targetSquare + SOUTH;
-    ClearPiece<true>(pieceCap, capturedPieceLocation, pos);
+    ClearPiece<UPDATE>(pieceCap, capturedPieceLocation, pos);
 
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<UPDATE>(piece, sourceSquare, pos);
     // Set the piece to the destination square
-    AddPiece<true>(piece, targetSquare, pos);
+    AddPiece<UPDATE>(piece, targetSquare, pos);
 
     // Reset EP square
     assert(GetEpSquare(pos) != no_sq);
@@ -125,6 +127,7 @@ void MakeEp(const Move move, Position* pos) {
     pos->enPas = no_sq;
 }
 
+template <bool UPDATE>
 void MakePromo(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
@@ -135,9 +138,9 @@ void MakePromo(const Move move, Position* pos) {
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<UPDATE>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<true>(promotedPiece , targetSquare, pos);
+    AddPiece<UPDATE>(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -149,6 +152,7 @@ void MakePromo(const Move move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+template <bool UPDATE>
 void MakePromocapture(const Move move, Position* pos) {
     pos->fiftyMove = 0;
 
@@ -161,14 +165,14 @@ void MakePromocapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPiece<true>(pieceCap, targetSquare, pos);
+    ClearPiece<UPDATE>(pieceCap, targetSquare, pos);
 
     pos->history[pos->historyStackHead].capture = pieceCap;
 
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<UPDATE>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<true>(promotedPiece , targetSquare, pos);
+    AddPiece<UPDATE>(promotedPiece , targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -180,6 +184,7 @@ void MakePromocapture(const Move move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+template <bool UPDATE>
 void MakeQuiet(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
@@ -190,7 +195,7 @@ void MakeQuiet(const Move move, Position* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->fiftyMove = 0;
 
-    MovePiece<true>(piece,sourceSquare,targetSquare,pos);
+    MovePiece<UPDATE>(piece,sourceSquare,targetSquare,pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -202,6 +207,7 @@ void MakeQuiet(const Move move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+template <bool UPDATE>
 void MakeCapture(const Move move, Position* pos) {
     // parse move
     const int sourceSquare = From(move);
@@ -213,10 +219,10 @@ void MakeCapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPiece<true>(pieceCap, targetSquare, pos);
+    ClearPiece<UPDATE>(pieceCap, targetSquare, pos);
     pos->history[pos->historyStackHead].capture = pieceCap;
 
-    MovePiece<true>(piece, sourceSquare, targetSquare, pos);
+    MovePiece<UPDATE>(piece, sourceSquare, targetSquare, pos);
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
@@ -228,6 +234,7 @@ void MakeCapture(const Move move, Position* pos) {
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 
+template <bool UPDATE>
 void MakeDP(const Move move, Position* pos)
 {   pos->fiftyMove = 0;
 
@@ -237,9 +244,9 @@ void MakeDP(const Move move, Position* pos)
     const int piece = Piece(move);
 
     // Remove the piece fom the square it moved from
-    ClearPiece<true>(piece, sourceSquare, pos);
+    ClearPiece<UPDATE>(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<true>(piece, targetSquare, pos);
+    AddPiece<UPDATE>(piece, targetSquare, pos);
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
         HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
@@ -256,15 +263,9 @@ void MakeDP(const Move move, Position* pos)
 // It exists to avoid storing information that isn't local to the search tree, like for example, positions we'll never unmake
 // It does some redundant work because it reuses actual makemove methods, the current suggestion is ignoring this function existence
 void MakeUCIMove(const Move move, Position* pos) {
-
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
 
-    // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
-    const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // parse move flag
     const bool capture = isCapture(move);
     const bool doublePush = isDP(move);
@@ -274,69 +275,34 @@ void MakeUCIMove(const Move move, Position* pos) {
     // increment fifty move rule counter
     pos->fiftyMove++;
     pos->plyFromNull++;
-    const int SOUTH = pos->side == WHITE ? 8 : -8;
-
-    // if a pawn was moved or a capture was played reset the 50 move rule counter
-    if (GetPieceType(piece) == PAWN || capture)
-        pos->fiftyMove = 0;
-
-    // handling capture moves
-    if (capture) {
-        const int pieceCap = enpass ? GetPiece(PAWN, pos->side ^ 1) : pos->pieces[targetSquare];
-        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        ClearPiece<false>(pieceCap, capturedPieceLocation, pos);
-    }
-
-    // increment ply counters
     pos->hisPly++;
-    // Remove the piece fom the square it moved from
-    ClearPiece<false>(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<false>(promotion ? promotedPiece : piece, targetSquare, pos);
 
-    // reset enpassant square
-    pos->enPas = no_sq;
-
-    // handle double pawn push
-    if (doublePush) {
-        pos->enPas = targetSquare + SOUTH;
+    if(castling){
+        MakeCastle<false>(move,pos);
     }
-
-    // handle castling moves
-    if (castling) {
-        // switch target square
-        switch (targetSquare) {
-            // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece<false>(WR, h1, f1, pos);
-            break;
-
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece<false>(WR, a1, d1, pos);
-            break;
-
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece<false>(BR, h8, f8, pos);
-            break;
-
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece<false>(BR, a8, d8, pos);
-            break;
-        }
+    else if(doublePush){
+        MakeDP<false>(move,pos);
     }
-
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
+    else if(enpass){
+        MakeEp<false>(move,pos);
+    }
+    else if(promotion && capture){
+        MakePromocapture<false>(move,pos);
+    }
+    else if(promotion){
+        MakePromo<false>(move,pos);
+    }
+    else if(!capture){
+        MakeQuiet<false>(move,pos);
+    }
+    else {
+        MakeCapture<false>(move, pos);
+    }
 
     // change side
     pos->ChangeSide();
-
+    // Xor the new side into the key
+    HashKey(pos, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
@@ -347,6 +313,8 @@ void MakeUCIMove(const Move move, Position* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+    // Make sure a freshly generated zobrist key matches the one we are incrementally updating
+    assert(pos->posKey == GeneratePosKey(pos));
 }
 
 // make move on chess board
@@ -368,25 +336,25 @@ void MakeMove(const Move move, Position* pos) {
     pos->hisPly++;
 
     if(castling){
-        MakeCastle(move,pos);
+        MakeCastle<true>(move,pos);
     }
     else if(doublePush){
-        MakeDP(move,pos);
+        MakeDP<true>(move,pos);
     }
     else if(enpass){
-        MakeEp(move,pos);
+        MakeEp<true>(move,pos);
     }
     else if(promotion && capture){
-        MakePromocapture(move,pos);
+        MakePromocapture<true>(move,pos);
     }
     else if(promotion){
-        MakePromo(move,pos);
+        MakePromo<true>(move,pos);
     }
     else if(!capture){
-        MakeQuiet(move,pos);
+        MakeQuiet<true>(move,pos);
     }
     else {
-        MakeCapture(move, pos);
+        MakeCapture<true>(move, pos);
     }
     pos->historyStackHead++;
     // change side
