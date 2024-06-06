@@ -22,5 +22,3 @@ void UnmakeMove(const Move move, Position* pos);
 void MakeNullMove(Position* pos);
 // Reverts the previously played null move
 void TakeNullMove(Position* pos);
-// Makes a move without setting up the variables to ever reverse it, should only be used on moves that come directly from uci
-void MakeUCIMove(const Move move, Position* pos);
