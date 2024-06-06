@@ -42,7 +42,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install g++13
+          sudo apt install --reinstall gcc-13
           sudo ln -s -f /usr/bin/g++-13 /usr/bin/g++
+          sudo ln -s -f /usr/bin/gcc-13 /usr/bin/gcc
           sudo apt update
           sudo apt install expect valgrind g++-multilib qemu-user
 
