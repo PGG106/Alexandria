@@ -15,8 +15,8 @@ jobs:
       matrix:
         config:
         - {
-            name: "Ubuntu 20.04 GCC",
-            os: ubuntu-20.04,
+            name: "Ubuntu 22.04 GCC",
+            os: ubuntu-22.04,
             compiler: g++,
             comp: gcc,
             shell: 'bash {0}'
@@ -41,7 +41,8 @@ jobs:
       - name: Download required linux packages
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install g++
+          sudo apt-get install g++13
+          sudo ln -s -f /usr/bin/g++-13 /usr/bin/g++
           sudo apt update
           sudo apt install expect valgrind g++-multilib qemu-user
 
