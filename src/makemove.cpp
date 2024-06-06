@@ -271,7 +271,6 @@ void MakeMove(const Move move, Position* pos) {
     }
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
-    pos->accumStackHead++;
 
     // parse move flag
     const bool capture = isCapture(move);
@@ -305,7 +304,6 @@ void MakeMove(const Move move, Position* pos) {
     else {
         MakeCapture<UPDATE>(move, pos);
     }
-    pos->historyStackHead++;
 
     if constexpr (UPDATE)
         pos->historyStackHead++;
