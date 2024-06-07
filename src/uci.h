@@ -11,6 +11,7 @@ struct UciOptions {
     int MultiPV = 1;
     int Threads = 1;
 };
+
 // Internal flag to decide if to pretty or ugly print search results
 extern bool print_uci;
 // Internal flag to disable the output of search results when we don't want our speed to be limited by the console
