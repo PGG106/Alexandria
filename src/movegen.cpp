@@ -31,7 +31,7 @@ bool IsSquareAttacked(const Position* pos, const int square, const int side) {
 }
 
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
-bool MoveExists(Position* pos, const int move) {
+bool MoveExists(Position* pos, const Move move) {
     MoveList list;
     GenerateMoves(&list, pos, MOVEGEN_ALL);
 
