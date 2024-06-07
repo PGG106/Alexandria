@@ -10,6 +10,7 @@
 #include <cstdint>
 #include "move.h"
 #include "types.h"
+#include "uci.h"
 
 #ifdef __GNUC__
 #define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
@@ -106,12 +107,8 @@ public:
     }
 };
 
-struct PvTable {
-    int pvLength[MAXDEPTH + 1];
-    int pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
-};
-
 extern Bitboard SQUARES_BETWEEN_BB[64][64];
+
 // Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct SearchInfo {
     // search start time

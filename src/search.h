@@ -26,6 +26,11 @@ struct SearchData {
     int contHist[12 * 64][12 * 64] = {};
 };
 
+struct PvTable {
+    int pvLength[MAXDEPTH + 1];
+    Move pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
+};
+
 // a collection of all the data a thread needs to conduct a search
 struct ThreadData {
     int id = 0;
