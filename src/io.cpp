@@ -89,6 +89,8 @@ void PrintBoard(const Position* pos) {
 
     std::cout << "position key: " << pos->posKey << std::endl;
 
+    std::cout << "pawn key: " << pos->pawnKey << std::endl;
+
     std::cout << "Fen: " << GetFen(pos) << "\n\n";
 }
 
