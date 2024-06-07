@@ -4,8 +4,8 @@
 #include "position.h"
 #include "init.h"
 
-void inline HashKey(Position* pos, ZobristKey key) {
-    pos->posKey ^= key;
+void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
+    originalKey ^= key;
 }
 
 template void ClearPiece<false>(const int piece, const int to, Position* pos);
@@ -20,7 +20,7 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     pop_bit(pos->bitboards[piece], from);
     pop_bit(pos->occupancies[color], from);
     pos->pieces[from] = EMPTY;
-    HashKey(pos, PieceKeys[piece][from]);
+    HashKey(pos->posKey, PieceKeys[piece][from]);
 }
 
 template void AddPiece<false>(const int piece, const int to, Position* pos);
@@ -35,7 +35,7 @@ void AddPiece(const int piece, const int to, Position* pos) {
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
     pos->pieces[to] = piece;
-    HashKey(pos, PieceKeys[piece][to]);
+    HashKey(pos->posKey, PieceKeys[piece][to]);
 }
 
 // Move a piece from the [to] square to the [from] square, the UPDATE params determines whether we want to update the NNUE weights or not
@@ -47,12 +47,12 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
-    HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
+    HashKey(pos->posKey, CastleKeys[pos->GetCastlingPerm()]);
     // update castling rights
     pos->castleperm &= castling_rights[source_square];
     pos->castleperm &= castling_rights[target_square];
     // Xor the new one
-    HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
+    HashKey(pos->posKey, CastleKeys[pos->GetCastlingPerm()]);
 }
 
 template <bool UPDATE>
@@ -68,7 +68,7 @@ void MakeCastle(const Move move, Position* pos) {
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         pos->enPas = no_sq;
     }
 
@@ -123,7 +123,7 @@ void MakeEp(const Move move, Position* pos) {
 
     // Reset EP square
     assert(GetEpSquare(pos) != no_sq);
-    HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+    HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
     pos->enPas = no_sq;
 }
 
@@ -144,7 +144,7 @@ void MakePromo(const Move move, Position* pos) {
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         // reset enpassant square
         pos->enPas = no_sq;
     }
@@ -176,7 +176,7 @@ void MakePromocapture(const Move move, Position* pos) {
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         // reset enpassant square
         pos->enPas = no_sq;
     }
@@ -199,7 +199,7 @@ void MakeQuiet(const Move move, Position* pos) {
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         // reset enpassant square
         pos->enPas = no_sq;
     }
@@ -226,7 +226,7 @@ void MakeCapture(const Move move, Position* pos) {
 
     // Reset EP square
     if (GetEpSquare(pos) != no_sq){
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         // reset enpassant square
         pos->enPas = no_sq;
     }
@@ -249,14 +249,14 @@ void MakeDP(const Move move, Position* pos)
     AddPiece<UPDATE>(piece, targetSquare, pos);
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         // reset enpassant square
         pos->enPas = no_sq;
     }
     // Add new ep square
     const int SOUTH = pos->side == WHITE ? 8 : -8;
     pos->enPas = targetSquare + SOUTH;
-    HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+    HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
 }
 
 template void MakeMove<true>(const Move move, Position* pos);
@@ -311,7 +311,7 @@ void MakeMove(const Move move, Position* pos) {
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
-    HashKey(pos, SideKey);
+    HashKey(pos->posKey, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
@@ -410,11 +410,11 @@ void MakeNullMove(Position* pos) {
     pos->played_positions.emplace_back(pos->posKey);
     // Update the zobrist key asap so we can prefetch
     if (GetEpSquare(pos) != no_sq) {
-        HashKey(pos, enpassant_keys[GetEpSquare(pos)]);
+        HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
         pos->enPas = no_sq;
     }
     pos->ChangeSide();
-    HashKey(pos, SideKey);
+    HashKey(pos->posKey, SideKey);
     TTPrefetch(pos->GetPoskey());
 
     pos->hisPly++;
