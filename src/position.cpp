@@ -46,7 +46,7 @@ ZobristKey GeneratePosKey(const Position* pos) {
     // for every square
     for (int sq = 0; sq < 64; ++sq) {
         // get piece on that square
-        int piece = pos->pieces[sq];
+        const int piece = pos->PieceOn(sq);
         // if it's not empty add that piece to the zobrist key
         if (piece != EMPTY) {
             assert(piece >= WP && piece <= BK);
@@ -114,18 +114,9 @@ void ParseFen(const std::string& command, Position* pos) {
                 // init offset (convert char 0 to int 0)
                 const int offset = current_char - '0';
 
-                // define piece variable
-                int piece = -1;
-
-                // loop over all piece pos->pos->bitboards
-                for (int bb_piece = WP; bb_piece <= BK; bb_piece++) {
-                    // if there is a piece on current square
-                    if (get_bit(pos->bitboards[bb_piece], square))
-                        // get piece code
-                        piece = bb_piece;
-                }
+                const int piece = pos->PieceOn(square);
                 // on empty current square
-                if (piece == -1)
+                if (piece == EMPTY)
                     // decrement file
                     file--;
 

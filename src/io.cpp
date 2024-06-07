@@ -23,7 +23,7 @@ void PrintBitboard(const Bitboard bitboard) {
         // loop over board files
         for (int file = 0; file < 8; file++) {
             // convert file & rank into square index
-            int square = (rank * 8 + file);
+            const int square = (rank * 8 + file);
 
             // print ranks
             if (!file)
@@ -54,24 +54,15 @@ void PrintBoard(const Position* pos) {
         // loop ober board files
         for (int file = 0; file < 8; file++) {
             // init square
-            int square = rank * 8 + file;
+            const int square = rank * 8 + file;
 
             // print ranks
             if (!file)
                 printf("  %d ", 8 - rank);
 
-            // define piece variable
-            int piece = -1;
+            const int piece = pos->PieceOn(square);
 
-            // loop over all piece pos->bitboards
-            for (int bb_piece = WP; bb_piece <= BK; bb_piece++) {
-                // if there is a piece on current square
-                if (get_bit(pos->bitboards[bb_piece], square))
-                    // get piece code
-                    piece = bb_piece;
-            }
-
-            printf(" %c", (piece == -1) ? '.' : ascii_pieces[piece]);
+            printf(" %c", (piece == EMPTY) ? '.' : ascii_pieces[piece]);
         }
 
         // print new line every rank
@@ -79,7 +70,7 @@ void PrintBoard(const Position* pos) {
     }
 
     // print board files
-    printf("\n     a b c d e f g h\n\n");
+    std::cout <<"\n     a b c d e f g h\n\n";
 
     // print side to move
     printf("     Side:     %s\n", !pos->side ? "white" : "black");
