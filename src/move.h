@@ -23,11 +23,10 @@ enum class Movetype {
 };
 
 inline Movetype operator | (Movetype first, Movetype second){
-    Movetype cong = static_cast<Movetype>((static_cast<int>(first) | static_cast<int>(second)));
-    return cong;
+    return static_cast<Movetype>((static_cast<int>(first) | static_cast<int>(second)));
 }
 
-int encode_move(const int source, const int target, const int piece, const Movetype movetype);
+Move encode_move(const int source, const int target, const int piece, const Movetype movetype);
 int From(const Move move);
 int To(const Move move);
 int FromTo(const Move move);

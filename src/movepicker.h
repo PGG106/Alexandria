@@ -28,11 +28,11 @@ struct Movepicker {
     SearchStack* ss;
     MoveList moveList;
     MoveList badCaptureList;
+    Move ttMove;
+    Move killer;
+    Move counter;
     int idx;
     int stage;
-    int ttMove;
-    int killer;
-    int counter;
 };
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType);

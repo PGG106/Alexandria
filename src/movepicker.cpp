@@ -12,7 +12,7 @@ void ScoreMoves(Movepicker* mp) {
     SearchStack* ss = mp->ss;
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
-        const int move = moveList->moves[i].move;
+        const Move move = moveList->moves[i].move;
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
@@ -43,8 +43,8 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType) {
 
-    const int killer = ss->searchKiller;
-    const int counter = sd->counterMoves[FromTo((ss - 1)->move)];
+    const Move killer = ss->searchKiller;
+    const Move counter = sd->counterMoves[FromTo((ss - 1)->move)];
 
     mp->movepickerType = movepickerType;
     mp->pos = pos;
@@ -95,7 +95,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
     case PICK_GOOD_NOISY:
         while (mp->idx < mp->moveList.count) {
             partialInsertionSort(&mp->moveList, mp->idx);
-            const int move = mp->moveList.moves[mp->idx].move;
+            const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
             const int SEEThreshold = -score / 64 + 109;
             ++mp->idx;
@@ -135,7 +135,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
     case PICK_QUIETS:
         while (mp->idx < mp->moveList.count) {
             partialInsertionSort(&mp->moveList, mp->idx);
-            const int move = mp->moveList.moves[mp->idx].move;
+            const Move move = mp->moveList.moves[mp->idx].move;
             ++mp->idx;
             if (   move == mp->ttMove
                 || move == mp->killer
@@ -157,7 +157,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
     case PICK_BAD_NOISY:
         while (mp->idx < mp->badCaptureList.count) {
             partialInsertionSort(&mp->badCaptureList, mp->idx);
-            const int move = mp->badCaptureList.moves[mp->idx].move;
+            const Move move = mp->badCaptureList.moves[mp->idx].move;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;

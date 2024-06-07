@@ -34,7 +34,7 @@ bool ProbeTTEntry(const ZobristKey posKey, TTEntry *tte) {
     return false;
 }
 
-void StoreTTEntry(const ZobristKey key, const int16_t move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
+void StoreTTEntry(const ZobristKey key, const PackedMove move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
     const TTKey key16 = static_cast<TTKey>(key);
@@ -135,17 +135,17 @@ int ScoreFromTT(int score, int ply) {
     return score;
 }
 
-int16_t MoveToTT(Move move) {
+PackedMove MoveToTT(Move move) {
     return (move & 0xffff);
 }
 
-Move MoveFromTT(Position *pos, int16_t packed_move) {
+Move MoveFromTT(Position *pos, PackedMove packed_move) {
     // It's important to preserve a move being null even it's being unpacked
     if (packed_move == NOMOVE)
         return NOMOVE;
 
     const int piece = pos->PieceOn(From(packed_move));
-    return (static_cast<Move>(static_cast<uint16_t>(packed_move)) | (piece << 16));
+    return packed_move | (piece << 16);
 }
 
 uint8_t BoundFromTT(uint8_t ageBoundPV) {
