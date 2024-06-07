@@ -1,6 +1,6 @@
 #include "move.h"
 
-int encode_move(const int source, const int target, const int piece, const Movetype movetype) {
+Move encode_move(const int source, const int target, const int piece, const Movetype movetype) {
     return (source) | (target << 6) | (static_cast<int>(movetype) << 12) | (piece << 16);
 }
 

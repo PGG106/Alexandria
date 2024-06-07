@@ -192,7 +192,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     return side != Color[attacker];
 }
 
-int GetBestMove(const PvTable* pvTable) {
+Move GetBestMove(const PvTable* pvTable) {
     return pvTable->pvArray[0][0];
 }
 

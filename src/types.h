@@ -13,11 +13,12 @@ using Bitboard = uint64_t;
 using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
-using Move = int;
+using Move = uint32_t;
+using PackedMove = uint16_t;
 
+constexpr Move NOMOVE = 0;
 constexpr int MAXPLY = 256;
 constexpr int MAXDEPTH = MAXPLY;
-constexpr int NOMOVE = 0;
 constexpr int MATE_SCORE = 32000;
 constexpr int MATE_FOUND = MATE_SCORE - MAXPLY;
 constexpr int SCORE_NONE = 32001;
