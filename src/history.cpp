@@ -58,7 +58,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
         // Loop through all the quiet moves
         for (int i = 0; i < quietMoves->count; i++) {
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
-            const int move = quietMoves->moves[i].move;
+            const auto move = quietMoves->moves[i].move;
             if (move == bestMove) continue;
             updateHHScore(pos, sd, move, -bonus);
             updateCHScore(ss, move, -bonus);
@@ -70,7 +70,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
     }
     // For all the noisy moves that didn't cause a cut-off, even is the bestMove wasn't a noisy move, decrease the capthist score
     for (int i = 0; i < noisyMoves->count; i++) {
-        const int move = noisyMoves->moves[i].move;
+        const auto move = noisyMoves->moves[i].move;
         if (move == bestMove) continue;
         updateCapthistScore(pos, sd, move, -bonus);
     }

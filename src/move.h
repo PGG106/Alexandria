@@ -5,7 +5,7 @@
 struct Position;
 
 struct ScoredMove {
-    int move;
+    Move move;
     int score;
 };
 
