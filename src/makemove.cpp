@@ -4,6 +4,10 @@
 #include "position.h"
 #include "init.h"
 
+void inline HashKey(Position* pos, ZobristKey key) {
+    pos->posKey ^= key;
+}
+
 template void ClearPiece<false>(const int piece, const int to, Position* pos);
 template void ClearPiece<true>(const int piece, const int to, Position* pos);
 
@@ -49,10 +53,6 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     pos->castleperm &= castling_rights[target_square];
     // Xor the new one
     HashKey(pos, CastleKeys[pos->GetCastlingPerm()]);
-}
-
-void inline HashKey(Position* pos, ZobristKey key) {
-    pos->posKey ^= key;
 }
 
 template <bool UPDATE>

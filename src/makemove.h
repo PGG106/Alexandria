@@ -12,8 +12,6 @@ void AddPiece(const int piece, const int to, Position* pos);
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 
-void HashKey(Position* pos, ZobristKey key);
-
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos);
 // Reverts the previously played move
