@@ -402,8 +402,8 @@ void UnmakeMove(const Move move, Position* pos) {
     // change side
     pos->ChangeSide();
 
-    // restore zobrist key (done at the end to avoid overwriting the value while
-    // moving pieces back to their place)
+    // restore zobrist key (done at the end to avoid overwriting the value while moving pieces back to their place)
+    // we don't need to do the same for the pawn key because the unmake function correctly restores it already
     pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }
