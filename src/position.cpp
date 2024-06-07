@@ -75,7 +75,7 @@ ZobristKey GeneratePawnKey(const Position* pos) {
         // get piece on that square
         const int piece = pos->PieceOn(sq);
         if (piece == WP || piece == BP) {
-            finalkey ^= PieceKeys[piece][sq];
+            pawnKey ^= PieceKeys[piece][sq];
         }
     }
     return pawnKey;
