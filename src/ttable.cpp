@@ -47,14 +47,18 @@ void InitTT(uint64_t MB) {
     TT.numBuckets = (hashSize / sizeof(TTBucket)) - 3;
     if (TT.pTable != nullptr) AlignedFree(TT.pTable);
 
+    // We align to 2MB on Linux (huge pages), otherwise assume that 4KB is the page size
     #if defined(USE_MADVISE)
     constexpr uint64_t alignment = 2 * ONE_MB;
     #else
     constexpr uint64_t alignment = 4 * ONE_KB;
     #endif
 
+    // Pad the TT by using a ceil div and a multiply to get the size to be a multiple of `alignment`
     TT.paddedSize = (TT.numBuckets * sizeof(TTBucket) + alignment - 1) / alignment * alignment;
     TT.pTable = static_cast<TTBucket*>(AlignedMalloc(TT.paddedSize, alignment));
+
+    // On linux we request huge pages to make use of the 2MB alignment
     #if defined(USE_MADVISE)
     madvise(TT.pTable, TT.paddedSize, MADV_HUGEPAGE);
     #endif
