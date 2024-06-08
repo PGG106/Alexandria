@@ -1,24 +1,70 @@
 #include "ttable.h"
 #include "io.h"
 #include <iostream>
+#include <cstdlib>
+
 // This include breaks on non x86 target platforms
 #if defined(__INTEL_COMPILER) || defined(_MSC_VER)
 #include "xmmintrin.h"
 #endif
 
+#if defined(__linux__) && !defined(__ANDROID__)
+#include <sys/mman.h>
+#define USE_MADVISE
+#else
+#include <stdlib.h>
+#endif
+
 TTable TT;
 
+void* AlignedMalloc(size_t size, size_t alignment) {
+    #if defined(USE_MADVISE)
+    return aligned_alloc(alignment, size);
+    #else
+    return _aligned_malloc(size, alignment);
+    #endif
+}
+
+void AlignedFree(void *src) {
+    #if defined(USE_MADVISE)
+    free(src);
+    #else
+    _aligned_free(src);
+    #endif
+}
+
 void ClearTT() {
-    std::fill(TT.pTable.begin(), TT.pTable.end(), TTBucket());
+    for (uint64_t i = 0; i < TT.paddedSize / sizeof(TTBucket); ++i) {
+        TT.pTable[i] = TTBucket();
+    }
     TT.age = 1;
 }
 
 void InitTT(uint64_t MB) {
-    const uint64_t hashSize = 0x100000 * MB;
-    const uint64_t numBuckets = (hashSize / sizeof(TTBucket)) - 3;
-    TT.pTable.resize(numBuckets);
+    constexpr uint64_t ONE_KB = 1024;
+    constexpr uint64_t ONE_MB = ONE_KB * 1024;
+    const uint64_t hashSize = ONE_MB * MB;
+    TT.numBuckets = (hashSize / sizeof(TTBucket)) - 3;
+    if (TT.pTable != nullptr) AlignedFree(TT.pTable);
+
+    // We align to 2MB on Linux (huge pages), otherwise assume that 4KB is the page size
+    #if defined(USE_MADVISE)
+    constexpr uint64_t alignment = 2 * ONE_MB;
+    #else
+    constexpr uint64_t alignment = 4 * ONE_KB;
+    #endif
+
+    // Pad the TT by using a ceil div and a multiply to get the size to be a multiple of `alignment`
+    TT.paddedSize = (TT.numBuckets * sizeof(TTBucket) + alignment - 1) / alignment * alignment;
+    TT.pTable = static_cast<TTBucket*>(AlignedMalloc(TT.paddedSize, alignment));
+
+    // On linux we request huge pages to make use of the 2MB alignment
+    #if defined(USE_MADVISE)
+    madvise(TT.pTable, TT.paddedSize, MADV_HUGEPAGE);
+    #endif
+
     ClearTT();
-    std::cout << "TT init complete with " << numBuckets << " buckets and " << numBuckets * ENTRIES_PER_BUCKET << " entries\n";
+    std::cout << "TT init complete with " << TT.numBuckets << " buckets and " << TT.numBuckets * ENTRIES_PER_BUCKET << " entries\n";
 }
 
 bool ProbeTTEntry(const ZobristKey posKey, TTEntry *tte) {
@@ -88,13 +134,13 @@ int GetHashfull() {
 
 uint64_t Index(const ZobristKey posKey) {
 #ifdef __SIZEOF_INT128__
-    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(TT.pTable.size())) >> 64));
+    return static_cast<uint64_t>(((static_cast<__uint128_t>(posKey) * static_cast<__uint128_t>(TT.numBuckets)) >> 64));
 #else
     // Workaround to use the correct bits when indexing the TT on a platform with no int128 support, code s̶t̶o̶l̶e̶n̶ f̶r̶o̶m̶ provided by Nanopixel
     uint64_t xlo = static_cast<uint32_t>(posKey);
     uint64_t xhi = posKey >> 32;
-    uint64_t nlo = static_cast<uint32_t>(TT.pTable.size());
-    uint64_t nhi = TT.pTable.size() >> 32;
+    uint64_t nlo = static_cast<uint32_t>(TT.numBuckets);
+    uint64_t nhi = TT.numBuckets >> 32;
     uint64_t c1 = (xlo * nlo) >> 32;
     uint64_t c2 = (xhi * nlo) + c1;
     uint64_t c3 = (xlo * nhi) + static_cast<uint32_t>(c2);

@@ -33,7 +33,9 @@ static_assert(sizeof(TTEntry) == 10);
 static_assert(sizeof(TTBucket) == 32);
 
 struct TTable {
-    std::vector<TTBucket> pTable;
+    TTBucket *pTable = nullptr;
+    uint64_t numBuckets;
+    size_t paddedSize;
     uint8_t age;
 };
 
@@ -41,6 +43,10 @@ extern TTable TT;
 
 constexpr uint8_t MAX_AGE = 1 << 5; // must be power of 2
 constexpr uint8_t AGE_MASK = MAX_AGE - 1;
+
+void* AlignedMalloc(size_t size, size_t alignment);
+
+void AlignedFree(void *src);
 
 void ClearTT();
 // Initialize an TT of size MB
