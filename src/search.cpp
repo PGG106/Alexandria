@@ -761,9 +761,9 @@ moves_loop:
     if (!excludedMove) {
         if (    !inCheck
             && (!bestMove || !isTactical(bestMove))
-            &&  !(bound == HFLOWER && bestScore <= rawEval)
-            &&  !(bound == HFUPPER && bestScore >= rawEval)) {
-            updateCorrHistScore(pos, sd, depth, bestScore - rawEval);
+            &&  !(bound == HFLOWER && bestScore <= ss->staticEval)
+            &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
+            updateCorrHistScore(pos, sd, depth, bestScore - ss->staticEval);
         }
         StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
     }
