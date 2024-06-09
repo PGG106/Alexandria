@@ -8,7 +8,7 @@ struct SearchInfo;
 
 struct UciOptions {
     uint64_t Hash = 16;
-    int MultiPV = 1;
+    static constexpr int MultiPV = 1;
     int Threads = 1;
 };
 
