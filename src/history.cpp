@@ -113,7 +113,7 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const int depth, c
 
 int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const int rawEval) {
     const int &entry = sd->corrHist[pos->side][pos->pawnKey % CORRHIST_SIZE];
-    return rawEval + entry / CORRHIST_GRAIN;
+    return std::clamp(rawEval + entry / CORRHIST_GRAIN, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss) {
