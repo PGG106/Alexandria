@@ -5,7 +5,7 @@
 
 // This include breaks on non x86 target platforms
 #if defined(__INTEL_COMPILER) || defined(_MSC_VER)
-#include "xmmintrin.h"
+#include <xmmintrin.h>
 #endif
 
 #if defined(__linux__) && !defined(__ANDROID__)
