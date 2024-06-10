@@ -426,9 +426,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     (ss + 1)->searchKiller = NOMOVE;
 
     // If we are in check or searching a singular extension we avoid pruning before the move loop
-    if (inCheck || excludedMove) {
-        eval = rawEval = SCORE_NONE;
-        if (!excludedMove) ss->staticEval = SCORE_NONE;
+    if (inCheck) {
+        eval = rawEval = ss->staticEval = SCORE_NONE;
+        improving = false;
+        goto moves_loop;
+    }
+    else if(excludedMove){
+        eval = rawEval = ss->staticEval;
         improving = false;
         goto moves_loop;
     }
