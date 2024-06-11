@@ -469,8 +469,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else
         improving = true;
 
-    if (!pvNode
-        && !excludedMove) {
+    if (!pvNode) {
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
@@ -481,6 +480,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
+               && !excludedMove
             && eval >= beta
             && (ss - 1)->move != NOMOVE
             && depth >= nmpDepth()
@@ -519,7 +519,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + 256 * depth < alpha)
+        if (depth <= 5 && eval + 256 * depth < alpha  && !excludedMove)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
