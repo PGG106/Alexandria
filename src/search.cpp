@@ -431,14 +431,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         improving = false;
         goto moves_loop;
     }
-    else if(excludedMove){
+    else if(excludedMove) {
         eval = rawEval = ss->staticEval;
-        improving = false;
-        goto moves_loop;
     }
-
     // get an evaluation of the position:
-    if (ttHit) {
+    else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, rawEval);
@@ -471,7 +468,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else
         improving = true;
 
-    if (!pvNode) {
+    if (!pvNode
+        && !excludedMove) {
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
