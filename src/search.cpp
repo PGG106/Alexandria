@@ -404,10 +404,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
+    const uint8_t ttDepth = tte.depth;
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
-        &&  tte.depth >= depth
+        &&  ttDepth >= depth
         && (   (ttBound == HFUPPER && ttScore <= alpha)
             || (ttBound == HFLOWER && ttScore >= beta)
             ||  ttBound == HFEXACT))
@@ -594,7 +595,7 @@ moves_loop:
                 && !excludedMove
                 && (ttBound & HFLOWER)
                 &&  abs(ttScore) < MATE_FOUND
-                &&  tte.depth >= depth - 3) {
+                &&  ttDepth >= depth - 3) {
                 const int singularBeta = ttScore - depth;
                 const int singularDepth = (depth - 1) / 2;
 
