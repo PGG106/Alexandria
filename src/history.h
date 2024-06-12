@@ -17,7 +17,6 @@ constexpr int CORRHIST_GRAIN = 256;
 constexpr int CORRHIST_SIZE = 16384;
 constexpr int CORRHIST_MAX = CORRHIST_GRAIN * 32;
 
-
 // Functions used to update the history heuristics
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves);
 // Fuction that returns the history bonus
