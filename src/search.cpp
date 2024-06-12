@@ -554,7 +554,7 @@ moves_loop:
 
         const bool isQuiet = !isTactical(move);
 
-        const int moveHistory = GetHistoryScore(pos, sd, move, ss);
+        const int moveHistory = GetHistoryScore(pos, sd, move, ss) + GetPHScore(pos, sd, move);
         if (   !rootNode
             &&  BoardHasNonPawns(pos, pos->side)
             &&  bestScore > -MATE_FOUND) {
