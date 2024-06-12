@@ -10,7 +10,7 @@ struct MoveList;
 constexpr int HH_MAX = 8192;
 constexpr int CH_MAX = 16384;
 constexpr int CAPTHIST_MAX = 16384;
-constexpr int PH_SIZE = 4096;
+constexpr int PH_SIZE = 32768;
 constexpr int PH_MAX = 8192;
 constexpr int CORRHIST_WEIGHT_SCALE = 256;
 constexpr int CORRHIST_GRAIN = 256;
