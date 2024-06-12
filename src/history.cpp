@@ -47,6 +47,13 @@ void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, i
     sd->captHist[PieceTo(move)][capturedPiece] += scaledBonus;
 }
 
+void updatePHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
+    // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
+    const int scaledBonus = bonus - GetPHScore(pos, sd, move) * std::abs(bonus) / PH_MAX;
+    // Update move score
+    sd->pawnHist[PieceTo(move)][pos->pawnKey % PH_SIZE] += scaledBonus;
+}
+
 // Update all histories
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves) {
     const int bonus = history_bonus(depth);
@@ -54,6 +61,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
     {
         // increase bestMove HH and CH score
         updateHHScore(pos, sd, bestMove, bonus);
+        updatePHScore(pos, sd, bestMove, bonus);
         updateCHScore(ss, bestMove, bonus);
         // Loop through all the quiet moves
         for (int i = 0; i < quietMoves->count; i++) {
@@ -61,6 +69,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
             const Move move = quietMoves->moves[i].move;
             if (move == bestMove) continue;
             updateHHScore(pos, sd, move, -bonus);
+            updatePHScore(pos, sd, bestMove, -bonus);
             updateCHScore(ss, move, -bonus);
         }
     }
@@ -101,6 +110,11 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move)
     return sd->captHist[PieceTo(move)][capturedPiece];
 }
 
+// Returns the history score of a move
+int GetPHScore(const Position* pos, const SearchData* sd, const Move move) {
+    return sd->pawnHist[PieceTo(move)][pos->pawnKey % PH_SIZE];
+}
+
 void updateCorrHistScore(const Position *pos, SearchData *sd, const int depth, const int diff) {
     int &entry = sd->corrHist[pos->side][pos->pawnKey % CORRHIST_SIZE];
     const int scaledDiff = diff * CORRHIST_GRAIN;
@@ -129,4 +143,5 @@ void CleanHistories(SearchData* sd) {
     std::memset(sd->contHist, 0, sizeof(sd->contHist));
     std::memset(sd->captHist, 0, sizeof(sd->captHist));
     std::memset(sd->corrHist, 0, sizeof(sd->corrHist));
+    std::memset(sd->pawnHist, 0, sizeof(sd->pawnHist));
 }

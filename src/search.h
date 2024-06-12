@@ -26,6 +26,8 @@ struct SearchData {
     int counterMoves[64 * 64] = {};
     int contHist[12 * 64][12 * 64] = {};
     int corrHist[2][CORRHIST_SIZE] = {};
+    // piece-to, size
+    int pawnHist[12 * 64][CORRHIST_SIZE] = {};
 };
 
 struct PvTable {
