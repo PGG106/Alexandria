@@ -7,11 +7,11 @@ struct SearchData;
 struct SearchStack;
 struct MoveList;
 
-constexpr int HH_MAX = 8192*2;
-constexpr int CH_MAX = 16384*2;
-constexpr int CAPTHIST_MAX = 16384*2;
+constexpr int HH_MAX = 8192;
+constexpr int CH_MAX = 16384;
+constexpr int CAPTHIST_MAX = 16384;
 constexpr int PH_SIZE = 16384;
-constexpr int PH_MAX = 8192;
+constexpr int PH_MAX = 2048;
 constexpr int CORRHIST_WEIGHT_SCALE = 256;
 constexpr int CORRHIST_GRAIN = 256;
 constexpr int CORRHIST_SIZE = 16384;
