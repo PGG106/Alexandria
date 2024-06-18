@@ -12,7 +12,7 @@ GetScore: this is simply a getter for a specific entry of the history table
 */
 
 int history_bonus(const int depth) {
-    return std::min(16 * (depth + 1) * (depth + 1), 1200);
+    return std::min(16 * depth * depth + 32 * depth + 16, 1200);
 }
 
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
@@ -104,7 +104,7 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move)
 void updateCorrHistScore(const Position *pos, SearchData *sd, const int depth, const int diff) {
     int &entry = sd->corrHist[pos->side][pos->pawnKey % CORRHIST_SIZE];
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = std::min(1 + depth, 16);
+    const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
     assert(newWeight <= CORRHIST_WEIGHT_SCALE);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
