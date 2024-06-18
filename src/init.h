@@ -5,10 +5,10 @@
 struct Position;
 struct ThreadData;
 
-extern Bitboard PieceKeys[12][64];
-extern Bitboard enpassant_keys[64];
-extern Bitboard SideKey;
-extern Bitboard CastleKeys[16];
+inline Bitboard PieceKeys[12][64];
+inline Bitboard enpassant_keys[64];
+inline Bitboard SideKey;
+inline Bitboard CastleKeys[16];
 
 void InitNewGame(ThreadData* td);
 
