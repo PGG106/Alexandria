@@ -429,8 +429,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck) {
         eval = rawEval = ss->staticEval = SCORE_NONE;
-        improving = false;
-        goto moves_loop;
     }
     else if(excludedMove) {
         eval = rawEval = ss->staticEval;
@@ -460,7 +458,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
-    if ((ss - 2)->staticEval != SCORE_NONE) {
+    if(inCheck)
+        improving = false;
+    else if ((ss - 2)->staticEval != SCORE_NONE) {
         improving = ss->staticEval > (ss - 2)->staticEval;
     }
     else if ((ss - 4)->staticEval != SCORE_NONE) {
@@ -470,7 +470,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         improving = true;
 
     if (!pvNode
-        && !excludedMove) {
+        && !excludedMove
+        && !inCheck) {
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
@@ -526,8 +527,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 return razorScore;
         }
     }
-
-moves_loop:
 
     // old value of alpha
     const int old_alpha = alpha;
