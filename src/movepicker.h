@@ -37,3 +37,4 @@ struct Movepicker {
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType);
 Move NextMove(Movepicker* mp, const bool skip);
+

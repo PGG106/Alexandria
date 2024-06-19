@@ -3,8 +3,8 @@
 #include <cstdint>
 #include "types.h"
 
-extern std::array<uint64_t, 8192> keys;
-extern std::array<Move, 8192> cuckooMoves;
+inline std::array<uint64_t, 8192> keys{};
+inline std::array<Move, 8192> cuckooMoves{};
 
 constexpr auto H1(uint64_t key)
 {

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <string>
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
@@ -9,7 +10,7 @@ inline int reductions[2][64][64];
 inline int lmp_margin[64][2];
 inline int see_margin[64][2];
 
-#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+inline const std::string start_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // define bitboard data type
 using Bitboard = uint64_t;
