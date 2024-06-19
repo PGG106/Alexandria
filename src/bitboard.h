@@ -4,9 +4,9 @@
 #include "types.h"
 
 // set/get/pop bit macros
-#define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
-#define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
-#define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+inline void set_bit(Bitboard& bitboard, const int square) { bitboard |= (1ULL << square); }
+[[nodiscard]] inline int get_bit(const Bitboard bitboard, const int square) { return bitboard & (1ULL << square); }
+inline void pop_bit(Bitboard& bitboard, const int square) { bitboard &= ~(1ULL << square); }
 
 [[nodiscard]] inline int GetLsbIndex(Bitboard bitboard) {
     assert(bitboard);
