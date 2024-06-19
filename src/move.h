@@ -39,16 +39,11 @@ inline int GetMovetype(const Move move) { return ((move & 0xF000) >> 12); }
 inline int getPromotedPiecetype(const Move move) { return (GetMovetype(move) & 3) + 1; }
 inline bool isEnpassant(const Move move) { return GetMovetype(move) == static_cast<int>(Movetype::enPassant); }
 inline bool isDP(const Move move) { return GetMovetype(move) == static_cast<int>(Movetype::doublePush); }
-
 inline bool isCastle(const Move move) { 
     return (GetMovetype(move) == static_cast<int>(Movetype::KSCastle)) || (GetMovetype(move) == static_cast<int>(Movetype::QSCastle));
 }
-
 inline bool isCapture(const Move move) { return GetMovetype(move) & static_cast<int>(Movetype::Capture); }
 inline bool isQuiet(const Move move) { return !isCapture(move); }
 inline bool isPromo(const Move move) { return GetMovetype(move) & 8; }
 // Shorthand for captures + any promotion no matter if quiet or not 
 inline bool isTactical(const Move move) { return isCapture(move) || isPromo(move); }
-
-
-
