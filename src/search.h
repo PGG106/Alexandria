@@ -8,10 +8,10 @@
 struct SearchStack {
     // don't init. search will init before entering the negamax method
     int16_t staticEval;
-    int excludedMove;
-    int move;
+    Move excludedMove;
+    Move move;
     int ply;
-    int searchKiller;
+    Move searchKiller;
     int doubleExtensions;
     int (*contHistEntry)[12 * 64];
 };
