@@ -230,6 +230,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     int score = 0;
     int averageScore = SCORE_NONE;
     int bestMoveStabilityFactor = 0;
+    int evalStabilityFactor = 0;
     Move previousBestMove = NOMOVE;
     // Clean the position and the search info to start search from a clean state
     ClearForSearch(td);
@@ -249,10 +250,19 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 bestMoveStabilityFactor = 0;
                 previousBestMove = GetBestMove(&td->pvTable);
             }
+
+            // Keep track of eval stability
+            if (score >  averageScore - 10 && score < averageScore + 10) {
+                evalStabilityFactor = std::min(evalStabilityFactor + 1, 4);
+            }
+            else {
+                evalStabilityFactor = 0;
+            }
+
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
             if (   td->RootDepth > 7
                 && td->info.timeset) {
-                ScaleTm(td, bestMoveStabilityFactor);
+                ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor);
             }
 
             // check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
