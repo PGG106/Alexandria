@@ -1,3 +1,4 @@
+#include "init.h"
 #include "position.h"
 #include "attack.h"
 #include "cuckoo.h"
@@ -13,11 +14,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-Bitboard PieceKeys[12][64];
-Bitboard enpassant_keys[64];
-Bitboard SideKey;
-Bitboard CastleKeys[16];
 
 Bitboard FileBBMask[8];
 Bitboard RankBBMask[8];
@@ -44,10 +40,6 @@ Bitboard bishop_attacks[64][512];
 Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
-
-int reductions[2][64][64];
-int lmp_margin[64][2];
-int see_margin[64][2];
 
 // Initialize the Zobrist keys
 void initHashKeys() {

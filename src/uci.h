@@ -13,9 +13,9 @@ struct UciOptions {
 };
 
 // Internal flag to decide if to pretty or ugly print search results
-extern bool print_uci;
+inline bool print_uci = false;
 // Internal flag to disable the output of search results when we don't want our speed to be limited by the console
-extern bool tryhardmode;
+inline bool tryhardmode = false;
 // Parse a move from algebraic notation to the internal value
 [[nodiscard]] int ParseMove(const std::string& move_string, Position* pos);
 // parse UCI "position" command

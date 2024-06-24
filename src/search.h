@@ -5,17 +5,13 @@
 #include "position.h"
 #include "uci.h"
 
-extern int reductions[2][64][64];
-extern int lmp_margin[64][2];
-extern int see_margin[64][2];
-
 struct SearchStack {
-    // don't init, it will be init by search before entering the negamax method
-    int excludedMove;
+    // don't init. search will init before entering the negamax method
     int16_t staticEval;
-    int move;
+    Move excludedMove;
+    Move move;
     int ply;
-    int searchKiller;
+    Move searchKiller;
     int doubleExtensions;
     int (*contHistEntry)[12 * 64];
 };
