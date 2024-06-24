@@ -679,7 +679,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
             if(isQuiet)
-                depthReduction -= GetCHScore(ss, move) / 8192;
+                depthReduction -= GetCHScore(ss, move) / 4096;
             else
                 depthReduction -= moveHistory / 8192;
 
