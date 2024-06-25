@@ -613,7 +613,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 ss->excludedMove = NOMOVE;
 
                 if (singularScore < singularBeta) {
-                    extension = 1;
+                    extension = 2;
                     // Avoid search explosion by limiting the number of double extensions
                     if (   !pvNode
                         &&  singularScore < singularBeta - 17
