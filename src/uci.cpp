@@ -179,7 +179,7 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
     std::cout << "stopMax: " << info->stoptimeMax << " ";
     std::cout << "depth: " << info->depth << " ";
     std::cout << "timeset: " << info->timeset << " ";
-    std::cout << "nodeset: " << info->nodeset << "\n";
+    std::cout << "nodeset: " << info->nodeset << std::endl;
     return true;
 }
 
@@ -289,7 +289,7 @@ void UciLoop(int argc, char** argv) {
 
         // parse UCI "isready" command
         else if (input == "isready") {
-            std::cout << "readyok\n";
+            std::cout << "readyok"<< std::endl;
             continue;
         }
 
@@ -345,7 +345,7 @@ void UciLoop(int argc, char** argv) {
                 std::cout << param.maxValue << "\n";
             }
 #endif
-            std::cout << "uciok\n";
+            std::cout << "uciok" << std::endl;
             // Set uci compatible output mode
             print_uci = true;
         }
@@ -383,7 +383,7 @@ void UciLoop(int argc, char** argv) {
             MoveList moveList;
 
             // generate moves
-            GenerateMoves(&moveList, &td->pos, MOVEGEN_NOISY);
+            GenerateMoves(&moveList, &td->pos, MOVEGEN_ALL);
             printf("SEE thresholds\n");
             for (int i = 0; i < moveList.count; i++) {
                 Move move = moveList.moves[i].move;
