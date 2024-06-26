@@ -661,11 +661,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (cutNode)
                 depthReduction += 2;
 
-            if(isQuiet) {
+            // Reduce more if we are not improving
+            if (!improving)
+                depthReduction += 1;
 
-                // Reduce more if we are not improving
-                if (!improving)
-                    depthReduction += 1;
+            if(isQuiet) {
 
                 // Reduce less if the move is a refutation
                 if (move == mp.killer || move == mp.counter)
