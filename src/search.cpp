@@ -657,6 +657,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
+            // Reduce less if we have been on the PV
+            if (ttPv)
+                depthReduction -= 1 + cutNode;
+
             if(isQuiet) {
                 // Fuck
                 if (cutNode)
@@ -669,7 +673,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Reduce less if the move is a refutation
                 if (move == mp.killer || move == mp.counter)
                     depthReduction -= 1;
-
 
                 // Decrease the reduction for moves that give check
                 if (pos->checkers)
