@@ -277,6 +277,6 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         }
 
         // print new line
-        std::cout << "\n";
+        std::cout << std::endl;
     }
 }
