@@ -266,17 +266,17 @@ void UciLoop(int argc, char** argv) {
         else if (tokens[0] == "setoption") {
             // check tokens for size to see if we have a value
             if (tokens.size() < 5) {
-                std::cout << "Invalid setoption format" << "\n";
+                std::cout << "Invalid setoption format" << std::endl;
                 continue;
             }
             if (tokens.at(2) == "Hash") {
                 uciOptions.Hash = std::stoi(tokens.at(4));
-                std::cout << "Set Hash to " << uciOptions.Hash << " MB\n";
+                std::cout << "Set Hash to " << uciOptions.Hash << " MB" << std::endl;
                 InitTT(uciOptions.Hash);
             }
             else if (tokens.at(2) == "Threads") {
                 uciOptions.Threads = std::stoi(tokens.at(4));
-                std::cout << "Set Threads to " << uciOptions.Threads << "\n";
+                std::cout << "Set Threads to " << uciOptions.Threads << std::endl;;
             }
 #ifdef TUNE
             else {
@@ -359,7 +359,7 @@ void UciLoop(int argc, char** argv) {
         else if (input == "tune") {
             for (const auto &[key, param] : tunableParams())
             {
-                std::cout << param << "\n";
+                std::cout << param << std::endl;
             }
         }
 
