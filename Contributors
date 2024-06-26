@@ -1,5 +1,6 @@
 # Everyone that significantly contributed to Alex code (in alphabetical order)
 Beanie496 - fixed a small bug
+bftjoe - cleanups, speedups
 Ciekce - the entirety of the tuning setup
 Cosmo - relative NNUE inference code
 Disservin - Makefile and CI PR

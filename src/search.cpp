@@ -221,7 +221,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     // Print final bestmove found
     std::cout << "bestmove ";
     PrintMove(GetBestMove(&td->pvTable));
-    std::cout << "\n";
+    std::cout << std::endl;
 }
 
 // SearchPosition is the actual function that handles the search, it sets up the variables needed for the search, calls the AspirationWindowSearch function and handles the console output
