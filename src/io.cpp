@@ -191,7 +191,7 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
             // print PV move
             PrintMove(td->pvTable.pvArray[0][count]);
-            std::cout<< " " <<  std::flush;
+            std::cout << " ";
         }
 
         // print new line
