@@ -661,18 +661,18 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (cutNode)
                 depthReduction += 2;
 
-            // Reduce more if we are not improving
-            if (!improving)
-                depthReduction += 1;
+            // Decrease the reduction for moves that give check
+            if (pos->checkers)
+                depthReduction -= 1;
 
             if(isQuiet) {
 
+                // Reduce more if we are not improving
+                if (!improving)
+                    depthReduction += 1;
+
                 // Reduce less if the move is a refutation
                 if (move == mp.killer || move == mp.counter)
-                    depthReduction -= 1;
-
-                // Decrease the reduction for moves that give check
-                if (pos->checkers)
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
