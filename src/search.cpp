@@ -657,10 +657,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
+            // Fuck
+            if (cutNode)
+                depthReduction += 2;
+
             if(isQuiet) {
-                // Fuck
-                if (cutNode)
-                    depthReduction += 2;
 
                 // Reduce more if we are not improving
                 if (!improving)
