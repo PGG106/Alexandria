@@ -662,7 +662,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 depthReduction += 2;
 
             if(isQuiet) {
-
                 // Reduce more if we are not improving
                 if (!improving)
                     depthReduction += 1;
@@ -681,7 +680,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Reduce less if we have been on the PV
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
-
             }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
