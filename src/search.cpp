@@ -478,7 +478,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else
         improving = true;
 
-    bool getMeOutOfHere = std::abs(eval ) < 20;
+    bool getMeOutOfHere = std::abs(eval) < 10;
 
     if (!pvNode
         && !excludedMove
