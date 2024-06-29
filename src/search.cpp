@@ -680,6 +680,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
             }
+            else{
+                // Reduce more if we are not improving
+                if (improving)
+                    depthReduction -= 1;
+            }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
             depthReduction = std::clamp(depthReduction, 0, newDepth - 1);
