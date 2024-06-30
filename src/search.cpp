@@ -622,8 +622,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                         depth += depth < 10;
                     }
                 }
-                else if (singularBeta >= beta)
-                    return singularBeta;
+                else if (singularScore >= beta)
+                    return singularScore;
 
                 // If we didn't successfully extend and our TT score is above beta reduce the search depth
                 else if (ttScore >= beta)
