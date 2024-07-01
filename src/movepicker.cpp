@@ -41,7 +41,7 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
     std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const MovepickerType movepickerType) {
+void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove,  const int SEEThreshold, const MovepickerType movepickerType) {
 
     const Move killer = ss->searchKiller;
     const Move counter = sd->counterMoves[FromTo((ss - 1)->move)];
@@ -55,6 +55,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
     mp->killer = killer != ttMove ? killer : NOMOVE;
     mp->counter = counter != ttMove && counter != killer ? counter : NOMOVE;
+    mp->SEEThreshold = SEEThreshold;
 }
 
 Move NextMove(Movepicker* mp, const bool skip) {
@@ -106,7 +107,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold =  mp->movepickerType == PROBCUT ? 1 : -score / 32 + 236;
+            const int SEEThreshold =  mp->movepickerType == PROBCUT ? mp->SEEThreshold : -score / 32 + 236;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
