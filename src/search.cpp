@@ -490,8 +490,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
         // to prevent falling into zugzwangs.
-        if (   eval >= ss->staticEval
-            && eval >= beta
+        if (   eval + 50 * improving >= ss->staticEval
+            && eval + 50 * improving >= beta
             && (ss - 1)->move != NOMOVE
             && depth >= nmpDepth()
             && ss->ply >= td->nmpPlies

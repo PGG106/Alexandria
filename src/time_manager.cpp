@@ -61,7 +61,6 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalSt
     const double evalScalingFactor = evalScale[evalStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
     td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.stoptimeMax);
-
 }
 
 bool NodesOver(const SearchInfo* info) {
