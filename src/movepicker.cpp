@@ -72,6 +72,11 @@ Move NextMove(Movepicker* mp, const bool skip) {
             && mp->stage > PICK_GOOD_NOISY) {
             return NOMOVE;
         }
+        // In probcut, we only search captures that pass the threshold
+        if (   mp->movepickerType == PROBCUT
+               && mp->stage > PICK_GOOD_NOISY) {
+            return NOMOVE;
+        }
     }
     switch (mp->stage) {
     case PICK_TT:
