@@ -634,6 +634,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 else if (cutNode)
                     extension = -1;
             }
+            else if (pvNode &&
+                    To(move) == To((ss - 1)->move)
+                    && GetHistoryScore(pos, sd, move, ss) > 4116)
+                        extension = 1;
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
