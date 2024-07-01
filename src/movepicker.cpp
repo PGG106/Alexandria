@@ -81,12 +81,16 @@ Move NextMove(Movepicker* mp, const bool skip) {
     switch (mp->stage) {
     case PICK_TT:
         ++mp->stage;
-        // If we are in qsearch and not in check, skip quiet TT moves
-        if (mp->movepickerType == QSEARCH && skip && !isTactical(mp->ttMove))
-            goto top;
+        // If we are in qsearch and not in check, or we are in probcut, skip quiet TT moves
+        if ((mp->movepickerType == PROBCUT || (mp->movepickerType == QSEARCH && skip))
+            && !isTactical(mp->ttMove))
 
         // If the TT move if not pseudo legal we skip it too
         if (!IsPseudoLegal(mp->pos, mp->ttMove))
+            goto top;
+
+        // If we are in probcut and the TT move does not pass SEE, we skip it
+        if (mp->movepickerType == PROBCUT && !SEE(mp->pos, mp->ttMove, 1))
             goto top;
 
         return mp->ttMove;
@@ -102,7 +106,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold = -score / 32 + 236;
+            const int SEEThreshold =  mp->movepickerType == PROBCUT ? 1 : -score / 32 + 236;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
