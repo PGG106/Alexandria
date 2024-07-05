@@ -881,6 +881,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Move bestmove = NOMOVE;
     Move move;
     int totalMoves = 0;
+    int triedQuiets = 0;
 
     // loop over moves within the movelist
     while ((move = NextMove(&mp, !inCheck || bestScore > -MATE_FOUND)) != NOMOVE) {
@@ -900,6 +901,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
                 continue;
             }
         }
+        // only try one quiet evasion
+        if(isQuiet((move)) && triedQuiets) continue;
+        if(isQuiet(move)) triedQuiets++;
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
