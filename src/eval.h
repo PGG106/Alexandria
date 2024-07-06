@@ -49,6 +49,7 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
     int eval = EvalPositionRaw(pos);
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
+    eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;

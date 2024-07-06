@@ -1,7 +1,6 @@
 #include "movepicker.h"
 #include "move.h"
 #include "movegen.h"
-#include "piece_data.h"
 #include "history.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
