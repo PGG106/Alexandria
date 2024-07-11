@@ -388,7 +388,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (!rootNode) {
         // If position is a draw return a draw score
         if (IsDraw(pos))
-            return 0;
+            return -1 + (info->nodes & 2);
 
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
