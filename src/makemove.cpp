@@ -266,6 +266,8 @@ void MakeDP(const Move move, Position* pos)
 template void MakeMove<true>(const Move move, Position* pos);
 template void MakeMove<false>(const Move move, Position* pos);
 
+bool shouldFlip(int from, int to);
+
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
@@ -326,9 +328,27 @@ void MakeMove(const Move move, Position* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+
+    // Figure out if we need to refresh the accumulator
+    if(PieceType[Piece(move)] == KING){
+        if(shouldFlip(From(move), To(move))) {
+            // do Acc from scratch somehow
+        }
+    }
+
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
     assert(pos->pawnKey == GeneratePawnKey(pos));
+}
+
+bool shouldFlip(int from, int to) {
+    const bool prevFlipped = get_file[from] > 3;
+    const bool flipped = get_file[to] > 3;
+
+    if (prevFlipped != flipped)
+        return true;
+
+    return false;
 }
 
 void UnmakeMove(const Move move, Position* pos) {
