@@ -330,9 +330,11 @@ void MakeMove(const Move move, Position* pos) {
         pos->checkMask = fullCheckmask;
 
     // Figure out if we need to refresh the accumulator
-    if(PieceType[Piece(move)] == KING){
-        if(shouldFlip(From(move), To(move))) {
-            // do Acc from scratch somehow
+    if constexpr (UPDATE) {
+        if (PieceType[Piece(move)] == KING) {
+            if (shouldFlip(From(move), To(move))) {
+                // do Acc from scratch somehow
+            }
         }
     }
 
