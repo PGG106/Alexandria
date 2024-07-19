@@ -109,7 +109,7 @@ void NNUE::update(NNUE::Accumulator *acc) {
     if (adds == 0)
         return;
 
-    // Use pointer arithmetics recursively scan until we find a clean accumulator
+    // Use pointer arithmetics to recursively scan the accumulator stack backwards until we find a clean accumulator
     const bool isDirty = !(acc - 1)->NNUEAdd.empty();
     if (isDirty)
         update(acc - 1);
