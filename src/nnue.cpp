@@ -105,7 +105,8 @@ void NNUE::update(NNUE::Accumulator *acc) {
     int adds = acc->NNUEAdd.size();
     int subs = acc->NNUESub.size();
 
-    if (adds == 0 && subs == 0)
+    // return early if we already updated this accumulator (aka it's "clean")
+    if (adds == 0)
         return;
 
     // Use pointer arithmetics to check the previous accumulator in the accumstack, if it has pending changes (any change will result in at least one add)
