@@ -108,8 +108,12 @@ void NNUE::update(NNUE::Accumulator *acc) {
     if (adds == 0 && subs == 0)
         return;
 
-    if (!(acc - 1)->NNUEAdd.empty() && !(acc - 1)->NNUESub.empty())
+    // Use pointer arithmetics to check the previous accumulator in the accumstack, if it has pending changes (any change will result in at least one add)
+    // it's a dirty accumulator, so recursively update it
+    if (!(acc - 1)->NNUEAdd.empty())
         update(acc - 1);
+
+    // Once we have scanned back far enough to have a clean accumulator we can update on top of, start recursively updating
 
     // Quiets
     if (adds == 1 && subs == 1) {
@@ -126,7 +130,7 @@ void NNUE::update(NNUE::Accumulator *acc) {
         // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
         // the half-updated accumulator
     }
-    // Reset the add and sub vectors
+    // Reset the add and sub vectors for this vector
     acc->NNUEAdd.clear();
     acc->NNUESub.clear();
 }
