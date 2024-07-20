@@ -8,8 +8,6 @@ enum {
     PICK_TT,
     GEN_NOISY,
     PICK_GOOD_NOISY,
-    PICK_KILLER,
-    PICK_COUNTER,
     GEN_QUIETS,
     PICK_QUIETS,
     GEN_BAD_NOISY,
@@ -27,10 +25,7 @@ struct Movepicker {
     SearchData* sd;
     SearchStack* ss;
     MoveList moveList;
-    MoveList badCaptureList;
     Move ttMove;
-    Move killer;
-    Move counter;
     int idx;
     int stage;
 };
