@@ -14,8 +14,9 @@ template void ClearPiece<true>(const int piece, const int to, Position* pos);
 // Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
+    std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
     if constexpr(UPDATE)
-        pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, from));
+        pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, from, flip));
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
     pop_bit(pos->occupancies[color], from);
@@ -32,7 +33,7 @@ template void AddPiece<true>(const int piece, const int to, Position* pos);
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
     if constexpr(UPDATE)
-        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to));
+        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to, std::pair<bool, bool>()));
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);

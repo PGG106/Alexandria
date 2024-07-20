@@ -53,9 +53,10 @@ public:
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     void update(Accumulator *acc, int i, int i1);
-    void addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
-    void addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
+    void
+    addSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
+    void addSubSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
-    [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square);
+    [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square, std::pair<bool, bool> pair);
 };

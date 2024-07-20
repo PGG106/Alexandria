@@ -88,7 +88,7 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     for (int i = 0; i < 64; i++) {
         bool input = pos->pieces[i] != EMPTY;
         if (!input) continue;
-        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i);
+        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i, std::pair<bool, bool>());
         auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
         auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
@@ -116,6 +116,12 @@ void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
 
     // Once we have scanned back far enough and have a clean accumulator we can update on top of, start recursively updating
 
+    // then check if any accumulator needs a refresh, if it does ignore whatever scheduled updates we have for it and get a new accumulator from scratch
+    if(acc->needsRefresh[WHITE])  /* get white ACC from scratch somehowzers*/ return;
+    if(acc->needsRefresh[BLACK]) /* get black ACC from scratch somehowzers*/ return;
+
+    // treat any accumulator that doesn't need a full refresh as normal, make sure to account for mirroring when updating weights and ignoring refreshed accs
+
     // Quiets
     if (adds == 1 && subs == 1) {
         addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
@@ -134,9 +140,11 @@ void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     acc->NNUEAdd.clear();
     acc->NNUESub.clear();
+    // mark any accumulator as refreshed
+    acc->needsRefresh[WHITE] = acc->needsRefresh[BLACK] = false;
 }
 
-void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
+void NNUE::addSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
     auto [whiteAddIdx, blackAddIdx] = add;
     auto [whiteSubIdx, blackSubIdx] = sub;
     auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
@@ -151,7 +159,7 @@ void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEI
     }
 }
 
-void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
+void NNUE::addSubSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
 
     auto [whiteAddIdx, blackAddIdx] = add;
     auto [whiteSubIdx1, blackSubIdx1] = sub1;
@@ -230,12 +238,19 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whit
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-NNUEIndices NNUE::GetIndex(const int piece, const int square) {
+NNUEIndices NNUE::GetIndex(const int piece, const int square, std::pair<bool, bool> flip) {
+    // unpack what needs to be flipped
+    auto [whiteShouldFlip,blackShouldFlip] = flip;
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     int piecetype = GetPieceType(piece);
     int color = Color[piece];
-    std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + (square ^ 0b111'000);
-    std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + square;
+    // Get the final indexes of the updates, accounting for hm
+    auto white_square = (square ^ 0b111'000);
+    if(whiteShouldFlip) white_square ^ 7;
+    auto black_square = square ;
+    if(blackShouldFlip) black_square ^ 7;
+    std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + white_square;
+    std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + black_square;
     return {whiteIdx, blackIdx};
 }
