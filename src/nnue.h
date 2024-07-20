@@ -20,7 +20,7 @@ constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
 constexpr int CHUNK_SIZE = 1;
 #endif
 
-using NNUEIndices = std::pair<std::size_t, std::size_t>;
+using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
     int16_t FTWeights[NUM_INPUTS * L1_SIZE];

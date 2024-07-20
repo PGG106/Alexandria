@@ -144,38 +144,24 @@ void NNUE::update(Accumulator *acc) {
     acc->needsRefresh[WHITE] = acc->needsRefresh[BLACK] = false;
 }
 
-void NNUE::addSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
-    auto [whiteAddIdx, blackAddIdx] = add;
-    auto [whiteSubIdx, blackSubIdx] = sub;
-    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
-    auto whiteSub = &net.FTWeights[whiteSubIdx * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub[i] + whiteAdd[i];
-    }
-    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
-    auto blackSub = &net.FTWeights[blackSubIdx * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub[i] + blackAdd[i];
+void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
+    for(int color = WHITE; color <= BLACK; color++) {
+        auto Add = &net.FTWeights[add[color] * L1_SIZE];
+        auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i++) {
+            new_acc->values[color][i] = prev_acc->values[color][i] - Sub[i] + Add[i];
+        }
     }
 }
 
-void NNUE::addSubSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
-
-    auto [whiteAddIdx, blackAddIdx] = add;
-    auto [whiteSubIdx1, blackSubIdx1] = sub1;
-    auto [whiteSubIdx2, blackSubIdx2] = sub2;
-
-    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
-    auto whiteSub1 = &net.FTWeights[whiteSubIdx1 * L1_SIZE];
-    auto whiteSub2 = &net.FTWeights[whiteSubIdx2 * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
-    }
-    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
-    auto blackSub1 = &net.FTWeights[blackSubIdx1 * L1_SIZE];
-    auto blackSub2 = &net.FTWeights[blackSubIdx2 * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
+void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
+    for(int color = WHITE; color <= BLACK; color++) {
+        auto Add = &net.FTWeights[add[color] * L1_SIZE];
+        auto Sub1 = &net.FTWeights[sub1[color] * L1_SIZE];
+        auto Sub2 = &net.FTWeights[sub2[color] * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i++) {
+            new_acc->values[color][i] = prev_acc->values[color][i] - Sub1[i] - Sub2[i] + Add[i];
+        }
     }
 }
 
