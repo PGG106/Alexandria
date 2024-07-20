@@ -601,6 +601,9 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             // Get base reduction value
             int depthReduction = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
 
+            // Reduce less if we are on or have been on the PV
+            if (ttPv) depthReduction -= 1;
+
             // Clamp the reduced search depth so that we neither extend nor drop into qsearch
             // We use min/max instead of clamp due to issues that can arise if newDepth < 1
             int reducedDepth = std::min(std::max(newDepth - depthReduction, 1), newDepth);
