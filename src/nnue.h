@@ -52,7 +52,7 @@ public:
 
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
-    void update(Accumulator *acc, int i, int i1);
+    void update(Accumulator *acc);
     void
     addSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
     void addSubSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);

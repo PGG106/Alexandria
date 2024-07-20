@@ -100,7 +100,7 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     }
 }
 
-void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
+void NNUE::update(Accumulator *acc) {
 
     int adds = acc->NNUEAdd.size();
     int subs = acc->NNUESub.size();
@@ -112,7 +112,7 @@ void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
     // Use pointer arithmetics to recursively scan the accumulator stack backwards until we find a clean accumulator
     const bool isDirty = !(acc - 1)->NNUEAdd.empty();
     if (isDirty)
-        update(acc - 1, 0, 0);
+        update(acc - 1);
 
     // Once we have scanned back far enough and have a clean accumulator we can update on top of, start recursively updating
 
@@ -120,7 +120,7 @@ void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
     if(acc->needsRefresh[WHITE])  /* get white ACC from scratch somehowzers*/ return;
     if(acc->needsRefresh[BLACK]) /* get black ACC from scratch somehowzers*/ return;
 
-    // treat any accumulator that doesn't need a full refresh as normal, make sure to account for mirroring when updating weights and ignoring refreshed accs
+    // treat any accumulator that doesn't need a full refresh as normal
 
     // Quiets
     if (adds == 1 && subs == 1) {
@@ -248,7 +248,7 @@ NNUEIndices NNUE::GetIndex(const int piece, const int square, std::pair<bool, bo
     // Get the final indexes of the updates, accounting for hm
     auto white_square = (square ^ 0b111'000);
     if(whiteShouldFlip) white_square ^ 7;
-    auto black_square = square ;
+    auto black_square = square;
     if(blackShouldFlip) black_square ^ 7;
     std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + white_square;
     std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + black_square;
