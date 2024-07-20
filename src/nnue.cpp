@@ -85,10 +85,12 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
         board_accumulator.values[1][i] = net.FTBiases[i];
     }
 
-    for (int i = 0; i < 64; i++) {
-        bool input = pos->pieces[i] != EMPTY;
+    std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
+
+    for (int square = 0; square < 64; square++) {
+        bool input = pos->pieces[square] != EMPTY;
         if (!input) continue;
-        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i, std::pair<bool, bool>());
+        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[square], square, flip);
         auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
         auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
@@ -146,8 +148,8 @@ void NNUE::update(Accumulator *acc) {
 
 void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
     for(int color = WHITE; color <= BLACK; color++) {
-        auto Add = &net.FTWeights[add[color] * L1_SIZE];
-        auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
+        const auto Add = &net.FTWeights[add[color] * L1_SIZE];
+        const auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
             new_acc->values[color][i] = prev_acc->values[color][i] - Sub[i] + Add[i];
         }
