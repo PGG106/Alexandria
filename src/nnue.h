@@ -34,8 +34,13 @@ struct Position;
 
 class NNUE {
 public:
+    // per pov accumulator
+    struct Pov_Accumulator{
+            std::array<int16_t, L1_SIZE> values;
+    };
+// final total accumulator that holds the 2 povs
     struct Accumulator {
-        std::array<std::array<int16_t, L1_SIZE>, 2> values;
+        std::array<Pov_Accumulator, 2> perspective;
         std::vector<NNUEIndices> NNUEAdd = {};
         std::vector<NNUEIndices> NNUESub = {};
 

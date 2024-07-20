@@ -79,10 +79,12 @@ void NNUE::init(const char* file) {
 
 }
 
+//TODO write split accumulate
+
 void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     for (int i = 0; i < L1_SIZE; i++) {
-        board_accumulator.values[0][i] = net.FTBiases[i];
-        board_accumulator.values[1][i] = net.FTBiases[i];
+        board_accumulator.perspective[WHITE].values[i] = net.FTBiases[i];
+        board_accumulator.perspective[BLACK].values[i] = net.FTBiases[i];
     }
 
     std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
@@ -94,10 +96,8 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
         auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
         auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
-            board_accumulator.values[0][j] += whiteAdd[j];
-        }
-        for (int j = 0; j < L1_SIZE; j++) {
-            board_accumulator.values[1][j] += blackAdd[j];
+            board_accumulator.perspective[WHITE].values[j] += whiteAdd[j];
+            board_accumulator.perspective[BLACK].values[j] += blackAdd[j];
         }
     }
 }
@@ -151,7 +151,7 @@ void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEI
         const auto Add = &net.FTWeights[add[color] * L1_SIZE];
         const auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc->values[color][i] = prev_acc->values[color][i] - Sub[i] + Add[i];
+            new_acc->perspective[color].values[i] = prev_acc->perspective[color].values[i] - Sub[i] + Add[i];
         }
     }
 }
@@ -162,7 +162,7 @@ void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NN
         auto Sub1 = &net.FTWeights[sub1[color] * L1_SIZE];
         auto Sub2 = &net.FTWeights[sub2[color] * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc->values[color][i] = prev_acc->values[color][i] - Sub1[i] - Sub2[i] + Add[i];
+            new_acc->perspective[color].values[i] = prev_acc->perspective[color].values[i] - Sub1[i] - Sub2[i] + Add[i];
         }
     }
 }
@@ -215,11 +215,11 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whit
     const int16_t* us;
     const int16_t* them;
     if (whiteToMove) {
-        us = board_accumulator.values[0].data();
-        them = board_accumulator.values[1].data();
+        us = board_accumulator.perspective[WHITE].values.data();
+        them = board_accumulator.perspective[BLACK].values.data();
     } else {
-        us = board_accumulator.values[1].data();
-        them = board_accumulator.values[0].data();
+        us = board_accumulator.perspective[BLACK].values.data();
+        them = board_accumulator.perspective[WHITE].values.data();
     }
 
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
