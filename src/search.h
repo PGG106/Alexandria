@@ -6,22 +6,12 @@
 #include "uci.h"
 
 struct SearchStack {
-    // don't init. search will init before entering the negamax method
-    int16_t staticEval;
-    Move excludedMove;
-    Move move;
     int ply;
-    Move searchKiller;
-    int doubleExtensions;
-    int (*contHistEntry)[12 * 64];
+    int staticEval;
+    Move move;
 };
 
 struct SearchData {
-    int searchHistory[2][64 * 64] = {};
-    int captHist[12 * 64][6] = {};
-    int counterMoves[64 * 64] = {};
-    int contHist[12 * 64][12 * 64] = {};
-    int corrHist[2][CORRHIST_SIZE] = {};
 };
 
 struct PvTable {
@@ -39,7 +29,6 @@ struct ThreadData {
     PvTable pvTable;
     uint64_t nodeSpentTable[64 * 64];
     int RootDepth;
-    int nmpPlies;
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state
@@ -56,7 +45,7 @@ void SearchPosition(int start_depth, int final_depth, ThreadData* td, UciOptions
 
 // Negamax alpha beta search
 template <bool pvNode>
-[[nodiscard]] int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, SearchStack* ss);
+[[nodiscard]] int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss);
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
