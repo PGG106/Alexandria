@@ -138,26 +138,27 @@ void NNUE::update(NNUE::Accumulator *acc) {
 
 void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
     for(int color = WHITE; color <= BLACK; color++) {
-        auto addIdx = add[color];
-        auto subIdx = sub[color];
-        auto Add = &net.FTWeights[addIdx * L1_SIZE];
-        auto Sub = &net.FTWeights[subIdx * L1_SIZE];
-        for (int i = 0; i < L1_SIZE; i++) {
+        auto Add = &net.FTWeights[add[color] * L1_SIZE];
+        auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i+=4) {
             new_acc->values[color][i] = prev_acc->values[color][i] - Sub[i] + Add[i];
+            new_acc->values[color][i+1] = prev_acc->values[color][i+1] - Sub[i+1] + Add[i+1];
+            new_acc->values[color][i+2] = prev_acc->values[color][i+2] - Sub[i+2] + Add[i+2];
+            new_acc->values[color][i+3] = prev_acc->values[color][i+3] - Sub[i+3] + Add[i+3];
         }
     }
 }
 
 void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
     for(int color = WHITE; color <= BLACK; color++) {
-        auto addIdx = add[color];
-        auto subIdx1 = sub1[color];
-        auto subIdx2 = sub2[color];
-        auto Add = &net.FTWeights[addIdx * L1_SIZE];
-        auto Sub1 = &net.FTWeights[subIdx1 * L1_SIZE];
-        auto Sub2 = &net.FTWeights[subIdx2 * L1_SIZE];
-        for (int i = 0; i < L1_SIZE; i++) {
+        auto Add = &net.FTWeights[add[color] * L1_SIZE];
+        auto Sub1 = &net.FTWeights[sub1[color] * L1_SIZE];
+        auto Sub2 = &net.FTWeights[sub2[color] * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i+=4) {
             new_acc->values[color][i] = prev_acc->values[color][i] - Sub1[i] - Sub2[i] + Add[i];
+            new_acc->values[color][i+1] = prev_acc->values[color][i+1] - Sub1[i+1] - Sub2[i+1] + Add[i+1];
+            new_acc->values[color][i+2] = prev_acc->values[color][i+2] - Sub1[i+2] - Sub2[i+2] + Add[i+2];
+            new_acc->values[color][i+3] = prev_acc->values[color][i+3] - Sub1[i+3] - Sub2[i+3] + Add[i+3];
         }
     }
 }
