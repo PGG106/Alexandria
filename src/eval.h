@@ -36,7 +36,9 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {
     // Update accumulators to ensure we are up to date on the current board state
-    nnue.update(&pos->AccumulatorTop());
+    auto whiteKingSquare = KingSQ(pos,WHITE);
+    auto blackKingSquare = KingSQ(pos,BLACK);
+    nnue.update(&pos->AccumulatorTop(), whiteKingSquare, blackKingSquare);
 
     const bool stm = pos->side == WHITE;
     const int pieceCount = pos->PieceCount();

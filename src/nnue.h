@@ -46,11 +46,13 @@ public:
         void AppendSubIndex(NNUEIndices index) {
             NNUESub.emplace_back(index);
         }
+        // Keep track of if we have to throw away the acc and get a new one or not
+        std::array<bool,2> needsRefresh;
     };
 
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
-    void update(NNUE::Accumulator *acc);
+    void update(Accumulator *acc, int i, int i1);
     void addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
     void addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);

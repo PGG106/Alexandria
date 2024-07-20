@@ -100,33 +100,38 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     }
 }
 
-void NNUE::update(NNUE::Accumulator *acc) {
+void NNUE::update(Accumulator *acc, int whiteKingSquare, int blackKingSquare) {
 
     int adds = acc->NNUEAdd.size();
     int subs = acc->NNUESub.size();
 
-    if (adds == 0 && subs == 0)
+    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    if (adds == 0)
         return;
 
-    if (!(acc - 1)->NNUEAdd.empty() && !(acc - 1)->NNUESub.empty())
-        update(acc - 1);
+    // Use pointer arithmetics to recursively scan the accumulator stack backwards until we find a clean accumulator
+    const bool isDirty = !(acc - 1)->NNUEAdd.empty();
+    if (isDirty)
+        update(acc - 1, 0, 0);
+
+    // Once we have scanned back far enough and have a clean accumulator we can update on top of, start recursively updating
 
     // Quiets
     if (adds == 1 && subs == 1) {
         addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
     }
-    // Captures
+        // Captures
     else if (adds == 1 && subs == 2) {
         addSubSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0], acc->NNUESub[1]);
     }
-    // Castling
+        // Castling
     else {
         addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
         addSub(acc, acc, acc->NNUEAdd[1], acc->NNUESub[1]);
         // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
         // the half-updated accumulator
     }
-    // Reset the add and sub vectors
+    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     acc->NNUEAdd.clear();
     acc->NNUESub.clear();
 }

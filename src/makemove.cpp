@@ -311,9 +311,6 @@ void MakeMove(const Move move, Position* pos) {
         MakeCapture<UPDATE>(move, pos);
     }
 
-    if constexpr (UPDATE)
-        pos->historyStackHead++;
-
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
@@ -333,10 +330,15 @@ void MakeMove(const Move move, Position* pos) {
     if constexpr (UPDATE) {
         if (PieceType[Piece(move)] == KING) {
             if (shouldFlip(From(move), To(move))) {
-                // do Acc from scratch somehow
+                // tell the right accumulator it'll need a refresh
+                auto kingColor = Color[Piece(move)];
+                pos->accumStack[pos->accumStackHead].needsRefresh[kingColor] = true;
             }
         }
     }
+
+    if constexpr (UPDATE)
+        pos->historyStackHead++;
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
