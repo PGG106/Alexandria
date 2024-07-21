@@ -41,7 +41,14 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
     const bool stm = pos->side == WHITE;
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-    return nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
+
+    int eval = nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
+
+    int correct_eval = nnue.output(pos->accumStack[pos->accumStackHead -1], stm, outputBucket);;
+
+    assert(eval == correct_eval);
+
+    return eval;
 }
 
 // position evaluation
