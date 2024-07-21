@@ -79,79 +79,19 @@ void NNUE::init(const char* file) {
 
 }
 
-//TODO write split accumulate
-
-void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
-    for (int i = 0; i < L1_SIZE; i++) {
-        board_accumulator.perspective[WHITE].values[i] = net.FTBiases[i];
-        board_accumulator.perspective[BLACK].values[i] = net.FTBiases[i];
-    }
-
-    std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
-
-    for (int square = 0; square < 64; square++) {
-        bool input = pos->pieces[square] != EMPTY;
-        if (!input) continue;
-        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[square], square, flip);
-        auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
-        auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
-        for (int j = 0; j < L1_SIZE; j++) {
-            board_accumulator.perspective[WHITE].values[j] += whiteAdd[j];
-            board_accumulator.perspective[BLACK].values[j] += blackAdd[j];
-        }
-    }
-}
-
-void NNUE::update(Accumulator *acc) {
-
-    int adds = acc->NNUEAdd.size();
-    int subs = acc->NNUESub.size();
-
-    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (adds == 0)
-        return;
-
-    // Use pointer arithmetics to recursively scan the accumulator stack backwards until we find a clean accumulator
-    const bool isDirty = !(acc - 1)->NNUEAdd.empty();
-    if (isDirty)
-        update(acc - 1);
-
-    // Once we have scanned back far enough and have a clean accumulator we can update on top of, start recursively updating
-
-    // then check if any accumulator needs a refresh, if it does ignore whatever scheduled updates we have for it and get a new accumulator from scratch
-    if(acc->needsRefresh[WHITE])  /* get white ACC from scratch somehowzers*/ return;
-    if(acc->needsRefresh[BLACK]) /* get black ACC from scratch somehowzers*/ return;
-
-    // treat any accumulator that doesn't need a full refresh as normal
-
-    // Quiets
-    if (adds == 1 && subs == 1) {
-        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
-    }
-        // Captures
-    else if (adds == 1 && subs == 2) {
-        addSubSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0], acc->NNUESub[1]);
-    }
-        // Castling
-    else {
-        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
-        addSub(acc, acc, acc->NNUEAdd[1], acc->NNUESub[1]);
-        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
-        // the half-updated accumulator
-    }
-    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-    acc->NNUEAdd.clear();
-    acc->NNUESub.clear();
-    // mark any accumulator as refreshed
-    acc->needsRefresh[WHITE] = acc->needsRefresh[BLACK] = false;
-}
-
-void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
+void NNUE::update(Accumulator *acc, Position* pos) {
     for(int color = WHITE; color <= BLACK; color++) {
-        const auto Add = &net.FTWeights[add[color] * L1_SIZE];
-        const auto Sub = &net.FTWeights[sub[color] * L1_SIZE];
+        recursive_update(acc, pos, color);
+    }
+}
+
+
+void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
+    for(int color = WHITE; color <= BLACK; color++) {
+        const auto Add = &net.FTWeights[add * L1_SIZE];
+        const auto Sub = &net.FTWeights[sub * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc->perspective[color].values[i] = prev_acc->perspective[color].values[i] - Sub[i] + Add[i];
+            new_acc.values[i] = prev_acc.values[i] - Sub[i] + Add[i];
         }
     }
 }
@@ -242,3 +182,88 @@ NNUEIndices NNUE::GetIndex(const int piece, const int square, std::pair<bool, bo
     std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + black_square;
     return {whiteIdx, blackIdx};
 }
+
+void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
+    for(auto& pov_acc : board_accumulator.perspective) {
+        pov_acc.accumulate(pos);
+    }
+}
+
+void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int color) {
+
+    auto povAccumulator = (pAccumulator)->perspective[color];
+
+    // figure out what update we need to apply and do that
+    int adds = povAccumulator.NNUEAdd.size();
+    int subs = povAccumulator.NNUESub.size();
+
+    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    if (adds == 0)
+        return;
+
+    // find the first clean or in need of refresh accumulator of the given color, once it's found update it and propagate the update
+    auto previousPovAccumulator = (pAccumulator -1)->perspective[color];
+    const bool isUsable = previousPovAccumulator.NNUEAdd.empty() || previousPovAccumulator.needsRefresh;
+    if (!isUsable)
+        recursive_update(pAccumulator - 1, pos, color);
+// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
+
+    if (povAccumulator.needsRefresh) {
+        povAccumulator.accumulate(pos);
+    } else {
+
+        // Quiets
+        if (adds == 1 && subs == 1) {
+            povAccumulator.addSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
+        }
+            // Captures
+        else if (adds == 1 && subs == 2) {
+            addSubSub(pAccumulator, pAccumulator - 1, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0],
+                      povAccumulator.NNUESub[1]);
+        }
+            // Castling
+        else {
+            povAccumulator.addSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
+            povAccumulator.addSub(povAccumulator, povAccumulator, povAccumulator.NNUEAdd[1], povAccumulator.NNUESub[1]);
+            // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
+            // the half-updated accumulator
+        }
+        // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+        povAccumulator.NNUEAdd.clear();
+        povAccumulator.NNUESub.clear();
+        // mark any accumulator as refreshed
+        povAccumulator.needsRefresh = false;
+    }
+}
+
+void NNUE::Pov_Accumulator::accumulate( Position *pos) {
+    for (int i = 0; i < L1_SIZE; i++) {
+       values[i] = net.FTBiases[i];
+    }
+
+    bool flip = get_file[KingSQ(pos, pov)] > 3;
+
+    for (int square = 0; square < 64; square++) {
+        bool input = pos->pieces[square] != EMPTY;
+        if (!input) continue;
+        auto Idx = GetIndex(pos->pieces[square], square, flip);
+        auto Add = &net.FTWeights[Idx * L1_SIZE];
+        for (int j = 0; j < L1_SIZE; j++) {
+            values[j] += Add[j];
+        }
+    }
+}
+
+int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip) const {
+    constexpr std::size_t COLOR_STRIDE = 64 * 6;
+    constexpr std::size_t PIECE_STRIDE = 64;
+    int piecetype = GetPieceType(piece);
+    int pieceColor = Color[piece];
+    auto pieceColorPov = pov == WHITE ? pieceColor : (1 ^ pieceColor);
+    // Get the final indexes of the updates, accounting for hm
+    auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
+    if(flip) squarePov ^= 0b000'111;
+    std::size_t Idx = pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    return Idx;
+}
+
