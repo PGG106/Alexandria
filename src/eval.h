@@ -44,11 +44,19 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 
     int eval = nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
 
-    int correct_eval = nnue.output(pos->accumStack[pos->accumStackHead -1], stm, outputBucket);;
+    nnue.accumulate(pos->AccumulatorTop(), pos);
+
+    int correct_eval = nnue.output(pos->accumStack[pos->accumStackHead -1], stm, outputBucket);
+
+    if(eval != correct_eval){
+        PrintBoard(pos);
+        std::cout<<eval<<std::endl;
+        std::cout<<correct_eval<<std::endl;
+    }
 
     assert(eval == correct_eval);
 
-    return eval;
+    return correct_eval;
 }
 
 // position evaluation

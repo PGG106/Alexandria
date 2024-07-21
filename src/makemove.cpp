@@ -3,6 +3,7 @@
 #include "ttable.h"
 #include "position.h"
 #include "init.h"
+#include "io.h"
 
 void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
     originalKey ^= key;
@@ -336,7 +337,7 @@ void MakeMove(const Move move, Position* pos) {
             if (shouldFlip(From(move), To(move))) {
                 // tell the right accumulator it'll need a refresh
                 auto kingColor = Color[Piece(move)];
-                pos->accumStack[pos->accumStackHead].perspective[kingColor].needsRefresh = true;
+                pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
             }
         }
     }

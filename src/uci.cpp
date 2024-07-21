@@ -447,6 +447,48 @@ void UciLoop(int argc, char** argv) {
                 std::cout << correct_eval <<std::endl;
             }
             assert(eval == correct_eval);
+
+            // Bucket refresh scenario
+            ParsePosition("position fen rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR b kq - 2 4 ", &td->pos);
+            std::cout<<"\n Starting values:\n";
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+            std::cout<<std::endl;
+            const auto move2 = encode_move(e1,d2,WK,Movetype::Quiet);
+            MakeMove<true>(move2,&td->pos);
+
+            bool refresh_required =  td->pos.accumStack[td->pos.accumStackHead-1].perspective[WHITE].needsRefresh;
+
+            std::cout << "Refresh needed: " << refresh_required<<std::endl;
+
+            int eval2 = EvalPositionRaw(&td->pos);
+
+            std::cout<<" Final values samples:\n";
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+            std::cout<<std::endl;
+            int correct_eval2 = 0;
+
+            nnue.accumulate(td->pos.AccumulatorTop(), &td->pos);
+
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+
+            std::cout <<std::endl;
+
+            const bool stm2 = td->pos.side == WHITE;
+            const int pieceCount2 = (&td->pos)->PieceCount();
+            const int outputBucket2 = std::min((63 - pieceCount2) * (32 - pieceCount2) / 225, 7);
+            correct_eval2 = nnue.output(td->pos.accumStack[td->pos.accumStackHead -1], stm2, outputBucket2);
+
+            if(eval2 != correct_eval2){
+                std::cout << eval2 <<std::endl;
+                std::cout << correct_eval2 <<std::endl;
+            }
+            assert(eval2 == correct_eval2);
         }
 
         else if (input == "bench") {

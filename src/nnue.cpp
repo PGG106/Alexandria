@@ -199,17 +199,15 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
 
     // find the first clean or in need of refresh accumulator of the given color, once it's found update it and propagate the update
     auto& previousPovAccumulator = (pAccumulator -1)->perspective[color];
-    const bool isUsable = previousPovAccumulator.NNUEAdd.empty() || povAccumulator.needsRefresh;
+    const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.NNUEAdd.empty();
     if (!isUsable)
         recursive_update(pAccumulator - 1, pos, color);
 // if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
-
     if (povAccumulator.needsRefresh) {
         povAccumulator.accumulate(pos);
         // mark any accumulator as refreshed
         povAccumulator.needsRefresh = false;
     } else {
-
         // Quiets
         if (adds == 1 && subs == 1) {
             povAccumulator.addSub( previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);

@@ -41,7 +41,7 @@ public:
             int pov;
             std::vector<std::size_t> NNUEAdd = {};
             std::vector<std::size_t> NNUESub = {};
-            bool needsRefresh;
+            bool needsRefresh = false;
 
         void accumulate(Position *pos);
         [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
