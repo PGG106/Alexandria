@@ -45,8 +45,8 @@ public:
 
         void accumulate(Position *pos);
         [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
-        void addSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
-        void addSubSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+        void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
+        void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {
