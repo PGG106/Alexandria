@@ -86,20 +86,20 @@ void NNUE::update(Accumulator *acc, Position* pos) {
 }
 
 
-void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
+void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
         const auto Add = &net.FTWeights[add * L1_SIZE];
         const auto Sub = &net.FTWeights[sub * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc.values[i] = prev_acc.values[i] - Sub[i] + Add[i];
+            this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
         }
 }
 
-void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
+void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
         auto Add = &net.FTWeights[add * L1_SIZE];
         auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
         auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc.values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
+            this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
         }
 }
 
@@ -187,7 +187,7 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
 
 void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int color) {
 
-    auto povAccumulator = (pAccumulator)->perspective[color];
+    auto &povAccumulator = (pAccumulator)->perspective[color];
 
     // figure out what update we need to apply and do that
     int adds = povAccumulator.NNUEAdd.size();
@@ -198,7 +198,7 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
         return;
 
     // find the first clean or in need of refresh accumulator of the given color, once it's found update it and propagate the update
-    auto previousPovAccumulator = (pAccumulator -1)->perspective[color];
+    auto& previousPovAccumulator = (pAccumulator -1)->perspective[color];
     const bool isUsable = previousPovAccumulator.NNUEAdd.empty() || povAccumulator.needsRefresh;
     if (!isUsable)
         recursive_update(pAccumulator - 1, pos, color);
@@ -212,17 +212,16 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
 
         // Quiets
         if (adds == 1 && subs == 1) {
-            povAccumulator.addSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
+            povAccumulator.addSub( previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
         }
             // Captures
         else if (adds == 1 && subs == 2) {
-            povAccumulator.addSubSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0],
-                      povAccumulator.NNUESub[1]);
+            povAccumulator.addSubSub(previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0],povAccumulator.NNUESub[1]);
         }
             // Castling
         else {
-            povAccumulator.addSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
-            povAccumulator.addSub(povAccumulator, povAccumulator, povAccumulator.NNUEAdd[1], povAccumulator.NNUESub[1]);
+            povAccumulator.addSub( previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
+            povAccumulator.addSub(previousPovAccumulator, povAccumulator.NNUEAdd[1], povAccumulator.NNUESub[1]);
             // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
             // the half-updated accumulator
         }
@@ -232,7 +231,7 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
     povAccumulator.NNUESub.clear();
 }
 
-void NNUE::Pov_Accumulator::accumulate( Position *pos) {
+void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     for (int i = 0; i < L1_SIZE; i++) {
        values[i] = net.FTBiases[i];
     }
@@ -262,4 +261,3 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip
     std::size_t Idx = pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }
-
