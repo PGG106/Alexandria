@@ -296,9 +296,12 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->ply = i;
     }
 
+    int alpha = -MAXSCORE;
+    int beta = MAXSCORE;
+
     // Stay at current depth if we fail high/low because of the aspiration windows
     while (true) {
-        score = Negamax<true>(-MAXSCORE, MAXSCORE, depth, td, ss);
+        score = Negamax<true>(alpha, beta, depth, td, ss);
 
         // Check if more than Maxtime passed and we have to stop
         if (td->id == 0 && TimeOver(&td->info)) {
@@ -309,6 +312,9 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
         // Stop calculating and return best move so far
         if (td->info.stopped) break;
+
+        // Exact bound, we no longer need to continue searching at this depth
+        if (alpha < score && score < beta) break;
     }
     return score;
 }
