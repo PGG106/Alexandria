@@ -410,6 +410,17 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, ss->staticEval, HFNONE, 0, pvNode, ttPv);
     }
 
+    if (   !pvNode
+        && !inCheck) {
+        // Reverse Futility Pruning (RFP) / Static Null Move Pruning (SNMP)
+        // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
+        // and return a fail high score.
+        if (   depth <= 8
+            && eval - 70 * depth >= beta
+            && std::abs(eval) < MATE_FOUND)
+            return eval;
+    }
+
     // old value of alpha
     const int old_alpha = alpha;
     int bestScore = -MAXSCORE;
