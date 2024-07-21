@@ -39,30 +39,33 @@ inline void dbg_mean_of(int val) { _count++; _accumulator += val; }
 
 inline void dbg_print() { std::cout << double(_accumulator) / _count << std::endl; }
 
-inline void debugUE(const std::string& fen, int move, Position* pos){
+inline void debugUE(const std::string& fen, const int move, Position* pos){
     ParseFen(fen, pos);
+
+    const auto pov = BLACK;
+
     std::cout<<"\n Starting values: \n";
     for(int i = 0; i < 10; i++) {
-        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[pov].values[i]<<" ";
     }
     std::cout<<std::endl;
 
     const auto piece = Piece(move);
     const auto fromSquare = From(move);
     const auto toSquare = To(move);
-    const bool flip = KingSQ(pos,WHITE) > 3;
+    const bool flip = KingSQ(pos,pov) > 3;
 
-    std::cout<<"Correct Indexes: " <<pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].GetIndex(piece,fromSquare,flip)<<" " << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].GetIndex(piece,toSquare,flip) << std::endl;
+    std::cout<<"Correct Indexes: " <<pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,fromSquare,flip)<<" " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,toSquare,flip) << std::endl;
     MakeMove<true>(move,pos);
-    std::cout << "Used Index: " << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].NNUESub[0]<< " " << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].NNUEAdd[0] << std::endl;
+    std::cout << "Used Index: " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUESub[0]<< " " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUEAdd[0] << std::endl;
 
-    bool refresh_required =  pos->accumStack[pos->accumStackHead-1].perspective[WHITE].needsRefresh;
+    bool refresh_required =  pos->accumStack[pos->accumStackHead-1].perspective[pov].needsRefresh;
 
     std::cout << "Refresh needed: " << refresh_required<<std::endl;
 
     std::cout<<" Applied changes:\n";
-    auto Add = &net.FTWeights[pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].NNUEAdd[0] * L1_SIZE];
-    auto Sub = &net.FTWeights[pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].NNUESub[0] * L1_SIZE];
+    auto Add = &net.FTWeights[pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUEAdd[0] * L1_SIZE];
+    auto Sub = &net.FTWeights[pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUESub[0] * L1_SIZE];
 
     for (int i = 0; i < 10; i++) {
         std::cout << Sub[i]<<" ";
@@ -77,10 +80,10 @@ inline void debugUE(const std::string& fen, int move, Position* pos){
 
     std::cout<<" changes according to accumulate:\n";
 
-    auto Add_index = pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].GetIndex(piece,toSquare,flip);
+    auto Add_index = pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,toSquare,flip);
     auto correct_Add = &net.FTWeights[Add_index * L1_SIZE];
 
-    auto Sub_index = pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].GetIndex(piece,fromSquare,flip);
+    auto Sub_index = pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,fromSquare,flip);
     auto correct_Sub = &net.FTWeights[Sub_index * L1_SIZE];
 
     for (int i = 0; i < 10; i++) {
@@ -99,7 +102,7 @@ inline void debugUE(const std::string& fen, int move, Position* pos){
 
     std::cout<<" Final values samples:\n";
     for(int i = 0; i < 10; i++) {
-        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[pov].values[i]<<" ";
     }
     std::cout<<std::endl;
 
@@ -108,7 +111,7 @@ inline void debugUE(const std::string& fen, int move, Position* pos){
     nnue.accumulate(pos->AccumulatorTop(), pos);
 
     for(int i = 0; i < 10; i++) {
-        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+        std::cout << pos->accumStack[pos->accumStackHead - 1].perspective[pov].values[i]<<" ";
     }
 
     bool stm = pos->side == WHITE;
@@ -116,11 +119,17 @@ inline void debugUE(const std::string& fen, int move, Position* pos){
     int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     correct_eval = nnue.output(pos->accumStack[pos->accumStackHead -1], stm, outputBucket);
 
+    std::cout << std::endl;
+
     if(eval != correct_eval){
         PrintBoard(pos);
         std::cout << eval <<std::endl;
         std::cout << correct_eval <<std::endl;
     }
+
     assert(eval == correct_eval);
+
+    std::cout << eval <<std::endl;
+    std::cout << correct_eval <<std::endl;
 
 }
