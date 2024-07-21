@@ -202,7 +202,7 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
             // Castling
         else {
             povAccumulator.addSub( previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0]);
-            povAccumulator.addSub(previousPovAccumulator, povAccumulator.NNUEAdd[1], povAccumulator.NNUESub[1]);
+            povAccumulator.addSub(povAccumulator, povAccumulator.NNUEAdd[1], povAccumulator.NNUESub[1]);
             // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
             // the half-updated accumulator
         }
