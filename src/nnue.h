@@ -59,13 +59,13 @@ public:
         std::array<Pov_Accumulator, 2> perspective;
 
         void AppendAddIndex(int piece, int square, std::pair<bool,bool> flip) {
-            this->perspective[WHITE].NNUEAdd.emplace_back(this->perspective[WHITE].GetIndex(piece,square,flip.first));
-            this->perspective[BLACK].NNUEAdd.emplace_back(this->perspective[BLACK].GetIndex(piece,square,flip.second));
+            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
+            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
         }
 
         void AppendSubIndex(int piece, int square, std::pair<bool,bool> flip) {
-            this->perspective[WHITE].NNUESub.emplace_back(this->perspective[WHITE].GetIndex(piece,square,flip.first));
-            this->perspective[BLACK].NNUESub.emplace_back(this->perspective[BLACK].GetIndex(piece,square,flip.second));
+            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
+            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
         }
 
         void ClearAddIndex() {
