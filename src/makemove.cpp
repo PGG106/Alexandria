@@ -33,8 +33,10 @@ template void AddPiece<true>(const int piece, const int to, Position* pos);
 // Add a piece to a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
-    if constexpr(UPDATE)
-        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to, std::pair<bool, bool>()));
+    if constexpr(UPDATE){
+        std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
+        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to, flip));
+    }
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
