@@ -78,4 +78,7 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
     return true;
 }
 
+TUNE_PARAM(rfpDepth, 8, 4, 14, 1, 0.002)
+TUNE_PARAM(rfpCoeff, 70, 20, 200, 10, 0.002)
 TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
+TUNE_PARAM(nmpRedConst, 3, 1, 5, 1, 0.002)
