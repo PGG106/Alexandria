@@ -415,10 +415,31 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         // Reverse Futility Pruning (RFP) / Static Null Move Pruning (SNMP)
         // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
         // and return a fail high score.
-        if (   depth <= 8
-            && eval - 70 * depth >= beta
+        if (   depth <= rfpDepth()
+            && eval - rfpCoeff() * depth >= beta
             && std::abs(eval) < MATE_FOUND)
             return eval;
+
+        // Null Move Pruning (NMP)
+        // If our eval indicates a fail high is likely, we try NMP.
+        // We do a reduced search after giving the opponent a free turn, and if that fails high,
+        // it means our position is so good we don't even need to make a move. Thus, we return a fail high score.
+        if (   depth > nmpDepth()
+            && eval >= beta
+            && (ss - 1)->move != NOMOVE
+            && BoardHasNonPawns(pos, pos->side)) {
+
+            const int R = nmpRedConst();
+
+            ss->move = NOMOVE;
+            MakeNullMove(pos);
+            const int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, td, ss + 1);
+            TakeNullMove(pos);
+
+            // Don't return unproven mates from null move search
+            if (nmpScore >= beta)
+                return abs(nmpScore) > MATE_FOUND ? beta : nmpScore;
+        }
     }
 
     // old value of alpha
