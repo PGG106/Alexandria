@@ -334,7 +334,7 @@ void MakeMove(const Move move, Position* pos) {
             if (shouldFlip(From(move), To(move))) {
                 // tell the right accumulator it'll need a refresh
                 auto kingColor = Color[Piece(move)];
-                pos->accumStack[pos->accumStackHead].needsRefresh[kingColor] = true;
+                pos->accumStack[pos->accumStackHead].perspective[kingColor].needsRefresh = true;
             }
         }
     }
@@ -365,8 +365,8 @@ void UnmakeMove(const Move move, Position* pos) {
 
     restorePreviousBoardState(pos);
 
-    pos->AccumulatorTop().NNUEAdd.clear();
-    pos->AccumulatorTop().NNUESub.clear();
+    pos->AccumulatorTop().ClearAddIndex();
+    pos->AccumulatorTop().ClearSubIndex();
 
     // parse move
     const int sourceSquare = From(move);

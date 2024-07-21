@@ -1,6 +1,7 @@
 #pragma once
 
 #include "position.h"
+#include "io.h"
 #include <algorithm>
 
 // if we don't have enough material to mate consider the position a draw
@@ -36,9 +37,9 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {
     // Update accumulators to ensure we are up to date on the current board state
-    //nnue.update(&pos->AccumulatorTop());
+    nnue.update(&pos->AccumulatorTop(), pos);
 
-    nnue.accumulate(pos->AccumulatorTop(), pos);
+    //nnue.accumulate(pos->AccumulatorTop(), pos);
 
     const bool stm = pos->side == WHITE;
     const int pieceCount = pos->PieceCount();
@@ -49,6 +50,24 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 // position evaluation
 [[nodiscard]] inline int EvalPosition(Position* pos) {
     int eval = EvalPositionRaw(pos);
+
+    int correct_eval = 0;
+
+    nnue.accumulate(pos->AccumulatorTop(), pos);
+
+    const bool stm = pos->side == WHITE;
+    const int pieceCount = pos->PieceCount();
+    const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
+    correct_eval = nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
+
+    if(eval != correct_eval){
+        PrintBoard(pos);
+        std::cout << eval <<std::endl;
+        std::cout << correct_eval <<std::endl;
+    }
+
+    assert(eval == correct_eval);
+
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);

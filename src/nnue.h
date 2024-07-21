@@ -46,6 +46,7 @@ public:
         void accumulate(Position *pos);
         [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
         void addSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
+        void addSubSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {
@@ -66,12 +67,21 @@ public:
             this->perspective[WHITE].NNUESub.emplace_back(index[WHITE]);
             this->perspective[BLACK].NNUESub.emplace_back(index[BLACK]);
         }
+
+        void ClearAddIndex() {
+            this->perspective[WHITE].NNUEAdd.clear();
+            this->perspective[BLACK].NNUEAdd.clear();
+        }
+
+        void ClearSubIndex() {
+            this->perspective[WHITE].NNUESub.clear();
+            this->perspective[BLACK].NNUESub.clear();
+        }
     };
 
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     void update(Accumulator *acc, Position* pos);
-    void addSubSub(Accumulator *new_acc, Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
     [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square, std::pair<bool, bool> pair);

@@ -87,24 +87,20 @@ void NNUE::update(Accumulator *acc, Position* pos) {
 
 
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
-    for(int color = WHITE; color <= BLACK; color++) {
         const auto Add = &net.FTWeights[add * L1_SIZE];
         const auto Sub = &net.FTWeights[sub * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
             new_acc.values[i] = prev_acc.values[i] - Sub[i] + Add[i];
         }
-    }
 }
 
-void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
-    for(int color = WHITE; color <= BLACK; color++) {
-        auto Add = &net.FTWeights[add[color] * L1_SIZE];
-        auto Sub1 = &net.FTWeights[sub1[color] * L1_SIZE];
-        auto Sub2 = &net.FTWeights[sub2[color] * L1_SIZE];
+void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &new_acc, NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
+        auto Add = &net.FTWeights[add * L1_SIZE];
+        auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
+        auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
         for (int i = 0; i < L1_SIZE; i++) {
-            new_acc->perspective[color].values[i] = prev_acc->perspective[color].values[i] - Sub1[i] - Sub2[i] + Add[i];
+            new_acc.values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
         }
-    }
 }
 
 int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias) {
@@ -203,13 +199,15 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
 
     // find the first clean or in need of refresh accumulator of the given color, once it's found update it and propagate the update
     auto previousPovAccumulator = (pAccumulator -1)->perspective[color];
-    const bool isUsable = previousPovAccumulator.NNUEAdd.empty() || previousPovAccumulator.needsRefresh;
+    const bool isUsable = previousPovAccumulator.NNUEAdd.empty() || povAccumulator.needsRefresh;
     if (!isUsable)
         recursive_update(pAccumulator - 1, pos, color);
 // if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
 
     if (povAccumulator.needsRefresh) {
         povAccumulator.accumulate(pos);
+        // mark any accumulator as refreshed
+        povAccumulator.needsRefresh = false;
     } else {
 
         // Quiets
@@ -218,7 +216,7 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
         }
             // Captures
         else if (adds == 1 && subs == 2) {
-            addSubSub(pAccumulator, pAccumulator - 1, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0],
+            povAccumulator.addSubSub(povAccumulator, previousPovAccumulator, povAccumulator.NNUEAdd[0], povAccumulator.NNUESub[0],
                       povAccumulator.NNUESub[1]);
         }
             // Castling
@@ -228,12 +226,10 @@ void NNUE::recursive_update(NNUE::Accumulator *pAccumulator, Position *pos, int 
             // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
             // the half-updated accumulator
         }
-        // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-        povAccumulator.NNUEAdd.clear();
-        povAccumulator.NNUESub.clear();
-        // mark any accumulator as refreshed
-        povAccumulator.needsRefresh = false;
     }
+    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+    povAccumulator.NNUEAdd.clear();
+    povAccumulator.NNUESub.clear();
 }
 
 void NNUE::Pov_Accumulator::accumulate( Position *pos) {
