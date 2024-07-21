@@ -15,6 +15,7 @@ template void ClearPiece<true>(const int piece, const int to, Position* pos);
 // Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
+    // Do this first because if we happened to have moved the king we first need to get1lsb the king bitboard before removing it
     if constexpr(UPDATE){
         std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
         pos->AccumulatorTop().AppendSubIndex(piece, from, flip);
@@ -34,10 +35,6 @@ template void AddPiece<true>(const int piece, const int to, Position* pos);
 // Add a piece to a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
-    if constexpr(UPDATE){
-        std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
-        pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
-    }
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
@@ -45,6 +42,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
     HashKey(pos->posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->pawnKey, PieceKeys[piece][to]);
+    // Do this last because if we happened to have moved the king we first need to re-add to the piece bitboards least we get1lsb an empty bitboard
+    if constexpr(UPDATE){
+        std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
+        pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
+    }
 }
 
 // Move a piece from the [to] square to the [from] square, the UPDATE params determines whether we want to update the NNUE weights or not
