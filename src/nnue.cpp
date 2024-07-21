@@ -162,23 +162,6 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whit
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-NNUEIndices NNUE::GetIndex(const int piece, const int square, std::pair<bool, bool> flip) {
-    // unpack what needs to be flipped
-    auto [whiteShouldFlip,blackShouldFlip] = flip;
-    constexpr std::size_t COLOR_STRIDE = 64 * 6;
-    constexpr std::size_t PIECE_STRIDE = 64;
-    int piecetype = GetPieceType(piece);
-    int color = Color[piece];
-    // Get the final indexes of the updates, accounting for hm
-    auto white_square = (square ^ 0b111'000);
-    if(whiteShouldFlip) white_square ^= 0b000'111;
-    auto black_square = square;
-    if(blackShouldFlip) black_square ^= 0b000'111;
-    std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + white_square;
-    std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + black_square;
-    return {whiteIdx, blackIdx};
-}
-
 void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     for(auto& pov_acc : board_accumulator.perspective) {
         pov_acc.accumulate(pos);

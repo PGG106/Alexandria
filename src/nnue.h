@@ -58,14 +58,14 @@ public:
 
         std::array<Pov_Accumulator, 2> perspective;
 
-        void AppendAddIndex(NNUEIndices index) {
-            this->perspective[WHITE].NNUEAdd.emplace_back(index[WHITE]);
-            this->perspective[BLACK].NNUEAdd.emplace_back(index[BLACK]);
+        void AppendAddIndex(int piece, int square, std::pair<bool,bool> flip) {
+            this->perspective[WHITE].NNUEAdd.emplace_back(this->perspective[WHITE].GetIndex(piece,square,flip.first));
+            this->perspective[BLACK].NNUEAdd.emplace_back(this->perspective[BLACK].GetIndex(piece,square,flip.second));
         }
 
-        void AppendSubIndex(NNUEIndices index) {
-            this->perspective[WHITE].NNUESub.emplace_back(index[WHITE]);
-            this->perspective[BLACK].NNUESub.emplace_back(index[BLACK]);
+        void AppendSubIndex(int piece, int square, std::pair<bool,bool> flip) {
+            this->perspective[WHITE].NNUESub.emplace_back(this->perspective[WHITE].GetIndex(piece,square,flip.first));
+            this->perspective[BLACK].NNUESub.emplace_back(this->perspective[BLACK].GetIndex(piece,square,flip.second));
         }
 
         void ClearAddIndex() {
@@ -84,7 +84,6 @@ public:
     void update(Accumulator *acc, Position* pos);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
-    [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square, std::pair<bool, bool> pair);
 
     void recursive_update(NNUE::Accumulator *pAccumulator, Position* pos, int color);
 };

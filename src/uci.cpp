@@ -381,14 +381,14 @@ void UciLoop(int argc, char** argv) {
                 std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
             }
             std::cout<<std::endl;
-            const auto move = encode_move(a2,a3,WP,Movetype::Quiet);
+            auto  move = encode_move(a2,a3,WP,Movetype::Quiet);
             std::cout<<"Correct Indexes: " <<td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a2,true)<<" " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a3,true)<<std::endl;
             MakeMove<true>(move,&td->pos);
             std::cout << "Used Index: " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUESub[0]<< " " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUEAdd[0]   <<std::endl;
 
             std::cout<<" Applied changes:\n";
-            const auto Add = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUEAdd[0] * L1_SIZE];
-            const auto Sub = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUESub[0] * L1_SIZE];
+             auto Add = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUEAdd[0] * L1_SIZE];
+             auto Sub = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUESub[0] * L1_SIZE];
             for (int i = 0; i < 10; i++) {
                 std::cout << Add[i]<<" ";
             }
@@ -403,10 +403,10 @@ void UciLoop(int argc, char** argv) {
 
             std::cout<<" changes according to accumulate:\n";
 
-            auto Add_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a3,true);
+            auto Add_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a3,false);
             auto correct_Add = &net.FTWeights[Add_index * L1_SIZE];
 
-            auto Sub_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a2,true);
+            auto Sub_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WP,a2,false);
             auto correct_Sub = &net.FTWeights[Sub_index * L1_SIZE];
 
             for (int i = 0; i < 10; i++) {
@@ -436,9 +436,9 @@ void UciLoop(int argc, char** argv) {
                 std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
             }
 
-            const bool stm = td->pos.side == WHITE;
-            const int pieceCount = (&td->pos)->PieceCount();
-            const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
+             bool stm = td->pos.side == WHITE;
+             int pieceCount = (&td->pos)->PieceCount();
+             int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
             correct_eval = nnue.output(td->pos.accumStack[td->pos.accumStackHead -1], stm, outputBucket);
 
             if(eval != correct_eval){
@@ -455,8 +455,8 @@ void UciLoop(int argc, char** argv) {
                 std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
             }
             std::cout<<std::endl;
-            const auto move2 = encode_move(e1,d2,WK,Movetype::Quiet);
-            MakeMove<true>(move2,&td->pos);
+              move = encode_move(e1,d2,WK,Movetype::Quiet);
+            MakeMove<true>(move,&td->pos);
 
             bool refresh_required =  td->pos.accumStack[td->pos.accumStackHead-1].perspective[WHITE].needsRefresh;
 
@@ -488,7 +488,90 @@ void UciLoop(int argc, char** argv) {
                 std::cout << eval2 <<std::endl;
                 std::cout << correct_eval2 <<std::endl;
             }
+
             assert(eval2 == correct_eval2);
+
+            // Bucket refresh scenario
+            ParsePosition("position fen r3k2r/2pb1ppp/2pp1q2/p7/1nP1B3/1P2P3/P2N1PPP/R2QK2R b kq - 1 15", &td->pos);
+            std::cout<<"\n Starting values:\n";
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+            std::cout<<std::endl;
+            move = encode_move(e1,e2,WK,Movetype::Quiet);
+            std::cout<<"Correct Indexes: " <<td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WK,e1,true)<<" " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WK,e2,true)<<std::endl;
+            MakeMove<true>(move,&td->pos);
+            std::cout << "Used Index: " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUESub[0]<< " " << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUEAdd[0]<<std::endl;
+
+
+            refresh_required =  td->pos.accumStack[td->pos.accumStackHead-1].perspective[WHITE].needsRefresh;
+
+            std::cout << "Refresh needed: " << refresh_required<<std::endl;
+
+            std::cout<<" Applied changes:\n";
+            Add = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUEAdd[0] * L1_SIZE];
+            Sub = &net.FTWeights[ td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].NNUESub[0] * L1_SIZE];
+
+
+            for (int i = 0; i < 10; i++) {
+                std::cout << Sub[i]<<" ";
+            }
+
+            std::cout<<std::endl;
+
+            for (int i = 0; i < 10; i++) {
+                std::cout << Add[i]<<" ";
+            }
+            std::cout <<std::endl;
+
+            std::cout<<" changes according to accumulate:\n";
+
+             Add_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WK,e2,true);
+             correct_Add = &net.FTWeights[Add_index * L1_SIZE];
+
+             Sub_index = td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].GetIndex(WK,e1,true);
+             correct_Sub = &net.FTWeights[Sub_index * L1_SIZE];
+
+            for (int i = 0; i < 10; i++) {
+                std::cout << correct_Sub[i] << " ";
+            }
+
+            std::cout <<std::endl;
+
+            for (int i = 0; i < 10; i++) {
+                std::cout << correct_Add[i]  << " ";
+            }
+
+            std::cout <<std::endl;
+
+            eval = EvalPositionRaw(&td->pos);
+
+            std::cout<<" Final values samples:\n";
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+            std::cout<<std::endl;
+             correct_eval = 0;
+
+            nnue.accumulate(td->pos.AccumulatorTop(), &td->pos);
+
+            for(int i = 0; i < 10; i++) {
+                std::cout << td->pos.accumStack[td->pos.accumStackHead - 1].perspective[WHITE].values[i]<<" ";
+            }
+
+             stm = td->pos.side == WHITE;
+             pieceCount = (&td->pos)->PieceCount();
+             outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
+                correct_eval = nnue.output(td->pos.accumStack[td->pos.accumStackHead -1], stm, outputBucket);
+
+            if(eval != correct_eval){
+                PrintBoard(&td->pos);
+                std::cout << eval <<std::endl;
+                std::cout << correct_eval <<std::endl;
+            }
+            assert(eval == correct_eval);
+
+
         }
 
         else if (input == "bench") {

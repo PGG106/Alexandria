@@ -17,7 +17,7 @@ template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
     if constexpr(UPDATE){
         std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
-        pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, from, flip));
+        pos->AccumulatorTop().AppendSubIndex(piece, from, flip);
     }
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
@@ -36,7 +36,7 @@ template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
     if constexpr(UPDATE){
         std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
-        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to, flip));
+        pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
     }
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
