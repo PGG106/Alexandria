@@ -143,18 +143,14 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
     #endif
 }
 
-int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whiteToMove, const int outputBucket) {
+int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, const int outputBucket) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
     const int16_t* us;
     const int16_t* them;
-    if (whiteToMove) {
-        us = board_accumulator.perspective[WHITE].values.data();
-        them = board_accumulator.perspective[BLACK].values.data();
-    } else {
-        us = board_accumulator.perspective[BLACK].values.data();
-        them = board_accumulator.perspective[WHITE].values.data();
-    }
+
+    us = board_accumulator.perspective[stm].values.data();
+    them = board_accumulator.perspective[stm ^ 1].values.data();
 
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
