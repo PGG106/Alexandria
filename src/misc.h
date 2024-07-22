@@ -7,9 +7,6 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include "makemove.h"
-#include "io.h"
-#include "eval.h"
 
 [[nodiscard]] inline uint64_t GetTimeMs() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();

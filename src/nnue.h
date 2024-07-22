@@ -1,11 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include "types.h"
 #include <array>
 #include <vector>
 #include <cassert>
 #include "simd.h"
+#include "types.h"
 
 // Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;

@@ -14,7 +14,6 @@
 #include <iostream>
 #include "tune.h"
 #include "eval.h"
-#include "makemove.h"
 
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& moveString, Position* pos) {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "position.h"
-#include "io.h"
 #include <algorithm>
 
 // if we don't have enough material to mate consider the position a draw
@@ -41,10 +40,7 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
     const bool stm = pos->side == WHITE;
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-
-    int eval = nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
-
-    return eval;
+    return nnue.output(pos->accumStack[pos->accumStackHead - 1], stm, outputBucket);
 }
 
 // position evaluation

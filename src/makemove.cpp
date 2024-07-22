@@ -3,7 +3,6 @@
 #include "ttable.h"
 #include "position.h"
 #include "init.h"
-#include "io.h"
 
 void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
     originalKey ^= key;
@@ -318,6 +317,9 @@ void MakeMove(const Move move, Position* pos) {
         MakeCapture<UPDATE>(move, pos);
     }
 
+    if constexpr (UPDATE)
+        pos->historyStackHead++;
+
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
@@ -343,9 +345,6 @@ void MakeMove(const Move move, Position* pos) {
             }
         }
     }
-
-    if constexpr (UPDATE)
-        pos->historyStackHead++;
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
