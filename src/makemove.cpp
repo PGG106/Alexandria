@@ -372,6 +372,9 @@ void UnmakeMove(const Move move, Position* pos) {
 
     pos->AccumulatorTop().ClearAddIndex();
     pos->AccumulatorTop().ClearSubIndex();
+    pos->AccumulatorTop().perspective[WHITE].needsRefresh = false;
+    pos->AccumulatorTop().perspective[BLACK].needsRefresh = false;
+
 
     // parse move
     const int sourceSquare = From(move);
