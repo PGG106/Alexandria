@@ -373,13 +373,6 @@ void UciLoop(int argc, char** argv) {
             std::cout << "Scaled eval: " << EvalPosition(&td->pos) << std::endl;
         }
 
-        else if (input == "debug") {// call parse position function
-
-            auto  move = encode_move(a3,b4,WP,Movetype::Capture);
-
-            debugUE("r3k2r/2pb1ppp/2pp1q2/p7/1nP1B3/PP2P3/3N1PPP/R2QK2R b KQkq - 0 14", move, &td->pos);
-        }
-
         else if (input == "bench") {
             tryhardmode = true;
             StartBench();
