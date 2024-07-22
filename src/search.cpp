@@ -454,8 +454,8 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     Movepicker mp;
     InitMP(&mp, pos, sd, ss, ttMove, SEARCH);
 
-    // Keep track of the played quiet and noisy moves
-    MoveList quietMoves, noisyMoves;
+    // Keep track of the played quiet and tactical moves
+    MoveList quietMoves, tacticalMoves;
 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
@@ -464,6 +464,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
             continue;
 
         totalMoves++;
+        bool isQuiet = !isTactical(move);
 
         int extension = 0;
         // we adjust the search depth based on potential extensions
@@ -478,6 +479,9 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         // increment nodes count
         info->nodes++;
         const uint64_t nodesBeforeSearch = info->nodes;
+
+        // Add the move to the corresponding list
+        AddMove(move, isQuiet ? &quietMoves : &tacticalMoves);
 
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
         if (!pvNode || totalMoves > 1) {
@@ -517,6 +521,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
 
                 if (score >= beta) {
                     // node (move) fails high
+                    UpdateAllHistories(pos, ss, sd, depth, move, quietMoves, tacticalMoves);
                     break;
                 }
                 // Update alpha iff alpha < beta
