@@ -375,17 +375,9 @@ void UciLoop(int argc, char** argv) {
 
         else if (input == "debug") {// call parse position function
 
-            auto  move = encode_move(a2,a3,WP,Movetype::Quiet);
+            auto  move = encode_move(a3,b4,WP,Movetype::Capture);
 
-           debugUE("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", move, &td->pos);
-
-            move = encode_move(e1,d2,WK,Movetype::Quiet);
-
-            debugUE("rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w kq - 2 4", move, &td->pos);
-
-            move = encode_move(e1,e2,WK,Movetype::Quiet);
-
-            debugUE("r3k2r/2pb1ppp/2pp1q2/p7/1nP1B3/1P2P3/P2N1PPP/R2QK2R w kq - 1 15", move, &td->pos);
+            debugUE("r3k2r/2pb1ppp/2pp1q2/p7/1nP1B3/PP2P3/3N1PPP/R2QK2R b KQkq - 0 14", move, &td->pos);
         }
 
         else if (input == "bench") {

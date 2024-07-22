@@ -4,6 +4,7 @@
 #include "types.h"
 #include <array>
 #include <vector>
+#include <cassert>
 #include "simd.h"
 
 // Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
@@ -59,11 +60,15 @@ public:
         std::array<Pov_Accumulator, 2> perspective;
 
         void AppendAddIndex(int piece, int square, std::pair<bool,bool> flip) {
+            assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
+            assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
             this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
             this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
         }
 
         void AppendSubIndex(int piece, int square, std::pair<bool,bool> flip) {
+            assert(this->perspective[WHITE].NNUESub.size() <= 1);
+            assert(this->perspective[BLACK].NNUESub.size() <= 1);
             this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
             this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
         }

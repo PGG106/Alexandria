@@ -364,7 +364,6 @@ bool shouldFlip(int from, int to) {
 
 void UnmakeMove(const Move move, Position* pos) {
     // quiet moves
-
     pos->hisPly--;
     pos->historyStackHead--;
 
@@ -375,6 +374,7 @@ void UnmakeMove(const Move move, Position* pos) {
     pos->AccumulatorTop().perspective[WHITE].needsRefresh = false;
     pos->AccumulatorTop().perspective[BLACK].needsRefresh = false;
 
+    pos->accumStackHead--;
 
     // parse move
     const int sourceSquare = From(move);
@@ -384,8 +384,6 @@ void UnmakeMove(const Move move, Position* pos) {
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
-
-    pos->accumStackHead--;
 
     const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
 

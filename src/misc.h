@@ -42,6 +42,10 @@ inline void dbg_print() { std::cout << double(_accumulator) / _count << std::end
 inline void debugUE(const std::string& fen, const int move, Position* pos){
     ParseFen(fen, pos);
 
+    auto move2 = encode_move(e8,d8,BK,Movetype::Quiet);
+
+    MakeMove<true>(move2,pos);
+
     const auto pov = BLACK;
 
     std::cout<<"\n Starting values: \n";
@@ -55,6 +59,9 @@ inline void debugUE(const std::string& fen, const int move, Position* pos){
     const auto toSquare = To(move);
     const bool flip = KingSQ(pos,pov) > 3;
 
+    const bool white_should_flip = KingSQ(pos,WHITE) > 3;
+    const bool black_should_flip = KingSQ(pos,BLACK) > 3;
+
     std::cout<<"Correct Indexes: " <<pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,fromSquare,flip)<<" " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].GetIndex(piece,toSquare,flip) << std::endl;
     MakeMove<true>(move,pos);
     std::cout << "Used Index: " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUESub[0]<< " " << pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUEAdd[0] << std::endl;
@@ -62,6 +69,8 @@ inline void debugUE(const std::string& fen, const int move, Position* pos){
     bool refresh_required =  pos->accumStack[pos->accumStackHead-1].perspective[pov].needsRefresh;
 
     std::cout << "Refresh needed: " << refresh_required<<std::endl;
+    std::cout << "white_should_flip: " << white_should_flip<<std::endl;
+    std::cout << "black_should_flip: " << black_should_flip<<std::endl;
 
     std::cout<<" Applied changes:\n";
     auto Add = &net.FTWeights[pos->accumStack[pos->accumStackHead - 1].perspective[pov].NNUEAdd[0] * L1_SIZE];
