@@ -6,12 +6,12 @@ struct MoveList;
 
 enum {
     PICK_TT,
-    GEN_NOISY,
-    PICK_GOOD_NOISY,
+    GEN_TACTICAL,
+    PICK_GOOD_TACTICAL,
     GEN_QUIETS,
     PICK_QUIETS,
-    GEN_BAD_NOISY,
-    PICK_BAD_NOISY
+    GEN_BAD_TACTICAL,
+    PICK_BAD_TACTICAL
 };
 
 enum MovepickerType : uint8_t {

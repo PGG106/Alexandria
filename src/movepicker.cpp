@@ -12,6 +12,7 @@ void ScoreMoves(Movepicker* mp) {
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
+        const int history = GetHistoryScore(pos, ss, sd, move);
         if (isTactical(move)) {
             int capturedPiece = isPromo(move)     ? getPromotedPiecetype(move)
                               : isEnpassant(move) ? PAWN
@@ -19,7 +20,7 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = SEEValue[capturedPiece] * 32 - SEEValue[Piece(move)];
         }
         else {
-            moveList->moves[i].score = 0;
+            moveList->moves[i].score = history;
         }
     }
 }
@@ -47,7 +48,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->ss = ss;
     mp->ttMove = ttMove;
     mp->idx = 0;
-    mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
+    mp->stage = mp->ttMove ? PICK_TT : GEN_TACTICAL;
 }
 
 Move NextMove(Movepicker* mp, const bool skip) {
@@ -55,14 +56,14 @@ Move NextMove(Movepicker* mp, const bool skip) {
     if (skip) {
         // In search, the skip variable is used to dictate whether we skip quiet moves
         if (   mp->movepickerType == SEARCH
-            && mp->stage > PICK_GOOD_NOISY
-            && mp->stage < GEN_BAD_NOISY) {
-            mp->stage = GEN_BAD_NOISY;
+            && mp->stage > PICK_GOOD_TACTICAL
+            && mp->stage < GEN_BAD_TACTICAL) {
+            mp->stage = GEN_BAD_TACTICAL;
         }
 
         // In qsearch, the skip variable is used to dictate whether we skip quiet moves and bad captures
         if (   mp->movepickerType == QSEARCH
-            && mp->stage > PICK_GOOD_NOISY) {
+            && mp->stage > PICK_GOOD_TACTICAL) {
             return NOMOVE;
         }
     }
@@ -79,13 +80,13 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
         return mp->ttMove;
 
-    case GEN_NOISY:
+    case GEN_TACTICAL:
         GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_NOISY);
         ScoreMoves(mp);
         ++mp->stage;
         goto top;
 
-    case PICK_GOOD_NOISY:
+    case PICK_GOOD_TACTICAL:
         while (mp->idx < mp->moveList.count) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
@@ -121,13 +122,13 @@ Move NextMove(Movepicker* mp, const bool skip) {
         ++mp->stage;
         goto top;
 
-    case GEN_BAD_NOISY:
+    case GEN_BAD_TACTICAL:
         // Nothing to generate lol, just reset mp->idx
         mp->idx = 0;
         ++mp->stage;
         goto top;
 
-    case PICK_BAD_NOISY:
+    case PICK_BAD_TACTICAL:
         return NOMOVE;
 
     default:
