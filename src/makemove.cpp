@@ -336,6 +336,9 @@ void MakeMove(const Move move, Position* pos) {
         }
     }
 
+    // Update opponent threats
+    pos->state.oppThreats = getThreats(pos, pos->side ^ 1);
+
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
     assert(pos->pawnKey == GeneratePawnKey(pos));

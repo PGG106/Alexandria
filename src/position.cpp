@@ -221,6 +221,9 @@ void ParseFen(const std::string& command, Position* pos) {
     else
         pos->state.checkMask = fullCheckmask;
 
+    // Update opponent threats
+    pos->state.oppThreats = getThreats(pos, pos->side ^ 1);
+
     // Update nnue accumulator to reflect board state
     nnue.accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
@@ -392,6 +395,11 @@ Bitboard getThreats(const Position* pos, const int side) {
         threats |= king_attacks[source_square];
     }
     return threats;
+}
+
+bool IsAttackedByOpp(const Position *pos, const int square) {
+    assert(square >= 0 && square <= 63);
+    return pos->state.oppThreats & (1ULL << square);
 }
 
 // Return a piece based on the piecetype and the color
