@@ -196,7 +196,7 @@ void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov)
         }
         if(shouldUE){
             for(int j = (pos->accumStackHead -1 - UEableAccs); j <= pos->accumStackHead -1; j++){
-                pos->accumStack[j].perspective[pov].applyUpdate(pos, pos->accumStack[j-1].perspective[pov]);
+                pos->accumStack[j].perspective[pov].applyUpdate( pos->accumStack[j-1].perspective[pov]);
             }
         }
     }
@@ -210,12 +210,12 @@ void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov)
         // mark any accumulator as refreshed
         povAccumulator.needsRefresh = false;
     } else {
-      povAccumulator.applyUpdate(pos, previousPovAccumulator);
+      povAccumulator.applyUpdate(previousPovAccumulator);
     }
 }
 
 
-void NNUE::Pov_Accumulator::applyUpdate(Position *pos, NNUE::Pov_Accumulator& previousPovAccumulator) {
+void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumulator) {
 
     assert(previousPovAccumulator.NNUEAdd.empty());
 

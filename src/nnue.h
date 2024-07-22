@@ -49,7 +49,7 @@ public:
         void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
         void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
 
-        void applyUpdate(Position *pos, Pov_Accumulator& previousPovAccumulator);
+        void applyUpdate(Pov_Accumulator& previousPovAccumulator);
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {
