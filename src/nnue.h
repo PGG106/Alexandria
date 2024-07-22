@@ -48,6 +48,8 @@ public:
         [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
         void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
         void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+
+        void applyUpdate(Position *pos, Pov_Accumulator& previousPovAccumulator);
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {
@@ -90,5 +92,7 @@ public:
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
 
-    void recursive_update(NNUE::Accumulator *pAccumulator, Position* pos, int color);
+    void updatePovAcc(NNUE::Accumulator *pAccumulator, Position* pos, int pov);
+
+    void propagateUpdate(Accumulator *pAccumulator, Position *pos, int pov, int accsToUpdate);
 };
