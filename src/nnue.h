@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <cassert>
 #include "simd.h"
+#include "types.h"
 
 // Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
@@ -20,7 +22,7 @@ constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
 constexpr int CHUNK_SIZE = 1;
 #endif
 
-using NNUEIndices = std::pair<std::size_t, std::size_t>;
+using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
     int16_t FTWeights[NUM_INPUTS * L1_SIZE];
@@ -34,26 +36,64 @@ struct Position;
 
 class NNUE {
 public:
-    struct Accumulator {
-        std::array<std::array<int16_t, L1_SIZE>, 2> values;
-        std::vector<NNUEIndices> NNUEAdd = {};
-        std::vector<NNUEIndices> NNUESub = {};
+    // per pov accumulator
+    struct Pov_Accumulator{
+            std::array<int16_t, L1_SIZE> values;
+            int pov;
+            std::vector<std::size_t> NNUEAdd = {};
+            std::vector<std::size_t> NNUESub = {};
+            bool needsRefresh = false;
 
-        void AppendAddIndex(NNUEIndices index) {
-            NNUEAdd.emplace_back(index);
+            void accumulate(Position *pos);
+            [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
+            void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
+            void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+            void applyUpdate(Pov_Accumulator& previousPovAccumulator);
+
+            [[nodiscard]] bool isClean() const {
+                return NNUEAdd.empty();
+            }
+    };
+// final total accumulator that holds the 2 povs
+    struct Accumulator {
+
+        Accumulator(){
+            this->perspective[WHITE].pov = WHITE;
+            this->perspective[BLACK].pov = BLACK;
         }
 
-        void AppendSubIndex(NNUEIndices index) {
-            NNUESub.emplace_back(index);
+        std::array<Pov_Accumulator, 2> perspective;
+
+        void AppendAddIndex(int piece, int square, std::array<bool, 2> flip) {
+            assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
+            assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
+            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
+            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+        }
+
+        void AppendSubIndex(int piece, int square, std::array<bool, 2> flip) {
+            assert(this->perspective[WHITE].NNUESub.size() <= 1);
+            assert(this->perspective[BLACK].NNUESub.size() <= 1);
+            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
+            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+        }
+
+        void ClearAddIndex() {
+            this->perspective[WHITE].NNUEAdd.clear();
+            this->perspective[BLACK].NNUEAdd.clear();
+        }
+
+        void ClearSubIndex() {
+            this->perspective[WHITE].NNUESub.clear();
+            this->perspective[BLACK].NNUESub.clear();
         }
     };
 
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
-    void update(NNUE::Accumulator *acc);
-    void addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub);
-    void addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2);
+    void update(Accumulator *acc, Position* pos);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
-    [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const bool whiteToMove, const int outputBucket);
-    [[nodiscard]] NNUEIndices GetIndex(const int piece, const int square);
+    [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
+
+    void updatePovAcc(NNUE::Accumulator *pAccumulator, Position* pos, int pov);
 };

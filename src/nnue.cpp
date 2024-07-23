@@ -79,96 +79,26 @@ void NNUE::init(const char* file) {
 
 }
 
-void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
-    for (int i = 0; i < L1_SIZE; i++) {
-        board_accumulator.values[0][i] = net.FTBiases[i];
-        board_accumulator.values[1][i] = net.FTBiases[i];
-    }
+void NNUE::update(Accumulator *acc, Position* pos) {
+    updatePovAcc(acc, pos, WHITE);
+    updatePovAcc(acc, pos, BLACK);
+}
 
-    for (int i = 0; i < 64; i++) {
-        bool input = pos->pieces[i] != EMPTY;
-        if (!input) continue;
-        auto [whiteIdx, blackIdx] = GetIndex(pos->pieces[i], i);
-        auto whiteAdd = &net.FTWeights[whiteIdx * L1_SIZE];
-        auto blackAdd = &net.FTWeights[blackIdx * L1_SIZE];
-        for (int j = 0; j < L1_SIZE; j++) {
-            board_accumulator.values[0][j] += whiteAdd[j];
+void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
+        const auto Add = &net.FTWeights[add * L1_SIZE];
+        const auto Sub = &net.FTWeights[sub * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i++) {
+            this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
         }
-        for (int j = 0; j < L1_SIZE; j++) {
-            board_accumulator.values[1][j] += blackAdd[j];
+}
+
+void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
+        auto Add = &net.FTWeights[add * L1_SIZE];
+        auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
+        auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
+        for (int i = 0; i < L1_SIZE; i++) {
+            this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
         }
-    }
-}
-
-void NNUE::update(NNUE::Accumulator *acc) {
-
-    int adds = acc->NNUEAdd.size();
-    int subs = acc->NNUESub.size();
-
-    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (adds == 0)
-        return;
-
-    // Use pointer arithmetics to recursively scan the accumulator stack backwards until we find a clean accumulator
-    const bool isDirty = !(acc - 1)->NNUEAdd.empty();
-    if (isDirty)
-        update(acc - 1);
-
-    // Once we have scanned back far enough and have a clean accumulator we can update on top of, start recursively updating
-
-    // Quiets
-    if (adds == 1 && subs == 1) {
-        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
-    }
-    // Captures
-    else if (adds == 1 && subs == 2) {
-        addSubSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0], acc->NNUESub[1]);
-    }
-    // Castling
-    else {
-        addSub(acc, acc - 1, acc->NNUEAdd[0], acc->NNUESub[0]);
-        addSub(acc, acc, acc->NNUEAdd[1], acc->NNUESub[1]);
-        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
-        // the half-updated accumulator
-    }
-    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-    acc->NNUEAdd.clear();
-    acc->NNUESub.clear();
-}
-
-void NNUE::addSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub) {
-    auto [whiteAddIdx, blackAddIdx] = add;
-    auto [whiteSubIdx, blackSubIdx] = sub;
-    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
-    auto whiteSub = &net.FTWeights[whiteSubIdx * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub[i] + whiteAdd[i];
-    }
-    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
-    auto blackSub = &net.FTWeights[blackSubIdx * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub[i] + blackAdd[i];
-    }
-}
-
-void NNUE::addSubSub(NNUE::Accumulator *new_acc, NNUE::Accumulator *prev_acc, NNUEIndices add, NNUEIndices sub1, NNUEIndices sub2) {
-
-    auto [whiteAddIdx, blackAddIdx] = add;
-    auto [whiteSubIdx1, blackSubIdx1] = sub1;
-    auto [whiteSubIdx2, blackSubIdx2] = sub2;
-
-    auto whiteAdd = &net.FTWeights[whiteAddIdx * L1_SIZE];
-    auto whiteSub1 = &net.FTWeights[whiteSubIdx1 * L1_SIZE];
-    auto whiteSub2 = &net.FTWeights[whiteSubIdx2 * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[0][i] = prev_acc->values[0][i] - whiteSub1[i] - whiteSub2[i] + whiteAdd[i];
-    }
-    auto blackAdd = &net.FTWeights[blackAddIdx * L1_SIZE];
-    auto blackSub1 = &net.FTWeights[blackSubIdx1 * L1_SIZE];
-    auto blackSub2 = &net.FTWeights[blackSubIdx2 * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        new_acc->values[1][i] = prev_acc->values[1][i] - blackSub1[i] - blackSub2[i] + blackAdd[i];
-    }
 }
 
 int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias) {
@@ -213,29 +143,135 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
     #endif
 }
 
-int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const bool whiteToMove, const int outputBucket) {
+int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, const int outputBucket) {
     // this function takes the net output for the current accumulators and returns the eval of the position
     // according to the net
     const int16_t* us;
     const int16_t* them;
-    if (whiteToMove) {
-        us = board_accumulator.values[0].data();
-        them = board_accumulator.values[1].data();
-    } else {
-        us = board_accumulator.values[1].data();
-        them = board_accumulator.values[0].data();
-    }
+
+    us = board_accumulator.perspective[stm].values.data();
+    them = board_accumulator.perspective[stm ^ 1].values.data();
 
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-NNUEIndices NNUE::GetIndex(const int piece, const int square) {
+void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
+    for(auto& pov_acc : board_accumulator.perspective) {
+        pov_acc.accumulate(pos);
+    }
+}
+
+void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov) {
+    auto &povAccumulator = (pAccumulator)->perspective[pov];
+
+    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    if (povAccumulator.isClean())
+        return;
+
+    auto& previousPovAccumulator = (pAccumulator -1)->perspective[pov];
+    // if this accumulator is in need of a refresh or the previous one is clean, we can just start updating
+    const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.isClean();
+    // if we can't update we need to start scanning backwards
+    // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, this saves us from having to store board states
+    bool shouldRefresh = false;
+
+    if (!isUsable)
+    {
+        int UEableAccs;
+        bool shouldUE = false;
+        for(UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++){
+            auto &currentACC = (pAccumulator - UEableAccs)->perspective[pov];
+            // check if the current acc should be refreshed
+            shouldRefresh = currentACC.needsRefresh;
+            if(shouldRefresh) break;
+            // check if the current acc can be used as a starting point for an UE chain
+            else if((pAccumulator - UEableAccs - 1)->perspective[pov].isClean()){
+                shouldUE = true;
+                break;
+            }
+        }
+        if(shouldUE){
+            for(int j = (pos->accumStackHead -1 - UEableAccs); j <= pos->accumStackHead -1; j++){
+                pos->accumStack[j].perspective[pov].applyUpdate( pos->accumStack[j-1].perspective[pov]);
+            }
+        }
+    }
+
+// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
+    if (povAccumulator.needsRefresh || shouldRefresh) {
+        povAccumulator.accumulate(pos);
+        // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+        povAccumulator.NNUEAdd.clear();
+        povAccumulator.NNUESub.clear();
+        // mark any accumulator as refreshed
+        povAccumulator.needsRefresh = false;
+    } else {
+      povAccumulator.applyUpdate(previousPovAccumulator);
+    }
+}
+
+
+void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumulator) {
+
+    assert(previousPovAccumulator.isClean());
+
+    // figure out what update we need to apply and do that
+    int adds = NNUEAdd.size();
+    int subs =  NNUESub.size();
+
+    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    if (adds == 0)
+        return;
+
+    // Quiets
+        if (adds == 1 && subs == 1) {
+            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+        }
+            // Captures
+        else if (adds == 1 && subs == 2) {
+            this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
+        }
+            // Castling
+        else {
+            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+            this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
+            // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
+            // the half-updated accumulator
+        }
+
+    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+    this->NNUEAdd.clear();
+    this->NNUESub.clear();
+}
+
+void NNUE::Pov_Accumulator::accumulate(Position *pos) {
+    for (int i = 0; i < L1_SIZE; i++) {
+       values[i] = net.FTBiases[i];
+    }
+
+    bool flip = get_file[KingSQ(pos, pov)] > 3;
+
+    for (int square = 0; square < 64; square++) {
+        bool input = pos->pieces[square] != EMPTY;
+        if (!input) continue;
+        auto Idx = GetIndex(pos->pieces[square], square, flip);
+        auto Add = &net.FTWeights[Idx * L1_SIZE];
+        for (int j = 0; j < L1_SIZE; j++) {
+            values[j] += Add[j];
+        }
+    }
+}
+
+int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip) const {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     int piecetype = GetPieceType(piece);
-    int color = Color[piece];
-    std::size_t whiteIdx = color * COLOR_STRIDE + piecetype * PIECE_STRIDE + (square ^ 0b111'000);
-    std::size_t blackIdx = (1 ^ color) * COLOR_STRIDE + piecetype * PIECE_STRIDE + square;
-    return {whiteIdx, blackIdx};
+    int pieceColor = Color[piece];
+    auto pieceColorPov = pov == WHITE ? pieceColor : (1 ^ pieceColor);
+    // Get the final indexes of the updates, accounting for hm
+    auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
+    if(flip) squarePov ^= 0b000'111;
+    std::size_t Idx = pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    return Idx;
 }

@@ -14,8 +14,11 @@ template void ClearPiece<true>(const int piece, const int to, Position* pos);
 // Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
-    if constexpr(UPDATE)
-        pos->AccumulatorTop().AppendSubIndex(nnue.GetIndex(piece, from));
+    // Do this first because if we happened to have moved the king we first need to get1lsb the king bitboard before removing it
+    if constexpr(UPDATE){
+        std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
+        pos->AccumulatorTop().AppendSubIndex(piece, from, flip);
+    }
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
     pop_bit(pos->occupancies[color], from);
@@ -31,8 +34,6 @@ template void AddPiece<true>(const int piece, const int to, Position* pos);
 // Add a piece to a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
-    if constexpr(UPDATE)
-        pos->AccumulatorTop().AppendAddIndex(nnue.GetIndex(piece, to));
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
@@ -40,6 +41,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
     HashKey(pos->posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->pawnKey, PieceKeys[piece][to]);
+    // Do this last because if we happened to have moved the king we first need to re-add to the piece bitboards least we get1lsb an empty bitboard
+    if constexpr(UPDATE){
+        std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
+        pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
+    }
 }
 
 // Move a piece from the [to] square to the [from] square, the UPDATE params determines whether we want to update the NNUE weights or not
@@ -247,10 +253,8 @@ void MakeDP(const Move move, Position* pos)
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
-    // Remove the piece fom the square it moved from
-    ClearPiece<UPDATE>(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<UPDATE>(piece, targetSquare, pos);
+    MovePiece<UPDATE>(piece,sourceSquare,targetSquare, pos);
+
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
         HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
@@ -265,6 +269,16 @@ void MakeDP(const Move move, Position* pos)
 
 template void MakeMove<true>(const Move move, Position* pos);
 template void MakeMove<false>(const Move move, Position* pos);
+
+bool shouldFlip(int from, int to) {
+    const bool prevFlipped = get_file[from] > 3;
+    const bool flipped = get_file[to] > 3;
+
+    if (prevFlipped != flipped)
+        return true;
+
+    return false;
+}
 
 // make move on chess board
 template <bool UPDATE>
@@ -326,6 +340,18 @@ void MakeMove(const Move move, Position* pos) {
     }
     else
         pos->checkMask = fullCheckmask;
+
+    // Figure out if we need to refresh the accumulator
+    if constexpr (UPDATE) {
+        if (PieceType[Piece(move)] == KING) {
+            if (shouldFlip(From(move), To(move))) {
+                // tell the right accumulator it'll need a refresh
+                auto kingColor = Color[Piece(move)];
+                pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
+            }
+        }
+    }
+
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
     assert(pos->pawnKey == GeneratePawnKey(pos));
@@ -333,14 +359,17 @@ void MakeMove(const Move move, Position* pos) {
 
 void UnmakeMove(const Move move, Position* pos) {
     // quiet moves
-
     pos->hisPly--;
     pos->historyStackHead--;
 
     restorePreviousBoardState(pos);
 
-    pos->AccumulatorTop().NNUEAdd.clear();
-    pos->AccumulatorTop().NNUESub.clear();
+    pos->AccumulatorTop().ClearAddIndex();
+    pos->AccumulatorTop().ClearSubIndex();
+    pos->AccumulatorTop().perspective[WHITE].needsRefresh = false;
+    pos->AccumulatorTop().perspective[BLACK].needsRefresh = false;
+
+    pos->accumStackHead--;
 
     // parse move
     const int sourceSquare = From(move);
@@ -350,8 +379,6 @@ void UnmakeMove(const Move move, Position* pos) {
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
-
-    pos->accumStackHead--;
 
     const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
 
