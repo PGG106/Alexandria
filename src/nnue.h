@@ -50,7 +50,7 @@ public:
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
             void applyUpdate(Pov_Accumulator& previousPovAccumulator);
 
-            bool isClean(){
+            [[nodiscard]] bool isClean() const {
                 return NNUEAdd.empty();
             }
     };
