@@ -253,10 +253,8 @@ void MakeDP(const Move move, Position* pos)
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
-    // Remove the piece fom the square it moved from
-    ClearPiece<UPDATE>(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece<UPDATE>(piece, targetSquare, pos);
+    MovePiece<UPDATE>(piece,sourceSquare,targetSquare, pos);
+
     // Reset EP square
     if (GetEpSquare(pos) != no_sq) {
         HashKey(pos->posKey, enpassant_keys[GetEpSquare(pos)]);
@@ -272,7 +270,15 @@ void MakeDP(const Move move, Position* pos)
 template void MakeMove<true>(const Move move, Position* pos);
 template void MakeMove<false>(const Move move, Position* pos);
 
-bool shouldFlip(int from, int to);
+bool shouldFlip(int from, int to) {
+    const bool prevFlipped = get_file[from] > 3;
+    const bool flipped = get_file[to] > 3;
+
+    if (prevFlipped != flipped)
+        return true;
+
+    return false;
+}
 
 // make move on chess board
 template <bool UPDATE>
@@ -349,16 +355,6 @@ void MakeMove(const Move move, Position* pos) {
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
     assert(pos->pawnKey == GeneratePawnKey(pos));
-}
-
-bool shouldFlip(int from, int to) {
-    const bool prevFlipped = get_file[from] > 3;
-    const bool flipped = get_file[to] > 3;
-
-    if (prevFlipped != flipped)
-        return true;
-
-    return false;
 }
 
 void UnmakeMove(const Move move, Position* pos) {

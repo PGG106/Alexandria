@@ -24,7 +24,7 @@
     return false;
 }
 
-static inline int ScaleMaterial(const Position* pos, int eval) {
+[[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
     const int knights = CountBits(GetPieceBB(pos, KNIGHT));
     const int bishops = CountBits(GetPieceBB(pos, BISHOP));
     const int rooks = CountBits(GetPieceBB(pos, ROOK));
@@ -45,7 +45,6 @@ static inline int ScaleMaterial(const Position* pos, int eval) {
 // position evaluation
 [[nodiscard]] inline int EvalPosition(Position* pos) {
     int eval = EvalPositionRaw(pos);
-
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
