@@ -44,12 +44,15 @@ public:
             std::vector<std::size_t> NNUESub = {};
             bool needsRefresh = false;
 
-        void accumulate(Position *pos);
-        [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
-        void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
-        void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+            void accumulate(Position *pos);
+            [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
+            void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
+            void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+            void applyUpdate(Pov_Accumulator& previousPovAccumulator);
 
-        void applyUpdate(Pov_Accumulator& previousPovAccumulator);
+            bool isClean(){
+                return NNUEAdd.empty();
+            }
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {

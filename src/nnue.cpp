@@ -165,16 +165,13 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
 void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov) {
     auto &povAccumulator = (pAccumulator)->perspective[pov];
 
-    // figure out what update we need to apply and do that
-    int adds = povAccumulator.NNUEAdd.size();
-
     // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (adds == 0)
+    if (povAccumulator.isClean())
         return;
 
     auto& previousPovAccumulator = (pAccumulator -1)->perspective[pov];
     // if this accumulator is in need of a refresh or the previous one is clean, we can just start updating
-    const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.NNUEAdd.empty();
+    const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.isClean();
     // if we can't update we need to start scanning backwards
     // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, this saves us from having to store board states
     bool shouldRefresh = false;
@@ -189,7 +186,7 @@ void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov)
             shouldRefresh = currentACC.needsRefresh;
             if(shouldRefresh) break;
             // check if the current acc can be used as a starting point for an UE chain
-            else if((pAccumulator - UEableAccs - 1)->perspective[pov].NNUEAdd.empty()){
+            else if((pAccumulator - UEableAccs - 1)->perspective[pov].isClean()){
                 shouldUE = true;
                 break;
             }
@@ -217,7 +214,7 @@ void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov)
 
 void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumulator) {
 
-    assert(previousPovAccumulator.NNUEAdd.empty());
+    assert(previousPovAccumulator.isClean());
 
     // figure out what update we need to apply and do that
     int adds = NNUEAdd.size();
