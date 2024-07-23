@@ -574,7 +574,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (!pvNode
-                    && !inCheck
                     && totalMoves > lmp_margin[std::min(depth, 63)][improving]) {
                     skipQuiets = true;
                 }
