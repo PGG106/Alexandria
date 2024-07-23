@@ -97,6 +97,11 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
             assert(isTactical(move));
 
+            if (!SEE(mp->pos, move, -108)) {
+                AddMove(move, score, &mp->badCaptureList);
+                continue;
+            }
+
             return move;
         }
         ++mp->stage;
@@ -129,6 +134,16 @@ Move NextMove(Movepicker* mp, const bool skip) {
         goto top;
 
     case PICK_BAD_TACTICAL:
+        while (mp->idx < mp->badCaptureList.count) {
+            partialInsertionSort(&mp->badCaptureList, mp->idx);
+            const Move move = mp->badCaptureList.moves[mp->idx].move;
+            ++mp->idx;
+            if (move == mp->ttMove)
+                continue;
+
+            assert(isTactical(move));
+            return move;
+        }
         return NOMOVE;
 
     default:
