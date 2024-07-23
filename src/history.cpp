@@ -27,6 +27,7 @@ void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
     updateSingleCHScore(ss, move, bonus, 1);
     updateSingleCHScore(ss, move, bonus, 2);
     updateSingleCHScore(ss, move, bonus, 4);
+    updateSingleCHScore(ss, move, bonus, 6);
 }
 
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset) {
@@ -84,8 +85,9 @@ int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
 // Returns the history score of a move
 int GetCHScore(const SearchStack* ss, const Move move) {
     return   GetSingleCHScore(ss, move, 1)
-           + GetSingleCHScore(ss, move, 2)
-           + GetSingleCHScore(ss, move, 4);
+            + GetSingleCHScore(ss, move, 2)
+            + GetSingleCHScore(ss, move, 4)
+            + GetSingleCHScore(ss, move, 6);
 }
 
 int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset) {
