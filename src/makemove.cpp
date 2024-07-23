@@ -16,7 +16,7 @@ template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
     // Do this first because if we happened to have moved the king we first need to get1lsb the king bitboard before removing it
     if constexpr(UPDATE){
-        std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
+        std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
         pos->AccumulatorTop().AppendSubIndex(piece, from, flip);
     }
     const int color = Color[piece];
@@ -43,7 +43,7 @@ void AddPiece(const int piece, const int to, Position* pos) {
         HashKey(pos->pawnKey, PieceKeys[piece][to]);
     // Do this last because if we happened to have moved the king we first need to re-add to the piece bitboards least we get1lsb an empty bitboard
     if constexpr(UPDATE){
-        std::pair<bool,bool> flip = std::make_pair(get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3);
+        std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
         pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
     }
 }

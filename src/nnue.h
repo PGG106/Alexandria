@@ -64,18 +64,18 @@ public:
 
         std::array<Pov_Accumulator, 2> perspective;
 
-        void AppendAddIndex(int piece, int square, std::pair<bool,bool> flip) {
+        void AppendAddIndex(int piece, int square, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
             assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
-            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
-            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
+            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
+            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
         }
 
-        void AppendSubIndex(int piece, int square, std::pair<bool,bool> flip) {
+        void AppendSubIndex(int piece, int square, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUESub.size() <= 1);
             assert(this->perspective[BLACK].NNUESub.size() <= 1);
-            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip.first));
-            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip.second));
+            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
+            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
         }
 
         void ClearAddIndex() {
