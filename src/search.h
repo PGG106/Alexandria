@@ -5,6 +5,8 @@
 #include "position.h"
 #include "uci.h"
 
+inline int seeMargins[2][64];
+
 struct SearchStack {
     int ply;
     int staticEval;
