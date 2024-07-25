@@ -468,6 +468,13 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         bool isQuiet = !isTactical(move);
 
         if (bestScore > -MATE_FOUND) {
+
+            // Futility Pruning. At low depths, if the eval is far below alpha,
+            // only search tactical moves as trying quiets in such a bad position is futile.
+            if (   depth <= 10
+                && ss->staticEval + futilityMargins[std::min(depth, 63)] <= alpha)
+                skipQuiets = true;
+
             // SEE Pruning. At low depths, if the SEE (Static Exchange Evaluation) of the move
             // is extremely low, skip considering it in our search.
             if (    depth <= 8
