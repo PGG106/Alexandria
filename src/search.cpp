@@ -467,6 +467,14 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         totalMoves++;
         bool isQuiet = !isTactical(move);
 
+        if (bestScore > -MATE_FOUND) {
+            // SEE Pruning. At low depths, if the SEE (Static Exchange Evaluation) of the move
+            // is extremely low, skip considering it in our search.
+            if (    depth <= 8
+                && !SEE(pos, move, seeMargins[isQuiet][std::min(depth, 63)]))
+                continue;
+        }
+
         int extension = 0;
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
