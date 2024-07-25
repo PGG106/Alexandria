@@ -142,6 +142,8 @@ void InitReductions() {
     for (int depth = 0; depth < 64; ++depth) {
         seeMargins[0][depth] = -double(tacticalSeeCoeff()) * std::pow(depth, double(tacticalSeePower()) / 100.0) / 100.0; // Tactical SEE margin
         seeMargins[1][depth] = -double(   quietSeeCoeff()) * std::pow(depth, double(   quietSeePower()) / 100.0) / 100.0; // Quiet SEE margin
+
+        futilityMargins[depth] = fpMarginQuadratic() * depth * depth + fpMarginLinear() * depth + fpMarginConst();
     }
 }
 

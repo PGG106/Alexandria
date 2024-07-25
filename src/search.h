@@ -6,6 +6,7 @@
 #include "uci.h"
 
 inline int seeMargins[2][64];
+inline int futilityMargins[64];
 
 struct SearchStack {
     int ply;
