@@ -16,7 +16,7 @@ void UpdateQuietHistory(const Position *pos, SearchData *sd, const Move move, co
 
     // Scale the bonus so that the history, when updated, will be within [-quietHistMax(), quietHistMax()]
     const int scaledBonus = bonus - entry * std::abs(bonus) / quietHistMax();
-    entry += bonus;
+    entry += scaledBonus;
 }
 
 int16_t GetQuietHistoryScore(const Position *pos, const SearchData *sd, const Move move) {
