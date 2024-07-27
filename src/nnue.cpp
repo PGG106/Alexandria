@@ -68,7 +68,8 @@ void NNUE::init(const char *file) {
     int16_t transposedL1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
     for (int weight = 0; weight < 2 * L1_SIZE; ++weight)
     {
-        for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
+        for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket)
+        {
             const int srcIdx = weight * OUTPUT_BUCKETS + bucket;
             const int dstIdx = bucket * 2 * L1_SIZE + weight;
             transposedL1Weights[dstIdx] = net.L1Weights[srcIdx];
