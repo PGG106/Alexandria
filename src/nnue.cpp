@@ -212,23 +212,23 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
 
     assert(previousPovAccumulator.isClean());
 
-    // figure out what update we need to apply and do that
-    int adds = NNUEAdd.size();
-    int subs =  NNUESub.size();
-
     // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
     if (this->isClean())
         return;
 
-// Quiets
+    // figure out what update we need to apply and do that
+    int adds = NNUEAdd.size();
+    int subs =  NNUESub.size();
+
+    // Quiets
     if (adds == 1 && subs == 1) {
         this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
     }
-        // Captures
+    // Captures
     else if (adds == 1 && subs == 2) {
         this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
     }
-        // Castling
+    // Castling
     else {
         this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
         this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
