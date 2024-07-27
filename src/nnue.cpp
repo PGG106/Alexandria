@@ -217,24 +217,24 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
     int subs =  NNUESub.size();
 
     // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (adds == 0)
+    if (this->isClean())
         return;
 
-    // Quiets
-        if (adds == 1 && subs == 1) {
-            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-        }
-            // Captures
-        else if (adds == 1 && subs == 2) {
-            this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
-        }
-            // Castling
-        else {
-            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-            this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
-            // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
-            // the half-updated accumulator
-        }
+// Quiets
+    if (adds == 1 && subs == 1) {
+        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+    }
+        // Captures
+    else if (adds == 1 && subs == 2) {
+        this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
+    }
+        // Castling
+    else {
+        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+        this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
+        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
+        // the half-updated accumulator
+    }
 
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
