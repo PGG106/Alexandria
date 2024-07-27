@@ -245,7 +245,7 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
        values[i] = net.FTBiases[i];
     }
 
-    bool flip = get_file[KingSQ(pos, pov)] > 3;
+    const bool flip = get_file[KingSQ(pos, pov)] > 3;
 
     for (int square = 0; square < 64; square++) {
         bool input = pos->pieces[square] != EMPTY;
