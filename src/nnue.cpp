@@ -27,10 +27,10 @@ Network net;
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
-void NNUE::init(const char* file) {
+void NNUE::init(const char *file) {
 
     // open the nn file
-    FILE* nn = fopen(file, "rb");
+    FILE *nn = fopen(file, "rb");
 
     // if it's not invalid read the config values from it
     if (nn) {
@@ -76,12 +76,57 @@ void NNUE::init(const char* file) {
         }
     }
     std::memcpy(net.L1Weights, transposedL1Weights, L1_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
-
 }
 
-void NNUE::update(Accumulator *acc, Position* pos) {
-    updatePovAcc(acc, pos, WHITE);
-    updatePovAcc(acc, pos, BLACK);
+void NNUE::update(Accumulator *acc, Position *pos) {
+    for (int pov = WHITE; pov <= BLACK; pov++) {
+
+        auto &povAccumulator = (acc)->perspective[pov];
+
+        // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+        if (povAccumulator.isClean())
+            continue;
+
+        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
+        // if this accumulator is in need of a refresh or the previous one is clean, we can just start updating
+        const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.isClean();
+        // if we can't update we need to start scanning backwards
+        // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, this saves us from having to store board states
+        bool shouldRefresh = false;
+
+        if (!isUsable) {
+            int UEableAccs;
+            bool shouldUE = false;
+            for (UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
+                auto &currentACC = (acc - UEableAccs)->perspective[pov];
+                // check if the current acc should be refreshed
+                shouldRefresh = currentACC.needsRefresh;
+                if (shouldRefresh) break;
+                    // check if the current acc can be used as a starting point for an UE chain
+                else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
+                    shouldUE = true;
+                    break;
+                }
+            }
+            if (shouldUE) {
+                for (int j = (pos->accumStackHead - 1 - UEableAccs); j <= pos->accumStackHead - 1; j++) {
+                    pos->accumStack[j].perspective[pov].applyUpdate(pos->accumStack[j - 1].perspective[pov]);
+                }
+            }
+        }
+
+// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
+        if (povAccumulator.needsRefresh || shouldRefresh) {
+            povAccumulator.accumulate(pos);
+            // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+            povAccumulator.NNUEAdd.clear();
+            povAccumulator.NNUESub.clear();
+            // mark any accumulator as refreshed
+            povAccumulator.needsRefresh = false;
+        } else {
+            povAccumulator.applyUpdate(previousPovAccumulator);
+        }
+    }
 }
 
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
@@ -162,83 +207,33 @@ void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
     }
 }
 
-void NNUE::updatePovAcc(NNUE::Accumulator *pAccumulator, Position *pos, int pov) {
-    auto &povAccumulator = (pAccumulator)->perspective[pov];
-
-    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (povAccumulator.isClean())
-        return;
-
-    auto& previousPovAccumulator = (pAccumulator -1)->perspective[pov];
-    // if this accumulator is in need of a refresh or the previous one is clean, we can just start updating
-    const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.isClean();
-    // if we can't update we need to start scanning backwards
-    // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, this saves us from having to store board states
-    bool shouldRefresh = false;
-
-    if (!isUsable)
-    {
-        int UEableAccs;
-        bool shouldUE = false;
-        for(UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++){
-            auto &currentACC = (pAccumulator - UEableAccs)->perspective[pov];
-            // check if the current acc should be refreshed
-            shouldRefresh = currentACC.needsRefresh;
-            if(shouldRefresh) break;
-            // check if the current acc can be used as a starting point for an UE chain
-            else if((pAccumulator - UEableAccs - 1)->perspective[pov].isClean()){
-                shouldUE = true;
-                break;
-            }
-        }
-        if(shouldUE){
-            for(int j = (pos->accumStackHead -1 - UEableAccs); j <= pos->accumStackHead -1; j++){
-                pos->accumStack[j].perspective[pov].applyUpdate( pos->accumStack[j-1].perspective[pov]);
-            }
-        }
-    }
-
-// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
-    if (povAccumulator.needsRefresh || shouldRefresh) {
-        povAccumulator.accumulate(pos);
-        // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-        povAccumulator.NNUEAdd.clear();
-        povAccumulator.NNUESub.clear();
-        // mark any accumulator as refreshed
-        povAccumulator.needsRefresh = false;
-    } else {
-      povAccumulator.applyUpdate(previousPovAccumulator);
-    }
-}
-
-
 void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumulator) {
 
     assert(previousPovAccumulator.isClean());
+
+    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    if (this->isClean())
+        return;
 
     // figure out what update we need to apply and do that
     int adds = NNUEAdd.size();
     int subs =  NNUESub.size();
 
-    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
-    if (adds == 0)
-        return;
-
     // Quiets
-        if (adds == 1 && subs == 1) {
-            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-        }
-            // Captures
-        else if (adds == 1 && subs == 2) {
-            this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
-        }
-            // Castling
-        else {
-            this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-            this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
-            // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
-            // the half-updated accumulator
-        }
+    if (adds == 1 && subs == 1) {
+        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+    }
+    // Captures
+    else if (adds == 1 && subs == 2) {
+        this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
+    }
+    // Castling
+    else {
+        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
+        this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
+        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
+        // the half-updated accumulator
+    }
 
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();

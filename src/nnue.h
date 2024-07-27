@@ -91,9 +91,7 @@ public:
 
     void init(const char *file);
     void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
-    void update(Accumulator *acc, Position* pos);
+    static void update(Accumulator *acc, Position* pos);
     [[nodiscard]] int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
-
-    void updatePovAcc(NNUE::Accumulator *pAccumulator, Position* pos, int pov);
 };
