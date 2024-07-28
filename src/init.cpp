@@ -144,6 +144,15 @@ void InitReductions() {
         seeMargins[1][depth] = -double(   quietSeeCoeff()) * std::pow(depth, double(   quietSeePower()) / 100.0) / 100.0; // Quiet SEE margin
 
         futilityMargins[depth] = fpMarginQuadratic() * depth * depth + fpMarginLinear() * depth + fpMarginConst();
+
+        for (int moves = 0; moves < 64; ++moves) {
+            // Manually set reduction to 0 if depth or moves is 0 as log(0) is NaN
+            if (depth == 0 || moves == 0) {
+                lmrReductions[moves][depth] = 0;
+                continue;
+            }
+            lmrReductions[moves][depth] = (double(quietLmrBase()) + double(quietLmrMult()) * std::log(depth) * std::log(moves)) / 1024;
+        }
     }
 }
 
