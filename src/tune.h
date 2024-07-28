@@ -103,3 +103,6 @@ TUNE_PARAM(fpMarginQuadratic, 16, 0, 32, 2, 0.002)
 TUNE_PARAM(fpMarginLinear, 13, 0, 26, 2, 0.002)
 TUNE_PARAM(fpMarginConst, 27, 0, 54, 10, 0.002)
 TUNE_PARAM(fpDepth, 10, 5, 15, 1, 0.002)
+
+TUNE_PARAM(quietLmrBase, 1690, 0, 2535, 128, 0.002)
+TUNE_PARAM(quietLmrMult, 366, 244, 549, 32, 0.002)
