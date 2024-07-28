@@ -499,12 +499,39 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         // Add the move to the corresponding list
         AddMove(move, isQuiet ? &quietMoves : &tacticalMoves);
 
-        // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
-        if (!pvNode || totalMoves > 1) {
+        // Late Move Reductions (LMR):
+        // After a certain depth and total moves searched, we search the rest first at a reduced depth and zero window.
+        // Here we calulate the reduction that we are going to reduce for this move.
+        if (   depth >= 3
+            && totalMoves > 1 + pvNode
+            && isQuiet) {
+
+            // Get base reduction value
+            int depthReduction = lmrReductions[std::min(depth, 63)][std::min(totalMoves, 63)];
+
+            // Clamp the reduced search depth so that we neither extend nor drop into qsearch
+            // We use min/max instead of clamp due to issues that can arise if newDepth < 1
+            int reducedDepth = std::min(std::max(newDepth - depthReduction, 1), newDepth);
+
+            // Carry out the reduced depth, zero window search
+            score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, td, ss + 1);
+
+            // If the reduced depth search fails high, do a full depth search (but still on zero window).
+            if (score > alpha && newDepth > reducedDepth) {
+                score = -Negamax<false>(-alpha - 1, -alpha, newDepth, td, ss + 1);
+            }
+        }
+
+        // Principal Variation Search(PVS):
+        // If we skipped LMR, and this isn't the first move of the node, we search at a full depth but zero window.
+        // We assume that our move ordering is perfect, and so we expect all non-first moves to be worse.
+        // This zero window search will either confirm or deny our prediction, as the score cannot be exact (no integer lies in (-alpha - 1, -alpha))
+        else if (!pvNode || totalMoves > 1) {
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth, td, ss + 1);
         }
 
-        // PV Search: Search the first move and every move that beat alpha with full depth and a full window
+        // If this is our first move, we search with a full window.
+        // Otherwise, if our zero window search fails low, this is a potential alpha raise and so we search the move fully.
         if (pvNode && (totalMoves == 1 || score > alpha))
             score = -Negamax<true>(-beta, -alpha, newDepth, td, ss + 1);
 
@@ -571,7 +598,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
     int bestScore;
-    int eval;
 
     // check if more than Maxtime passed and we have to stop
     if (td->id == 0 && TimeOver(&td->info)) {
