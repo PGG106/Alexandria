@@ -10,7 +10,7 @@
 // Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
-constexpr int OUTPUT_BUCKETS = 16;
+constexpr int OUTPUT_BUCKETS = 4;
 
 constexpr int FT_QUANT  = 362;
 constexpr int L1_QUANT  = 64;
