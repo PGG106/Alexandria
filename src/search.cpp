@@ -270,13 +270,15 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 // Stop main-thread search
                 td->info.stopped = true;
         }
-        // stop calculating and return best move so far
-        if (td->info.stopped)
-            break;
 
         // If it's the main thread print the uci output
         if (td->id == 0)
             PrintUciOutput(score, currentDepth, td, options);
+
+        // stop calculating and return best move so far
+        if (td->info.stopped)
+            break;
+
         // Seldepth should only be related to the current ID loop
         td->info.seldepth = 0;
     }
@@ -365,10 +367,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     TTEntry tte;
 
     const Move excludedMove = ss->excludedMove;
-    if (!excludedMove) {
-        // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
-        pvTable->pvLength[ss->ply] = ss->ply;
-    }
+
+    // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
+    pvTable->pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
     if (ss->ply > info->seldepth)
@@ -725,9 +726,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
@@ -913,7 +911,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         UnmakeMove(move, pos);
 
         if (info->stopped)
-            return 0;
+            return bestScore;
 
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
