@@ -38,8 +38,9 @@
     // Update accumulators to ensure we are up to date on the current board state
     nnue.update(&pos->AccumulatorTop(), pos);
     const int pieceCount = pos->PieceCount();
-    const auto divisor = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
+    const int divisor = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
     const int outputBucket = (pieceCount - 2) / divisor;
+    assert(outputBucket >= 0 && outputBucket < OUTPUT_BUCKETS);
     return nnue.output(pos->accumStack[pos->accumStackHead - 1], pos->side, outputBucket);
 }
 
