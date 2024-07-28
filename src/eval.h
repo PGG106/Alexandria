@@ -38,7 +38,8 @@
     // Update accumulators to ensure we are up to date on the current board state
     nnue.update(&pos->AccumulatorTop(), pos);
     const int pieceCount = pos->PieceCount();
-    const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
+    const auto divisor = (32 + OUTPUT_BUCKETS - 1) / OUTPUT_BUCKETS;
+    const int outputBucket = (pieceCount - 2) / divisor;
     return nnue.output(pos->accumStack[pos->accumStackHead - 1], pos->side, outputBucket);
 }
 
