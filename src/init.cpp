@@ -140,11 +140,17 @@ void initializeLookupTables() {
 // Precalculate the logarithms used in the reduction calculation
 void InitReductions() {
     for (int depth = 0; depth < 64; ++depth) {
+        // SEE Margins
         seeMargins[0][depth] = -double(tacticalSeeCoeff()) * std::pow(depth, double(tacticalSeePower()) / 100.0) / 100.0; // Tactical SEE margin
         seeMargins[1][depth] = -double(   quietSeeCoeff()) * std::pow(depth, double(   quietSeePower()) / 100.0) / 100.0; // Quiet SEE margin
 
+        // FP Margins
         futilityMargins[depth] = fpMarginQuadratic() * depth * depth + fpMarginLinear() * depth + fpMarginConst();
 
+        // LMP Margins
+        lmpMargins[depth] = (double(lmpMarginConst()) + double(lmpMarginMult()) * std::pow(depth, double(lmpMarginPower()) / 100.0)) / 100.0;
+
+        // LMR Reductions
         for (int moves = 0; moves < 64; ++moves) {
             // Manually set reduction to 0 if depth or moves is 0 as log(0) is NaN
             if (depth == 0 || moves == 0) {
