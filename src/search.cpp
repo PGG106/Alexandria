@@ -587,8 +587,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
 
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
-            if (    depth <= 8
-                && !SEE(pos, move, see_margin[std::min(lmrDepth, 63)][isQuiet]))
+            if (!SEE(pos, move, see_margin[std::min(lmrDepth, 63)][isQuiet]))
                 continue;
         }
 
