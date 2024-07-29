@@ -469,6 +469,11 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
 
         if (bestScore > -MATE_FOUND) {
 
+            // Late Move Pruning. If we have searched many moves, but no beta cutoff has occurred,
+            // assume that there are no better quiet moves and skip the rest.
+            if (totalMoves >= lmpMargins[std::min(depth, 63)])
+                skipQuiets = true;
+
             // Futility Pruning. At low depths, if the eval is far below alpha,
             // only search tactical moves as trying quiets in such a bad position is futile.
             if (   depth <= 10
