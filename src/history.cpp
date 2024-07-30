@@ -9,18 +9,24 @@ int16_t HistoryBonus(const int depth) {
     return std::min(histBonusQuadratic() * depth * depth + histBonusLinear() * depth + histBonusConst(), histBonusMax());
 }
 
-// Quiet history is a history table indexed by [side-to-move][from-sq-is-attacked][to-sq-is-attacked][from-to-of-move].
-void UpdateQuietHistory(const Position *pos, SearchData *sd, const Move move, const int16_t bonus) {
-
-    int16_t &entry = sd->quietHistory[pos->side][IsAttackedByOpp(pos, From(move))][IsAttackedByOpp(pos, To(move))][FromTo(move)];
-
-    // Scale the bonus so that the history, when updated, will be within [-quietHistMax(), quietHistMax()]
-    const int scaledBonus = bonus - entry * std::abs(bonus) / quietHistMax();
+void UpdateHistoryEntry(int16_t &entry, const int16_t bonus, const int16_t max) {
+    const int scaledBonus = bonus - entry * std::abs(bonus) / max;
     entry += scaledBonus;
 }
 
-int16_t GetQuietHistoryScore(const Position *pos, const SearchData *sd, const Move move) {
-    return sd->quietHistory[pos->side][IsAttackedByOpp(pos, From(move))][IsAttackedByOpp(pos, To(move))][FromTo(move)];
+// Quiet history is a history table indexed by [side-to-move][from-to-of-move].
+void QuietHistoryTable::update(const Position *pos, const Move move, const int16_t bonus) {
+    QuietHistoryEntry &entry = table[pos->side][FromTo(move)];
+    const int factoriserScale = quietHistFactoriserScale();
+    const int bucketScale = 64 - factoriserScale;
+    UpdateHistoryEntry(entry.factoriser, bonus * factoriserScale / 64, quietHistFactoriserMax());
+    UpdateHistoryEntry(entry.bucketRef(pos, move), bonus * bucketScale / 64, quietHistBucketMax());
+}
+
+int16_t QuietHistoryTable::getScore(const Position *pos, const Move move) const {
+    QuietHistoryEntry entry = table[pos->side][FromTo(move)];
+    return   entry.factoriser
+           + entry.bucket(pos, move);
 }
 
 // Use this function to update all quiet histories
@@ -31,13 +37,13 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
     }
     else {
         // Positively update the move that failed high
-        UpdateQuietHistory(pos, sd, bestMove, bonus);
+        sd->quietHistory.update(pos, bestMove, bonus);
 
         // Penalise all quiets that failed to do so (they were ordered earlier but weren't as good)
         for (int i = 0; i < quietMoves.count; ++i) {
             Move quiet = quietMoves.moves[i].move;
             if (bestMove == quiet) continue;
-            UpdateQuietHistory(pos, sd, quiet, -bonus);
+            sd->quietHistory.update(pos, quiet, -bonus);
         }
     }
 }
@@ -47,11 +53,11 @@ int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData
         return 0;
     }
     else {
-        return GetQuietHistoryScore(pos, sd, move);
+        return sd->quietHistory.getScore(pos, move);
     }
 }
 
 // Resets the history tables
 void CleanHistories(SearchData *sd) {
-    std::memset(sd->quietHistory, 0, sizeof(sd->quietHistory));
+    sd->quietHistory.clear();
 }
