@@ -101,6 +101,9 @@ TUNE_PARAM(tacticalSeePower, 200, 50, 400, 15, 0.002)
 TUNE_PARAM(quietSeeCoeff, 8000, 1000, 16000, 750, 0.002)
 TUNE_PARAM(quietSeePower, 100, 50, 300, 13, 0.002)
 
+TUNE_PARAM(seDepth, 5, 3, 10, 1, 0.002)
+TUNE_PARAM(seMarginMult, 48, 5, 30, 1, 0.002)
+
 TUNE_PARAM(quietLmrBase, 1690, 0, 2535, 128, 0.002)
 TUNE_PARAM(quietLmrMult, 366, 244, 549, 32, 0.002)
 

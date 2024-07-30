@@ -321,7 +321,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
 // Negamax alpha beta search
 template <bool pvNode>
-int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
+int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Move excludedMove) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
@@ -336,11 +336,12 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     TTEntry tte;
 
     // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
-    pvTable->pvLength[ss->ply] = ss->ply;
+    if (excludedMove) {
+        pvTable->pvLength[ss->ply] = ss->ply;
+    }
 
     // Check for the highest depth reached in search to report it to the cli
-    if (ss->ply > info->seldepth)
-        info->seldepth = ss->ply;
+    info->seldepth = std::max(info->seldepth, ss->ply);
 
     // recursion escape condition
     if (depth <= 0)
@@ -378,7 +379,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = !excludedMove && ProbeTTEntry(pos->GetPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -394,9 +395,13 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
             ||  ttBound == HFEXACT))
         return ttScore;
 
-    // If we are in check or searching a singular extension we avoid pruning before the move loop
+    // If we are in check we skip static evaluation
     if (inCheck) {
         eval = ss->staticEval = SCORE_NONE;
+    }
+    // If we are in an excluded search just re-use the existing eval
+    else if (excludedMove) {
+        eval = ss->staticEval;
     }
     // get an evaluation of the position:
     else if (ttHit) {
@@ -411,6 +416,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     }
 
     if (   !pvNode
+        && !excludedMove
         && !inCheck) {
         // Reverse Futility Pruning (RFP) / Static Null Move Pruning (SNMP)
         // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
@@ -461,7 +467,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
 
-        if (!IsLegal(pos, move))
+        if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
         totalMoves++;
@@ -488,6 +494,34 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
         }
 
         int extension = 0;
+
+        // Singular extensions. If the TT bound suggests that the TT move is likely to fail high, and the TT entry
+        // is of a certain quality, we do a search at reduced margins and depth, whilst excluding the TT move.
+        // If this this excluded search fails low, then we know there are no moves which maintain 
+        // the score close to the TT score, and so we extend the search of the TT move (search it at a higher depth).
+        if (    move == ttMove
+            && !rootNode
+            && !excludedMove
+            &&  depth >= seDepth()
+            && (ttBound == HFEXACT || ttBound == HFLOWER)
+            &&  abs(ttScore) < MATE_FOUND
+            &&  ttDepth >= depth - 3
+            &&  ttDepth * 2 >= depth) {
+            const int singularAlpha = std::max(ttScore - depth * seMarginMult() / 16, -MATE_FOUND);
+            const int singularBeta  = singularAlpha + 1;
+            const int singularDepth = std::max((depth - 1) / 2, 1);
+
+            const int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, td, ss, ttMove);
+            if (singularScore <= singularAlpha) {
+                extension = 1;
+            }
+            // Multicut. If the lower bound of our singular search score is at least beta,
+            // assume both it and the TT move fails high, and return a cutoff early.
+            else if (singularScore >= beta) {
+                return singularScore;
+            }
+        }
+
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
         // Speculative prefetch of the TT entry
@@ -582,13 +616,17 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
     if (totalMoves == 0) {
-        return inCheck ? -MATE_SCORE + ss->ply
-                       : 0;
+        return excludedMove ? -MAXSCORE
+             :      inCheck ? -MATE_SCORE + ss->ply
+                            : 0;
     }
-    // Set the TT bound based on whether we failed high or raised alpha
-    int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
-    StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
+    // Do not save to the TT during singular search
+    if (!excludedMove) {
+        // Set the TT bound based on whether we failed high or raised alpha
+        int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
+        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
+    }
 
     return bestScore;
 }
