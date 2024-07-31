@@ -14,9 +14,9 @@ void UpdateHistoryEntry(int16_t &entry, const int16_t bonus, const int16_t max) 
     entry += scaledBonus;
 }
 
-// Quiet history is a history table indexed by [side-to-move][from-to-of-move].
+// Quiet history is a history table for quiet moves
 void QuietHistoryTable::update(const Position *pos, const Move move, const int16_t bonus) {
-    QuietHistoryEntry &entry = table[pos->side][FromTo(move)];
+    QuietHistoryEntry &entry = getEntryRef(pos, move);
     const int factoriserScale = quietHistFactoriserScale();
     const int bucketScale = 64 - factoriserScale;
     UpdateHistoryEntry(entry.factoriser, bonus * factoriserScale / 64, quietHistFactoriserMax());
@@ -24,16 +24,28 @@ void QuietHistoryTable::update(const Position *pos, const Move move, const int16
 }
 
 int16_t QuietHistoryTable::getScore(const Position *pos, const Move move) const {
-    QuietHistoryEntry entry = table[pos->side][FromTo(move)];
+    QuietHistoryEntry entry = getEntry(pos, move);
     return   entry.factoriser
            + entry.bucket(pos, move);
+}
+
+// Tactical history is a history table for tactical moves
+void TacticalHistoryTable::update(const Position *pos, const Move move, int16_t bonus) {
+    TacticalHistoryEntry &entry = getEntryRef(pos, move);
+    UpdateHistoryEntry(entry.factoriser, bonus, tacticalHistMax());
+}
+
+int16_t TacticalHistoryTable::getScore(const Position *pos, const Move move) const {
+    TacticalHistoryEntry entry = getEntry(pos, move);
+    return entry.factoriser;
 }
 
 // Use this function to update all quiet histories
 void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int depth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves) {
     int16_t bonus = HistoryBonus(depth);
     if (isTactical(bestMove)) {
-        ;
+        // Positively update the move that failed high
+        sd->tacticalHistory.update(pos, bestMove, bonus);
     }
     else {
         // Positively update the move that failed high
@@ -46,11 +58,18 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
             sd->quietHistory.update(pos, quiet, -bonus);
         }
     }
+
+    // Penalise all tactical moves that were searched first but didn't fail high (even if the best move was quiet)
+    for (int i = 0; i < tacticalMoves.count; ++i) {
+        Move tactical = tacticalMoves.moves[i].move;
+        if (bestMove == tactical) continue;
+        sd->tacticalHistory.update(pos, tactical, -bonus);
+    }
 }
 
 int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData *sd, const Move move) {
     if (isTactical(move)) {
-        return 0;
+        return sd->tacticalHistory.getScore(pos, move);
     }
     else {
         return sd->quietHistory.getScore(pos, move);
@@ -60,4 +79,5 @@ int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData
 // Resets the history tables
 void CleanHistories(SearchData *sd) {
     sd->quietHistory.clear();
+    sd->tacticalHistory.clear();
 }

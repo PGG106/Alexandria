@@ -14,10 +14,10 @@ void ScoreMoves(Movepicker* mp) {
         const Move move = moveList->moves[i].move;
         const int history = GetHistoryScore(pos, ss, sd, move);
         if (isTactical(move)) {
-            int capturedPiece = isPromo(move)     ? getPromotedPiecetype(move)
-                              : isEnpassant(move) ? PAWN
-                                                  : GetPieceType(pos->PieceOn(To(move)));
-            moveList->moves[i].score = SEEValue[capturedPiece] * 32 - SEEValue[Piece(move)];
+            int moveDelta = isPromo(move)     ? SEEValue[getPromotedPiecetype(move)] - SEEValue[PAWN]
+                          : isEnpassant(move) ? SEEValue[PAWN]
+                                              : SEEValue[GetPieceType(pos->PieceOn(To(move)))];
+            moveList->moves[i].score = moveDelta * 64 + history;
         }
         else {
             moveList->moves[i].score = history;
