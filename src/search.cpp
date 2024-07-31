@@ -365,10 +365,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     TTEntry tte;
 
     const Move excludedMove = ss->excludedMove;
-    if (!excludedMove) {
-        // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
-        pvTable->pvLength[ss->ply] = ss->ply;
-    }
+
+    // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
+    pvTable->pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
     if (ss->ply > info->seldepth)
