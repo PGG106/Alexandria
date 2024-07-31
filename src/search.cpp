@@ -334,11 +334,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     int eval;
     int score = -MAXSCORE;
     TTEntry tte;
-
-    // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
-    if (excludedMove) {
-        pvTable->pvLength[ss->ply] = ss->ply;
-    }
+    pvTable->pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
     info->seldepth = std::max(info->seldepth, ss->ply);
