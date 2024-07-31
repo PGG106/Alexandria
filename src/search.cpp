@@ -860,7 +860,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     }
     // If we don't have any useful info in the TT just call Evalpos
     else {
-        rawEval = EvalPosition(pos);
+        rawEval = ((ss-1)->move == NOMOVE) ? -(ss-1)->staticEval : EvalPosition(pos);
         bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, rawEval);
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
