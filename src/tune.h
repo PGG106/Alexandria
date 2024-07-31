@@ -115,3 +115,5 @@ TUNE_PARAM(histBonusMax, 1200, 400, 4800, 100, 0.002)
 TUNE_PARAM(quietHistFactoriserScale, 16, 0, 64, 2, 0.002)
 TUNE_PARAM(quietHistFactoriserMax, 2048, 2048, 20000, 300, 0.002)
 TUNE_PARAM(quietHistBucketMax, 6144, 2048, 20000, 300, 0.002)
+
+TUNE_PARAM(tacticalHistMax, 8192, 2048, 20000, 300, 0.002)
