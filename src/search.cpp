@@ -242,9 +242,10 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
         // Only the main thread handles time related tasks
         if (td->id == 0) {
+            auto bestMove = GetBestMove(&td->pvTable);
             // Keep track of how many times in a row the best move stayed the same
-            if (GetBestMove(&td->pvTable) == previousBestMove) {
-                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
+            if (bestMove == previousBestMove) {
+                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1 + isQuiet(bestMove), 4);
             }
             else {
                 bestMoveStabilityFactor = 0;
