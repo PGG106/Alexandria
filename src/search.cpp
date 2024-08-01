@@ -245,10 +245,10 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             auto bestMove = GetBestMove(&td->pvTable);
             // Keep track of how many times in a row the best move stayed the same
             if (bestMove == previousBestMove) {
-                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1 + isQuiet(bestMove), 4);
+                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
             }
             else {
-                bestMoveStabilityFactor = 0;
+                bestMoveStabilityFactor = 0 + isQuiet(bestMove);
                 previousBestMove = GetBestMove(&td->pvTable);
             }
 
