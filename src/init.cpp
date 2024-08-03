@@ -197,7 +197,6 @@ void initCuckoo(){
 }
 
 void InitAll() {
-    setvbuf(stdout, NULL, _IOLBF, 1024);
     // Force windows to display colors
 #ifdef _WIN64
     if (!tryhardmode) {
