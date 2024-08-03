@@ -47,7 +47,9 @@
     int eval = EvalPositionRaw(pos);
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->Get50mrCounter()) / 200;
-    eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
+    int grain = (std::abs(eval) - 100) / 25;
+    grain = std::clamp(grain, 1, 16);
+    eval = (eval / grain) * grain - 1 + (pos->posKey & 0x2);
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;
