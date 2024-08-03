@@ -98,9 +98,9 @@ void NNUE::update(Accumulator *acc, Position *pos) {
             int UEableAccs;
             bool shouldUE = false;
             for (UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
-                auto &currentACC = (acc - UEableAccs)->perspective[pov];
+                auto &currentAcc = (acc - UEableAccs)->perspective[pov];
                 // check if the current acc should be refreshed
-                shouldRefresh = currentACC.needsRefresh;
+                shouldRefresh = currentAcc.needsRefresh;
                 if (shouldRefresh) break;
                     // check if the current acc can be used as a starting point for an UE chain
                 else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
