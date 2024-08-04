@@ -501,7 +501,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             &&  depth >= seDepth()
             && (ttBound == HFEXACT || ttBound == HFLOWER)
             &&  abs(ttScore) < MATE_FOUND
-            &&  ttDepth >= depth - 3
+            &&  ttDepth >= depth - seMinQuality()
             &&  ttDepth * 2 >= depth) {
             const int singularAlpha = std::max(ttScore - depth * seMarginMult() / 16, -MATE_FOUND);
             const int singularBeta  = singularAlpha + 1;
