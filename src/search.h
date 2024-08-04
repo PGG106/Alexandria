@@ -17,8 +17,9 @@ struct SearchStack {
 };
 
 struct SearchData {
-    QuietHistoryTable    quietHistory;
-    TacticalHistoryTable tacticalHistory;
+    QuietHistoryTable        quietHistory;
+    TacticalHistoryTable     tacticalHistory;
+    ContinuationHistoryTable continuationHistory;
 };
 
 struct PvTable {

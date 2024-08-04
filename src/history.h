@@ -43,6 +43,7 @@ struct QuietHistoryTable {
     inline void clear() {
         std::memset(table, 0, sizeof(table));
     };
+
     void update(const Position *pos, const Move move, const int16_t bonus);
     int16_t getScore(const Position *pos, const Move move) const;
 };
@@ -71,8 +72,36 @@ struct TacticalHistoryTable {
     inline void clear() {
         std::memset(table, 0, sizeof(table));
     };
+
     void update(const Position *pos, const Move move, const int16_t bonus);
     int16_t getScore(const Position *pos, const Move move) const;
+};
+
+// Continuation history is a history table for move pairs (i.e. a previous move and its continuation)
+struct ContinuationHistoryTable {
+    struct ContinuationHistoryEntry {
+        int16_t factoriser;
+    };
+
+    // Indexed by [previous-piece][previous-to][current-piece][current-to]
+    ContinuationHistoryEntry table[12 * 64][12 * 64];
+
+    inline ContinuationHistoryEntry getEntry(const Position *pos, const Move prevMove, const Move currMove) const {
+        return table[PieceTo(prevMove)][PieceTo(currMove)];
+    };
+
+    inline ContinuationHistoryEntry &getEntryRef(const Position *pos, const Move prevMove, const Move currMove) {
+        return table[PieceTo(prevMove)][PieceTo(currMove)];
+    };
+
+    inline void clear() {
+        std::memset(table, 0, sizeof(table));
+    };
+
+    void updateSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move, const int16_t bonus);
+    void update(const Position *pos, const SearchStack *ss, const Move move, const int16_t bonus);
+    int16_t getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const;
+    int16_t getScore(const Position *pos, const SearchStack *ss, const Move move) const;
 };
 
 // Update all histories after a beta cutoff

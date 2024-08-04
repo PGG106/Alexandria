@@ -40,6 +40,27 @@ int16_t TacticalHistoryTable::getScore(const Position *pos, const Move move) con
     return entry.factoriser;
 }
 
+// Continuation history is a history table for move pairs (i.e. a previous move and its continuation)
+void ContinuationHistoryTable::updateSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move, const int16_t bonus) {
+    ContinuationHistoryEntry &entry = getEntryRef(pos, (ss - offset)->move, move);
+    UpdateHistoryEntry(entry.factoriser, bonus, continuationHistMax());
+}
+
+void ContinuationHistoryTable::update(const Position *pos, const SearchStack *ss, const Move move, const int16_t bonus) {
+    updateSingle(pos, ss, 1, move, bonus);
+    updateSingle(pos, ss, 2, move, bonus);
+}
+
+int16_t ContinuationHistoryTable::getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const {
+    ContinuationHistoryEntry entry = getEntry(pos, (ss - offset)->move, move);
+    return entry.factoriser;
+}
+
+int16_t ContinuationHistoryTable::getScore(const Position *pos, const SearchStack *ss, const Move move) const {
+    return   getScoreSingle(pos, ss, 1, move)
+           + getScoreSingle(pos, ss, 2, move);
+}
+
 // Use this function to update all quiet histories
 void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int depth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves) {
     int16_t bonus = HistoryBonus(depth);
@@ -50,12 +71,14 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
     else {
         // Positively update the move that failed high
         sd->quietHistory.update(pos, bestMove, bonus);
+        sd->continuationHistory.update(pos, ss, bestMove, bonus);
 
         // Penalise all quiets that failed to do so (they were ordered earlier but weren't as good)
         for (int i = 0; i < quietMoves.count; ++i) {
             Move quiet = quietMoves.moves[i].move;
             if (bestMove == quiet) continue;
             sd->quietHistory.update(pos, quiet, -bonus);
+            sd->continuationHistory.update(pos, ss, quiet, -bonus);
         }
     }
 
@@ -72,7 +95,8 @@ int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData
         return sd->tacticalHistory.getScore(pos, move);
     }
     else {
-        return sd->quietHistory.getScore(pos, move);
+        return   sd->quietHistory.getScore(pos, move)
+               + sd->continuationHistory.getScore(pos, ss, move);
     }
 }
 
@@ -80,4 +104,5 @@ int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData
 void CleanHistories(SearchData *sd) {
     sd->quietHistory.clear();
     sd->tacticalHistory.clear();
+    sd->continuationHistory.clear();
 }
