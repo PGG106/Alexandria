@@ -36,8 +36,7 @@ struct BoardState {
 
 struct Position {
 public:
-    int pieces[64]; // array that stores for every square of the board
-    // if there's a piece, or if the square is invalid
+    int pieces[64]; // array that stores for every square of the board what piece is on it
 
     int side = -1; // what side has to move
     int enPas = no_sq; // if enpassant is possible and in which square
