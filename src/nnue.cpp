@@ -291,12 +291,19 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
             const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + FT_CHUNK_SIZE + 0]));
             const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + 0             + L1_SIZE / 2]));
             const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
+
+            // Comments stolen from SF (since I was the original author of this anyways):
+            // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
+            // shift left by (16 - FT_SHIFT), and use mulhi, stripping the bottom 16 bits, effectively shifting right by 16, resulting in a net shift
+            // of FT_SHIFT bits. We use mulhi because it maintains the sign of the multiplication (unlike mullo), allowing us to make use
+            // of packus to clip 2 of the inputs, resulting in a save of 2 "vec_max_epi16" calls.
             const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
             const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
-            const vepi16 clipped1a = vec_min_epi16(vec_max_epi16(input1a, Zero), One);
-            const vepi16 clipped1b = vec_min_epi16(vec_max_epi16(input1b, Zero), One);
-            const vepi16 producta  = vec_srli_epi16(vec_mullo_epi16(clipped0a, clipped1a), FT_SHIFT);
-            const vepi16 productb  = vec_srli_epi16(vec_mullo_epi16(clipped0b, clipped1b), FT_SHIFT);
+            const vepi16 clipped1a = vec_min_epi16(input1a, One);
+            const vepi16 clipped1b = vec_min_epi16(input1b, One);
+
+            const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+            const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
             vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_permute_epi16(producta, productb));
         }
         offset += L1_SIZE / 2;
@@ -328,7 +335,7 @@ void NNUE::PropagateL1(const uint8_t *inputs, const int8_t *weights, const float
     for (int i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumDiv  = vec_set1_ps(float(FT_QUANT * FT_QUANT * L1_QUANT >> FT_SHIFT));
+        const vps32 sumDiv  = vec_set1_ps(L1_DIV);
         const vps32 sumPs   = vec_add_ps(vec_div_ps(vec_cvtepi32_ps(sums[i]), sumDiv), biasVec);
         const vps32 Zero    = vec_zero_ps();
         vec_store_ps(&output[i * L2_CHUNK_SIZE], vec_max_ps(Zero, sumPs));
@@ -343,8 +350,7 @@ void NNUE::PropagateL1(const uint8_t *inputs, const int8_t *weights, const float
 
     for (int i = 0; i < L2_SIZE; ++i) {
         // Convert into floats and activate L1
-        const float sumDiv  = float(FT_QUANT * FT_QUANT * L1_QUANT >> FT_SHIFT);
-        output[i] = std::max(float(sums[i]) / sumDiv + biases[i], 0.0f);
+        output[i] = std::max(float(sums[i]) / L1_DIV + biases[i], 0.0f);
     }
     #endif
 }

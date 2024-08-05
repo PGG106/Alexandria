@@ -18,8 +18,8 @@ inline vepi16 vec_load_epi   (const vepi16 *src) { return _mm512_load_si512(src)
 inline void   vec_store_epi  (vepi16 *dst, const vepi16 vec) { _mm512_store_si512(dst, vec); }
 inline vepi16 vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_max_epi16(vec0, vec1); }
 inline vepi16 vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_min_epi16(vec0, vec1); }
-inline vepi16 vec_mullo_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mullo_epi16(vec0, vec1); }
-inline vepi16 vec_srli_epi16 (const vepi16 vec, const int shift) { return _mm512_srli_epi16(vec, shift); }
+inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mulhi_epi16(vec0, vec1); }
+inline vepi16 vec_slli_epi16 (const vepi16 vec, const int shift) { return _mm512_slli_epi16(vec, shift); }
 inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
     const vepi8 packed = _mm512_packus_epi16(vec0, vec1);
     return _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 2, 4, 6, 1, 3, 5, 7), packed);
@@ -65,8 +65,8 @@ inline vepi16 vec_load_epi   (const vepi16 *src) { return _mm256_load_si256(src)
 inline void   vec_store_epi  (vepi16 *dst, const vepi16 vec) { _mm256_store_si512(dst, vec); }
 inline vepi16 vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm256_max_epi16(vec0, vec1); }
 inline vepi16 vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm256_min_epi16(vec0, vec1); }
-inline vepi16 vec_mullo_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm256_mullo_epi16(vec0, vec1); }
-inline vepi16 vec_srli_epi16 (const vepi16 vec, const int shift) { return _mm256_srli_epi16(vec, shift); }
+inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm256_mulhi_epi16(vec0, vec1); }
+inline vepi16 vec_slli_epi16 (const vepi16 vec, const int shift) { return _mm256_slli_epi16(vec, shift); }
 inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
     const vepi8 packed = _mm256_packus_epi16(vec0, vec1);
     return _mm256_permute4x64_epi64(packed, _MM_SHUFFLE(3, 1, 2, 0));

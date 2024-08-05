@@ -19,6 +19,8 @@ constexpr int FT_SHIFT  = 9;
 constexpr int L1_QUANT  = 64;
 constexpr int NET_SCALE = 400;
 
+constexpr int L1_DIV    = float(FT_QUANT * FT_QUANT * L1_QUANT >> FT_SHIFT);
+
 #if defined(USE_SIMD)
 constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
 constexpr int L1_CHUNK_SIZE = sizeof(vepi8 ) / sizeof(int8_t);
