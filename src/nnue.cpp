@@ -286,15 +286,18 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
     for (const int16_t *acc : {us, them}) {
-        for (int i = 0; i < L1_SIZE / 2; i += FT_CHUNK_SIZE) {
-            const vepi16 input0   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i]));
-            const vepi16 input1   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + L1_SIZE]));
-            const vepi16 clipped0 = vec_min_epi16(vec_max_epi16(input0, Zero), One);
-            const vepi16 clipped1 = vec_min_epi16(vec_max_epi16(input1, Zero), One);
-
-            const vepi16 squared0 = vec_srli_epi16(vec_mullo_epi16(clipped0, clipped0), FT_SHIFT);
-            const vepi16 squared1 = vec_srli_epi16(vec_mullo_epi16(clipped1, clipped1), FT_SHIFT);
-            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_permute_epi16(squared0, squared1));
+        for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
+            const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + 0             + 0]));
+            const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + FT_CHUNK_SIZE + 0]));
+            const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + 0             + L1_SIZE / 2]));
+            const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
+            const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
+            const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
+            const vepi16 clipped1a = vec_min_epi16(vec_max_epi16(input1a, Zero), One);
+            const vepi16 clipped1b = vec_min_epi16(vec_max_epi16(input1b, Zero), One);
+            const vepi16 producta  = vec_srli_epi16(vec_mullo_epi16(clipped0a, clipped1a), FT_SHIFT);
+            const vepi16 productb  = vec_srli_epi16(vec_mullo_epi16(clipped0b, clipped1b), FT_SHIFT);
+            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_permute_epi16(producta, productb));
         }
         offset += L1_SIZE / 2;
     }
