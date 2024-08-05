@@ -23,8 +23,9 @@ void ResetBoard(Position* pos) {
     for (int index = 0; index < 64; ++index) {
         pos->pieces[index] = EMPTY;
     }
-    pos->castleperm = 0; 
-    pos->plyFromNull = 0;
+
+    pos->historyStack.history[pos->historyStack.historyStackHead].castleperm = 0;
+    pos->historyStack.history[pos->historyStack.historyStackHead].plyFromNull = 0;
 }
 
 void ResetInfo(SearchInfo* info) {
@@ -58,9 +59,9 @@ ZobristKey GeneratePosKey(const Position* pos) {
         finalkey ^= SideKey;
     }
     // include the ep square in the key
-    if (GetEpSquare(pos) != no_sq) {
+    if (pos->GetEpSquare() != no_sq) {
         assert(pos->enPas >= 0 && pos->enPas < 64);
-        finalkey ^= enpassant_keys[GetEpSquare(pos)];
+        finalkey ^= enpassant_keys[pos->GetEpSquare()];
     }
     assert(pos->castleperm >= 0 && pos->castleperm <= 15);
     // add to the key the status of the castling permissions
@@ -154,16 +155,16 @@ void ParseFen(const std::string& command, Position* pos) {
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->castleperm) |= WKCA;
+            (pos->historyStack.history[pos->historyStack.historyStackHead].castleperm) |= WKCA;
             break;
         case 'Q':
-            (pos->castleperm) |= WQCA;
+            (pos->historyStack.history[pos->historyStack.historyStackHead].castleperm) |= WQCA;
             break;
         case 'k':
-            (pos->castleperm) |= BKCA;
+            (pos->historyStack.history[pos->historyStack.historyStackHead].castleperm) |= BKCA;
             break;
         case 'q':
-            (pos->castleperm) |= BQCA;
+            (pos->historyStack.history[pos->historyStack.historyStackHead].castleperm) |= BQCA;
             break;
         case '-':
             break;
@@ -177,18 +178,18 @@ void ParseFen(const std::string& command, Position* pos) {
         const int rank = 8 - (ep_square[1] - '0');
 
         // init enpassant square
-        pos->enPas = rank * 8 + file;
+        pos->historyStack.history[pos->historyStack.historyStackHead].enPas = rank * 8 + file;
     }
     // no enpassant square
     else
-        pos->enPas = no_sq;
+        pos->historyStack.history[pos->historyStack.historyStackHead].enPas = no_sq;
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
-        pos->fiftyMove = std::stoi(fifty_move);
+        pos->historyStack.history[pos->historyStack.historyStackHead].fiftyMove = std::stoi(fifty_move);
     }
     else {
-        pos->fiftyMove = 0;
+        pos->historyStack.history[pos->historyStack.historyStackHead].fiftyMove = 0;
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
@@ -213,13 +214,13 @@ void ParseFen(const std::string& command, Position* pos) {
     UpdatePinsAndCheckers(pos, pos->side);
 
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if ( pos->historyStack.history[pos->historyStack.historyStackHead].checkers) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        const int pieceLocation = GetLsbIndex( pos->historyStack.history[pos->historyStack.historyStackHead].checkers);
+        pos->historyStack.history[pos->historyStack.historyStackHead].checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->historyStack.history[pos->historyStack.historyStackHead].checkMask = fullCheckmask;
 
     // Update nnue accumulator to reflect board state
     nnue.accumulate(pos->accumStack[0], pos);
@@ -279,8 +280,8 @@ std::string GetFen(const Position* pos) {
             castle_perm += "q";
     }
     // parse enpassant square
-    if (GetEpSquare(pos) != no_sq) {
-        ep_square = square_to_coordinates[GetEpSquare(pos)];
+    if (pos->GetEpSquare() != no_sq) {
+        ep_square = square_to_coordinates[pos->GetEpSquare()];
     } else {
         ep_square = "-";
     }
@@ -426,26 +427,22 @@ void UpdatePinsAndCheckers(Position* pos, const int side) {
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
-    pos->pinned = 0ULL;
-    pos->checkers = pawnCheckers | knightCheckers;
+    pos->historyStack.history[pos->historyStack.historyStackHead + 1].pinned = 0ULL;
+    pos->historyStack.history[pos->historyStack.historyStackHead + 1].checkers = pawnCheckers | knightCheckers;
 
     while (sliderAttacks) {
         const int sq = popLsb(sliderAttacks);
         const Bitboard blockers = (RayBetween(kingSquare, sq) | (1ULL << sq)) & pos->Occupancy(side);
         const int numBlockers = CountBits(blockers);
         if (!numBlockers)
-            pos->checkers |= 1ULL << sq;
+            pos->historyStack.history[pos->historyStack.historyStackHead + 1].checkers |= 1ULL << sq;
         else if (numBlockers == 1)
-            pos->pinned |= blockers;
+            pos->historyStack.history[pos->historyStack.historyStackHead + 1].pinned |= blockers;
     }
 }
 
 Bitboard RayBetween(int square1, int square2) {
     return SQUARES_BETWEEN_BB[square1][square2];
-}
-
-int GetEpSquare(const Position* pos) {
-    return pos->enPas;
 }
 
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
@@ -464,30 +461,9 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     return newKey;
 }
 
-void saveBoardState(Position* pos) {
-    pos->history[pos->historyStackHead].fiftyMove = pos->fiftyMove;
-    pos->history[pos->historyStackHead].enPas = pos->enPas;
-    pos->history[pos->historyStackHead].castlePerm = pos->castleperm;
-    pos->history[pos->historyStackHead].plyFromNull = pos->plyFromNull;
-    pos->history[pos->historyStackHead].checkers = pos->checkers;
-    pos->history[pos->historyStackHead].checkMask = pos->checkMask;
-    pos->history[pos->historyStackHead].pinned = pos->pinned;
-}
-
-void restorePreviousBoardState(Position* pos)
-{
-    pos->enPas = pos->history[pos->historyStackHead].enPas;
-    pos->fiftyMove = pos->history[pos->historyStackHead].fiftyMove;
-    pos->castleperm = pos->history[pos->historyStackHead].castlePerm;
-    pos->plyFromNull = pos->history[pos->historyStackHead].plyFromNull;
-    pos->checkers = pos->history[pos->historyStackHead].checkers;
-    pos->checkMask = pos->history[pos->historyStackHead].checkMask;
-    pos->pinned = pos->history[pos->historyStackHead].pinned;
-}
-
 bool hasGameCycle(Position* pos, int ply) {
 
-    int end = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    int end = std::min(pos->Get50mrCounter(), pos->GetPlyFromNull());
 
     if (end < 3)
         return false;

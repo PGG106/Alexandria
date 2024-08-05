@@ -22,7 +22,7 @@ static bool IsRepetition(const Position* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
-    int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    int distance = std::min(pos->Get50mrCounter(), pos->GetPlyFromNull());
     // Get the point our search should start from
     int startingPoint = pos->played_positions.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
@@ -31,7 +31,7 @@ static bool IsRepetition(const Position* pos) {
         if (pos->played_positions[startingPoint - index] == pos->posKey) {
 
             // we found a 2-fold repetition within the search tree
-            if (index < pos->historyStackHead)
+            if (index < pos->historyStack.historyStackHead)
                 return true;
 
             counter++;
@@ -48,7 +48,7 @@ static bool Is50MrDraw(Position* pos) {
     if (pos->Get50mrCounter() >= 100) {
 
         // If there's no risk we are being checkmated return true
-        if (!pos->checkers)
+        if (!pos->GetCheckers())
             return true;
 
         // if we are in check make sure it's not checkmate 
@@ -145,7 +145,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     // It doesn't matter if the to square is occupied or not
     Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from);
     if (isEnpassant(move))
-        occupied ^= GetEpSquare(pos);
+        occupied ^= pos->GetEpSquare();
 
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
@@ -356,7 +356,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->GetCheckers();
     const bool rootNode = (ss->ply == 0);
     int eval;
     int rawEval;
@@ -667,7 +667,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that give check
-                if (pos->checkers)
+                if (pos->GetCheckers())
                     depthReduction -= 1;
 
                 // Reduce less if we have been on the PV
@@ -795,7 +795,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->GetCheckers();
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
     int bestScore;

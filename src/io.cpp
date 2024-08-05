@@ -75,7 +75,7 @@ void PrintBoard(const Position* pos) {
 
     // print enpassant square
     printf("     Enpassant:   %s\n",
-        (GetEpSquare(pos) != no_sq) ? square_to_coordinates[GetEpSquare(pos)] : "no");
+        (pos->GetEpSquare() != no_sq) ? square_to_coordinates[pos->GetEpSquare()] : "no");
 
     // print castling rights
     printf("     Castling:  %c%c%c%c\n", (pos->GetCastlingPerm() & WKCA) ? 'K' : '-',

@@ -36,30 +36,41 @@ struct BoardState {
 
 struct Position {
 public:
+    struct BoardState{
+        int enPas = no_sq; // if enpassant is possible and in which square
+        int fiftyMove = 0; // Counter for the 50 moves rule
+        int plyFromNull = 0;
+        int castleperm = 0;
+        int capture;
+        Bitboard checkers;
+        Bitboard checkMask = fullCheckmask;
+        Bitboard pinned;
+    };
+
+    struct boardHistoryStack{
+        BoardState history[MAXPLY];
+        int historyStackHead = 0;
+    };
+
     int pieces[64]; // array that stores for every square of the board
     // if there's a piece, or if the square is invalid
 
     int side = -1; // what side has to move
-    int enPas = no_sq; // if enpassant is possible and in which square
-    int fiftyMove = 0; // Counter for the 50 moves rule
     int hisPly = 0; // total number of halfmoves
-    int plyFromNull = 0;
-    int castleperm = 0;
+
+    boardHistoryStack historyStack;
+
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     ZobristKey pawnKey = 0ULL;
     // stores the state of the board  rollback purposes
-    int historyStackHead = 0;
-    BoardState    history[MAXPLY];
+    int accStackHead = 0;
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
-    Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    Bitboard checkers;
-    Bitboard checkMask = fullCheckmask;
   
     NNUE::Accumulator accumStack[MAXPLY];
     int accumStackHead;
@@ -82,25 +93,41 @@ public:
         return bitboards[piecetype + color * 6];
     }
 
-    inline int PieceCount() const {
+    [[nodiscard]] inline int PieceCount() const {
         return CountBits(Occupancy(BOTH));
     }
 
-    inline int PieceOn(const int square) const {
+    [[nodiscard]] inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
         return pieces[square];
     }
 
-    inline ZobristKey GetPoskey() const {
+    [[nodiscard]] inline ZobristKey GetPoskey() const {
         return posKey;
     }
 
-    inline int Get50mrCounter() const {
-        return fiftyMove;
+    [[nodiscard]] inline int Get50mrCounter() const {
+        return historyStack.history[historyStack.historyStackHead].fiftyMove;
     }
 
-    inline int GetCastlingPerm() const {
-        return castleperm;
+    [[nodiscard]] inline int GetCastlingPerm() const {
+        return historyStack.history[historyStack.historyStackHead].castleperm;
+    }
+
+    [[nodiscard]] inline Bitboard GetCheckers() const {
+        return historyStack.history[historyStack.historyStackHead].checkers;
+    }
+
+    [[nodiscard]] inline int GetPlyFromNull() const {
+        return historyStack.history[historyStack.historyStackHead].plyFromNull;
+    }
+
+    [[nodiscard]] inline int GetEpSquare() const  {
+        return historyStack.history[historyStack.historyStackHead].enPas;
+    }
+
+    [[nodiscard]] inline int GetcheckMask() const  {
+        return historyStack.history[historyStack.historyStackHead].checkMask;
     }
 
     inline void ChangeSide() {
@@ -201,12 +228,6 @@ void UpdatePinsAndCheckers(Position* pos, const int side);
 
 Bitboard RayBetween(int square1, int square2);
 
-[[nodiscard]] int GetEpSquare(const Position* pos);
-
 ZobristKey keyAfter(const Position* pos, const Move move);
-
-void saveBoardState(Position* pos);
-
-void restorePreviousBoardState(Position* pos);
 
 bool hasGameCycle(Position* pos, int ply);
