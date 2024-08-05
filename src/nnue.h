@@ -7,28 +7,48 @@
 #include "simd.h"
 #include "types.h"
 
-// Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
+// Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
+constexpr int L2_SIZE = 16;
+constexpr int L3_SIZE = 32;
 constexpr int OUTPUT_BUCKETS = 8;
 
-constexpr int FT_QUANT  = 362;
+constexpr int FT_QUANT  = 255;
+constexpr int FT_SHIFT  = 9;
 constexpr int L1_QUANT  = 64;
 constexpr int NET_SCALE = 400;
 
 #if defined(USE_SIMD)
-constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
-#else
-constexpr int CHUNK_SIZE = 1;
+constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
+constexpr int L1_CHUNK_SIZE = sizeof(vepi8 ) / sizeof(int8_t);
+constexpr int L2_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
+constexpr int L3_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
+constexpr int L1_CHUNK_PER_32 = sizeof(int32_t) / sizeof(int8_t);
 #endif
 
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
-    int16_t FTWeights[NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases [L1_SIZE];
-    int16_t L1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
-    int16_t L1Biases [OUTPUT_BUCKETS];
+    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE];
+    alignas(64) int16_t FTBiases [L1_SIZE];
+    alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
+    alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    alignas(64) float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * L3_SIZE];
+    alignas(64) float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Biases [OUTPUT_BUCKETS];
+};
+
+struct UnquantisedNetwork {
+    float FTWeights[NUM_INPUTS * L1_SIZE];
+    float FTBiases [L1_SIZE];
+    float L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
+    float L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    float L2Weights[L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
+    float L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    float L3Weights[L3_SIZE][OUTPUT_BUCKETS];
+    float L3Biases [OUTPUT_BUCKETS];
 };
 
 extern Network net;
@@ -37,22 +57,22 @@ struct Position;
 class NNUE {
 public:
     // per pov accumulator
-    struct Pov_Accumulator{
-            std::array<int16_t, L1_SIZE> values;
-            int pov;
-            std::vector<std::size_t> NNUEAdd = {};
-            std::vector<std::size_t> NNUESub = {};
-            bool needsRefresh = false;
+    struct Pov_Accumulator {
+        alignas(64) std::array<int16_t, L1_SIZE> values;
+        int pov;
+        std::vector<std::size_t> NNUEAdd = {};
+        std::vector<std::size_t> NNUESub = {};
+        bool needsRefresh = false;
 
-            void accumulate(Position *pos);
-            [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
-            void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
-            void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
-            void applyUpdate(Pov_Accumulator& previousPovAccumulator);
+        void accumulate(Position *pos);
+        [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
+        void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
+        void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
+        void applyUpdate(Pov_Accumulator& previousPovAccumulator);
 
-            [[nodiscard]] bool isClean() const {
-                return NNUEAdd.empty();
-            }
+        [[nodiscard]] bool isClean() const {
+            return NNUEAdd.empty();
+        }
     };
 // final total accumulator that holds the 2 povs
     struct Accumulator {
@@ -92,6 +112,9 @@ public:
     static void init(const char *file);
     static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
-    [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
+    static void ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output);
+    static void PropagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output);
+    static void PropagateL2(const float *inputs, const float *weights, const float *biases, float *output);
+    static void PropagateL3(const float *inputs, const float *weights, const float bias, float &output);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
 };
