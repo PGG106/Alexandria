@@ -135,7 +135,7 @@ void MakeEp(const Move move, Position* pos) {
     AddPiece<UPDATE>(piece, targetSquare, pos);
 
     // Reset EP square
-    assert(GetEpSquare(pos) != no_sq);
+    assert(pos->getEpSquare() != no_sq);
     HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
     pos->enPas = no_sq;
 }
