@@ -312,9 +312,9 @@ void MakeMove(const Move move, Position* pos) {
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
     // If we are in check get the squares between the checking piece and the king
-    if (pos->checkers) {
+    if (pos->getCheckers()) {
         const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->checkers);
+        const int pieceLocation = GetLsbIndex(pos->getCheckers());
         pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
@@ -370,7 +370,7 @@ void UnmakeMove(const Move move, Position* pos) {
     if (capture) {
         const int SOUTH = pos->side == WHITE ? -8 : 8;
         // Retrieve the captured piece we have to restore
-        const int piececap = pos->history[pos->historyStackHead].capture;
+        const int piececap = pos->getCapturedPiece();
         const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
         AddPiece<false>(piececap, capturedPieceLocation, pos);
     }

@@ -74,8 +74,8 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     if (genQuiet) {
         Bitboard push = NORTH(ourPawns, color) & freeSquares & ~0xFF000000000000FFULL;
         Bitboard doublePush = NORTH(push, color) & freeSquares & rank4BB;
-        push &= pos->checkMask;
-        doublePush &= pos->checkMask;
+        push &= pos->getCheckmask();
+        doublePush &= pos->getCheckmask();
         while (push) {
             const int to = popLsb(push);
             AddMove(encode_move(to - north, to, pawnType, Movetype::Quiet), list);
@@ -88,7 +88,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
 
     if (genNoisy) {
         // Push promotions
-        Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL & pos->checkMask;
+        Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL & pos->getCheckmask();
         while (pushPromo) {
             const int to = popLsb(pushPromo);
             AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
@@ -98,8 +98,8 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
         }
 
         // Captures and capture-promotions
-        Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->checkMask;
-        Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->checkMask;
+        Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->getCheckmask();
+        Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->getCheckmask();
         while (captBB1) {
             const int to = popLsb(captBB1);
             const int from = to - north + 1;
@@ -156,7 +156,7 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
 
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & moveMask & pos->checkMask;
+        Bitboard possible_moves = knight_attacks[from] & moveMask & pos->getCheckmask();
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -182,7 +182,7 @@ static inline void PseudoLegalBishopMoves(Position* pos, int color, MoveList* li
 
     while (bishops) {
         const int from = popLsb(bishops);
-        Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->checkMask;
+        Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -208,7 +208,7 @@ static inline void PseudoLegalRookMoves(Position* pos, int color, MoveList* list
 
     while (rooks) {
         const int from = popLsb(rooks);
-        Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->checkMask;
+        Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -234,7 +234,7 @@ static inline void PseudoLegalQueenMoves(Position* pos, int color, MoveList* lis
 
     while (queens) {
         const int from = popLsb(queens);
-        Bitboard possible_moves = GetQueenAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->checkMask;
+        Bitboard possible_moves = GetQueenAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -267,7 +267,7 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
 
     // Only generate castling moves if we are generating quiets
     // Castling is illegal in check
-    if (genQuiet && !pos->checkers) {
+    if (genQuiet && !pos->getCheckers()) {
         const Bitboard occ = pos->Occupancy(BOTH);
         const int castlePerms = pos->getCastlingPerm();
         if (color == WHITE) {
@@ -296,7 +296,7 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
 
     assert(type == MOVEGEN_ALL || type == MOVEGEN_NOISY || type == MOVEGEN_QUIET);
 
-    const int checks = CountBits(pos->checkers);
+    const int checks = CountBits(pos->getCheckers());
     if (checks < 2) {
         PseudoLegalPawnMoves(pos, pos->side, move_list, type);
         PseudoLegalKnightMoves(pos, pos->side, move_list, type);
@@ -347,7 +347,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
     if (isCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->checkers) >= 2) && pieceType != KING)
+    if ((CountBits(pos->getCheckers()) >= 2) && pieceType != KING)
         return false;
 
     const int NORTH = pos->side == WHITE ? -8 : 8;
@@ -435,7 +435,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
 
         case KING:
             if (isCastle(move)) {
-                if (pos->checkers)
+                if (pos->getCheckers())
                     return false;
 
                 if (std::abs(to - from) != 2)
@@ -506,11 +506,11 @@ bool IsLegal(Position* pos, Move move) {
         AddPiece<false>(king, ksq, pos);
         return isLegal;
     }
-    else if (pos->pinned & (1ULL << from)) {
-        return !pos->checkers && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
+    else if (pos->getPinnedMask() & (1ULL << from)) {
+        return !pos->getCheckers() && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
-    else if (pos->checkers) {
-        return (1ULL << to) & pos->checkMask;
+    else if (pos->getCheckers()) {
+        return (1ULL << to) & pos->getCheckmask();
     }
     else
         return true;
