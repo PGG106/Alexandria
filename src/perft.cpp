@@ -25,6 +25,18 @@ void PerftDriver(int depth, Position* pos) {
     // generate moves
     GenerateMoves(&moveList, pos, MOVEGEN_ALL);
 
+    if (depth == 1) {
+        // loop over generated moves
+        for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+            Move move = moveList.moves[moveCount].move;
+            if (!IsLegal(pos, move))
+                continue;
+
+            nodes += 1;
+        }
+        return;
+    }
+
     // loop over generated moves
     for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
         Move move = moveList.moves[moveCount].move;
