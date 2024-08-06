@@ -126,7 +126,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
             }
         }
 
-        const int epSq = GetEpSquare(pos);
+        const int epSq = pos->getEpSquare();
         if (epSq == no_sq)
             return;
 
@@ -269,7 +269,7 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
     // Castling is illegal in check
     if (genQuiet && !pos->checkers) {
         const Bitboard occ = pos->Occupancy(BOTH);
-        const int castlePerms = pos->GetCastlingPerm();
+        const int castlePerms = pos->getCastlingPerm();
         if (color == WHITE) {
             // king side castling is available
             if ((castlePerms & WKCA) && !(occ & 0x6000000000000000ULL))
@@ -370,7 +370,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
                     return false;
             }
             if (isEnpassant(move)) {
-                if (to != GetEpSquare(pos))
+                if (to != pos->getEpSquare())
                     return false;
 
                 if (!((1ULL << (to - NORTH)) & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
@@ -452,7 +452,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
                                                     : isKSCastle ? BKCA
                                                                  : BQCA;
 
-                if (!castleBlocked && (pos->GetCastlingPerm() & castleType))
+                if (!castleBlocked && (pos->getCastlingPerm() & castleType))
                     return true;
 
                 return false;

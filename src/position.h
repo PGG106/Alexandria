@@ -36,8 +36,7 @@ struct BoardState {
 
 struct Position {
 public:
-    int pieces[64]; // array that stores for every square of the board
-    // if there's a piece, or if the square is invalid
+    int pieces[64]; // array that stores for every square of the board what piece is on it
 
     int side = -1; // what side has to move
     int enPas = no_sq; // if enpassant is possible and in which square
@@ -69,7 +68,7 @@ public:
         return accumStack[accumStackHead - 1];
     }
 
-    inline Bitboard Occupancy(const int occupancySide) const {
+    [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
         if (occupancySide == BOTH)
             return occupancies[WHITE] | occupancies[BLACK];
@@ -78,29 +77,33 @@ public:
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-    inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
+    [[nodiscard]] inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
         return bitboards[piecetype + color * 6];
     }
 
-    inline int PieceCount() const {
+    [[nodiscard]] inline int PieceCount() const {
         return CountBits(Occupancy(BOTH));
     }
 
-    inline int PieceOn(const int square) const {
+    [[nodiscard]] inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
         return pieces[square];
     }
 
-    inline ZobristKey GetPoskey() const {
+    [[nodiscard]] inline ZobristKey getPoskey() const {
         return posKey;
     }
 
-    inline int Get50mrCounter() const {
+    [[nodiscard]] inline int get50MrCounter() const {
         return fiftyMove;
     }
 
-    inline int GetCastlingPerm() const {
+    [[nodiscard]] inline int getCastlingPerm() const {
         return castleperm;
+    }
+
+    [[nodiscard]] inline int getEpSquare() const {
+        return enPas;
     }
 
     inline void ChangeSide() {
@@ -200,8 +203,6 @@ void ResetInfo(SearchInfo* info);
 void UpdatePinsAndCheckers(Position* pos, const int side);
 
 Bitboard RayBetween(int square1, int square2);
-
-[[nodiscard]] int GetEpSquare(const Position* pos);
 
 ZobristKey keyAfter(const Position* pos, const Move move);
 

@@ -58,13 +58,13 @@ ZobristKey GeneratePosKey(const Position* pos) {
         finalkey ^= SideKey;
     }
     // include the ep square in the key
-    if (GetEpSquare(pos) != no_sq) {
+    if (pos->getEpSquare() != no_sq) {
         assert(pos->enPas >= 0 && pos->enPas < 64);
-        finalkey ^= enpassant_keys[GetEpSquare(pos)];
+        finalkey ^= enpassant_keys[pos->getEpSquare()];
     }
     assert(pos->castleperm >= 0 && pos->castleperm <= 15);
     // add to the key the status of the castling permissions
-    finalkey ^= CastleKeys[pos->GetCastlingPerm()];
+    finalkey ^= CastleKeys[pos->getCastlingPerm()];
     return finalkey;
 }
 
@@ -266,27 +266,27 @@ std::string GetFen(const Position* pos) {
     turn = pos->side == WHITE ? "w" : "b";
 
     // Parse over castling rights
-    if (pos->GetCastlingPerm() == 0)
+    if (pos->getCastlingPerm() == 0)
         castle_perm = '-';
     else {
-        if (pos->GetCastlingPerm() & WKCA)
+        if (pos->getCastlingPerm() & WKCA)
             castle_perm += "K";
-        if (pos->GetCastlingPerm() & WQCA)
+        if (pos->getCastlingPerm() & WQCA)
             castle_perm += "Q";
-        if (pos->GetCastlingPerm() & BKCA)
+        if (pos->getCastlingPerm() & BKCA)
             castle_perm += "k";
-        if (pos->GetCastlingPerm() & BQCA)
+        if (pos->getCastlingPerm() & BQCA)
             castle_perm += "q";
     }
     // parse enpassant square
-    if (GetEpSquare(pos) != no_sq) {
-        ep_square = square_to_coordinates[GetEpSquare(pos)];
+    if (pos->getEpSquare() != no_sq) {
+        ep_square = square_to_coordinates[pos->getEpSquare()];
     } else {
         ep_square = "-";
     }
 
     // Parse fifty moves counter
-    fifty_move = std::to_string(pos->Get50mrCounter());
+    fifty_move = std::to_string(pos->get50MrCounter());
     // Parse Hisply moves counter
     HisPly = std::to_string(pos->hisPly);
 
@@ -444,10 +444,6 @@ Bitboard RayBetween(int square1, int square2) {
     return SQUARES_BETWEEN_BB[square1][square2];
 }
 
-int GetEpSquare(const Position* pos) {
-    return pos->enPas;
-}
-
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
 ZobristKey keyAfter(const Position* pos, const Move move) {
 
@@ -456,7 +452,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     const int piece = Piece(move);
     const int  captured = pos->PieceOn(targetSquare);
 
-    ZobristKey newKey = pos->GetPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
+    ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
 
     if (captured != EMPTY)
         newKey ^= PieceKeys[captured][targetSquare];
@@ -487,7 +483,7 @@ void restorePreviousBoardState(Position* pos)
 
 bool hasGameCycle(Position* pos, int ply) {
 
-    int end = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    int end = std::min(pos->get50MrCounter(), pos->plyFromNull);
 
     if (end < 3)
         return false;
