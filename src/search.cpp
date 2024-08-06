@@ -22,7 +22,7 @@ static bool IsRepetition(const Position* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
-    int distance = std::min(pos->get50MrCounter(), pos->plyFromNull);
+    int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
     // Get the point our search should start from
     int startingPoint = pos->played_positions.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
@@ -48,7 +48,7 @@ static bool Is50MrDraw(Position* pos) {
     if (pos->get50MrCounter() >= 100) {
 
         // If there's no risk we are being checkmated return true
-        if (!pos->checkers)
+        if (!pos->getCheckers())
             return true;
 
         // if we are in check make sure it's not checkmate 
@@ -356,7 +356,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->getCheckers();
     const bool rootNode = (ss->ply == 0);
     int eval;
     int rawEval;
@@ -667,7 +667,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that give check
-                if (pos->checkers)
+                if (pos->getCheckers())
                     depthReduction -= 1;
 
                 // Reduce less if we have been on the PV
@@ -795,7 +795,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->getCheckers();
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
     int bestScore;

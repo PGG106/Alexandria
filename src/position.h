@@ -106,6 +106,26 @@ public:
         return enPas;
     }
 
+    [[nodiscard]] inline int getPlyFromNull() const {
+        return plyFromNull;
+    }
+
+    [[nodiscard]] inline Bitboard getCheckers() const {
+        return checkers;
+    }
+
+    [[nodiscard]] inline Bitboard getCheckmask() const {
+        return checkMask;
+    }
+
+    [[nodiscard]] inline Bitboard getPinnedMask() const {
+        return pinned;
+    }
+
+    [[nodiscard]] inline int getCapturedPiece() const {
+        return history[historyStackHead].capture;
+    }
+
     inline void ChangeSide() {
         side ^= 1;
     }
