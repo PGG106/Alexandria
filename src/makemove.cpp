@@ -3,6 +3,7 @@
 #include "ttable.h"
 #include "position.h"
 #include "init.h"
+#include "attack.h"
 
 void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
     originalKey ^= key;
@@ -242,7 +243,11 @@ void MakeDP(const Move move, Position* pos)
 
     // Add new ep square
     const int SOUTH = pos->side == WHITE ? 8 : -8;
-    pos->enPas = targetSquare + SOUTH;
+    int epSquareCandidate = targetSquare + SOUTH;
+    if(!(pawn_attacks[pos->side][epSquareCandidate] & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
+        epSquareCandidate = no_sq;
+    pos->enPas = epSquareCandidate;
+    if(pos->enPas != no_sq)
     HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
