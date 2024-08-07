@@ -39,7 +39,7 @@
     nnue.update(&pos->AccumulatorTop(), pos);
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-    return nnue.output(pos->accumStack[pos->accumStackHead - 1], pos->side, outputBucket);
+    return nnue.output(pos->AccumulatorTop(), pos->side, outputBucket);
 }
 
 // position evaluation
