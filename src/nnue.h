@@ -58,7 +58,7 @@ struct UnquantisedNetwork {
 };
 
 struct NNZEntry {
-    uint16_t indices[8]{};
+    uint16_t indices[8];
     int      count;
 };
 
