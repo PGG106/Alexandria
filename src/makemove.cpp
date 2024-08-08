@@ -60,8 +60,8 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos->posKey, CastleKeys[pos->getCastlingPerm()]);
     // update castling rights
-    pos->castleperm &= castling_rights[source_square];
-    pos->castleperm &= castling_rights[target_square];
+    pos->state.castlePerm &= castling_rights[source_square];
+    pos->state.castlePerm &= castling_rights[target_square];
     // Xor the new one
     HashKey(pos->posKey, CastleKeys[pos->getCastlingPerm()]);
 }
@@ -69,7 +69,7 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
 inline void resetEpSquare(Position* pos) {
     if (pos->getEpSquare() != no_sq) {
         HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
-        pos->enPas = no_sq;
+        pos->state.enPas = no_sq;
     }
 }
 
@@ -117,7 +117,7 @@ void MakeCastle(const Move move, Position* pos) {
 
 template <bool UPDATE>
 void MakeEp(const Move move, Position* pos) {
-    pos->fiftyMove = 0;
+    pos->state.fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -138,12 +138,12 @@ void MakeEp(const Move move, Position* pos) {
     // Reset EP square
     assert(pos->getEpSquare() != no_sq);
     HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
-    pos->enPas = no_sq;
+    pos->state.enPas = no_sq;
 }
 
 template <bool UPDATE>
 void MakePromo(const Move move, Position* pos) {
-    pos->fiftyMove = 0;
+    pos->state.fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -163,7 +163,7 @@ void MakePromo(const Move move, Position* pos) {
 
 template <bool UPDATE>
 void MakePromocapture(const Move move, Position* pos) {
-    pos->fiftyMove = 0;
+    pos->state.fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -197,7 +197,7 @@ void MakeQuiet(const Move move, Position* pos) {
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->fiftyMove = 0;
+        pos->state.fiftyMove = 0;
 
     MovePiece<UPDATE>(piece,sourceSquare,targetSquare,pos);
 
@@ -213,7 +213,7 @@ void MakeCapture(const Move move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
-    pos->fiftyMove = 0;
+    pos->state.fiftyMove = 0;
 
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
@@ -230,7 +230,7 @@ void MakeCapture(const Move move, Position* pos) {
 
 template <bool UPDATE>
 void MakeDP(const Move move, Position* pos)
-{   pos->fiftyMove = 0;
+{   pos->state.fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -246,8 +246,8 @@ void MakeDP(const Move move, Position* pos)
     int epSquareCandidate = targetSquare + SOUTH;
     if(!(pawn_attacks[pos->side][epSquareCandidate] & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
         epSquareCandidate = no_sq;
-    pos->enPas = epSquareCandidate;
-    if(pos->enPas != no_sq)
+    pos->state.enPas = epSquareCandidate;
+    if(pos->getEpSquare() != no_sq)
     HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
@@ -281,8 +281,8 @@ void MakeMove(const Move move, Position* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->fiftyMove++;
-    pos->plyFromNull++;
+    pos->state.fiftyMove++;
+    pos->state.plyFromNull++;
     pos->hisPly++;
 
     if(castling){
@@ -320,10 +320,10 @@ void MakeMove(const Move move, Position* pos) {
     if (pos->getCheckers()) {
         const int kingSquare = KingSQ(pos, pos->side);
         const int pieceLocation = GetLsbIndex(pos->getCheckers());
-        pos->checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
+        pos->state.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
     }
     else
-        pos->checkMask = fullCheckmask;
+        pos->state.checkMask = fullCheckmask;
 
     // Figure out if we need to refresh the accumulator
     if constexpr (UPDATE) {
@@ -432,8 +432,8 @@ void MakeNullMove(Position* pos) {
 
     pos->hisPly++;
     pos->historyStackHead++;
-    pos->fiftyMove++;
-    pos->plyFromNull = 0;
+    pos->state.fiftyMove++;
+    pos->state.plyFromNull = 0;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
