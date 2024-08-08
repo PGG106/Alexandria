@@ -327,7 +327,7 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, [[maybe_unused]] u
                 NNZEntry nnzEntry = nnzTable.table[maskSlice];
                 v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
                 const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
-                vec128_store_epi16(nnzStore, vec128_add_epi16(base, indices));
+                vec128_storeu_epi16(nnzStore, vec128_add_epi16(base, indices));
 
                 nnzCount += nnzEntry.count;
                 base = vec128_add_epi16(base, LookupIncr);
