@@ -5,6 +5,7 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+#include "bitboard.h"
 #include "simd.h"
 #include "types.h"
 
@@ -17,12 +18,12 @@ constexpr int OUTPUT_BUCKETS = 8;
 
 constexpr int FT_QUANT  = 362;
 constexpr int FT_SHIFT  = 10;
-constexpr int L1_QUANT  = 45;
+constexpr int L1_QUANT  = 64;
 constexpr int NET_SCALE = 400;
 
-constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
+constexpr float L1_DIV  = float(FT_QUANT * FT_QUANT * L1_QUANT) / float(1 << FT_SHIFT);
 constexpr float WEIGHT_CLIPPING = 1.414f;
-static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
+static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 2 <= 32767);
 
 #if defined(USE_SIMD)
 constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
@@ -56,6 +57,26 @@ struct UnquantisedNetwork {
     float L3Biases [OUTPUT_BUCKETS];
 };
 
+struct NNZEntry {
+    uint16_t indices[8]{};
+    int      count;
+};
+
+struct NNZTable {
+    NNZEntry table[256];
+
+    NNZTable() {
+        for (uint16_t i = 0; i <= 255; ++i) {
+            this->table[i].count = CountBits(i);
+            Bitboard j = i;
+            uint16_t k = 0;
+            while (j)
+                this->table[i].indices[k++] = popLsb(j);
+        }
+    };
+};
+
+extern NNZTable nnzTable;
 extern Network net;
 struct Position;
 
@@ -117,8 +138,8 @@ public:
     static void init(const char *file);
     static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
-    static void ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output);
-    static void PropagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output);
+    static void ActivateFT(const int16_t *us, const int16_t *them, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void PropagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
     static void PropagateL2(const float *inputs, const float *weights, const float *biases, float *output);
     static void PropagateL3(const float *inputs, const float *weights, const float bias, float &output);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);

@@ -7,7 +7,6 @@
 #include <iostream>
 #include <cmath>
 #include <memory>
-#include "bitboard.h"
 #include "incbin/incbin.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -26,6 +25,7 @@ const unsigned int gEVALSize = 1;
 #endif
 
 Network net;
+NNZTable nnzTable;
 
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
@@ -96,68 +96,6 @@ void NNUE::init(const char *file) {
     // Quantise FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
         net.FTBiases[i] = static_cast<int16_t>(std::round(unquantisedNet->FTBiases[i] * FT_QUANT));
-
-    // Transpose FT weights and biases so that packus transposes it back to the intended order
-    #if defined(USE_SIMD)
-    __m128i *weight = reinterpret_cast<__m128i*>(net.FTWeights);
-    __m128i *biases = reinterpret_cast<__m128i*>(net.FTBiases);
-    constexpr int numChunks = sizeof(__m128i) / sizeof(int16_t);
-
-    #if defined(USE_AVX512)
-    __m128i regi[8];
-
-    // Transpose weights
-    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 8) {
-        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
-        for (int j = 0; j < 8; ++j) regi[j] = weight[i + j];
-        weight[i + 0] = regi[0];
-        weight[i + 1] = regi[2];
-        weight[i + 2] = regi[4];
-        weight[i + 3] = regi[6];
-        weight[i + 4] = regi[1];
-        weight[i + 5] = regi[3];
-        weight[i + 6] = regi[5];
-        weight[i + 7] = regi[7];
-    }
-
-    // Transpose biases
-    for (int i = 0; i < L1_SIZE / numChunks; i += 8) {
-        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
-        for (int j = 0; j < 8; ++j) regi[j] = biases[i + j];
-        biases[i + 0] = regi[0];
-        biases[i + 1] = regi[2];
-        biases[i + 2] = regi[4];
-        biases[i + 3] = regi[6];
-        biases[i + 4] = regi[1];
-        biases[i + 5] = regi[3];
-        biases[i + 6] = regi[5];
-        biases[i + 7] = regi[7];
-    }
-
-    #elif defined(USE_AVX2)
-    __m128i regi[4];
-
-    // Transpose weights
-    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 4) {
-        // 0, 1, 2, 3 -> 0, 2, 1, 3
-        for (int j = 0; j < 4; ++j) regi[j] = weight[i + j];
-        weight[i + 0] = regi[0];
-        weight[i + 1] = regi[2];
-        weight[i + 2] = regi[1];
-        weight[i + 3] = regi[3];
-    }
-
-    // Transpose biases
-    for (int i = 0; i < L1_SIZE / numChunks; i += 4) {
-        // 0, 1, 2, 3 -> 0, 2, 1, 3
-        for (int j = 0; j < 4; ++j) regi[j] = biases[i + j];
-        biases[i + 0] = regi[0];
-        biases[i + 1] = regi[2];
-        biases[i + 2] = regi[1];
-        biases[i + 3] = regi[3];
-    }
-    #endif
-    #endif
 
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
@@ -288,7 +226,7 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
 
     // figure out what update we need to apply and do that
     int adds = NNUEAdd.size();
-    int subs = NNUESub.size();
+    int subs =  NNUESub.size();
 
     // Quiets
     if (adds == 1 && subs == 1) {
@@ -317,13 +255,12 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
-    Bitboard occ = pos->Occupancy(BOTH);
 
-    while (occ) {
-        const int square = popLsb(occ);
-        const int piece = pos->PieceOn(square);
-        auto Idx = GetIndex(piece, square, flip);
-        auto Add = &net.FTWeights[Idx * L1_SIZE];
+    for (int square = 0; square < 64; square++) {
+        const bool input = pos->pieces[square] != EMPTY;
+        if (!input) continue;
+        const auto Idx = GetIndex(pos->pieces[square], square, flip);
+        const auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
         }
@@ -344,11 +281,15 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip
 }
 
 
-void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
+void NNUE::ActivateFT(const int16_t *us, const int16_t *them, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int &nnzCount, uint8_t *output) {
     #if defined(USE_SIMD)
     int offset = 0;
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
+
+    nnzCount = 0;
+    v128i base = vec128_zero_epi16();
+    const v128i LookupIncr = vec128_set1_epi16(8);
     for (const int16_t *acc : {us, them}) {
         for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
             const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&acc[i + 0             + 0]));
@@ -368,9 +309,29 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
 
             const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
             const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+            const vepi8  product   = vec_packus_permute_epi16(producta, productb);
+            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), product);
 
-            // Note: we can skip permuting after packus because we already permuted at startup to offset this
-            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_epi16(producta, productb));
+            const uint16_t nnzMask = vec_nnz_mask(product);
+            // We divide here since our lookup is only 8 bits
+            for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
+
+                // ########
+                //         ^ we store here
+                // say we have 5 nonzero indices
+                // then, it becomes
+                // #############
+                //              ^ we store here the next time around
+
+                uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
+                NNZEntry nnzEntry = nnzTable.table[maskSlice];
+                v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
+                const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
+                vec128_store_epi16(nnzStore, vec128_add_epi16(base, indices));
+
+                nnzCount += nnzEntry.count;
+                base = vec128_add_epi16(base, LookupIncr);
+            }
         }
         offset += L1_SIZE / 2;
     }
@@ -387,24 +348,23 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
     #endif
 }
 
-void NNUE::PropagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output) {
+void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int nnzCount, const int8_t *weights, const float *biases, float *output) {
     #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
     const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
-    for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; i += 2) {
-        const vepi32 input32a = vec_set1_epi32(inputs32[i + 0]);
-        const vepi32 input32b = vec_set1_epi32(inputs32[i + 1]);
-        const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[(i + 0) * L1_CHUNK_PER_32 * L2_SIZE]);
-        const vepi8 *weightb  = reinterpret_cast<const vepi8*>(&weights[(i + 1) * L1_CHUNK_PER_32 * L2_SIZE]);
+    for (int i = 0; i < nnzCount; ++i) {
+        const uint16_t index = nnzIndices[i];
+        const vepi32 input32 = vec_set1_epi32(inputs32[index]);
+        const vepi8 *weight = reinterpret_cast<const vepi8*>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
-            sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
+            sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
     }
 
     for (int i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumMul  = vec_set1_ps(L1_MUL);
-        const vps32 sumPs   = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
+        const vps32 sumDiv  = vec_set1_ps(L1_DIV);
+        const vps32 sumPs   = vec_add_ps(vec_div_ps(vec_cvtepi32_ps(sums[i]), sumDiv), biasVec);
         const vps32 Zero    = vec_zero_ps();
         vec_store_ps(&output[i * L2_CHUNK_SIZE], vec_max_ps(Zero, sumPs));
     }
@@ -418,7 +378,7 @@ void NNUE::PropagateL1(const uint8_t *inputs, const int8_t *weights, const float
 
     for (int i = 0; i < L2_SIZE; ++i) {
         // Convert into floats and activate L1
-        output[i] = std::max(float(sums[i]) * L1_MUL + biases[i], 0.0f);
+        output[i] = std::max(float(sums[i]) / L1_DIV + biases[i], 0.0f);
     }
     #endif
 }
@@ -487,17 +447,25 @@ void NNUE::PropagateL3(const float *inputs, const float *weights, const float bi
 // according to the net
 int32_t NNUE::output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket) {
 
-    alignas (64) uint8_t FTOutputs[L1_SIZE];
-    alignas (64) float   L1Outputs[L2_SIZE];
-    alignas (64) float   L2Outputs[L3_SIZE];
+    int nnzCount = 0;
+    alignas (64) uint16_t nnzIndices[L1_SIZE];
+    alignas (64) uint8_t  FTOutputs[L1_SIZE];
+    alignas (64) float    L1Outputs[L2_SIZE];
+    alignas (64) float    L2Outputs[L3_SIZE];
     float L3Output;
 
     const int16_t* us = board_accumulator.perspective[stm].values.data();
     const int16_t* them = board_accumulator.perspective[stm ^ 1].values.data();
 
-    ActivateFT(us, them, FTOutputs);
+    ActivateFT (us,
+                them,
+                nnzIndices,
+                nnzCount,
+                FTOutputs);
 
     PropagateL1(FTOutputs,
+                nnzIndices,
+                nnzCount,
                 net.L1Weights[outputBucket],
                 net.L1Biases[outputBucket],
                 L1Outputs);
