@@ -459,24 +459,12 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
 }
 
 void saveBoardState(Position* pos) {
-    pos->history[pos->historyStackHead].fiftyMove = pos->get50MrCounter();
-    pos->history[pos->historyStackHead].enPas = pos->getEpSquare();
-    pos->history[pos->historyStackHead].castlePerm = pos->getCastlingPerm();
-    pos->history[pos->historyStackHead].plyFromNull = pos->getPlyFromNull();
-    pos->history[pos->historyStackHead].checkers = pos->getCheckers();
-    pos->history[pos->historyStackHead].checkMask = pos->getCheckmask();
-    pos->history[pos->historyStackHead].pinned = pos->getPinnedMask();
+    pos->history[pos->historyStackHead] = pos->state;
 }
 
 void restorePreviousBoardState(Position* pos)
 {
-    pos->state.enPas = pos->history[pos->historyStackHead].enPas;
-    pos->state.fiftyMove = pos->history[pos->historyStackHead].fiftyMove;
-    pos->state.castlePerm = pos->history[pos->historyStackHead].castlePerm;
-    pos->state.plyFromNull = pos->history[pos->historyStackHead].plyFromNull;
-    pos->state.checkers = pos->history[pos->historyStackHead].checkers;
-    pos->state.checkMask = pos->history[pos->historyStackHead].checkMask;
-    pos->state.pinned = pos->history[pos->historyStackHead].pinned;
+    pos->state = pos->history[pos->historyStackHead];
 }
 
 bool hasGameCycle(Position* pos, int ply) {
