@@ -363,8 +363,8 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
     for (int i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumDiv  = vec_set1_ps(L1_DIV);
-        const vps32 sumPs   = vec_add_ps(vec_div_ps(vec_cvtepi32_ps(sums[i]), sumDiv), biasVec);
+        const vps32 sumMul  = vec_set1_ps(L1_MUL);
+        const vps32 sumPs   = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
         const vps32 Zero    = vec_zero_ps();
         vec_store_ps(&output[i * L2_CHUNK_SIZE], vec_max_ps(Zero, sumPs));
     }
@@ -378,7 +378,7 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
 
     for (int i = 0; i < L2_SIZE; ++i) {
         // Convert into floats and activate L1
-        output[i] = std::max(float(sums[i]) / L1_DIV + biases[i], 0.0f);
+        output[i] = std::max(float(sums[i]) * L1_MUL + biases[i], 0.0f);
     }
     #endif
 }
