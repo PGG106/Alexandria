@@ -59,10 +59,10 @@ ZobristKey GeneratePosKey(const Position* pos) {
     }
     // include the ep square in the key
     if (pos->getEpSquare() != no_sq) {
-        assert(pos->enPas >= 0 && pos->enPas < 64);
+        assert(pos->getEpSquare() >= 0 && pos->getEpSquare() < 64);
         finalkey ^= enpassant_keys[pos->getEpSquare()];
     }
-    assert(pos->castleperm >= 0 && pos->castleperm <= 15);
+    assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
     // add to the key the status of the castling permissions
     finalkey ^= CastleKeys[pos->getCastlingPerm()];
     return finalkey;
