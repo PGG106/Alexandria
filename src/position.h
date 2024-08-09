@@ -39,11 +39,9 @@ public:
     int pieces[64]; // array that stores for every square of the board what piece is on it
 
     int side = -1; // what side has to move
-    int enPas = no_sq; // if enpassant is possible and in which square
-    int fiftyMove = 0; // Counter for the 50 moves rule
+
+    BoardState state;
     int hisPly = 0; // total number of halfmoves
-    int plyFromNull = 0;
-    int castleperm = 0;
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     ZobristKey pawnKey = 0ULL;
@@ -52,13 +50,10 @@ public:
     BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
-    Bitboard pinned;
 
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
-    Bitboard checkers;
-    Bitboard checkMask = fullCheckmask;
   
     NNUE::Accumulator accumStack[MAXPLY];
     int accumStackHead;
@@ -95,31 +90,31 @@ public:
     }
 
     [[nodiscard]] inline int get50MrCounter() const {
-        return fiftyMove;
+        return state.fiftyMove;
     }
 
     [[nodiscard]] inline int getCastlingPerm() const {
-        return castleperm;
+        return state.castlePerm;
     }
 
     [[nodiscard]] inline int getEpSquare() const {
-        return enPas;
+        return state.enPas;
     }
 
     [[nodiscard]] inline int getPlyFromNull() const {
-        return plyFromNull;
+        return state.plyFromNull;
     }
 
     [[nodiscard]] inline Bitboard getCheckers() const {
-        return checkers;
+        return state.checkers;
     }
 
     [[nodiscard]] inline Bitboard getCheckmask() const {
-        return checkMask;
+        return state.checkMask;
     }
 
     [[nodiscard]] inline Bitboard getPinnedMask() const {
-        return pinned;
+        return state.pinned;
     }
 
     [[nodiscard]] inline int getCapturedPiece() const {
