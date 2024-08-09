@@ -25,12 +25,13 @@ inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
     return _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 2, 4, 6, 1, 3, 5, 7), packed);
 }
 
-inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
+inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
     #if defined(USE_VNNI512)
-    return _mm512_dpbusd_epi32(sum, vec0, vec1);
+    return _mm512_dpbusd_epi32(_mm512_dpbusd_epi32(sum, vec0, vec1), vec2, vec3);
     #else
-    const vepi16 product16 = _mm512_maddubs_epi16(vec0, vec1);
-    const vepi32 product32 = _mm512_madd_epi16(product16, _mm512_set1_epi16(1));
+    const vepi16 product16a = _mm512_maddubs_epi16(vec0, vec1);
+    const vepi16 product16b = _mm512_maddubs_epi16(vec2, vec3);
+    const vepi32 product32  = _mm512_madd_epi16(_mm512_add_epi16(product16a, product16b), _mm512_set1_epi16(1));
     return _mm512_add_epi32(sum, product32);
     #endif
 }
@@ -72,9 +73,10 @@ inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
     return _mm256_permute4x64_epi64(packed, _MM_SHUFFLE(3, 1, 2, 0));
 }
 
-inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
-    const vepi16 product16 = _mm256_maddubs_epi16(vec0, vec1);
-    const vepi32 product32 = _mm256_madd_epi16(product16, _mm256_set1_epi16(1));
+inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
+    const vepi16 product16a = _mm256_maddubs_epi16(vec0, vec1);
+    const vepi16 product16b = _mm256_maddubs_epi16(vec2, vec3);
+    const vepi32 product32  = _mm256_madd_epi16(_mm256_add_epi16(product16a, product16b), _mm256_set1_epi16(1));
     return _mm256_add_epi32(sum, product32);
 }
 

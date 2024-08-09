@@ -325,11 +325,13 @@ void NNUE::PropagateL1(const uint8_t *inputs, const int8_t *weights, const float
     #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
     const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
-    for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; ++i) {
-        const vepi32 input32 = vec_set1_epi32(inputs32[i]);
-        const vepi8 *weight = reinterpret_cast<const vepi8*>(&weights[i * L1_CHUNK_PER_32 * L2_SIZE]);
+    for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; i += 2) {
+        const vepi32 input32a = vec_set1_epi32(inputs32[i + 0]);
+        const vepi32 input32b = vec_set1_epi32(inputs32[i + 1]);
+        const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[(i + 0) * L1_CHUNK_PER_32 * L2_SIZE]);
+        const vepi8 *weightb  = reinterpret_cast<const vepi8*>(&weights[(i + 1) * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
-            sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
+            sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
     }
 
     for (int i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
