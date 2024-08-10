@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <memory>
+#include "bitboard.h"
 #include "incbin/incbin.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -225,7 +226,7 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
 
     // figure out what update we need to apply and do that
     int adds = NNUEAdd.size();
-    int subs =  NNUESub.size();
+    int subs = NNUESub.size();
 
     // Quiets
     if (adds == 1 && subs == 1) {
@@ -254,12 +255,13 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
+    Bitboard occ = pos->Occupancy(BOTH);
 
-    for (int square = 0; square < 64; square++) {
-        const bool input = pos->pieces[square] != EMPTY;
-        if (!input) continue;
-        const auto Idx = GetIndex(pos->pieces[square], square, flip);
-        const auto Add = &net.FTWeights[Idx * L1_SIZE];
+    while (occ) {
+        const int square = popLsb(occ);
+        const int piece = pos->PieceOn(square);
+        auto Idx = GetIndex(piece, square, flip);
+        auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
         }
