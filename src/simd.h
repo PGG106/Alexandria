@@ -3,6 +3,7 @@
 
 #if defined(USE_SIMD)
 #include <immintrin.h>
+#include <xmmintrin.h>
 #endif
 
 #if defined(USE_AVX512)
@@ -20,10 +21,7 @@ inline vepi16 vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm
 inline vepi16 vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_min_epi16(vec0, vec1); }
 inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mulhi_epi16(vec0, vec1); }
 inline vepi16 vec_slli_epi16 (const vepi16 vec, const int shift) { return _mm512_slli_epi16(vec, shift); }
-inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
-    const vepi8 packed = _mm512_packus_epi16(vec0, vec1);
-    return _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 2, 4, 6, 1, 3, 5, 7), packed);
-}
+inline vepi8  vec_packus_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_packus_epi16(vec0, vec1); }
 
 inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
     #if defined(USE_VNNI512)
@@ -68,10 +66,7 @@ inline vepi16 vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm
 inline vepi16 vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm256_min_epi16(vec0, vec1); }
 inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm256_mulhi_epi16(vec0, vec1); }
 inline vepi16 vec_slli_epi16 (const vepi16 vec, const int shift) { return _mm256_slli_epi16(vec, shift); }
-inline vepi8  vec_packus_permute_epi16(const vepi16 vec0, const vepi16 vec1) {
-    const vepi8 packed = _mm256_packus_epi16(vec0, vec1);
-    return _mm256_permute4x64_epi64(packed, _MM_SHUFFLE(3, 1, 2, 0));
-}
+inline vepi8  vec_packus_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm256_packus_epi16(vec0, vec1); }
 
 inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
     const vepi16 product16a = _mm256_maddubs_epi16(vec0, vec1);

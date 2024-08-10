@@ -97,6 +97,68 @@ void NNUE::init(const char *file) {
     for (int i = 0; i < L1_SIZE; ++i)
         net.FTBiases[i] = static_cast<int16_t>(std::round(unquantisedNet->FTBiases[i] * FT_QUANT));
 
+    // Transpose FT weights and biases so that packus transposes it back to the intended order
+    #if defined(USE_SIMD)
+    __m128i *weight = reinterpret_cast<__m128i*>(net.FTWeights);
+    __m128i *biases = reinterpret_cast<__m128i*>(net.FTBiases);
+    constexpr int numChunks = sizeof(__m128i) / sizeof(int16_t);
+
+    #if defined(USE_AVX512)
+    __m128i regi[8];
+
+    // Transpose weights
+    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 8) {
+        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
+        for (int j = 0; j < 8; ++j) regi[j] = weight[i + j];
+        weight[i + 0] = regi[0];
+        weight[i + 1] = regi[2];
+        weight[i + 2] = regi[4];
+        weight[i + 3] = regi[6];
+        weight[i + 4] = regi[1];
+        weight[i + 5] = regi[3];
+        weight[i + 6] = regi[5];
+        weight[i + 7] = regi[7];
+    }
+
+    // Transpose biases
+    for (int i = 0; i < L1_SIZE / numChunks; i += 8) {
+        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
+        for (int j = 0; j < 8; ++j) regi[j] = biases[i + j];
+        biases[i + 0] = regi[0];
+        biases[i + 1] = regi[2];
+        biases[i + 2] = regi[4];
+        biases[i + 3] = regi[6];
+        biases[i + 4] = regi[1];
+        biases[i + 5] = regi[3];
+        biases[i + 6] = regi[5];
+        biases[i + 7] = regi[7];
+    }
+
+    #elif defined(USE_AVX2)
+    __m128i regi[4];
+
+    // Transpose weights
+    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 4) {
+        // 0, 1, 2, 3 -> 0, 2, 1, 3
+        for (int j = 0; j < 4; ++j) regi[j] = weight[i + j];
+        weight[i + 0] = regi[0];
+        weight[i + 1] = regi[2];
+        weight[i + 2] = regi[1];
+        weight[i + 3] = regi[3];
+    }
+
+    // Transpose biases
+    for (int i = 0; i < L1_SIZE / numChunks; i += 8) {
+        // 0, 1, 2, 3 -> 0, 2, 1, 3
+        for (int j = 0; j < 4; ++j) regi[j] = biases[i + j];
+        biases[i + 0] = regi[0];
+        biases[i + 1] = regi[2];
+        biases[i + 2] = regi[1];
+        biases[i + 3] = regi[3];
+    }
+    #endif
+    #endif
+
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
 
@@ -306,7 +368,9 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, uint8_t *output) {
 
             const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
             const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
-            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_permute_epi16(producta, productb));
+
+            // Note: we can skip permuting after packus because we already permuted at startup to offset this
+            vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), vec_packus_epi16(producta, productb));
         }
         offset += L1_SIZE / 2;
     }
