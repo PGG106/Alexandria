@@ -37,6 +37,16 @@ inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8
     #endif
 }
 
+inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
+    #if defined(USE_VNNI512)
+    return _mm512_dpbusd_epi32(sum, vec0, vec1);
+    #else
+    const vepi16 product16 = _mm512_maddubs_epi16(vec0, vec1);
+    const vepi32 product32 = _mm512_madd_epi16(product16, _mm512_set1_epi16(1));
+    return _mm512_add_epi32(sum, product32);
+    #endif
+}
+
 inline v128i vec128_zero_epi16() { return _mm_setzero_si128(); }
 inline v128i vec128_set1_epi16(const int16_t n) { return _mm_set1_epi16(n); }
 inline v128i vec128_add_epi16 (const v128i vec0, const v128i vec1) { return _mm_add_epi16(vec0, vec1); }
@@ -80,6 +90,12 @@ inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8
     const vepi16 product16a = _mm256_maddubs_epi16(vec0, vec1);
     const vepi16 product16b = _mm256_maddubs_epi16(vec2, vec3);
     const vepi32 product32  = _mm256_madd_epi16(_mm256_add_epi16(product16a, product16b), _mm256_set1_epi16(1));
+    return _mm256_add_epi32(sum, product32);
+}
+
+inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
+    const vepi16 product16 = _mm256_maddubs_epi16(vec0, vec1);
+    const vepi32 product32 = _mm256_madd_epi16(product16, _mm256_set1_epi16(1));
     return _mm256_add_epi32(sum, product32);
 }
 

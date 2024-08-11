@@ -416,18 +416,28 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
     #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
     const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
-    for (int i = 0; i < nnzCount; i += 2) {
+
+    int i = 0;
+    for (; i < nnzCount - 1; i += 2) {
         const uint16_t indexa = nnzIndices[i + 0];
         const uint16_t indexb = nnzIndices[i + 1];
-        const vepi32 input32a = vec_set1_epi32(indexa);
-        const vepi32 input32b = vec_set1_epi32(indexb);
+        const vepi32 input32a = vec_set1_epi32(inputs32[indexa]);
+        const vepi32 input32b = vec_set1_epi32(inputs32[indexb]);
         const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
         const vepi8 *weightb  = reinterpret_cast<const vepi8*>(&weights[indexb * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
             sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
     }
 
-    for (int i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
+    for (; i < nnzCount; ++i) {
+        const uint16_t index = nnzIndices[i];
+        const vepi32 input32 = vec_set1_epi32(inputs32[index]);
+        const vepi8 *weight  = reinterpret_cast<const vepi8*>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
+        for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
+            sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
+    }
+
+    for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
         const vps32 sumMul  = vec_set1_ps(L1_MUL);
