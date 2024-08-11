@@ -5,11 +5,14 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
+#include <cstring>
+#include <iostream>
 #include "bitboard.h"
 #include "simd.h"
 #include "types.h"
 
-#define NETUP false
+#define NETUP true
 
 // Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
@@ -70,6 +73,54 @@ struct Network {
     alignas(64) float   L3Biases [OUTPUT_BUCKETS];
 };
 
+struct NNZData {
+    uint64_t data[L1_SIZE / 2]{};
+    int indexOrder[L1_SIZE / 2];
+
+    NNZData() {
+        for (int i = 0; i < L1_SIZE / 2; ++i) indexOrder[i] = i;
+    };
+
+    inline void update(auto *outputs) {
+        for (int i = 0; i < L1_SIZE; ++i) data[i % (L1_SIZE / 2)] += bool(outputs[i]);
+    };
+
+    inline void permute(QuantisedNetwork &quantisedNet) {
+        std::stable_sort(indexOrder, indexOrder + L1_SIZE / 2, [&](const int &a, const int &b) { return data[a] < data[b]; });
+
+        std::memcpy(FTWeightsCopy, quantisedNet.FTWeights, sizeof(quantisedNet.FTWeights));
+        std::memcpy(FTBiasesCopy , quantisedNet.FTBiases , sizeof(quantisedNet.FTBiases ));
+        std::memcpy(L1WeightsCopy, quantisedNet.L1Weights, sizeof(quantisedNet.L1Weights));
+
+        for (int i = 0; i < L1_SIZE / 2; ++i) {
+            int oldIndex1 = indexOrder[i];
+            int newIndex1 = i;
+            int oldIndex2 = oldIndex1 + L1_SIZE / 2;
+            int newIndex2 = newIndex1 + L1_SIZE / 2;
+
+            for (int j = 0; j < NUM_INPUTS; ++j) {
+                quantisedNet.FTWeights[j * L1_SIZE + newIndex1] = FTWeightsCopy[j * L1_SIZE + oldIndex1];
+                quantisedNet.FTWeights[j * L1_SIZE + newIndex2] = FTWeightsCopy[j * L1_SIZE + oldIndex2];
+            }
+
+            quantisedNet.FTBiases[newIndex1] = FTWeightsCopy[oldIndex1];
+            quantisedNet.FTBiases[newIndex2] = FTWeightsCopy[oldIndex2];
+
+            for (int j = 0; j < OUTPUT_BUCKETS; ++j) {
+                for (int k = 0; k < L2_SIZE; ++k) {
+                    quantisedNet.L1Weights[newIndex1][j][k] = L1WeightsCopy[oldIndex1][j][k];
+                    quantisedNet.L1Weights[newIndex2][j][k] = L1WeightsCopy[oldIndex2][j][k];
+                }
+            }
+        }
+    };
+
+    private:
+    int16_t FTWeightsCopy[NUM_INPUTS * L1_SIZE];
+    int16_t FTBiasesCopy [L1_SIZE];
+    int8_t  L1WeightsCopy[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
+};
+
 struct NNZEntry {
     uint16_t indices[8];
     int      count;
@@ -90,7 +141,6 @@ struct NNZTable {
 };
 
 extern NNZTable nnzTable;
-extern Network net;
 struct Position;
 
 class NNUE {
@@ -149,6 +199,7 @@ public:
     };
 
     static void init(const char *file);
+    static void finish_netup([[maybe_unused]] const char *file);
     static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
     static void ActivateFT(const int16_t *us, const int16_t *them, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);

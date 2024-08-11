@@ -28,6 +28,7 @@ const unsigned int gEVALSize = 1;
 
 #if NETUP
 UnquantisedNetwork unquantisedNet;
+NNZData nnzData;
 #endif
 
 QuantisedNetwork quantisedNet;
@@ -87,16 +88,6 @@ void NNUE::init(const char *file) {
         // Quantise L3 Biases
         quantisedNet.L3Biases[bucket] = unquantisedNet.L3Biases[bucket];
     }
-
-    std::ofstream out{file, std::ios::binary};
-
-    if (!out) {
-        std::cout << "Error writing quantised net data" << std::endl;
-    }
-    else {
-        out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
-    }
-
     #else
     // Read the quantised net
     if (!stream)
@@ -190,6 +181,23 @@ void NNUE::init(const char *file) {
     }
 }
 
+void NNUE::finish_netup([[maybe_unused]] const char *file) {
+    #if NETUP
+    nnzData.permute(quantisedNet);
+
+    // Write the net to file
+    std::ofstream out{file, std::ios::binary};
+
+    if (!out) {
+        std::cout << "Error writing quantised net data" << std::endl;
+    }
+    else {
+        out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
+    }
+
+    #endif
+}
+
 void NNUE::update(Accumulator *acc, Position *pos) {
     for (int pov = WHITE; pov <= BLACK; pov++) {
 
@@ -227,7 +235,7 @@ void NNUE::update(Accumulator *acc, Position *pos) {
             }
         }
 
-// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
+        // if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
         if (povAccumulator.needsRefresh || shouldRefresh) {
             povAccumulator.accumulate(pos);
             // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
@@ -544,6 +552,10 @@ int32_t NNUE::output(const NNUE::Accumulator &board_accumulator, const int stm, 
                net.L3Weights[outputBucket],
                net.L3Biases[outputBucket],
                L3Output);
+
+    #if NETUP
+    nnzData.update(FTOutputs);
+    #endif
 
     return L3Output * NET_SCALE;
 }
