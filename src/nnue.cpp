@@ -5,8 +5,10 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <memory>
+#include "bitboard.h"
 #include "incbin/incbin.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -24,6 +26,11 @@ const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
+#if NETUP
+UnquantisedNetwork unquantisedNet;
+#endif
+
+QuantisedNetwork quantisedNet;
 Network net;
 NNZTable nnzTable;
 
@@ -32,70 +39,80 @@ NNZTable nnzTable;
 
 void NNUE::init(const char *file) {
 
-    std::unique_ptr<UnquantisedNetwork> unquantisedNet = std::make_unique<UnquantisedNetwork>();
-
     // open the nn file
-    FILE *nn = fopen(file, "rb");
+    std::ifstream stream{file, std::ios::binary};
 
-    // if it's not invalid read the config values from it
-    if (nn) {
-        // initialize an accumulator for every input of the second layer
-        size_t read = 0;
-        const size_t fileSize = sizeof(UnquantisedNetwork);
-        const size_t objectsExpected = fileSize / sizeof(float);
+    #if NETUP
+    // Read unquantised net
+    if (!stream)
+        unquantisedNet = *reinterpret_cast<const UnquantisedNetwork*>(gEVALData);
+    else
+        stream.read(reinterpret_cast<char *>(&unquantisedNet), sizeof(UnquantisedNetwork));
 
-        read += fread(unquantisedNet->FTWeights, sizeof(float), NUM_INPUTS * L1_SIZE, nn);
-        read += fread(unquantisedNet->FTBiases, sizeof(float), L1_SIZE, nn);
-
-        read += fread(unquantisedNet->L1Weights, sizeof(float), OUTPUT_BUCKETS * L1_SIZE * L2_SIZE, nn);
-        read += fread(unquantisedNet->L1Biases, sizeof(float), OUTPUT_BUCKETS * L2_SIZE, nn);
-
-        read += fread(unquantisedNet->L2Weights, sizeof(float), OUTPUT_BUCKETS * L2_SIZE * L3_SIZE, nn);
-        read += fread(unquantisedNet->L2Biases, sizeof(float), OUTPUT_BUCKETS * L3_SIZE, nn);
-
-        read += fread(unquantisedNet->L3Weights, sizeof(float), OUTPUT_BUCKETS * L3_SIZE, nn);
-        read += fread(unquantisedNet->L3Biases, sizeof(float), OUTPUT_BUCKETS, nn);
-
-        if (read != objectsExpected) {
-            std::cout << "Error loading the net, aborting ";
-            std::cout << "Expected " << objectsExpected << " floats, got " << read << "\n";
-            exit(1);
-        }
-
-        // after reading the config we can close the file
-        fclose(nn);
-
-    } else {
-        // if we don't find the nnue file we use the net embedded in the exe
-        uint64_t memoryIndex = 0;
-        std::memcpy(unquantisedNet->FTWeights, &gEVALData[memoryIndex], sizeof(float) * NUM_INPUTS * L1_SIZE);
-        memoryIndex += sizeof(float) * NUM_INPUTS * L1_SIZE;
-        std::memcpy(unquantisedNet->FTBiases, &gEVALData[memoryIndex], sizeof(float) * L1_SIZE);
-        memoryIndex += sizeof(float) * L1_SIZE;
-
-        std::memcpy(unquantisedNet->L1Weights, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS * L1_SIZE * L2_SIZE);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS * L1_SIZE * L2_SIZE;
-        std::memcpy(unquantisedNet->L1Biases, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS * L2_SIZE);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS * L2_SIZE;
-
-        std::memcpy(unquantisedNet->L2Weights, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS * L2_SIZE * L3_SIZE);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS * L2_SIZE * L3_SIZE;
-        std::memcpy(unquantisedNet->L2Biases, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS * L3_SIZE);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS * L3_SIZE;
-
-        std::memcpy(unquantisedNet->L3Weights, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS * L3_SIZE);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS * L3_SIZE;
-        std::memcpy(unquantisedNet->L3Biases, &gEVALData[memoryIndex], sizeof(float) * OUTPUT_BUCKETS);
-        memoryIndex += sizeof(float) * OUTPUT_BUCKETS;
-    }
+    // Then, quantise the net below
 
     // Quantise FT Weights
     for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i)
-        net.FTWeights[i] = static_cast<int16_t>(std::round(unquantisedNet->FTWeights[i] * FT_QUANT));
+        quantisedNet.FTWeights[i] = static_cast<int16_t>(std::round(unquantisedNet.FTWeights[i] * FT_QUANT));
 
     // Quantise FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
-        net.FTBiases[i] = static_cast<int16_t>(std::round(unquantisedNet->FTBiases[i] * FT_QUANT));
+        quantisedNet.FTBiases[i] = static_cast<int16_t>(std::round(unquantisedNet.FTBiases[i] * FT_QUANT));
+
+    // Quantise L1, L2 and L3 weights and biases
+    for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
+
+        // Quantise L1 Weights
+        for (int i = 0; i < L1_SIZE; ++i)
+            for (int j = 0; j < L2_SIZE; ++j)
+                quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
+
+        // Quantise L1 Biases
+        for (int i = 0; i < L2_SIZE; ++i)
+            quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
+
+        // Quantise L2 Weights
+        for (int i = 0; i < L2_SIZE; ++i)
+            for (int j = 0; j < L3_SIZE; ++j)
+                quantisedNet.L2Weights[i][bucket][j] = unquantisedNet.L2Weights[i][bucket][j];
+
+        // Quantise L2 Biases
+        for (int i = 0; i < L3_SIZE; ++i)
+            quantisedNet.L2Biases[bucket][i] = unquantisedNet.L2Biases[bucket][i];
+
+        // Quantise L3 Weights
+        for (int i = 0; i < L3_SIZE; ++i)
+            quantisedNet.L3Weights[i][bucket] = unquantisedNet.L3Weights[i][bucket];
+
+        // Quantise L3 Biases
+        quantisedNet.L3Biases[bucket] = unquantisedNet.L3Biases[bucket];
+    }
+
+    std::ofstream out{file, std::ios::binary};
+
+    if (!out) {
+        std::cout << "Error writing quantised net data" << std::endl;
+    }
+    else {
+        out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
+    }
+
+    #else
+    // Read the quantised net
+    if (!stream)
+        quantisedNet = *reinterpret_cast<const QuantisedNetwork*>(gEVALData);
+    else
+        stream.read(reinterpret_cast<char *>(&quantisedNet), sizeof(QuantisedNetwork));
+    #endif
+
+    // Transform the quantised weights and biases into the form we want for optimal inference
+    // FT Weights
+    for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i)
+        net.FTWeights[i] = quantisedNet.FTWeights[i];
+
+    // FT Biases
+    for (int i = 0; i < L1_SIZE; ++i)
+        net.FTBiases[i] = quantisedNet.FTBiases[i];
 
     // Transpose FT weights and biases so that packus transposes it back to the intended order
     #if defined(USE_SIMD)
@@ -104,103 +121,72 @@ void NNUE::init(const char *file) {
     constexpr int numChunks = sizeof(__m128i) / sizeof(int16_t);
 
     #if defined(USE_AVX512)
-    __m128i regi[8];
-
-    // Transpose weights
-    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 8) {
-        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
-        for (int j = 0; j < 8; ++j) regi[j] = weight[i + j];
-        weight[i + 0] = regi[0];
-        weight[i + 1] = regi[2];
-        weight[i + 2] = regi[4];
-        weight[i + 3] = regi[6];
-        weight[i + 4] = regi[1];
-        weight[i + 5] = regi[3];
-        weight[i + 6] = regi[5];
-        weight[i + 7] = regi[7];
-    }
-
-    // Transpose biases
-    for (int i = 0; i < L1_SIZE / numChunks; i += 8) {
-        // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
-        for (int j = 0; j < 8; ++j) regi[j] = biases[i + j];
-        biases[i + 0] = regi[0];
-        biases[i + 1] = regi[2];
-        biases[i + 2] = regi[4];
-        biases[i + 3] = regi[6];
-        biases[i + 4] = regi[1];
-        biases[i + 5] = regi[3];
-        biases[i + 6] = regi[5];
-        biases[i + 7] = regi[7];
-    }
-
+    // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
+    constexpr int numRegi = 8;
+    constexpr int order[numRegi] = {0, 2, 4, 6, 1, 3, 5, 7};
     #elif defined(USE_AVX2)
-    __m128i regi[4];
+    // 0, 1, 2, 3 -> 0, 2, 1, 3
+    constexpr int numRegi = 4;
+    constexpr int order[numRegi] = {0, 2, 1, 3};
+    #endif
+
+    __m128i regi[numRegi];
 
     // Transpose weights
-    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += 4) {
-        // 0, 1, 2, 3 -> 0, 2, 1, 3
-        for (int j = 0; j < 4; ++j) regi[j] = weight[i + j];
-        weight[i + 0] = regi[0];
-        weight[i + 1] = regi[2];
-        weight[i + 2] = regi[1];
-        weight[i + 3] = regi[3];
+    for (int i = 0; i < NUM_INPUTS * L1_SIZE / numChunks; i += numRegi) {
+        for (int j = 0; j < numRegi; ++j)
+            regi[j] = weight[i + j];
+
+        for (int j = 0; j < numRegi; ++j)
+            weight[i + j] = regi[order[j]];
     }
 
     // Transpose biases
-    for (int i = 0; i < L1_SIZE / numChunks; i += 8) {
-        // 0, 1, 2, 3 -> 0, 2, 1, 3
-        for (int j = 0; j < 4; ++j) regi[j] = biases[i + j];
-        biases[i + 0] = regi[0];
-        biases[i + 1] = regi[2];
-        biases[i + 2] = regi[1];
-        biases[i + 3] = regi[3];
+    for (int i = 0; i < L1_SIZE / numChunks; i += numRegi) {
+        for (int j = 0; j < numRegi; ++j)
+            regi[j] = biases[i + j];
+
+        for (int j = 0; j < numRegi; ++j)
+            biases[i + j] = regi[order[j]];
     }
-    #endif
     #endif
 
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
 
-        // Quantise L1 Weights
+        // Transpose L1 weights
         #if defined(USE_SIMD)
         for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
                 for (int k = 0; k < L1_CHUNK_PER_32; ++k)
                     net.L1Weights[bucket][  i * L1_CHUNK_PER_32 * L2_SIZE
                                           + j * L1_CHUNK_PER_32
-                                          + k] = static_cast<int8_t>(std::round(unquantisedNet->L1Weights[i * L1_CHUNK_PER_32 + k][bucket][j] * L1_QUANT));
+                                          + k] = quantisedNet.L1Weights[i * L1_CHUNK_PER_32 + k][bucket][j];
         #else
         for (int i = 0; i < L1_SIZE; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
-                net.L1Weights[bucket][j * L1_SIZE + i] = static_cast<int8_t>(std::round(unquantisedNet->L1Weights[i][bucket][j] * L1_QUANT));
+                net.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[i][bucket][j];
         #endif
 
-        // Quantise L1 Biases
+        // Transpose L1 Biases
         for (int i = 0; i < L2_SIZE; ++i)
-            net.L1Biases[bucket][i] = unquantisedNet->L1Biases[bucket][i];
+            net.L1Biases[bucket][i] = quantisedNet.L1Biases[bucket][i];
 
-        // Quantise L2 Weights
-        #if defined(USE_SIMD)
-        for (int i = 0; i < L2_SIZE; ++i)
-            for (int j = 0; j < L3_SIZE; ++j)
-                net.L2Weights[bucket][i * L3_SIZE + j] = unquantisedNet->L2Weights[i][bucket][j];
-        #else
+        // Transpose L2 Weights
         for (int i = 0; i < L2_SIZE; ++i)
             for (int j = 0; j < L3_SIZE; ++j)
-                net.L2Weights[bucket][j * L2_SIZE + i] = unquantisedNet->L2Weights[i][bucket][j];
-        #endif
+                net.L2Weights[bucket][i * L3_SIZE + j] = quantisedNet.L2Weights[i][bucket][j];
 
-        // Quantise L2 Biases
+        // Transpose L2 Biases
         for (int i = 0; i < L3_SIZE; ++i)
-            net.L2Biases[bucket][i] = unquantisedNet->L2Biases[bucket][i];
+            net.L2Biases[bucket][i] = quantisedNet.L2Biases[bucket][i];
 
-        // Quantise L3 Weights
+        // Transpose L3 Weights
         for (int i = 0; i < L3_SIZE; ++i)
-            net.L3Weights[bucket][i] = unquantisedNet->L3Weights[i][bucket];
+            net.L3Weights[bucket][i] = quantisedNet.L3Weights[i][bucket];
 
-        // Quantise L3 Biases
-        net.L3Biases[bucket] = unquantisedNet->L3Biases[bucket];
+        // Transpose L3 Biases
+        net.L3Biases[bucket] = quantisedNet.L3Biases[bucket];
     }
 }
 
@@ -288,7 +274,7 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
 
     // figure out what update we need to apply and do that
     int adds = NNUEAdd.size();
-    int subs =  NNUESub.size();
+    int subs = NNUESub.size();
 
     // Quiets
     if (adds == 1 && subs == 1) {
@@ -317,12 +303,13 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
+    Bitboard occ = pos->Occupancy(BOTH);
 
-    for (int square = 0; square < 64; square++) {
-        const bool input = pos->pieces[square] != EMPTY;
-        if (!input) continue;
-        const auto Idx = GetIndex(pos->pieces[square], square, flip);
-        const auto Add = &net.FTWeights[Idx * L1_SIZE];
+    while (occ) {
+        const int square = popLsb(occ);
+        const int piece = pos->PieceOn(square);
+        auto Idx = GetIndex(piece, square, flip);
+        auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
         }
@@ -486,8 +473,9 @@ void NNUE::PropagateL2(const float *inputs, const float *weights, const float *b
 
     // Affine transform for L2
     for (int i = 0; i < L2_SIZE; ++i) {
+        const float *weight = &weights[i * L3_SIZE];
         for (int out = 0; out < L3_SIZE; ++out) {
-            sums[out] += inputs[i] * weights[out * L2_SIZE + i];
+            sums[out] += inputs[i] * weight[out];
         }
     }
 
@@ -525,7 +513,7 @@ void NNUE::PropagateL3(const float *inputs, const float *weights, const float bi
 int32_t NNUE::output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket) {
 
     int nnzCount = 0;
-    alignas (64) uint16_t nnzIndices[L1_SIZE];
+    alignas (64) uint16_t nnzIndices[L1_SIZE / L1_CHUNK_PER_32];
     alignas (64) uint8_t  FTOutputs[L1_SIZE];
     alignas (64) float    L1Outputs[L2_SIZE];
     alignas (64) float    L2Outputs[L3_SIZE];

@@ -9,6 +9,8 @@
 #include "simd.h"
 #include "types.h"
 
+#define NETUP false
+
 // Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
@@ -35,17 +37,6 @@ constexpr int L1_CHUNK_PER_32 = sizeof(int32_t) / sizeof(int8_t);
 
 using NNUEIndices = std::array<std::size_t, 2>;
 
-struct Network {
-    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE];
-    alignas(64) int16_t FTBiases [L1_SIZE];
-    alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
-    alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
-    alignas(64) float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * L3_SIZE];
-    alignas(64) float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
-    alignas(64) float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
-    alignas(64) float   L3Biases [OUTPUT_BUCKETS];
-};
-
 struct UnquantisedNetwork {
     float FTWeights[NUM_INPUTS * L1_SIZE];
     float FTBiases [L1_SIZE];
@@ -55,6 +46,28 @@ struct UnquantisedNetwork {
     float L2Biases [OUTPUT_BUCKETS][L3_SIZE];
     float L3Weights[L3_SIZE][OUTPUT_BUCKETS];
     float L3Biases [OUTPUT_BUCKETS];
+};
+
+struct QuantisedNetwork {
+    int16_t FTWeights[NUM_INPUTS * L1_SIZE];
+    int16_t FTBiases [L1_SIZE];
+    int8_t  L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
+    float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    float   L2Weights[L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
+    float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    float   L3Weights[L3_SIZE][OUTPUT_BUCKETS];
+    float   L3Biases [OUTPUT_BUCKETS];
+};
+
+struct Network {
+    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE];
+    alignas(64) int16_t FTBiases [L1_SIZE];
+    alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
+    alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    alignas(64) float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * L3_SIZE];
+    alignas(64) float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Biases [OUTPUT_BUCKETS];
 };
 
 struct NNZEntry {
