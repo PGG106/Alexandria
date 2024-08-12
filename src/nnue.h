@@ -95,8 +95,8 @@ struct NNZData {
         std::memcpy(L1WeightsCopy, quantisedNet.L1Weights, sizeof(quantisedNet.L1Weights));
 
         for (int i = 0; i < L1_SIZE / 2; ++i) {
-            int oldIndex1 = indexOrder[i];
-            int newIndex1 = i;
+            int oldIndex1 = i;
+            int newIndex1 = indexOrder[i];
             int oldIndex2 = oldIndex1 + L1_SIZE / 2;
             int newIndex2 = newIndex1 + L1_SIZE / 2;
 
