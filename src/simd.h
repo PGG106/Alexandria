@@ -121,13 +121,13 @@ inline float vec_reduce_add_ps(const vps32 *vecs) {
 
     const __m128 upper_128 = _mm256_extractf128_ps(vec, 1);
     const __m128 lower_128 = _mm256_castps256_ps128(vec);
-    const __m128 sum_128 = _mm_add_ps(upper_128, lower_128);
+    const __m128 sum_128 = _mm_add_ps(lower_128, upper_128);
 
     const __m128 upper_64 = _mm_movehl_ps(sum_128, sum_128);
-    const __m128 sum_64 = _mm_add_ps(upper_64, sum_128);
+    const __m128 sum_64 = _mm_add_ps(sum_128, upper_64);
 
     const __m128 upper_32 = _mm_shuffle_ps(sum_64, sum_64, 1);
-    const __m128 sum_32 = _mm_add_ss(upper_32, sum_64);
+    const __m128 sum_32 = _mm_add_ss(sum_64, upper_32);
 
     return _mm_cvtss_f32(sum_32);
 }
