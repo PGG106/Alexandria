@@ -15,7 +15,7 @@
 // in NETUP mode, we take in the raw bullet output, quantise it, run bench and spit out a permuted version
 #define NETUP false
 
-// Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
+// Net arch: (768 -> L1_SIZE) x 2 --pairwise-> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
 // Activations: L1 - Clipped ReLU and pairwise multiplication, L2: ReLU, and L3: ReLU
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
