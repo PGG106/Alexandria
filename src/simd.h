@@ -64,7 +64,7 @@ inline vps32 vec_mul_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_mu
 inline vps32 vec_div_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_div_ps(vec0, vec1); }
 inline vps32 vec_max_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_max_ps(vec0, vec1); }
 inline vps32 vec_mul_add_ps(const vps32 vec0, const vps32 vec1, const vps32 vec2) { return _mm512_fmadd_ps(vec0, vec1, vec2); }
-inline float vec_reduce_add_ps(const vps32 vec) { return _mm512_reduce_add_ps(vec); }
+inline float vec_reduce_add_ps(const vps32 *vecs) { return _mm512_reduce_add_ps(vecs[0]); }
 
 #elif defined(USE_AVX2)
 using vepi8  = __m256i;
@@ -116,7 +116,9 @@ inline vps32 vec_mul_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_mu
 inline vps32 vec_div_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_div_ps(vec0, vec1); }
 inline vps32 vec_max_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_max_ps(vec0, vec1); }
 inline vps32 vec_mul_add_ps(const vps32 vec0, const vps32 vec1, const vps32 vec2) { return _mm256_fmadd_ps(vec0, vec1, vec2); }
-inline float vec_reduce_add_ps(const vps32 vec) {
+inline float vec_reduce_add_ps(const vps32 *vecs) {
+    const __m256 vec       = _mm256_add_ps(vecs[0], vecs[1]);
+
     const __m128 upper_128 = _mm256_extractf128_ps(vec, 1);
     const __m128 lower_128 = _mm256_castps256_ps128(vec);
     const __m128 sum_128 = _mm_add_ps(upper_128, lower_128);
@@ -128,5 +130,13 @@ inline float vec_reduce_add_ps(const vps32 vec) {
     const __m128 sum_32 = _mm_add_ss(upper_32, sum_64);
 
     return _mm_cvtss_f32(sum_32);
+}
+#else
+inline float reduce_add(float *sums, const int length) {
+    if (length == 2) return sums[0] + sums[1];
+    for (int i = 0; i < length / 2; ++i)
+        sums[i] += sums[i + length / 2];
+
+    return reduce_add(sums, length / 2);
 }
 #endif

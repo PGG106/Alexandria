@@ -495,24 +495,27 @@ void NNUE::PropagateL2(const float *inputs, const float *weights, const float *b
 }
 
 void NNUE::PropagateL3(const float *inputs, const float *weights, const float bias, float &output) {
+    constexpr int avx512chunk = 512 / 32;
     #if defined(USE_SIMD)
-    vps32 sumVec = vec_set1_ps(0.0f);
+    constexpr int numSums = avx512chunk / (sizeof(vps32) / sizeof(float));
+    vps32 sumVecs[numSums] = {};
 
     // Affine transform for L3
-    for (int i = 0; i < L3_SIZE; i += L3_CHUNK_SIZE) {
-        const vps32 weightVec = vec_load_ps(&weights[i]);
-        const vps32 inputsVec = vec_load_ps(&inputs[i]);
-        sumVec = vec_mul_add_ps(inputsVec, weightVec, sumVec);
+    for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
+        const vps32 weightVec = vec_load_ps(&weights[i * L3_CHUNK_SIZE]);
+        const vps32 inputsVec = vec_load_ps(&inputs[i * L3_CHUNK_SIZE]);
+        sumVecs[i % numSums] = vec_mul_add_ps(inputsVec, weightVec, sumVecs[i % numSums]);
     }
-    output = bias + vec_reduce_add_ps(sumVec);
+    output = vec_reduce_add_ps(sumVecs) + bias;
     #else
-    float sum = bias;
+    constexpr int numSums = avx512chunk;
+    float sums[numSums] = {};
 
     // Affine transform for L3
     for (int i = 0; i < L3_SIZE; ++i) {
-        sum += inputs[i] * weights[i];
+        sums[i % numSums] += inputs[i] * weights[i];
     }
-    output = sum;
+    output = reduce_add(sums, numSums) + bias;
     #endif
 }
 
