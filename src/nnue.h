@@ -12,7 +12,7 @@
 #include "simd.h"
 #include "types.h"
 
-#define NETUP true
+#define NETUP false
 
 // Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
