@@ -36,6 +36,8 @@ constexpr int L1_CHUNK_SIZE = sizeof(vepi8 ) / sizeof(int8_t);
 constexpr int L2_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
 constexpr int L3_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
 constexpr int L1_CHUNK_PER_32 = sizeof(int32_t) / sizeof(int8_t);
+#else
+constexpr int L1_CHUNK_PER_32 = 1;
 #endif
 
 using NNUEIndices = std::array<std::size_t, 2>;
@@ -140,7 +142,6 @@ struct NNZTable {
     };
 };
 
-extern NNZTable nnzTable;
 struct Position;
 
 class NNUE {
