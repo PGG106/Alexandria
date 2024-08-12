@@ -371,6 +371,8 @@ void NNUE::ActivateFT(const int16_t *us, const int16_t *them, [[maybe_unused]] u
             const vepi8  product   = vec_packus_epi16(producta, productb);
             vec_store_epi(reinterpret_cast<vepi8*>(&output[offset + i]), product);
 
+            // What this code below does, is to store all active (nonzero) indices in the nnzIndices array,
+            // to allow us to do the L1 affine transform sparsely.
             const uint16_t nnzMask = vec_nnz_mask(product);
             // We divide here since our lookup is only 8 bits
             for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
@@ -412,6 +414,10 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
     const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
 
+    // We read in the inputs in chunks of 4 (as dpbusd horizontally sums by 4).
+    // Then, each chunk of 4 is multiplied by the L1 weights. (The weights are pre-permuted to allow us to do this)
+    // We also unroll by 2 to save a madd every 2 multiplications (in the non VNNI case).
+    // Note that we sacrificed some quantisation accuracy to do this, as the additional accuracy had no elo gain.
     int i = 0;
     for (; i < nnzCount - 1; i += 2) {
         const uint16_t indexa = nnzIndices[i + 0];
@@ -432,6 +438,9 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
             sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
     }
 
+    // We divide by the ONE value to proceed into the later layers, which is carried out in floats.
+    // A nice trick by ciekce: instead of dividing, and then adding the L1 bias, we multiply by its reciprocal,
+    // and then add the bias, which allows us to use FMA.
     for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
@@ -456,6 +465,7 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
 }
 
 void NNUE::PropagateL2(const float *inputs, const float *weights, const float *biases, float *output) {
+    // For each input, multiply by all the L2 weights
     #if defined(USE_SIMD)
     vps32 sumVecs[L3_SIZE / L3_CHUNK_SIZE];
 
@@ -495,6 +505,9 @@ void NNUE::PropagateL2(const float *inputs, const float *weights, const float *b
 }
 
 void NNUE::PropagateL3(const float *inputs, const float *weights, const float bias, float &output) {
+    // These weird multiple-sum shenanigans is to make sure we add the floats in the exact same manner
+    // and order on ALL architectures, so that behaviour is deterministic
+    // We multiply the weights by the inputs, and sum them up
     constexpr int avx512chunk = 512 / 32;
     #if defined(USE_SIMD)
     constexpr int numSums = avx512chunk / (sizeof(vps32) / sizeof(float));
@@ -533,6 +546,7 @@ int32_t NNUE::output(const NNUE::Accumulator &board_accumulator, const int stm, 
     const int16_t* us = board_accumulator.perspective[stm].values.data();
     const int16_t* them = board_accumulator.perspective[stm ^ 1].values.data();
 
+    // Feed Forward NNUE (i.e. outputs of FT are inputs of L1, outputs of L1 are inputs of L2, etc.)
     ActivateFT (us,
                 them,
                 nnzIndices,

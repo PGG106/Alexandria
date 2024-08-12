@@ -12,9 +12,11 @@
 #include "simd.h"
 #include "types.h"
 
+// in NETUP mode, we take in the raw bullet output, quantise it, run bench and spit out a permuted version
 #define NETUP false
 
 // Net arch: (768 -> L1_SIZE) x 2 -> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
+// Activations: L1 - Clipped ReLU and pairwise multiplication, L2: ReLU, and L3: ReLU
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
 constexpr int L2_SIZE = 16;
@@ -80,14 +82,17 @@ struct NNZData {
     int indexOrder[L1_SIZE / 2];
 
     NNZData() {
+        // First init the index order to default
         for (int i = 0; i < L1_SIZE / 2; ++i) indexOrder[i] = i;
     };
 
     inline void update(auto *outputs) {
+        // Update based on if the neuron is activated
         for (int i = 0; i < L1_SIZE; ++i) data[i % (L1_SIZE / 2)] += bool(outputs[i]);
     };
 
     inline void permute(QuantisedNetwork &quantisedNet) {
+        // Sort the order based on sparsity (i.e., how little it is activated)
         std::stable_sort(indexOrder, indexOrder + L1_SIZE / 2, [&](const int &a, const int &b) { return data[a] < data[b]; });
 
         std::memcpy(FTWeightsCopy, quantisedNet.FTWeights, sizeof(quantisedNet.FTWeights));
@@ -100,14 +105,17 @@ struct NNZData {
             int oldIndex2 = oldIndex1 + L1_SIZE / 2;
             int newIndex2 = newIndex1 + L1_SIZE / 2;
 
+            // Permute FT weights
             for (int j = 0; j < NUM_INPUTS; ++j) {
                 quantisedNet.FTWeights[j * L1_SIZE + newIndex1] = FTWeightsCopy[j * L1_SIZE + oldIndex1];
                 quantisedNet.FTWeights[j * L1_SIZE + newIndex2] = FTWeightsCopy[j * L1_SIZE + oldIndex2];
             }
 
+            // Permute FT Biases
             quantisedNet.FTBiases[newIndex1] = FTBiasesCopy[oldIndex1];
             quantisedNet.FTBiases[newIndex2] = FTBiasesCopy[oldIndex2];
 
+            // Permute L1 weights
             for (int j = 0; j < OUTPUT_BUCKETS; ++j) {
                 for (int k = 0; k < L2_SIZE; ++k) {
                     quantisedNet.L1Weights[newIndex1][j][k] = L1WeightsCopy[oldIndex1][j][k];
@@ -123,6 +131,7 @@ struct NNZData {
     int8_t  L1WeightsCopy[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
 };
 
+// NNZTable stores all the possible 8-bit combinations, active indices and active indices count
 struct NNZEntry {
     uint16_t indices[8];
     int      count;
