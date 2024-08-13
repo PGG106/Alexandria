@@ -443,8 +443,9 @@ void NNUE::PropagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
     // and then add the bias, which allows us to use FMA.
     for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
-        const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumMul  = vec_set1_ps(L1_MUL);
+        // Note: we cannot use const here because on some architectures FMA does not take in const parameters
+        vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
+        vps32 sumMul  = vec_set1_ps(L1_MUL);
         const vps32 sumPs   = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
         const vps32 Zero    = vec_zero_ps();
         vec_store_ps(&output[i * L2_CHUNK_SIZE], vec_max_ps(Zero, sumPs));
@@ -473,10 +474,13 @@ void NNUE::PropagateL2(const float *inputs, const float *weights, const float *b
         sumVecs[i] = vec_load_ps(&biases[i * L3_CHUNK_SIZE]);
 
     for (int i = 0; i < L2_SIZE; ++i) {
-        const vps32 inputVec = vec_set1_ps(inputs[i]);
-        const vps32 *weight  = reinterpret_cast<const vps32*>(&weights[i * L3_SIZE]);
-        for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
-            sumVecs[j] = vec_mul_add_ps(inputVec, weight[j], sumVecs[j]);
+        // Note: we cannot use const here because on some architectures FMA does not take in const parameters
+        vps32 inputVec = vec_set1_ps(inputs[i]);
+        const float *row = &weights[i * L3_SIZE];
+        for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j) {
+            vps32 weight = vec_load_ps(&row[j * L3_CHUNK_SIZE]);
+            sumVecs[j] = vec_mul_add_ps(inputVec, weight, sumVecs[j]);
+        }
     }
 
     // Activate L2
@@ -515,8 +519,9 @@ void NNUE::PropagateL3(const float *inputs, const float *weights, const float bi
 
     // Affine transform for L3
     for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
-        const vps32 weightVec = vec_load_ps(&weights[i * L3_CHUNK_SIZE]);
-        const vps32 inputsVec = vec_load_ps(&inputs[i * L3_CHUNK_SIZE]);
+        // Note: we cannot use const here because on some architectures FMA does not take in const parameters
+        vps32 weightVec = vec_load_ps(&weights[i * L3_CHUNK_SIZE]);
+        vps32 inputsVec = vec_load_ps(&inputs[i * L3_CHUNK_SIZE]);
         sumVecs[i % numSums] = vec_mul_add_ps(inputsVec, weightVec, sumVecs[i % numSums]);
     }
     output = vec_reduce_add_ps(sumVecs) + bias;
