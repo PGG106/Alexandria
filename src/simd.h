@@ -63,7 +63,7 @@ inline vps32 vec_add_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_ad
 inline vps32 vec_mul_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_mul_ps(vec0, vec1); }
 inline vps32 vec_div_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_div_ps(vec0, vec1); }
 inline vps32 vec_max_ps  (const vps32 vec0, const vps32 vec1) { return _mm512_max_ps(vec0, vec1); }
-inline vps32 vec_mul_add_ps(vps32 vec0, vps32 vec1, vps32 vec2) { return _mm512_fmadd_ps(vec0, vec1, vec2); }
+inline vps32 vec_mul_add_ps(const vps32 vec0, const vps32 vec1, const vps32 vec2) { return _mm512_fmadd_ps(vec0, vec1, vec2); }
 inline float vec_reduce_add_ps(const vps32 *vecs) { return _mm512_reduce_add_ps(vecs[0]); }
 
 #elif defined(USE_AVX2)
@@ -115,7 +115,7 @@ inline vps32 vec_add_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_ad
 inline vps32 vec_mul_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_mul_ps(vec0, vec1); }
 inline vps32 vec_div_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_div_ps(vec0, vec1); }
 inline vps32 vec_max_ps  (const vps32 vec0, const vps32 vec1) { return _mm256_max_ps(vec0, vec1); }
-inline vps32 vec_mul_add_ps(vps32 vec0, vps32 vec1, vps32 vec2) { return _mm256_fmadd_ps(vec0, vec1, vec2); }
+inline vps32 vec_mul_add_ps(const vps32 vec0, const vps32 vec1, const vps32 vec2) { return _mm256_fmadd_ps(vec0, vec1, vec2); }
 inline float vec_reduce_add_ps(const vps32 *vecs) {
     const __m256 vec       = _mm256_add_ps(vecs[0], vecs[1]);
 
