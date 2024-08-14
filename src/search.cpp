@@ -22,7 +22,7 @@ static bool IsRepetition(const Position* pos) {
     assert(pos->hisPly >= pos->fiftyMove);
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
-    int distance = std::min(pos->Get50mrCounter(), pos->plyFromNull);
+    int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
     // Get the point our search should start from
     int startingPoint = pos->played_positions.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
@@ -45,10 +45,10 @@ static bool IsRepetition(const Position* pos) {
 // Returns true if the position is a draw via the 50mr rule
 static bool Is50MrDraw(Position* pos) {
 
-    if (pos->Get50mrCounter() >= 100) {
+    if (pos->get50MrCounter() >= 100) {
 
         // If there's no risk we are being checkmated return true
-        if (!pos->checkers)
+        if (!pos->getCheckers())
             return true;
 
         // if we are in check make sure it's not checkmate 
@@ -145,7 +145,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     // It doesn't matter if the to square is occupied or not
     Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from);
     if (isEnpassant(move))
-        occupied ^= GetEpSquare(pos);
+        occupied ^= pos->getEpSquare();
 
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
@@ -329,7 +329,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     PvTable* pvTable = &td->pvTable;
 
     // Initialize the node
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->getCheckers();
     const bool rootNode = (ss->ply == 0);
     int eval;
     int score = -MAXSCORE;
@@ -375,7 +375,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = !excludedMove && ProbeTTEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -638,7 +638,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
-    const bool inCheck = pos->checkers;
+    const bool inCheck = pos->getCheckers();
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
     int bestScore;
@@ -666,7 +666,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     }
 
     // ttHit is true if and only if we find something in the TT
-    const bool ttHit = ProbeTTEntry(pos->GetPoskey(), &tte);
+    const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
