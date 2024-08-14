@@ -20,6 +20,7 @@ struct SearchData {
     QuietHistoryTable        quietHistory;
     TacticalHistoryTable     tacticalHistory;
     ContinuationHistoryTable continuationHistory;
+    CorrectionHistoryTable   correctionHistory;
 };
 
 struct PvTable {
@@ -50,6 +51,9 @@ void SearchPosition(int start_depth, int final_depth, ThreadData* td, UciOptions
 
 // Sets up aspiration windows and starts a Negamax search
 [[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td);
+
+// Adjusts eval and sets the different eval variables
+void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval);
 
 // Negamax alpha beta search
 template <bool pvNode>

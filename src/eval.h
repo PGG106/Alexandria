@@ -30,8 +30,7 @@
     const int rooks = CountBits(GetPieceBB(pos, ROOK));
     const int queens = CountBits(GetPieceBB(pos, QUEEN));
     const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
-    // Scale between [0.75, 1.00]
-    return eval * (192 + phase) / 256;
+    return eval * (evalMatBase() + evalMatMult() * phase) / 4096;
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {
@@ -46,8 +45,8 @@
 [[nodiscard]] inline int EvalPosition(Position* pos) {
     int eval = EvalPositionRaw(pos);
     eval = ScaleMaterial(pos, eval);
-    eval = eval * (200 - pos->get50MrCounter()) / 200;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
+    eval = eval * (eval50mrScale() - pos->get50MrCounter()) / eval50mrScale();
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;
