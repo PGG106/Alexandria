@@ -16,7 +16,7 @@
 #define NETUP false
 
 // Net arch: (768 -> L1_SIZE) x 2 --pairwise-> (L2_SIZE -> L3_SIZE -> 1) x OUTPUT_BUCKETS
-// Activations: L1 - Clipped ReLU and pairwise multiplication, L2: ReLU, and L3: ReLU
+// Activations: L1 - Clipped ReLU, L2: SCReLU, and L3: SCReLU
 constexpr int NUM_INPUTS = 768;
 constexpr int L1_SIZE = 1536;
 constexpr int L2_SIZE = 16;
@@ -25,11 +25,11 @@ constexpr int OUTPUT_BUCKETS = 8;
 
 constexpr int FT_QUANT  = 362;
 constexpr int FT_SHIFT  = 10;
-constexpr int L1_QUANT  = 45;
+constexpr int L1_QUANT  = 32;
 constexpr int NET_SCALE = 400;
 
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
-constexpr float WEIGHT_CLIPPING = 1.414f;
+constexpr float WEIGHT_CLIPPING = 1.98f;
 static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
 
 #if defined(USE_SIMD)
