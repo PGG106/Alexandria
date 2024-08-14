@@ -11,8 +11,16 @@ struct SearchData;
 struct SearchStack;
 struct MoveList;
 
-int16_t HistoryBonus(const int depth);
-void UpdateHistoryEntry(int16_t &entry, const int16_t bonus, const int16_t max);
+inline int16_t HistoryBonus(const int depth) {
+    return std::min(  histBonusQuadratic() * depth * depth
+                    + histBonusLinear() * depth
+                    + histBonusConst(), histBonusMax());
+}
+
+inline void UpdateHistoryEntry(int16_t &entry, const int16_t bonus, const int16_t max) {
+    const int scaledBonus = bonus - entry * std::abs(bonus) / max;
+    entry += scaledBonus;
+}
 
 // Quiet history is a history table for quiet moves
 struct QuietHistoryTable {
@@ -102,6 +110,39 @@ struct ContinuationHistoryTable {
     void update(const Position *pos, const SearchStack *ss, const Move move, const int16_t bonus);
     int16_t getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const;
     int16_t getScore(const Position *pos, const SearchStack *ss, const Move move) const;
+};
+
+// CorrectionHistoryTable is a history table indexed by [pawn-key-index]. It is used to correct eval
+struct CorrectionHistoryTable {
+    static constexpr int Size = 1 << 16;
+    static constexpr int Mask = Size - 1;
+    static_assert((Size & Mask) == 0);
+
+    static constexpr int Grain = 256;
+    static constexpr int MaxWeight = 1024;
+
+    int16_t table[2][Size];
+
+    inline int weight(const int depth) const {
+        return std::min(  corrHistWeightQuadratic() * depth * depth
+                        + corrHistWeightLinear() * depth
+                        + corrHistWeightConst(), corrHistWeightMax());
+    };
+
+    inline int16_t &getEntryRef(const Position *pos) {
+        return table[pos->side][pos->pawnKey & Mask];
+    }
+
+    inline int16_t getEntry(const Position *pos) const {
+        return table[pos->side][pos->pawnKey & Mask];
+    };
+
+    inline void clear() {
+        std::memset(table, 0, sizeof(table));
+    };
+
+    void update(const Position *pos, const Move bestMove, const int depth, const uint8_t bound, const int bestScore, const int rawEval);
+    int16_t adjust(const Position *pos, const int eval) const;
 };
 
 // Update all histories after a beta cutoff

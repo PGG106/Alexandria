@@ -101,7 +101,7 @@ TUNE_PARAM(tacticalSeePower, 200, 50, 400, 15.0, 0.002)
 TUNE_PARAM(quietSeeCoeff, 8000, 1000, 16000, 750.0, 0.002)
 TUNE_PARAM(quietSeePower, 100, 50, 300, 13.0, 0.002)
 
-TUNE_PARAM(seDepth, 5, 3, 10, 0.5, 0.002)
+TUNE_PARAM(seDepth, 5, 3, 7, 0.5, 0.002)
 TUNE_PARAM(seMinQuality, 3, 3, 4, 0.5, 0.002)
 TUNE_PARAM(seMarginMult, 48, 5, 48, 3.0, 0.002)
 TUNE_PARAM(seDeBase, 50, 0, 60, 8.0, 0.002)
@@ -122,3 +122,13 @@ TUNE_PARAM(quietHistBucketMax, 6144, 2048, 20000, 300.0, 0.002)
 TUNE_PARAM(tacticalHistMax, 8192, 4096, 20000, 300.0, 0.002)
 
 TUNE_PARAM(continuationHistMax, 16384, 8192, 32767, 300.0, 0.002)
+
+TUNE_PARAM(corrHistMaxAdjust, 22528, 16384, 32767, 800.0, 0.002)
+TUNE_PARAM(corrHistWeightQuadratic, 4, 0, 8, 0.5, 0.002)
+TUNE_PARAM(corrHistWeightLinear, 8, 0, 16, 0.5, 0.002)
+TUNE_PARAM(corrHistWeightConst, 4, 0, 8, 0.5, 0.002)
+TUNE_PARAM(corrHistWeightMax, 128, 1, 345, 17.0, 0.002)
+
+TUNE_PARAM(eval50mrScale, 200, 150, 250, 5.0, 0.002)
+TUNE_PARAM(evalMatBase, 3072, 2464, 4096, 82.0, 0.002)
+TUNE_PARAM(evalMatMult, 16, 14, 18, 0.5, 0.002)
