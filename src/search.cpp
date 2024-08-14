@@ -319,6 +319,10 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     return score;
 }
 
+void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval) {
+    staticEval = eval = sd->correctionHistory.adjust(pos, rawEval);
+}
+
 // Negamax alpha beta search
 template <bool pvNode>
 int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Move excludedMove) {
@@ -331,6 +335,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     // Initialize the node
     const bool inCheck = pos->getCheckers();
     const bool rootNode = (ss->ply == 0);
+    int rawEval;
     int eval;
     int score = -MAXSCORE;
     TTEntry tte;
@@ -393,22 +398,25 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
 
     // If we are in check we skip static evaluation
     if (inCheck) {
-        eval = ss->staticEval = SCORE_NONE;
+        rawEval = eval = ss->staticEval = SCORE_NONE;
     }
     // If we are in an excluded search just re-use the existing eval
     else if (excludedMove) {
-        eval = ss->staticEval;
+        rawEval = eval = ss->staticEval;
     }
     // get an evaluation of the position:
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        eval = ss->staticEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
+        rawEval = eval = ss->staticEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
+        adjustEval(pos, sd, rawEval, ss->staticEval, eval);
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
-        eval = ss->staticEval = EvalPosition(pos);
+        rawEval = eval = ss->staticEval = EvalPosition(pos);
+        adjustEval(pos, sd, rawEval, ss->staticEval, eval);
+
         // Save the eval into the TT
-        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, ss->staticEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     if (   !pvNode
@@ -626,7 +634,8 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     if (!excludedMove) {
         // Set the TT bound based on whether we failed high or raised alpha
         int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
-        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
+        sd->correctionHistory.update(pos, bestMove, depth, bound, bestScore, rawEval);
     }
 
     return bestScore;
@@ -641,6 +650,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     const bool inCheck = pos->getCheckers();
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
+    int rawEval;
     int bestScore;
 
     // check if more than Maxtime passed and we have to stop
@@ -681,19 +691,21 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         return ttScore;
 
     if (inCheck) {
-        ss->staticEval = SCORE_NONE;
+        rawEval = ss->staticEval = SCORE_NONE;
         bestScore = -MAXSCORE;
     }
     // If we have a ttHit with a valid eval use that
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        ss->staticEval = bestScore = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
+        rawEval = ss->staticEval = bestScore = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
+        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore);
     }
     // If we don't have any useful info in the TT just call Evalpos
     else {
-        bestScore = ss->staticEval = EvalPosition(pos);
+        rawEval = bestScore = ss->staticEval = EvalPosition(pos);
+        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore);
         // Save the eval into the TT
-        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, ss->staticEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Stand pat
@@ -761,7 +773,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreTTEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), ss->staticEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }
