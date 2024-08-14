@@ -78,6 +78,10 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
     return true;
 }
 
+TUNE_PARAM(minAspDepth, 4, 2, 6, 0.5, 0.002)
+TUNE_PARAM(aspWindowStart, 10, 8, 15, 0.5, 0.002)
+TUNE_PARAM(aspWindowWidenScale, 81, 65, 128, 3.0, 0.002)
+
 TUNE_PARAM(rfpDepth, 8, 4, 14, 0.5, 0.002)
 TUNE_PARAM(rfpCoeff, 70, 20, 200, 10.0, 0.002)
 

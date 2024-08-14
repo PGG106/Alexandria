@@ -252,7 +252,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             }
 
             // Keep track of eval stability
-            if (score >  averageScore - 10 && score < averageScore + 10) {
+            if (std::abs(score - averageScore) < 10) {
                 evalStabilityFactor = std::min(evalStabilityFactor + 1, 4);
             }
             else {
@@ -297,7 +297,13 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     }
 
     int alpha = -MAXSCORE;
-    int beta = MAXSCORE;
+    int beta  = MAXSCORE;
+    int delta = aspWindowStart();
+
+    if (depth >= minAspDepth()) {
+        alpha = std::max(-MAXSCORE, prev_eval - delta);
+        beta  = std::min( MAXSCORE, prev_eval + delta);
+    }
 
     // Stay at current depth if we fail high/low because of the aspiration windows
     while (true) {
@@ -315,6 +321,10 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
         // Exact bound, we no longer need to continue searching at this depth
         if (alpha < score && score < beta) break;
+
+        alpha = std::max(-MAXSCORE, score - delta);
+        beta  = std::min( MAXSCORE, score + delta);
+        delta = delta * aspWindowWidenScale() / 64;
     }
     return score;
 }
