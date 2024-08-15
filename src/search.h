@@ -53,7 +53,7 @@ void SearchPosition(int start_depth, int final_depth, ThreadData* td, UciOptions
 [[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td);
 
 // Adjusts eval and sets the different eval variables
-void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval);
+void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval, int ttScore, uint8_t ttBound);
 
 // Negamax alpha beta search
 template <bool pvNode>
