@@ -34,9 +34,7 @@ void AlignedFree(void *src) {
 }
 
 void ClearTT() {
-    for (uint64_t i = 0; i < TT.paddedSize / sizeof(TTBucket); ++i) {
-        TT.pTable[i] = TTBucket();
-    }
+    std::fill(TT.pTable, TT.pTable + (TT.paddedSize / sizeof(TTBucket)), TTBucket());
     TT.age = 1;
 }
 
