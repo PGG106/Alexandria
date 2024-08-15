@@ -329,8 +329,17 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     return score;
 }
 
-void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval) {
-    staticEval = eval = sd->correctionHistory.adjust(pos, rawEval);
+void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int &eval, int ttScore, uint8_t ttBound) {
+    staticEval = sd->correctionHistory.adjust(pos, rawEval);
+
+    // Adjust eval using TT score if it is more accurate
+    if (    ttScore != SCORE_NONE
+        && (   (ttBound == HFUPPER && ttScore < eval) // TT score is a better upper bound
+            || (ttBound == HFLOWER && ttScore > eval) // TT score is a better lower bound
+            ||  ttBound == HFEXACT))
+        eval = ttScore;
+    else
+        eval = staticEval;
 }
 
 // Negamax alpha beta search
@@ -418,12 +427,12 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = eval = ss->staticEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
-        adjustEval(pos, sd, rawEval, ss->staticEval, eval);
+        adjustEval(pos, sd, rawEval, ss->staticEval, eval, ttScore, ttBound);
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
         rawEval = eval = ss->staticEval = EvalPosition(pos);
-        adjustEval(pos, sd, rawEval, ss->staticEval, eval);
+        adjustEval(pos, sd, rawEval, ss->staticEval, eval, ttScore, ttBound);
 
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
@@ -708,12 +717,12 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = ss->staticEval = bestScore = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos);
-        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore);
+        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore, ttScore, ttBound);
     }
     // If we don't have any useful info in the TT just call Evalpos
     else {
         rawEval = bestScore = ss->staticEval = EvalPosition(pos);
-        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore);
+        adjustEval(pos, sd, rawEval, ss->staticEval, bestScore, ttScore, ttBound);
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
