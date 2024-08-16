@@ -438,14 +438,29 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
+    int prevEval;
+    if (inCheck)
+        prevEval = ss->staticEval;
+    else if ((ss - 2)->staticEval != SCORE_NONE)
+        prevEval = (ss - 2)->staticEval;
+
+    else if ((ss - 4)->staticEval != SCORE_NONE)
+        prevEval = (ss - 4)->staticEval;
+    else
+        prevEval = ss->staticEval;
+
+    const int improvement = ss->staticEval - prevEval;
+    const bool improving = improvement > 0;
+    const int improvementPer256 = std::clamp(improvement / std::abs(prevEval), -maxImprovementPer256(), maxImprovementPer256());
+
     if (   !pvNode
         && !excludedMove
         && !inCheck) {
         // Reverse Futility Pruning (RFP) / Static Null Move Pruning (SNMP)
         // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
         // and return a fail high score.
-        if (   depth <= rfpDepth()
-            && eval - rfpCoeff() * depth >= beta
+        if (   depth <= rfpMaxDepth()
+            && eval >= beta + rfpDepthCoeff() * depth - rfpImprCoeff() * improving
             && std::abs(eval) < MATE_FOUND)
             return eval;
 
@@ -574,7 +589,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             && isQuiet) {
 
             // Get base reduction value
-            int depthReduction = lmrReductions[std::min(depth, 63)][std::min(totalMoves, 63)];
+            int depthReduction = lmrReductions[std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
 
             // Clamp the reduced search depth so that we neither extend nor drop into qsearch
             // We use min/max instead of clamp due to issues that can arise if newDepth < 1
