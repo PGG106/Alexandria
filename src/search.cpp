@@ -648,7 +648,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         info->nodes++;
         const uint64_t nodesBeforeSearch = info->nodes;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
-        if (totalMoves > 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
+        if (totalMoves > 1 + pvNode && depth >= 3) {
 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
@@ -677,7 +677,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / 8192;
             }
-            else {
+            else if(!ttPv){
                 // Fuck
                 if (cutNode)
                     depthReduction += 2;
