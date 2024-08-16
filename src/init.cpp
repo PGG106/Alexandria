@@ -157,7 +157,7 @@ void InitReductions() {
                 lmrReductions[moves][depth] = 0;
                 continue;
             }
-            lmrReductions[moves][depth] = (double(quietLmrBase()) + double(quietLmrMult()) * std::log(depth) * std::log(moves)) / 1024;
+            lmrReductions[moves][depth] = double(quietLmrBase()) + double(quietLmrMult()) * std::log(depth) * std::log(moves);
         }
     }
 }
