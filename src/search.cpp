@@ -586,8 +586,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
         // After a certain depth and total moves searched, we search the rest first at a reduced depth and zero window.
         // Here we calulate the reduction that we are going to reduce for this move.
         if (   depth >= 3
-            && totalMoves > 1 + pvNode
-            && (isQuiet || !ttPv)) {
+            && totalMoves > 1 + pvNode) {
 
             // Get base reduction value
             int depthReduction = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
