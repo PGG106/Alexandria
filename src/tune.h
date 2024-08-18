@@ -117,6 +117,9 @@ TUNE_PARAM(seDePvCoeff, 400, 0, 450, 30.0, 0.002)
 TUNE_PARAM(quietLmrBase, 1690, 0, 2535, 128.0, 0.002)
 TUNE_PARAM(quietLmrMult, 366, 244, 549, 32.0, 0.002)
 
+TUNE_PARAM(tacticalLmrBase, 338, 244, 549, 32.0, 0.002)
+TUNE_PARAM(tacticalLmrMult, 320, 244, 549, 32.0, 0.002)
+
 TUNE_PARAM(histBonusQuadratic, 16, 0, 32, 1.0, 0.002)
 TUNE_PARAM(histBonusLinear, 32, 0, 64, 2.0, 0.002)
 TUNE_PARAM(histBonusConst, 16, 0, 32, 1.0, 0.002)

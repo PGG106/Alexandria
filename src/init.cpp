@@ -154,10 +154,12 @@ void InitReductions() {
         for (int moves = 0; moves < 64; ++moves) {
             // Manually set reduction to 0 if depth or moves is 0 as log(0) is NaN
             if (depth == 0 || moves == 0) {
-                lmrReductions[moves][depth] = 0;
+                lmrReductions[0][moves][depth] = 0;
+                lmrReductions[1][moves][depth] = 0;
                 continue;
             }
-            lmrReductions[moves][depth] = double(quietLmrBase()) + double(quietLmrMult()) * std::log(depth) * std::log(moves);
+            lmrReductions[0][moves][depth] = double(tacticalLmrBase()) + double(tacticalLmrMult()) * std::log(depth) * std::log(moves); // Tactical LMR
+            lmrReductions[1][moves][depth] = double(quietLmrBase()) + double(quietLmrMult()) * std::log(depth) * std::log(moves); // Quiet LMR
         }
     }
 }
