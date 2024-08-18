@@ -84,6 +84,9 @@ TUNE_PARAM(aspWindowWidenScale, 81, 65, 128, 3.0, 0.002)
 
 TUNE_PARAM(maxImprovementPer256, 384, 256, 512, 13.0, 0.002)
 
+TUNE_PARAM(iirMinDepth, 4, 2, 8, 0.5, 0.002)
+TUNE_PARAM(iirDepthReduction, 1, 1, 3, 0.5, 0.002)
+
 TUNE_PARAM(rfpMaxDepth, 8, 4, 14, 0.5, 0.002)
 TUNE_PARAM(rfpDepthCoeff, 70, 20, 200, 10.0, 0.002)
 TUNE_PARAM(rfpImprCoeff, 70, 20, 200, 10.0, 0.002)
