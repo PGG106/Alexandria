@@ -451,7 +451,8 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
 
     const int improvement = ss->staticEval - prevEval;
     const bool improving = improvement > 0;
-    const int improvementPer256 = std::clamp(improvement / std::abs(prevEval), -maxImprovementPer256(), maxImprovementPer256());
+    const int improvementPer256 = prevEval == 0 ? maxImprovementPer256()
+                                                : std::clamp(improvement / std::abs(prevEval), -maxImprovementPer256(), maxImprovementPer256());
 
     if (   !pvNode
         && !excludedMove
@@ -586,10 +587,10 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
         // Here we calulate the reduction that we are going to reduce for this move.
         if (   depth >= 3
             && totalMoves > 1 + pvNode
-            && isQuiet) {
+            && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            int depthReduction = lmrReductions[std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
+            int depthReduction = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
 
             // Clamp the reduced search depth so that we neither extend nor drop into qsearch
             // We use min/max instead of clamp due to issues that can arise if newDepth < 1
