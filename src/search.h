@@ -7,7 +7,7 @@
 
 inline int seeMargins[2][64];
 inline int futilityMargins[64];
-inline int lmrReductions[64][64];
+inline int lmrReductions[2][64][64];
 inline int lmpMargins[64];
 
 struct SearchStack {
