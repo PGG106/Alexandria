@@ -499,7 +499,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             MakeNullMove(pos);
 
             // Search moves at a reduced depth to find beta cutoffs.
-            int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - canIIR, !cutNode, td, ss + 1);
+            int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, !cutNode, td, ss + 1);
 
             TakeNullMove(pos);
 
