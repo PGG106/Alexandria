@@ -454,11 +454,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
     const int improvementPer256 = prevEval == 0 ? maxImprovementPer256()
                                                 : std::clamp(improvement / std::abs(prevEval), -maxImprovementPer256(), maxImprovementPer256());
 
-    // IIR by Ed Schroder (That i find out about in Berserk source code)
-    // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
-    // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (depth >= iirMinDepth() && ttBound == HFNONE)
-        depth -= iirDepthReduction();
+    const bool canIIR = depth >= iirMinDepth() && ttBound == HFNONE;
 
     if (   !pvNode
         && !excludedMove
@@ -467,7 +463,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
         // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
         // and return a fail high score.
         if (   depth <= rfpMaxDepth()
-            && eval >= beta + rfpDepthCoeff() * depth - rfpImprCoeff() * improving
+            && eval >= beta + rfpDepthCoeff() * depth - rfpImprCoeff() * improving - rfpIirCoeff() * canIIR
             && std::abs(eval) < MATE_FOUND)
             return eval;
 
@@ -480,7 +476,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             && (ss - 1)->move != NOMOVE
             && BoardHasNonPawns(pos, pos->side)) {
 
-            const int R = (nmpRedConst() + nmpRedDepthCoeff() * depth) / 1024
+            const int R = (nmpRedConst() + nmpRedDepthCoeff() * depth + nmpRedIirCoeff() * canIIR) / 1024
                         +  std::min(eval - beta, nmpRedEvalDiffMax()) / nmpRedEvalDiffDiv();
 
             ss->move = NOMOVE;
@@ -493,6 +489,12 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
                 return abs(nmpScore) > MATE_FOUND ? beta : nmpScore;
         }
     }
+
+    // IIR by Ed Schroder (That i found out about in Berserk source code)
+    // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
+    // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
+    if (canIIR)
+        depth -= iirDepthReduction();
 
     // old value of alpha
     const int old_alpha = alpha;
