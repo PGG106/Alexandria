@@ -62,7 +62,7 @@ void CorrectionHistoryTable::update(const Position *pos, const Move bestMove, co
     int16_t &entry = getEntryRef(pos);
     const int scaledDiff = std::clamp((bestScore - rawEval) * Grain, -corrHistMaxAdjust(), corrHistMaxAdjust());
     const int newWeight = weight(depth);
-    assert(weight <= MaxWeight);
+    assert(newWeight <= MaxWeight);
 
     entry = (entry * (MaxWeight - newWeight) + scaledDiff * newWeight) / MaxWeight;
 }
