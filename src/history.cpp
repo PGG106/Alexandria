@@ -14,7 +14,7 @@ void QuietHistoryTable::update(const Position *pos, const Move move, const int16
     UpdateHistoryEntry(entry.bucketRef(pos, move), bonus * bucketScale / 64, quietHistBucketMax());
 }
 
-int16_t QuietHistoryTable::getScore(const Position *pos, const Move move) const {
+int QuietHistoryTable::getScore(const Position *pos, const Move move) const {
     QuietHistoryEntry entry = getEntry(pos, move);
     return   entry.factoriser
            + entry.bucket(pos, move);
@@ -26,7 +26,7 @@ void TacticalHistoryTable::update(const Position *pos, const Move move, int16_t 
     UpdateHistoryEntry(entry.factoriser, bonus, tacticalHistMax());
 }
 
-int16_t TacticalHistoryTable::getScore(const Position *pos, const Move move) const {
+int TacticalHistoryTable::getScore(const Position *pos, const Move move) const {
     TacticalHistoryEntry entry = getEntry(pos, move);
     return entry.factoriser;
 }
@@ -42,12 +42,12 @@ void ContinuationHistoryTable::update(const Position *pos, const SearchStack *ss
     updateSingle(pos, ss, 2, move, bonus);
 }
 
-int16_t ContinuationHistoryTable::getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const {
+int ContinuationHistoryTable::getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const {
     ContinuationHistoryEntry entry = getEntry(pos, (ss - offset)->move, move);
     return entry.factoriser;
 }
 
-int16_t ContinuationHistoryTable::getScore(const Position *pos, const SearchStack *ss, const Move move) const {
+int ContinuationHistoryTable::getScore(const Position *pos, const SearchStack *ss, const Move move) const {
     return   getScoreSingle(pos, ss, 1, move)
            + getScoreSingle(pos, ss, 2, move);
 }
