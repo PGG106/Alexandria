@@ -110,8 +110,10 @@ TUNE_PARAM(fpDepth, 10, 5, 15, 0.5, 0.002)
 
 TUNE_PARAM(tacticalSeeCoeff, 3000, 1000, 8000, 350.0, 0.002)
 TUNE_PARAM(tacticalSeePower, 200, 50, 400, 15.0, 0.002)
+TUNE_PARAM(tacticalSeeDepth, 8, 5, 15, 0.5, 0.002)
 TUNE_PARAM(quietSeeCoeff, 8000, 1000, 16000, 750.0, 0.002)
 TUNE_PARAM(quietSeePower, 100, 50, 300, 13.0, 0.002)
+TUNE_PARAM(quietSeeDepth, 8, 5, 15, 0.5, 0.002)
 
 TUNE_PARAM(seDepth, 5, 3, 7, 0.5, 0.002)
 TUNE_PARAM(seMinQuality, 3, 3, 4, 0.5, 0.002)
