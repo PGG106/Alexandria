@@ -57,7 +57,7 @@ void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int
 
 // Negamax alpha beta search
 template <bool pvNode>
-[[nodiscard]] int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Move excludedMove = NOMOVE);
+[[nodiscard]] int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* td, SearchStack* ss, Move excludedMove = NOMOVE);
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
