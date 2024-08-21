@@ -307,7 +307,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
     // Stay at current depth if we fail high/low because of the aspiration windows
     while (true) {
-        score = Negamax<true>(alpha, beta, depth, td, ss);
+        score = Negamax<true>(alpha, beta, depth, false, td, ss);
 
         // Check if more than Maxtime passed and we have to stop
         if (td->id == 0 && TimeOver(&td->info)) {
@@ -344,7 +344,7 @@ void adjustEval(Position *pos, SearchData *sd, int rawEval, int &staticEval, int
 
 // Negamax alpha beta search
 template <bool pvNode>
-int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Move excludedMove) {
+int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* td, SearchStack* ss, Move excludedMove) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
@@ -481,7 +481,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
 
             ss->move = NOMOVE;
             MakeNullMove(pos);
-            const int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, td, ss + 1);
+            const int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R, !predictedCutNode, td, ss + 1);
             TakeNullMove(pos);
 
             // Don't return unproven mates from null move search
@@ -558,7 +558,7 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             const int singularBeta  = singularAlpha + 1;
             const int singularDepth = std::max((depth - 1) / 2, 1);
 
-            const int singularScore = Negamax<false>(singularAlpha, singularBeta, singularDepth, td, ss, ttMove);
+            const int singularScore = Negamax<false>(singularAlpha, singularBeta, singularDepth, predictedCutNode, td, ss, ttMove);
             if (singularScore <= singularAlpha) {
                 // If we fail low by a lot, we extend the search by more than one ply
                 // (TT move is very singular; there are no close alternatives)
@@ -598,22 +598,28 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
             && totalMoves > 1 + pvNode
             && (isQuiet || !ttPv)) {
 
-            // Get base reduction value
-            int depthReduction = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
+            // Get base reduction value (multiplied by 1024)
+            int depthReductionGranular = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
             // Reduce less if we are on or have been on the PV
-            if (ttPv) depthReduction -= 1;
+            if (ttPv) depthReductionGranular -= ttPvLmrReduction();
+
+            // Reduce less if we are predicted to fail high (i.e. we stem from an LMR search earlier in the tree)
+            if (predictedCutNode) depthReductionGranular += predictedCutNodeLmrReduction();
+
+            // Divide by 1024 once all the adjustments have been applied
+            const int depthReduction = depthReductionGranular / 1024;
 
             // Clamp the reduced search depth so that we neither extend nor drop into qsearch
             // We use min/max instead of clamp due to issues that can arise if newDepth < 1
             int reducedDepth = std::min(std::max(newDepth - depthReduction, 1), newDepth);
 
             // Carry out the reduced depth, zero window search
-            score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, td, ss + 1);
+            score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
 
             // If the reduced depth search fails high, do a full depth search (but still on zero window).
             if (score > alpha && newDepth > reducedDepth) {
-                score = -Negamax<false>(-alpha - 1, -alpha, newDepth, td, ss + 1);
+                score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
             }
         }
 
@@ -622,13 +628,13 @@ int Negamax(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss, Mov
         // We assume that our move ordering is perfect, and so we expect all non-first moves to be worse.
         // This zero window search will either confirm or deny our prediction, as the score cannot be exact (no integer lies in (-alpha - 1, -alpha))
         else if (!pvNode || totalMoves > 1) {
-            score = -Negamax<false>(-alpha - 1, -alpha, newDepth, td, ss + 1);
+            score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
         }
 
         // If this is our first move, we search with a full window.
         // Otherwise, if our zero window search fails low, this is a potential alpha raise and so we search the move fully.
         if (pvNode && (totalMoves == 1 || score > alpha))
-            score = -Negamax<true>(-beta, -alpha, newDepth, td, ss + 1);
+            score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
         UnmakeMove(move, pos);
