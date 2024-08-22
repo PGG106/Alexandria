@@ -628,7 +628,12 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
             // If the reduced depth search fails high, do a full depth search (but still on zero window).
             if (score > alpha && newDepth > reducedDepth) {
-                score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
+                // Based on the value returned by our reduced search see if we should search deeper or shallower,
+                const bool doDeeperSearch = score > (bestScore + doDeeperBaseScore() + doDeeperDepthMultiplier() * newDepth);
+                const bool doShallowerSearch = score < (bestScore + newDepth);
+                newDepth += doDeeperSearch - doShallowerSearch;
+                if (newDepth > reducedDepth)
+                    score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
             }
         }
 
