@@ -230,18 +230,25 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
 void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* options) {
     // variable used to store the score of the best move found by the search (while the move itself can be retrieved from the triangular PV table)
     int score = 0;
+    int prevScore = 0;
     int averageScore = SCORE_NONE;
     int bestMoveStabilityFactor = 0;
     int evalStabilityFactor = 0;
     Move previousBestMove = NOMOVE;
+
     // Clean the position and the search info to start search from a clean state
     ClearForSearch(td);
     UpdateTableAge();
+    bool printFinalInfoString = false;
 
     // Call the Negamax function in an iterative deepening framework
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
         score = AspirationWindowSearch(averageScore, currentDepth, td);
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
+
+        // If we stop (not at an exact depth) we print a final info string
+        printFinalInfoString = td->info.stopped;
+
         // Only the main thread handles time related tasks
         if (td->id == 0) {
             // Keep track of how many times in a row the best move stayed the same
@@ -272,6 +279,11 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 // Stop main-thread search
                 td->info.stopped = true;
         }
+
+        // Print a final info string if we have to
+        if (td->id == 0 && printFinalInfoString)
+            PrintUciOutput(prevScore, currentDepth - 1, td, options);
+
         // stop calculating and return best move so far
         if (td->info.stopped)
             break;
@@ -279,8 +291,10 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         // If it's the main thread print the uci output
         if (td->id == 0)
             PrintUciOutput(score, currentDepth, td, options);
+
         // Seldepth should only be related to the current ID loop
         td->info.seldepth = 0;
+        prevScore = score;
     }
 }
 
