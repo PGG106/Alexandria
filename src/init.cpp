@@ -145,10 +145,12 @@ void InitReductions() {
         seeMargins[1][depth] = -double(   quietSeeCoeff()) * std::pow(depth, double(   quietSeePower()) / 100.0) / 100.0; // Quiet SEE margin
 
         // FP Margins
-        futilityMargins[depth] = fpMarginQuadratic() * depth * depth + fpMarginLinear() * depth + fpMarginConst();
+        futilityMargins[0][depth] = fpNonImpMarginQuadratic() * depth * depth + fpNonImpMarginLinear() * depth + fpNonImpMarginConst();
+        futilityMargins[1][depth] = fpImpMarginQuadratic()    * depth * depth + fpImpMarginLinear()    * depth + fpImpMarginConst();
 
         // LMP Margins
-        lmpMargins[depth] = (double(lmpMarginConst()) + double(lmpMarginMult()) * std::pow(depth, double(lmpMarginPower()) / 100.0)) / 100.0;
+        lmpMargins[0][depth] = (double(lmpNonImpMarginConst()) + double(lmpNonImpMarginMult()) * std::pow(depth, double(lmpNonImpMarginPower()) / 100.0)) / 100.0;
+        lmpMargins[1][depth] = (double(lmpImpMarginConst()   ) + double(lmpImpMarginMult()   ) * std::pow(depth, double(lmpImpMarginPower()   ) / 100.0)) / 100.0;
 
         // LMR Reductions
         for (int moves = 0; moves < 64; ++moves) {
