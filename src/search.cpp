@@ -473,6 +473,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // it means our position is so good we don't even need to make a move. Thus, we return a fail high score.
         if (   depth > nmpDepth()
             && eval >= beta
+            && eval >= ss->staticEval
             && (ss - 1)->move != NOMOVE
             && BoardHasNonPawns(pos, pos->side)) {
 
