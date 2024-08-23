@@ -40,6 +40,7 @@ void ContinuationHistoryTable::updateSingle(const Position *pos, const SearchSta
 void ContinuationHistoryTable::update(const Position *pos, const SearchStack *ss, const Move move, const int16_t bonus) {
     updateSingle(pos, ss, 1, move, bonus);
     updateSingle(pos, ss, 2, move, bonus);
+    updateSingle(pos, ss, 4, move, bonus);
 }
 
 int ContinuationHistoryTable::getScoreSingle(const Position *pos, const SearchStack *ss, const int offset, const Move move) const {
@@ -49,7 +50,8 @@ int ContinuationHistoryTable::getScoreSingle(const Position *pos, const SearchSt
 
 int ContinuationHistoryTable::getScore(const Position *pos, const SearchStack *ss, const Move move) const {
     return   getScoreSingle(pos, ss, 1, move)
-           + getScoreSingle(pos, ss, 2, move);
+           + getScoreSingle(pos, ss, 2, move)
+           + getScoreSingle(pos, ss, 4, move);
 }
 
 // CorrectionHistoryTable is a history table indexed by [side-to-move][pawn-key-index]. It is used to correct eval
@@ -105,8 +107,8 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
 
 int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData *sd, const Move move) {
     if (isTactical(move)) {
-        return   2 * sd->tacticalHistory.getScore(pos, move)
-               +     sd->continuationHistory.getScore(pos, ss, move);
+        return   sd->tacticalHistory.getScore(pos, move)
+               + sd->continuationHistory.getScore(pos, ss, move);
     }
     else {
         return   sd->quietHistory.getScore(pos, move)

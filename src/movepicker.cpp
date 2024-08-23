@@ -17,7 +17,7 @@ void ScoreMoves(Movepicker* mp) {
             int moveDelta = isPromo(move)     ? SEEValue[getPromotedPiecetype(move)] - SEEValue[PAWN]
                           : isEnpassant(move) ? SEEValue[PAWN]
                                               : SEEValue[GetPieceType(pos->PieceOn(To(move)))];
-            moveList->moves[i].score = moveDelta * 64 + history;
+            moveList->moves[i].score = moveDelta * 32 + history;
         }
         else {
             moveList->moves[i].score = history;
