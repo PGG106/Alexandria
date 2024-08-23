@@ -123,10 +123,18 @@ ifeq ($(build), x86-64-vnni512)
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
+	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined
 	NATIVE   = -msse -msse3 -mpopcnt
 	FLAGS    = -lpthread -lstdc++
 	CXXFLAGS += $(FLAGS_DETECTED)
+endif
+
+# valgrind doesn't like avx512 code
+ifeq ($(build), debug-avx2)
+	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined
+	NATIVE   = -msse -msse3 -mpopcnt
+	FLAGS    = -lpthread -lstdc++
+	CXXFLAGS += $(AVX2FLAGS)
 endif
 
 # Get what pgo flags we should be using
