@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include "bitboard.h"
+#include "move.h"
 #include "search.h"
 #include "history.h"
 #include "piece_data.h"
@@ -16,6 +17,7 @@
 #include "movegen.h"
 #include "time_manager.h"
 #include "io.h"
+#include "types.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const Position* pos) {
@@ -479,6 +481,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
+            && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - 91 * (depth - improving - canIIR) >= beta)
             return eval - 91 * (depth - improving - canIIR);
 
