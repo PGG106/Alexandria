@@ -600,6 +600,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // Add the move to the corresponding list
         AddMove(move, isQuiet ? &quietMoves : &tacticalMoves);
 
+        int postLmrBonus = 0;
+
         // Late Move Reductions (LMR):
         // After a certain depth and total moves searched, we search the rest first at a reduced depth and zero window.
         // Here we calulate the reduction that we are going to reduce for this move.
@@ -635,9 +637,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
                 if (newDepth > reducedDepth)
                     score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
 
-                int bonus = score > alpha ? HistoryBonus(depth)
+                postLmrBonus = score > alpha ? HistoryBonus(depth)
                                           : -HistoryBonus(depth);
-                sd->continuationHistory.update(pos,ss,move, bonus);
             }
         }
 
@@ -656,6 +657,9 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
         // take move back
         UnmakeMove(move, pos);
+
+        sd->continuationHistory.update(pos,ss,move, postLmrBonus);
+
         if (   td->id == 0
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
