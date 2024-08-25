@@ -634,6 +634,10 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth)
                     score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
+
+                int bonus = score > alpha ? HistoryBonus(depth)
+                                          : -HistoryBonus(depth);
+                sd->continuationHistory.update(pos,ss,move, bonus);
             }
         }
 
