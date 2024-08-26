@@ -586,6 +586,9 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
+
+        int searchedTimes = 0;
+
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
@@ -596,9 +599,6 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // increment nodes count
         info->nodes++;
         const uint64_t nodesBeforeSearch = info->nodes;
-
-        // Add the move to the corresponding list
-        AddMove(move, isQuiet ? &quietMoves : &tacticalMoves);
 
         // Late Move Reductions (LMR):
         // After a certain depth and total moves searched, we search the rest first at a reduced depth and zero window.
@@ -625,6 +625,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
             // Carry out the reduced depth, zero window search
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
+            searchedTimes++;
 
             // If the reduced depth search fails high, do a full depth search (but still on zero window).
             if (score > alpha && newDepth > reducedDepth) {
@@ -632,8 +633,10 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
                 const bool doDeeperSearch = score > (bestScore + doDeeperBaseScore() + doDeeperDepthMultiplier() * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
                 newDepth += doDeeperSearch - doShallowerSearch;
-                if (newDepth > reducedDepth)
+                if (newDepth > reducedDepth) {
                     score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
+                    searchedTimes++;
+                }
             }
         }
 
@@ -643,15 +646,22 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // This zero window search will either confirm or deny our prediction, as the score cannot be exact (no integer lies in (-alpha - 1, -alpha))
         else if (!pvNode || totalMoves > 1) {
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
+            searchedTimes++;
         }
 
         // If this is our first move, we search with a full window.
         // Otherwise, if our zero window search fails low, this is a potential alpha raise and so we search the move fully.
-        if (pvNode && (totalMoves == 1 || score > alpha))
+        if (pvNode && (totalMoves == 1 || score > alpha)) {
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
+            searchedTimes++;
+        }
+
+        // Add the move to the corresponding list, along with the number of times it was searched
+        AddMove(move, searchedTimes, isQuiet ? &quietMoves : &tacticalMoves);
 
         // take move back
         UnmakeMove(move, pos);
+
         if (   td->id == 0
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;

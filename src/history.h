@@ -18,7 +18,8 @@ inline int16_t HistoryBonus(const int depth) {
 }
 
 inline void UpdateHistoryEntry(int16_t &entry, const int16_t bonus, const int16_t max) {
-    const int scaledBonus = bonus - entry * std::abs(bonus) / max;
+    const int clampedBonus = std::clamp<int16_t>(bonus, -max, max);
+    const int scaledBonus  = clampedBonus - entry * std::abs(clampedBonus) / max;
     entry += scaledBonus;
 }
 
