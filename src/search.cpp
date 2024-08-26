@@ -555,7 +555,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // is of a certain quality, we do a search at reduced margins and depth, whilst excluding the TT move.
         // If this this excluded search fails low, then we know there are no moves which maintain 
         // the score close to the TT score, and so we extend the search of the TT move (search it at a higher depth).
-        if (    move == ttMove
+        if (    ss->ply < 3 * td->RootDepth
+            &&  move == ttMove
             && !rootNode
             && !excludedMove
             &&  depth >= seDepth()
