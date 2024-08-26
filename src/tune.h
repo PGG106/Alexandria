@@ -137,6 +137,7 @@ TUNE_PARAM(tacticalLmrMult, 320, 244, 549, 32.0, 0.002)
 
 TUNE_PARAM(ttPvLmrReduction, 1024, 512, 1536, 128, 0.002)
 TUNE_PARAM(predictedCutNodeLmrReduction, 2048, 1024, 3072, 256, 0.002)
+TUNE_PARAM(givesCheckReduction, 1024, 512, 1536, 128, 0.002)
 
 TUNE_PARAM(doDeeperBaseScore, 53, 20, 100, 6, 0.002)
 TUNE_PARAM(doDeeperDepthMultiplier, 2, 1, 4, 0.5, 0.002)
