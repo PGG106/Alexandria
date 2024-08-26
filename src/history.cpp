@@ -77,31 +77,26 @@ int16_t CorrectionHistoryTable::adjust(const Position *pos, const int eval) cons
 // Use this function to update all quiet histories
 void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int depth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves) {
     int16_t bonus = HistoryBonus(depth);
-    if (isTactical(bestMove)) {
-        // Positively update the move that failed high
-        sd->tacticalHistory.update(pos, bestMove, bonus);
-        sd->continuationHistory.update(pos, ss, bestMove, bonus);
-    }
-    else {
-        // Positively update the move that failed high
-        sd->quietHistory.update(pos, bestMove, bonus);
-        sd->continuationHistory.update(pos, ss, bestMove, bonus);
-
+    if (!isTactical(bestMove)) {
+        // Positively update best move
         // Penalise all quiets that failed to do so (they were ordered earlier but weren't as good)
         for (int i = 0; i < quietMoves.count; ++i) {
             Move quiet = quietMoves.moves[i].move;
-            if (bestMove == quiet) continue;
-            sd->quietHistory.update(pos, quiet, -bonus);
-            sd->continuationHistory.update(pos, ss, quiet, -bonus);
+            int update = bestMove == quiet ? bonus : -bonus;
+            update *= quietMoves.moves[i].score; // Scale the bonus/malus on the number of times the move was searched
+            sd->quietHistory.update(pos, quiet, update);
+            sd->continuationHistory.update(pos, ss, quiet, update);
         }
     }
 
+    // Positively update best move
     // Penalise all tactical moves that were searched first but didn't fail high (even if the best move was quiet)
     for (int i = 0; i < tacticalMoves.count; ++i) {
         Move tactical = tacticalMoves.moves[i].move;
-        if (bestMove == tactical) continue;
-        sd->tacticalHistory.update(pos, tactical, -bonus);
-        sd->continuationHistory.update(pos, ss, tactical, -bonus);
+        int update = bestMove == tactical ? bonus : -bonus;
+        update *= tacticalMoves.moves[i].score; // Scale the bonus/malus on the number of times the move was searched
+        sd->tacticalHistory.update(pos, tactical, update);
+        sd->continuationHistory.update(pos, ss, tactical, update);
     }
 }
 
