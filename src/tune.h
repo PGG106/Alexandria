@@ -80,6 +80,8 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 TUNE_PARAM(minAspDepth, 4, 2, 6, 0.5, 0.002)
 TUNE_PARAM(aspWindowStart, 10, 8, 15, 0.5, 0.002)
+TUNE_PARAM(aspFailLowAlphaWeight, 64, 32, 96, 4.0, 0.002)
+TUNE_PARAM(aspFailHighAlphaWeight, 112, 64, 128, 4.0, 0.002)
 TUNE_PARAM(aspWindowWidenScale, 81, 65, 128, 3.0, 0.002)
 
 TUNE_PARAM(maxImprovementPer256, 384, 256, 512, 13.0, 0.002)
