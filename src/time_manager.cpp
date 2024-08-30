@@ -7,7 +7,7 @@
 // Calculate how much time to spend on searching a move
 void Optimum(SearchInfo* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
-    if (time < 0) time = 1000;
+    if (time <= 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
     const int safety_overhead = std::min(300, time / 2);
     time -= safety_overhead;
@@ -61,7 +61,6 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalSt
     const double evalScalingFactor = evalScale[evalStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
     td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.stoptimeMax);
-
 }
 
 bool NodesOver(const SearchInfo* info) {

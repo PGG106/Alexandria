@@ -5,6 +5,8 @@
 
 // if we don't have enough material to mate consider the position a draw
 [[nodiscard]] inline bool MaterialDraw(const Position* pos) {
+    if(pos->PieceCount() >= 5)
+        return false;
     // If we only have kings on the board then it's a draw
     if (pos->PieceCount() == 2)
         return true;
@@ -20,7 +22,6 @@
         else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
             return true;
     }
-
     return false;
 }
 
