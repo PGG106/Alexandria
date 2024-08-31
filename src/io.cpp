@@ -167,7 +167,7 @@ std::string Pick_color(int score) {
 // Prints the uci output
 void PrintUciOutput(const int score, const int depth, const ThreadData* td, const UciOptions* options) {
     // We are benching the engine and we don't care about the output
-    if (false)
+    if (tryhardmode)
         return;
     // This handles the basic console output
     long time = GetTimeMs() - td->info.starttime;
