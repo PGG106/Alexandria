@@ -151,7 +151,7 @@ struct CorrectionHistoryTable {
 };
 
 // Update all histories after a beta cutoff
-void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int depth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves);
+void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int bonusDepth, const int malusDepth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves);
 
 // Get history score for a given move
 int GetHistoryScore(const Position *pos, const SearchStack *ss, const SearchData *sd, const Move move);
