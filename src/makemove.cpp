@@ -440,6 +440,9 @@ void MakeNullMove(Position* pos) {
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
+
+    // Update opponent threats
+    pos->state.oppThreats = getThreats(pos, pos->side ^ 1);
 }
 
 // Take back a null move
