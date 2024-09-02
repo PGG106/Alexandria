@@ -186,7 +186,7 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
 // main UCI loop
 void UciLoop(int argc, char** argv) {
     if (argv[1] && strncmp(argv[1], "bench", 5) == 0) {
-        int benchDepth = 12;
+        int benchDepth = 14;
         // If there's an additional input try to parse it as a bench depth
         if (argc == 3) {
             if (std::stoi(argv[2]) > 0) {
