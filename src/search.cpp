@@ -461,9 +461,9 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // Base case - if we can't get a close eval we can't see if we have improved
         return 0;
     }();
-
     const bool improving = improvement > 0;
-    const bool canIIR = depth >= iirMinDepth() && ttBound == HFNONE;
+
+    const bool doIIR = depth >= iirMinDepth() && ttBound == HFNONE;
 
     if (   !pvNode
         && !excludedMove
@@ -472,9 +472,25 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // At low depths, if the evaluation is far above beta, we assume that at least one move will fail high
         // and return a fail high score.
         if (   depth <= rfpMaxDepth()
-            && eval >= beta + rfpDepthCoeff() * depth - rfpImprCoeff() * improving - rfpIirCoeff() * canIIR
-            && std::abs(eval) < MATE_FOUND)
-            return eval;
+            && std::abs(eval) < MATE_FOUND) {
+            // We scale the RFP margin based on depth (we prune more safely at higher depths)
+            int margin = rfpDepthCoeff() * depth;
+
+            // If the search is trending upwards, chances that a fail high will occur is even more likely,
+            // so we prune more aggressively.
+            if (improving) margin -= rfpImprCoeff();
+
+            // If we are going to carry out IIR, it shows that the node is not very promising,
+            // so we prune more aggressively.
+            if (doIIR) margin -= rfpIirCoeff();
+
+            // Don't let the margin go negative
+            margin = std::max(margin, 0);
+
+            // If the eval exceeds beta by the margin or more, we fail high.
+            if (eval >= beta + margin)
+                return eval;
+        }
 
         // Null Move Pruning (NMP)
         // If our eval indicates a fail high is likely, we try NMP.
@@ -485,7 +501,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             && (ss - 1)->move != NOMOVE
             && BoardHasNonPawns(pos, pos->side)) {
 
-            const int R = (nmpRedConst() + nmpRedDepthCoeff() * depth + nmpRedIirCoeff() * canIIR) / 1024
+            const int R = (nmpRedConst() + nmpRedDepthCoeff() * depth + nmpRedIirCoeff() * doIIR) / 1024
                         +  std::min(eval - beta, nmpRedEvalDiffMax()) / nmpRedEvalDiffDiv();
 
             ss->move = NOMOVE;
@@ -502,8 +518,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
     // IIR by Ed Schroder (That i found out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (canIIR)
-        depth -= iirDepthReduction();
+    if (doIIR)
+        depth -= 1;
 
     // old value of alpha
     const int old_alpha = alpha;
