@@ -542,17 +542,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
             // SEE Pruning. At low depths, if the SEE (Static Exchange Evaluation) of the move
             // is extremely low, skip considering it in our search.
-
-            // SEE Pruning for quiets
-            if (    depth <= quietSeeDepth()
-                &&  isQuiet
-                && !SEE(pos, move, seeMargins[true][std::min(depth, 63)]))
-                continue;
-
-            // SEE Pruning for tactical moves
-            if (    depth <= tacticalSeeDepth()
-                && !isQuiet
-                && !SEE(pos, move, seeMargins[false][std::min(depth, 63)]))
+            if (    depth <= seePruneDepth()
+                && !SEE(pos, move, seeMargins[isQuiet][std::min(depth, 63)]))
                 continue;
         }
 
@@ -610,8 +601,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // Late Move Reductions (LMR):
         // After a certain depth and total moves searched, we search the rest first at a reduced depth and zero window.
         // Here we calulate the reduction that we are going to reduce for this move.
-        if (   depth >= 3
-            && totalMoves > 1 + pvNode
+        if (   depth >= lmrMinDepth()
+            && totalMoves > (pvNode ? lmrMinMovesPv() : lmrMinMovesNonPv())
             && (isQuiet || !ttPv)) {
 
             // Get base reduction value (multiplied by 1024)
