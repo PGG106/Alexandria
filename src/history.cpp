@@ -75,20 +75,54 @@ int16_t CorrectionHistoryTable::adjust(const Position *pos, const int eval) cons
 }
 
 // Use this function to update all quiet histories
-void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int bonusDepth, const int malusDepth, const Move bestMove, const MoveList &quietMoves, const MoveList &tacticalMoves) {
-    const int16_t bonus =  HistoryBonus(bonusDepth);
-    const int16_t malus = -HistoryBonus(malusDepth);
+void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *sd, const int depth, const Move bestMove,
+                        const SearchedMoveList &quietMoves, const SearchedMoveList &tacticalMoves, const int eval, const int alpha, const int beta) {
 
-    // Scale the bonus/malus on the number of times the move was searched
-    auto scaleUpdate = [](const int update, const int searchedTimes) { return update * searchedTimes; };
+    auto getBonus = [&](const SearchedMove move) {
+        int bonusDepth = depth;
+
+        // Increase bonus if our eval suggested we were failing low (result was against expectations)
+        if (eval <= alpha) bonusDepth += 1;
+
+        // Decrease bonus if our eval suggested we were failing high (result was expected outcome)
+        if (eval >= beta) bonusDepth -= 1;
+
+        // If a full window search was performed, give an x1 multiplier.
+        // Then, if a full depth zero-window search was performed, give an x2 multiplier.
+        // In the base case, give an x3 multiplier.
+        const int bonusMultiplier = move.didPVS ? 1
+                                  : move.didZWS ? 2
+                                                : 3;
+
+        return HistoryBonus(bonusDepth) * bonusMultiplier;
+    };
+
+    auto getMalus = [&](const SearchedMove move) {
+        int malusDepth = depth;
+
+        // Decrease malus if our eval suggested we were failing low (result was expected outcome for this move)
+        if (eval <= alpha) malusDepth -= 1;
+
+        // Increase malus if our eval suggested we were failing high (result was against expectations for this move)
+        if (eval >= beta) malusDepth += 1;
+
+        // If a full window search was performed, give an x3 multiplier.
+        // Then, if a full depth zero-window search was performed, give an x2 multiplier.
+        // In the base case, give an x1 multiplier.
+        const int malusMultiplier = move.didPVS ? 3
+                                  : move.didZWS ? 2
+                                                : 1;
+
+        return -HistoryBonus(malusDepth) * malusMultiplier;
+    };
 
     if (!isTactical(bestMove)) {
         // Positively update best move
         // Penalise all quiets that failed to do so (they were ordered earlier but weren't as good)
         for (int i = 0; i < quietMoves.count; ++i) {
-            Move quiet = quietMoves.moves[i].move;
-            int update = bestMove == quiet ? bonus : malus;
-            update = scaleUpdate(update, quietMoves.moves[i].score);
+            SearchedMove quietData = quietMoves.moves[i];
+            Move quiet = quietData.move;
+            int update = quiet == bestMove ? getBonus(quietData) : getMalus(quietData);
             sd->quietHistory.update(pos, quiet, update);
             sd->continuationHistory.update(pos, ss, quiet, update);
         }
@@ -97,9 +131,9 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
     // Positively update best move
     // Penalise all tactical moves that were searched first but didn't fail high (even if the best move was quiet)
     for (int i = 0; i < tacticalMoves.count; ++i) {
-        Move tactical = tacticalMoves.moves[i].move;
-        int update = bestMove == tactical ? bonus : malus;
-        update = scaleUpdate(update, tacticalMoves.moves[i].score);
+        SearchedMove tacticalData = tacticalMoves.moves[i];
+        Move tactical = tacticalData.move;
+        int update = tactical == bestMove ? getBonus(tacticalData) : getMalus(tacticalData);
         sd->tacticalHistory.update(pos, tactical, update);
         sd->continuationHistory.update(pos, ss, tactical, update);
     }
