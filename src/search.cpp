@@ -285,7 +285,6 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
 int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score;
     td->RootDepth = depth;
-    SearchData* sd = &td->sd;
     SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
     // Explicitly clean stack
     for (int i = -4; i < MAXDEPTH; i++) {
@@ -460,9 +459,6 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
     const int improvement = ss->staticEval - prevEval;
     const bool improving = improvement > 0;
-    const int improvementPer256 = prevEval == 0 ? maxImprovementPer256()
-                                                : std::clamp(improvement / std::abs(prevEval), -maxImprovementPer256(), maxImprovementPer256());
-
     const bool canIIR = depth >= iirMinDepth() && ttBound == HFNONE;
 
     if (   !pvNode
