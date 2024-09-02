@@ -322,11 +322,13 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         if (score <= alpha) {
             beta  = (alpha * aspFailLowAlphaWeight() + beta * (128 - aspFailLowAlphaWeight())) / 128;
             alpha = std::max(-MAXSCORE, score - delta);
+            depth = td->RootDepth;
         }
         // Fail high, move window higher
         else if (score >= beta) {
             alpha = (alpha * aspFailHighAlphaWeight() + beta * (128 - aspFailHighAlphaWeight())) / 128;
             beta  = std::min(MAXSCORE, score + delta);
+            depth = std::max(depth - 1, td->RootDepth - 5);
         }
         // Exact bound, we no longer need to continue searching at this depth
         else break;
