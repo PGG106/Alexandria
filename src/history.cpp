@@ -90,9 +90,7 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
         // If a full window search was performed, give an x1 multiplier.
         // Then, if a full depth zero-window search was performed, give an x2 multiplier.
         // In the base case, give an x3 multiplier.
-        const int bonusMultiplier = move.didPVS ? 1
-                                  : move.didZWS ? 2
-                                                : 3;
+        const int bonusMultiplier = move.bonusScale();
 
         return HistoryBonus(bonusDepth) * bonusMultiplier;
     };
@@ -109,9 +107,7 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
         // If a full window search was performed, give an x3 multiplier.
         // Then, if a full depth zero-window search was performed, give an x2 multiplier.
         // In the base case, give an x1 multiplier.
-        const int malusMultiplier = move.didPVS ? 3
-                                  : move.didZWS ? 2
-                                                : 1;
+        const int malusMultiplier = move.malusScale();
 
         return -HistoryBonus(malusDepth) * malusMultiplier;
     };
