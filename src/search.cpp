@@ -611,9 +611,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             // Reduce less if we are on or have been on the PV
             if (ttPv) depthReductionGranular -= ttPvLmrReduction();
 
-            const int moveHistory = GetHistoryScore(pos, ss, sd, move);
-
-            depthReductionGranular -= moveHistory / 8;
+            // Use the move history score to extend or reduce
+            depthReductionGranular -= GetHistoryScore(pos, ss, sd, move) / 8;
 
             // Reduce less if the move gave check
             if (pos->getCheckers()) depthReductionGranular -= givesCheckReduction();
