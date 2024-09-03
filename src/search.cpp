@@ -747,11 +747,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
 
                     if(rootNode) {
-                        td->rootPV[0] = move;
                         td->rootPVLength = pvTable->pvLength[ss->ply];
-                        for (int nextPly = ss->ply + 1; nextPly < td->rootPVLength; nextPly++) {
-                           td->rootPV[nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
-                        }
+                        std::memcpy( td->rootPV,pvTable->pvArray[ss->ply], sizeof(int) * td->rootPVLength);
                     }
                 }
 
