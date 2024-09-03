@@ -194,8 +194,11 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     return side != Color[attacker];
 }
 
-Move GetBestMove(const PvTable* pvTable) {
-    return pvTable->pvArray[0][0];
+Move GetBestMove(const ThreadData* td) {
+    if (td->pvTable.pvLength[0] <= 0) {
+        return td->rootPV[0];
+    }
+    return td->pvTable.pvArray[0][0];
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -222,7 +225,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     StopHelperThreads();
     // Print final bestmove found
     std::cout << "bestmove ";
-    PrintMove(GetBestMove(&td->pvTable));
+    PrintMove(GetBestMove(td));
     std::cout << std::endl;
 }
 
