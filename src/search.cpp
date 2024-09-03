@@ -728,9 +728,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
@@ -914,9 +911,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
         // take move back
         UnmakeMove(move, pos);
-
-        if (info->stopped)
-            return 0;
 
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
