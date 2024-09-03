@@ -65,7 +65,7 @@ template <bool pvNode>
 [[nodiscard]] int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss);
 
 // Gets best move from PV table
-[[nodiscard]] Move GetBestMove(const PvTable* pvTable);
+[[nodiscard]] Move GetBestMove(const ThreadData* td);
 
 // inspired by the Weiss engine
 [[nodiscard]] bool SEE(const Position* pos, const int move, const int threshold);

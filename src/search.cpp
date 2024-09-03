@@ -248,12 +248,12 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         // Only the main thread handles time related tasks
         if (td->id == 0) {
             // Keep track of how many times in a row the best move stayed the same
-            if (GetBestMove(&td->pvTable) == previousBestMove) {
+            if (GetBestMove(td) == previousBestMove) {
                 bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
             }
             else {
                 bestMoveStabilityFactor = 0;
-                previousBestMove = GetBestMove(&td->pvTable);
+                previousBestMove = GetBestMove(td);
             }
 
             // Keep track of eval stability
