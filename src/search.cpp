@@ -195,10 +195,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 }
 
 Move GetBestMove(const ThreadData* td) {
-    if (td->pvTable.pvLength[0] <= 0 || td->pvTable.pvArray[0][0] == NOMOVE) {
-        return td->rootPV[0];
-    }
-    return td->pvTable.pvArray[0][0];
+    return td->rootPV[0];
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
