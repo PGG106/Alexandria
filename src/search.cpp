@@ -612,7 +612,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             if (ttPv) depthReductionGranular -= ttPvLmrReduction();
 
             // Use the move history score to extend or reduce
-            depthReductionGranular -= GetHistoryScore(pos, ss, sd, move) / 8;
+            if(isQuiet)
+                depthReductionGranular -= GetHistoryScore(pos, ss, sd, move) / 8;
 
             // Reduce less if the move gave check
             if (pos->getCheckers()) depthReductionGranular -= givesCheckReduction();
