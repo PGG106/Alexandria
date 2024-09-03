@@ -166,7 +166,7 @@ std::string Pick_color(int score) {
 
 void printPV(const ThreadData* td){
     // if we have a non-empty pv
-    if (td->pvTable.pvLength[0] > 0) {
+    if (td->pvTable.pvLength[0] > 0 && td->pvTable.pvArray[0][0] != NOMOVE) {
         // loop over the moves within a PV line
         for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
             // print PV move
