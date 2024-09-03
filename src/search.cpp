@@ -273,9 +273,10 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 td->info.stopped = true;
         }
         // stop calculating and return best move so far
-        if (td->info.stopped)
+        if (td->info.stopped){
+            PrintUciOutput(score, currentDepth, td, options);
             break;
-
+        }
         // If it's the main thread print the uci output
         if (td->id == 0)
             PrintUciOutput(score, currentDepth, td, options);
@@ -316,6 +317,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
     // Stay at current depth if we fail high/low because of the aspiration windows
     while (true) {
+
         score = Negamax<true>(alpha, beta, depth, false, td, ss);
 
         // Check if more than Maxtime passed and we have to stop
@@ -324,17 +326,12 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
             td->info.stopped = true;
             break;
         }
-
-        // Stop calculating and return best move so far
-        if (td->info.stopped) break;
-
         // We fell outside the window, so try again with a bigger window, since we failed low we can adjust beta to decrease the total window size
         if (score <= alpha) {
             beta = (alpha + beta) / 2;
             alpha = std::max(-MAXSCORE, score - delta);
             depth = td->RootDepth;
         }
-
         // We fell outside the window, so try again with a bigger window
         else if (score >= beta) {
             beta = std::min(score + delta, MAXSCORE);
@@ -728,9 +725,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
@@ -769,6 +763,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
     }
+
+    if (info->stopped)
+        return bestScore;
 
     // We don't have any legal moves to make in the current postion. If we are in singular search, return -infinite.
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
@@ -915,9 +912,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // take move back
         UnmakeMove(move, pos);
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update  what the best score is
@@ -936,6 +930,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
             }
         }
     }
+
+    if (info->stopped)
+        return bestScore;
 
     // return mate score (assuming closest distance to mating position)
     if (totalMoves == 0 && inCheck) {
