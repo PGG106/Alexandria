@@ -174,7 +174,6 @@ void printPV(const ThreadData* td){
             std::cout << " ";
         }
     } else {
-        std::cout << "Using stored PV\n";
         for (int count = 0; count < td->rootPVLength; count++) {
             // print PV move
             PrintMove(td->rootPV[count]);
