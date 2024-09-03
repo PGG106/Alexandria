@@ -247,22 +247,20 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             // Keep track of how many times in a row the best move stayed the same
             if (GetBestMove(&td->pvTable) == previousBestMove) {
                 bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
-            }
-            else {
+            } else {
                 bestMoveStabilityFactor = 0;
                 previousBestMove = GetBestMove(&td->pvTable);
             }
 
             // Keep track of eval stability
-            if (score >  averageScore - 10 && score < averageScore + 10) {
+            if (score > averageScore - 10 && score < averageScore + 10) {
                 evalStabilityFactor = std::min(evalStabilityFactor + 1, 4);
-            }
-            else {
+            } else {
                 evalStabilityFactor = 0;
             }
 
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
-            if (   td->RootDepth > 7
+            if (td->RootDepth > 7
                 && td->info.timeset) {
                 ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor);
             }
@@ -273,9 +271,12 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 td->info.stopped = true;
         }
         // stop calculating and return best move so far
-        if (td->info.stopped)
+        if (td->info.stopped) {
+            // If it's the main thread print the uci output
+            if (td->id == 0)
+                PrintUciOutput(score, currentDepth, td, options);
             break;
-
+    }
         // If it's the main thread print the uci output
         if (td->id == 0)
             PrintUciOutput(score, currentDepth, td, options);
@@ -728,9 +729,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
@@ -914,9 +912,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
         // take move back
         UnmakeMove(move, pos);
-
-        if (info->stopped)
-            return 0;
 
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
