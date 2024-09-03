@@ -40,6 +40,8 @@ struct ThreadData {
     uint64_t nodeSpentTable[64 * 64];
     int RootDepth;
     int nmpPlies;
+    Move rootPV[MAXDEPTH];
+    int rootPVLength;
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state

@@ -164,6 +164,24 @@ std::string Pick_color(int score) {
     return "\033[0m";
 }
 
+void printPV(const ThreadData* td){
+    // if we have a non-empty pv
+    if (td->pvTable.pvLength[0] > 0) {
+        // loop over the moves within a PV line
+        for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
+            // print PV move
+            PrintMove(td->pvTable.pvArray[0][count]);
+            std::cout << " ";
+        }
+    } else {
+        for (int count = 0; count < td->rootPVLength; count++) {
+            // print PV move
+            PrintMove(td->rootPV[count]);
+            std::cout << " ";
+        }
+    }
+}
+
 // Prints the uci output
 void PrintUciOutput(const int score, const int depth, const ThreadData* td, const UciOptions* options) {
     // We are benching the engine and we don't care about the output
@@ -177,25 +195,17 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
     if (print_uci) {
         if (score > -MATE_SCORE && score < -MATE_FOUND)
             std::cout << "info score mate " << -(score + MATE_SCORE) / 2 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
-            " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
+            " nps " << nps << " time " << GetTimeMs() - td->info.starttime;
 
         else if (score > MATE_FOUND && score < MATE_SCORE)
             std::cout << "info score mate " << (MATE_SCORE - score) / 2 + 1 << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
-            " nps " << nps << " time " << GetTimeMs() - td->info.starttime << " pv ";
-
+            " nps " << nps << " time " << GetTimeMs() - td->info.starttime;
         else
             std::cout << "info score cp " << score << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
-            " nps " << nps << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime << " pv ";
+            " nps " << nps << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime;
 
-        // loop over the moves within a PV line
-        for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
-            // print PV move
-            PrintMove(td->pvTable.pvArray[0][count]);
-            std::cout << " ";
-        }
-
-        // print new line
-        std::cout << std::endl;
+        std::cout << " pv ";
+        printPV(td);
     }
     else {
         // Convert time in seconds if possible
@@ -269,14 +279,9 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         std::cout << std::setw(7) << std::right << " " << score_string;
         std::cout << std::setw(7) << std::right << std::fixed << static_cast<int>(nps / 1000.0) << "Kn/s" << " ";
 
-        // loop over the moves within a PV line
-        for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
-            // print PV move
-            PrintMove(td->pvTable.pvArray[0][count]);
-            std::cout << " ";
-        }
-
-        // print new line
-        std::cout << std::endl;
+        printPV(td);
     }
+    // print new line
+    std::cout << std::endl;
 }
+

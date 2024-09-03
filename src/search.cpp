@@ -273,9 +273,10 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 td->info.stopped = true;
         }
         // stop calculating and return best move so far
-        if (td->info.stopped)
+        if (td->info.stopped){
+            PrintUciOutput(score, currentDepth, td, options);
             break;
-
+        }
         // If it's the main thread print the uci output
         if (td->id == 0)
             PrintUciOutput(score, currentDepth, td, options);
@@ -728,9 +729,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && rootNode)
             td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update what the best score is
@@ -747,6 +745,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                         pvTable->pvArray[ss->ply][nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
                     }
                     pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
+
+                    if(rootNode) {
+                        td->rootPVLength = pvTable->pvLength[ss->ply];
+                        for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
+                           td->rootPV[nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
+                        }
+                    }
                 }
 
                 if (score >= beta) {
@@ -768,6 +773,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 alpha = score;
             }
         }
+        if (info->stopped)
+            return bestScore;
     }
 
     // We don't have any legal moves to make in the current postion. If we are in singular search, return -infinite.
@@ -915,9 +922,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // take move back
         UnmakeMove(move, pos);
 
-        if (info->stopped)
-            return 0;
-
         // If the score of the current move is the best we've found until now
         if (score > bestScore) {
             // Update  what the best score is
@@ -935,6 +939,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
                 alpha = score;
             }
         }
+        if (info->stopped)
+            return bestScore;
     }
 
     // return mate score (assuming closest distance to mating position)
