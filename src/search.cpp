@@ -195,7 +195,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 }
 
 Move GetBestMove(const ThreadData* td) {
-    if (td->pvTable.pvLength[0] <= 0) {
+    if (td->pvTable.pvLength[0] <= 0 || td->pvTable.pvArray[0][0] == NOMOVE) {
         return td->rootPV[0];
     }
     return td->pvTable.pvArray[0][0];
@@ -750,8 +750,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
 
                     if(rootNode) {
+                        td->rootPV[0] = move;
                         td->rootPVLength = pvTable->pvLength[ss->ply];
-                        for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
+                        for (int nextPly = ss->ply + 1; nextPly < td->rootPVLength; nextPly++) {
                            td->rootPV[nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
                         }
                     }
