@@ -530,8 +530,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         bool isQuiet    = !isTactical(move);
         int moveHistory = GetHistoryScore(pos, ss, sd, move);
 
-        if (bestScore > -MATE_FOUND
-            && BoardHasNonPawns(pos, pos->side)) {
+        if (   !rootNode
+            && bestScore > -MATE_FOUND) {
 
             // Late Move Pruning. If we have searched many moves, but no beta cutoff has occurred,
             // assume that there are no better quiet moves and skip the rest.
