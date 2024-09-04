@@ -362,7 +362,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const bool rootNode = (ss->ply == 0);
     int eval;
     int rawEval;
-    bool improving;
     int score = -MAXSCORE;
     TTEntry tte;
 
@@ -464,16 +463,15 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
-    if(inCheck)
-        improving = false;
-    else if ((ss - 2)->staticEval != SCORE_NONE) {
-        improving = ss->staticEval > (ss - 2)->staticEval;
-    }
-    else if ((ss - 4)->staticEval != SCORE_NONE) {
-        improving = ss->staticEval > (ss - 4)->staticEval;
-    }
-    else
-        improving = true;
+    const bool improving = [&] {
+        if (inCheck)
+            return false;
+        else if ((ss - 2)->staticEval != SCORE_NONE)
+            return ss->staticEval > (ss - 2)->staticEval;
+        else if ((ss - 4)->staticEval != SCORE_NONE)
+            return ss->staticEval > (ss - 4)->staticEval;
+        return true;
+    }();
 
     if (!pvNode
         && !excludedMove
