@@ -527,7 +527,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             continue;
 
         totalMoves++;
-        bool isQuiet = !isTactical(move);
+        bool isQuiet    = !isTactical(move);
+        int moveHistory = GetHistoryScore(pos, ss, sd, move);
 
         if (bestScore > -MATE_FOUND) {
 
@@ -611,13 +612,16 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             int depthReductionGranular = lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
             // Reduce less if we are on or have been on the PV
-            if (ttPv) depthReductionGranular -= ttPvLmrReduction();
+            if (ttPv) depthReductionGranular -= ttPvReduction();
 
             // Reduce less if the move gave check
             if (pos->getCheckers()) depthReductionGranular -= givesCheckReduction();
 
             // Reduce more if we are predicted to fail high (i.e. we stem from an LMR search earlier in the tree)
-            if (predictedCutNode) depthReductionGranular += predictedCutNodeLmrReduction();
+            if (predictedCutNode) depthReductionGranular += predictedCutNodeReduction();
+
+            // Use move history to adjust LMR reduction (reduce less if good history, more if bad history)
+            depthReductionGranular -= moveHistory * histReductionMul() / 64;
 
             // Divide by 1024 once all the adjustments have been applied
             const int depthReduction = depthReductionGranular / 1024;
