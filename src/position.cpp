@@ -429,7 +429,7 @@ void UpdatePinsAndCheckers(Position* pos, const int side) {
 
     while (sliderAttacks) {
         const int sq = popLsb(sliderAttacks);
-        const Bitboard blockers = (RayBetween(kingSquare, sq) | (1ULL << sq)) & pos->Occupancy(side);
+        const Bitboard blockers = RayBetween(kingSquare, sq) & pos->Occupancy(side);
         const int numBlockers = CountBits(blockers);
         if (!numBlockers)
             pos->state.checkers |= 1ULL << sq;
