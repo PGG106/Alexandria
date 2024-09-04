@@ -448,18 +448,20 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
-    int prevEval;
-    if (inCheck)
-        prevEval = ss->staticEval;
-    else if ((ss - 2)->staticEval != SCORE_NONE)
-        prevEval = (ss - 2)->staticEval;
+    const int improvement = [&]() {
+        // We don't eval in check
+        if (inCheck) return 0;
 
-    else if ((ss - 4)->staticEval != SCORE_NONE)
-        prevEval = (ss - 4)->staticEval;
-    else
-        prevEval = ss->staticEval;
+        // See if we have improved from 2 plies back
+        if ((ss - 2)->staticEval != SCORE_NONE) return ss->staticEval - (ss - 2)->staticEval;
 
-    const int improvement = ss->staticEval - prevEval;
+        // If there was no eval 2 plies back, use 4 plies back instead
+        if ((ss - 4)->staticEval != SCORE_NONE) return ss->staticEval - (ss - 4)->staticEval;
+
+        // Base case - if we can't get a close eval we can't see if we have improved
+        return 0;
+    }();
+
     const bool improving = improvement > 0;
     const bool canIIR = depth >= iirMinDepth() && ttBound == HFNONE;
 
