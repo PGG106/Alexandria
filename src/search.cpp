@@ -588,7 +588,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
-        ScalingFactor scalingFactor = None;
+        SearchStage earliestSearchStage = Invalid;
+        SearchStage latestSearchStage   = didNone;
 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
@@ -632,7 +633,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
             // Carry out the reduced depth, zero window search
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
-            scalingFactor = didLMR;
+            earliestSearchStage = std::min(earliestSearchStage, didLMR);
+            latestSearchStage   = std::max(latestSearchStage, didLMR);
 
             // If the reduced depth search fails high, do a full depth search (but still on zero window).
             if (score > alpha && newDepth > reducedDepth) {
@@ -642,7 +644,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth) {
                     score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
-                    scalingFactor = didZWS;
+                    earliestSearchStage = std::min(earliestSearchStage, didZWS);
+                    latestSearchStage   = std::max(latestSearchStage, didZWS);
                 }
             }
         }
@@ -653,18 +656,20 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // This zero window search will either confirm or deny our prediction, as the score cannot be exact (no integer lies in (-alpha - 1, -alpha))
         else if (!pvNode || totalMoves > 1) {
             score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !predictedCutNode, td, ss + 1);
-            scalingFactor = didZWS;
+            earliestSearchStage = std::min(earliestSearchStage, didZWS);
+            latestSearchStage   = std::max(latestSearchStage, didZWS);
         }
 
         // If this is our first move, we search with a full window.
         // Otherwise, if our zero window search fails low, this is a potential alpha raise and so we search the move fully.
         if (pvNode && (totalMoves == 1 || score > alpha)) {
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
-            scalingFactor = didPVS;
+            earliestSearchStage = std::min(earliestSearchStage, didPVS);
+            latestSearchStage   = std::max(latestSearchStage, didPVS);
         }
 
         // Add the move to the corresponding list, along with the data on its search
-        SearchedMove moveData(move, scalingFactor);
+        SearchedMove moveData(move, earliestSearchStage, latestSearchStage);
         if (isQuiet) quietMoves.add(moveData);
         else tacticalMoves.add(moveData);
 

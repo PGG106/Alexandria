@@ -11,29 +11,32 @@ struct SearchData;
 struct SearchStack;
 struct MoveList;
 
-enum ScalingFactor {
-     None,
-     didPVS,
-     didZWS,
-     didLMR,
+enum SearchStage {
+    didNone,
+    didLMR,
+    didZWS,
+    didPVS,
+    Invalid
 };
 
 struct SearchedMove {
     Move move;
-    ScalingFactor scalingFactor;
+    SearchStage earliestSearchStage;
+    SearchStage latestSearchStage;
     SearchedMove() {};
 
-    SearchedMove(Move m, ScalingFactor scale) {
+    SearchedMove(Move m, SearchStage ESS, SearchStage LSS) {
         move = m;
-        scalingFactor = scale;
+        earliestSearchStage = ESS;
+        latestSearchStage = LSS;
     };
 
     [[nodiscard]] int bonusScale() const {
-        return static_cast<int>(scalingFactor);
+        return 4 - static_cast<int>(earliestSearchStage);
     }
 
     [[nodiscard]] int malusScale() const {
-        return 4 - static_cast<int>(scalingFactor);
+        return latestSearchStage;
     }
 };
 

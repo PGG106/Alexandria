@@ -87,9 +87,7 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
         // Decrease bonus if our eval suggested we were failing high (result was expected outcome)
         if (eval >= beta) bonusDepth -= 1;
 
-        // If a full window search was performed, give an x1 multiplier.
-        // Then, if a full depth zero-window search was performed, give an x2 multiplier.
-        // In the base case, give an x3 multiplier.
+        // Scale bonus higher based on our earliest stage (ie, how underestimated the move was)
         const int bonusMultiplier = move.bonusScale();
 
         return HistoryBonus(bonusDepth) * bonusMultiplier;
@@ -104,9 +102,7 @@ void UpdateAllHistories(const Position *pos, const SearchStack *ss, SearchData *
         // Increase malus if our eval suggested we were failing high (result was against expectations for this move)
         if (eval >= beta) malusDepth += 1;
 
-        // If a full window search was performed, give an x3 multiplier.
-        // Then, if a full depth zero-window search was performed, give an x2 multiplier.
-        // In the base case, give an x1 multiplier.
+        // Scale it higher based on how far we searched before failing low
         const int malusMultiplier = move.malusScale();
 
         return -HistoryBonus(malusDepth) * malusMultiplier;
