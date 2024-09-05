@@ -533,7 +533,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         if (bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024);
+            const int lmrDepth = std::max(0, depth - lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / LMR_GRAIN);
 
             // Late Move Pruning. If we have searched many moves, but no beta cutoff has occurred,
             // assume that there are no better quiet moves and skip the rest.
@@ -628,7 +628,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             depthReductionGranular -= moveHistory * histReductionMul() / 64;
 
             // Divide by 1024 once all the adjustments have been applied
-            const int depthReduction = depthReductionGranular / 1024;
+            const int depthReduction = depthReductionGranular / LMR_GRAIN;
 
             // Clamp the reduced search depth so that we neither extend nor drop into qsearch
             // We use min/max instead of clamp due to issues that can arise if newDepth < 1
