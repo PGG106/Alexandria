@@ -5,6 +5,8 @@
 #include "position.h"
 #include "uci.h"
 
+constexpr int LMR_GRAIN = 1024;
+
 inline int seeMargins[2][64];
 inline int futilityMargins[2][64];
 inline int lmrReductions[2][64][64];
