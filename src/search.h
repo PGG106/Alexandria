@@ -6,10 +6,12 @@
 #include "uci.h"
 
 constexpr int LMR_GRAIN = 1024;
+constexpr int PRUNING_GRAIN = 1024;
 
 inline int seeMargins[2][64];
 inline int futilityMargins[2][64];
 inline int lmrReductions[2][64][64];
+inline int pruningReductions[2][64][64];
 inline int lmpMargins[2][64];
 
 struct SearchStack {

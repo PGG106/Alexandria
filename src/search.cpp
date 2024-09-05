@@ -532,8 +532,10 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
         if (bestScore > -MATE_FOUND) {
 
-            // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - lmrReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / LMR_GRAIN);
+            const int pruningReduction = pruningReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / PRUNING_GRAIN;
+
+            // pruningDepth is the current depth minus a penalty for late moves, this is helpful because it helps us discriminate the bad moves with more accuracy
+            const int pruningDepth = std::max(depth - pruningReduction, 0);
 
             // Late Move Pruning. If we have searched many moves, but no beta cutoff has occurred,
             // assume that there are no better quiet moves and skip the rest.
@@ -543,7 +545,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             // Futility Pruning. At low depths, if the eval is far below alpha,
             // only search tactical moves as trying quiets in such a bad position is futile.
             if (   depth <= fpDepth()
-                && ss->staticEval + futilityMargins[improving][std::min(lmrDepth, 63)] <= alpha)
+                && ss->staticEval + futilityMargins[improving][std::min(pruningDepth, 63)] <= alpha)
                 skipQuiets = true;
 
             // SEE Pruning. At low depths, if the SEE (Static Exchange Evaluation) of the move

@@ -99,6 +99,12 @@ TUNE_PARAM(nmpRedIirCoeff, 1024, 341, 1706, 68.0, 0.002)
 TUNE_PARAM(nmpRedEvalDiffMax, 896, 384, 1280, 54.0, 0.002)
 TUNE_PARAM(nmpRedEvalDiffDiv, 256, 128, 512, 20.0, 0.002)
 
+TUNE_PARAM(quietPruningBase, 1690, 0, 2535, 128.0, 0.002)
+TUNE_PARAM(quietPruningMult, 366, 244, 549, 32.0, 0.002)
+
+TUNE_PARAM(tacticalPruningBase, 338, 244, 549, 32.0, 0.002)
+TUNE_PARAM(tacticalPruningMult, 320, 244, 549, 32.0, 0.002)
+
 TUNE_PARAM(lmpImpMarginConst, 300, 100, 500, 50.0, 0.002)
 TUNE_PARAM(lmpImpMarginMult, 100, 60, 140, 7.0, 0.002)
 TUNE_PARAM(lmpImpMarginPower, 200, 150, 250, 10.0, 0.002)
