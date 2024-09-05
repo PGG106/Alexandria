@@ -532,7 +532,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
         if (bestScore > -MATE_FOUND) {
 
-            const int pruningReduction = pruningReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / PRUNING_GRAIN;
+            const int pruningReduction = pruningReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / PRUNING_GRAIN + moveHistory / 8192;
 
             // pruningDepth is the current depth minus a penalty for late moves, this is helpful because it helps us discriminate the bad moves with more accuracy
             const int pruningDepth = std::max(depth - pruningReduction, 0);
