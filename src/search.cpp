@@ -273,7 +273,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         // stop calculating and return best move so far
         if (td->info.stopped){
             std::cout << "info score cp " << 123 << " depth " << currentDepth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << td->info.nodes <<
-                      " nps " << 1 << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime;
+                      " nps " << 1 << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime << std::endl;
             break;
         }
 
