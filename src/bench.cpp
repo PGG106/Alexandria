@@ -6,6 +6,7 @@
 #include "eval.h"
 #include "uci.h"
 #include "search.h"
+#include "nnue.h"
 
 // Benchmarks from Bitgenie
 const char* benchmarkfens[52] = {
@@ -81,6 +82,7 @@ void StartBench(int depth) {
     auto totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "\n";
     std::cout << totalNodes << " nodes " << signed(totalNodes / (totalTime + 1) * 1000) << " nps" << std::endl;
+    nnue.finish_netup("nn.net");
     delete td;
 }
 
@@ -94,7 +96,7 @@ void BenchInference() {
     int count = 100000000;
     for (int i = 0; i < count; i++) {
         auto start = std::chrono::high_resolution_clock::now();
-        dummy_eval = EvalPosition(&td->pos);
+        dummy_eval = EvalPositionRaw(&td->pos);
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
         sum += duration.count();
