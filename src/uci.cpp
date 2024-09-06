@@ -14,6 +14,7 @@
 #include <iostream>
 #include "tune.h"
 #include "eval.h"
+#include "makemove.h"
 
 // convert a move to coordinate notation to internal notation
 int ParseMove(const std::string& moveString, Position* pos) {
@@ -376,6 +377,33 @@ void UciLoop(int argc, char** argv) {
             tryhardmode = true;
             StartBench();
             tryhardmode = false;
+        }
+
+        else if(input == "pgn2game"){
+                constexpr int SIDE = WHITE;
+                std::ifstream myfile;
+                myfile.open ("strippedpgn.pgn");
+                std::string startingPosition;
+                std::getline(myfile, startingPosition);
+                std::string str;
+                ParseFen(startingPosition,&td->pos);
+                int counter = 0;
+                while (std::getline(myfile, str))
+                {
+                    ++counter;
+                    // white plays odd counters
+                    if(counter % 2 == 0 && SIDE == WHITE)
+                        continue;
+                    std::string command = "go nodes " + str;
+                    // call parse go function
+                    bool search = ParseGo(command, &td->info, &td->pos);
+                    // Start search in a separate thread
+                    if (search) {
+                        threads_state = Search;
+                       RootSearch(td->info.depth, td, &uciOptions);
+                    }
+                    MakeMove<true>(GetBestMove(&td->pvTable),  &td->pos);
+            }
         }
 
         else if (input == "see") {

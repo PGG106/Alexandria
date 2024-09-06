@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <fstream>
+
 
 [[nodiscard]] inline uint64_t GetTimeMs() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -35,3 +37,4 @@ inline long long int _count, _accumulator;
 inline void dbg_mean_of(int val) { _count++; _accumulator += val; }
 
 inline void dbg_print() { std::cout << double(_accumulator) / _count << std::endl; }
+
