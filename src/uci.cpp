@@ -393,6 +393,7 @@ void UciLoop(int argc, char** argv) {
 
             while (std::getline(myfile, str))
             {
+                tryhardmode = true;
                 ++counter;
 
                 int pos = str.find_first_of(' ');
@@ -410,9 +411,14 @@ void UciLoop(int argc, char** argv) {
                         threads_state = Search;
                         RootSearch(td->info.depth, td, &uciOptions);
                     }
+
+                    std::cout << "command: " << command;
+                    std::cout << " nodes searched for " << td->info.nodes << std::endl;
+
                     auto foundBestMove = GetBestMove(&td->pvTable);
                     if(foundBestMove != move){
-                        std::cout << "bro this is broken wtf"<<std::endl;
+                        std::cout << "\nExpected move: "<< movestring << std::endl;
+                        std::cout << "Got move: "<< FormatMove(foundBestMove) << std::endl;
                         return;
                     }
                 }
