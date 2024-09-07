@@ -15,8 +15,8 @@
 #include "tune.h"
 #include "eval.h"
 
-// convert a move to coordinate notation to internal notation
-int ParseMove(const std::string& moveString, Position* pos) {
+// Parse a move from algebraic notation to the engine's internal encoding
+Move ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
     MoveList moveList;
 
