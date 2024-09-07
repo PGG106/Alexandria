@@ -14,9 +14,12 @@
 #include <iostream>
 #include "tune.h"
 #include "eval.h"
+#include "makemove.h"
+#include <fstream>
+
 
 // convert a move to coordinate notation to internal notation
-int ParseMove(const std::string& moveString, Position* pos) {
+Move ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
     MoveList moveList;
 
@@ -376,6 +379,45 @@ void UciLoop(int argc, char** argv) {
             tryhardmode = true;
             StartBench();
             tryhardmode = false;
+        }
+
+        else if(input == "pgn2game"){
+            constexpr int SIDE = WHITE;
+            std::ifstream myfile;
+            myfile.open ("stripped.pgn");
+            std::string startingPosition;
+            std::getline(myfile, startingPosition);
+            std::string str;
+            ParseFen(startingPosition,&td->pos);
+            int counter = 0;
+
+            while (std::getline(myfile, str))
+            {
+                ++counter;
+
+                int pos = str.find_first_of(' ');
+                std::string movestring = str.substr(pos+1),
+                        nodes = str.substr(0, pos);
+
+                // parse the move from uci to usable format
+                auto move = ParseMove(movestring, &td->pos);
+                // Search only if stm matches, white plays odd moves
+                if(counter % 2 != 0){
+                    std::string command = "go nodes " + str;
+                    bool search = ParseGo(command, &td->info, &td->pos);
+                    // Start search in a separate thread
+                    if (search) {
+                        threads_state = Search;
+                        RootSearch(td->info.depth, td, &uciOptions);
+                    }
+                    auto foundBestMove = GetBestMove(&td->pvTable);
+                    if(foundBestMove != move){
+                        std::cout << "bro this is broken wtf"<<std::endl;
+                        return;
+                    }
+                }
+                MakeMove<true>(move,  &td->pos);
+            }
         }
 
         else if (input == "see") {
