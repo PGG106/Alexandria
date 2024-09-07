@@ -388,9 +388,18 @@ void UciLoop(int argc, char** argv) {
                 std::string str;
                 ParseFen(startingPosition,&td->pos);
                 int counter = 0;
+
                 while (std::getline(myfile, str))
                 {
                     ++counter;
+
+                    int pos = str.find_first_of(' ');
+                    std::string move = str.substr(pos+1),
+                            nodes = str.substr(0, pos);
+
+                    std::cout << move << std::endl;
+                    std::cout << nodes << std::endl;
+                    /*
                     // white plays odd counters
                     if(counter % 2 == 0 && SIDE == WHITE)
                         continue;
@@ -403,6 +412,7 @@ void UciLoop(int argc, char** argv) {
                        RootSearch(td->info.depth, td, &uciOptions);
                     }
                     MakeMove<true>(GetBestMove(&td->pvTable),  &td->pos);
+                     */
             }
         }
 
