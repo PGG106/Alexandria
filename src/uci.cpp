@@ -399,22 +399,22 @@ void UciLoop(int argc, char** argv) {
 
                     // parse the move from uci to usable format
                     auto move = ParseMove(movestring, &td->pos);
-                    std::cout << move << std::endl;
-                    std::cout << nodes << std::endl;
-                    /*
-                    // white plays odd counters
-                    if(counter % 2 == 0 && SIDE == WHITE)
-                        continue;
-                    std::string command = "go nodes " + str;
-                    // call parse go function
-                    bool search = ParseGo(command, &td->info, &td->pos);
-                    // Start search in a separate thread
-                    if (search) {
-                        threads_state = Search;
-                       RootSearch(td->info.depth, td, &uciOptions);
+                    // Search only if stm matches, white plays odd moves
+                    if(counter % 2 != 0){
+                        std::string command = "go nodes " + str;
+                        bool search = ParseGo(command, &td->info, &td->pos);
+                        // Start search in a separate thread
+                        if (search) {
+                            threads_state = Search;
+                            RootSearch(td->info.depth, td, &uciOptions);
+                        }
+                        auto foundBestMove = GetBestMove(&td->pvTable);
+                        if(foundBestMove != move){
+                            std::cout << "bro this is broken wtf"<<std::endl;
+                            return;
+                        }
                     }
-                    MakeMove<true>(GetBestMove(&td->pvTable),  &td->pos);
-                     */
+                    MakeMove<true>(move,  &td->pos);
             }
         }
 
