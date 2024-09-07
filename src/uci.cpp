@@ -307,7 +307,7 @@ void UciLoop(int argc, char** argv) {
                 StopHelperThreads();
                 // stop main thread search
                 td->info.stopped = true;
-            } 
+            }
             threads_state = Idle;
         }
 
@@ -396,14 +396,14 @@ void UciLoop(int argc, char** argv) {
                 ++counter;
 
                 int pos = str.find_first_of(' ');
-                std::string movestring = str.substr(pos+1),
-                        nodes = str.substr(0, pos);
+                std::string nodes = str.substr(pos+1),
+                        movestring = str.substr(0, pos);
 
                 // parse the move from uci to usable format
                 auto move = ParseMove(movestring, &td->pos);
                 // Search only if stm matches, white plays odd moves
                 if(counter % 2 != 0){
-                    std::string command = "go nodes " + str;
+                    std::string command = "go nodes " + nodes;
                     bool search = ParseGo(command, &td->info, &td->pos);
                     // Start search in a separate thread
                     if (search) {
