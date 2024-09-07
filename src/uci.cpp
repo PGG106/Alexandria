@@ -17,7 +17,7 @@
 #include "makemove.h"
 
 // convert a move to coordinate notation to internal notation
-int ParseMove(const std::string& moveString, Position* pos) {
+Move ParseMove(const std::string& moveString, Position* pos) {
     // create move list instance
     MoveList moveList;
 
@@ -382,7 +382,7 @@ void UciLoop(int argc, char** argv) {
         else if(input == "pgn2game"){
                 constexpr int SIDE = WHITE;
                 std::ifstream myfile;
-                myfile.open ("strippedpgn.pgn");
+                myfile.open ("stripped.pgn");
                 std::string startingPosition;
                 std::getline(myfile, startingPosition);
                 std::string str;
@@ -394,9 +394,11 @@ void UciLoop(int argc, char** argv) {
                     ++counter;
 
                     int pos = str.find_first_of(' ');
-                    std::string move = str.substr(pos+1),
+                    std::string movestring = str.substr(pos+1),
                             nodes = str.substr(0, pos);
 
+                    // parse the move from uci to usable format
+                    auto move = ParseMove(movestring, &td->pos);
                     std::cout << move << std::endl;
                     std::cout << nodes << std::endl;
                     /*
