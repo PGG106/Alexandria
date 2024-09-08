@@ -396,6 +396,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (td->id == 0 && TimeOver(&td->info)) {
         StopHelperThreads();
         td->info.stopped = true;
+        return 0;
     }
 
     // Check for early return conditions
@@ -822,6 +823,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     if (td->id == 0 && TimeOver(&td->info)) {
         StopHelperThreads();
         td->info.stopped = true;
+        return 0;
     }
 
     // If position is a draw return a draw score
