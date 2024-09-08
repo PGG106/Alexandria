@@ -261,7 +261,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             }
 
             // Keep track of eval stability
-            if (score >  averageScore - 10 && score < averageScore + 10) {
+            if (score > averageScore - 10 && score < averageScore + 10) {
                 evalStabilityFactor = std::min(evalStabilityFactor + 1, 4);
             }
             else {
