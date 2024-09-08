@@ -601,9 +601,15 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
                           + (singularScore + tripleExtMargin <= singularAlpha);
             }
             // Multicut. If the lower bound of our singular search score is at least beta,
-            // assume both it and the TT move fails high, and return a cutoff early.
+            // assume this holds true for our current search as well, and return a cutoff early.
             else if (singularScore >= beta) {
                 return singularScore;
+            }
+            // If the TT score is failing high, and the singular search failed high, but
+            // not high enough to have multicut kick in, we know that we have a move very close
+            // to the TT move, and so we reduce our confidence in the TT move by performing a negative extension.
+            else if (ttScore >= beta) {
+                extension = -1;
             }
         }
 
