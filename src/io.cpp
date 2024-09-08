@@ -270,7 +270,7 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         std::cout << std::setw(7) << std::right << std::fixed << static_cast<int>(nps / 1000.0) << "Kn/s" << " ";
 
         // loop over the moves within a PV line
-        for (int count = 0; count < td->pvTable.pvLength[0]; count++) {
+        for (int count = 0; count < std::max(td->pvTable.pvLength[0], 1); count++) {
             // print PV move
             PrintMove(td->pvTable.pvArray[0][count]);
             std::cout << " ";
