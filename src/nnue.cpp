@@ -98,6 +98,10 @@ void NNUE::update(Accumulator *acc, Position *pos) {
             continue;
         }
 
+        const auto Acc = [&](const int j) -> Pov_Accumulator& {
+            return pos->accumStack[j].perspective[pov];
+        };
+
         // if we can't update we need to start scanning backwards
         // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, otherwise we'll start an UE chain
         for (int UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
@@ -110,7 +114,7 @@ void NNUE::update(Accumulator *acc, Position *pos) {
             // If not check if it's a valid starting point for an UE chain
             else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
                 for (int j = (pos->accumStackHead - 1 - UEableAccs); j <= pos->accumStackHead - 1; j++) {
-                    pos->accumStack[j].perspective[pov].applyUpdate(pos->accumStack[j - 1].perspective[pov]);
+                    Acc(j).applyUpdate(Acc(j-1));
                 }
                 break;
             }
