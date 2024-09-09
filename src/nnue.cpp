@@ -86,7 +86,7 @@ void NNUE::update(Accumulator *acc, Position *pos) {
         if (povAccumulator.isClean())
             continue;
         // if the top accumulator needs a refresh, ignore all the other dirty accumulators and just refresh it
-        if (povAccumulator.needsRefresh) {
+        else if (povAccumulator.needsRefresh) {
             povAccumulator.refresh(pos);
             continue;
         }
@@ -162,7 +162,6 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
             vepi32 product = vec_madd_epi16(vec_mullo_epi16(clipped, weight), clipped);
             sum = vec_add_epi32(sum, product);
         }
-
         weightOffset += L1_SIZE;
     }
 
@@ -173,9 +172,9 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
     int weightOffset = 0;
     for (const int16_t *acc : {us, them}) {
         for (int i = 0; i < L1_SIZE; ++i) {
-            int16_t input   = acc[i];
-            int16_t weight  = weights[i + weightOffset];
-            int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
+            const int16_t input   = acc[i];
+            const int16_t weight  = weights[i + weightOffset];
+            const int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
             sum += static_cast<int16_t>(clipped * weight) * clipped;
         }
 
