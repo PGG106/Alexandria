@@ -28,7 +28,6 @@ Network net;
 // invaluable help and the immense patience
 
 void NNUE::init(const char *file) {
-
     // open the nn file
     FILE *nn = fopen(file, "rb");
 
@@ -79,9 +78,7 @@ void NNUE::init(const char *file) {
 }
 
 void NNUE::update(Accumulator *acc, Position *pos) {
-
     for (int pov = WHITE; pov <= BLACK; pov++) {
-
         // Try efficient updates if possible
         bool success = efficientlyUpdatePov(acc, pov);
 
@@ -206,8 +203,8 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator &previousPovAccumu
         return;
 
     // figure out what update we need to apply and do that
-    int adds = NNUEAdd.size();
-    int subs =  NNUESub.size();
+    const int adds = NNUEAdd.size();
+    const int subs =  NNUESub.size();
 
     // Quiets
     if (adds == 1 && subs == 1) {
