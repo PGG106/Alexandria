@@ -48,7 +48,7 @@ public:
             [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
             void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
-            void applyUpdate(Pov_Accumulator& previousPovAccumulator);
+            void applyUpdate(Pov_Accumulator &previousPovAccumulator);
 
             [[nodiscard]] bool isClean() const {
                 return NNUEAdd.empty();
@@ -92,6 +92,7 @@ public:
     static void init(const char *file);
     static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
+    static bool efficientlyUpdatePov(NNUE::Accumulator *currAcc, int pov);
     [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
 };
