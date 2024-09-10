@@ -1,0 +1,42 @@
+uci
+ucinewgame
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4
+go nodes 637390
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3
+go nodes 243058
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5
+go nodes 250222
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5 b7g2 e5f6
+go nodes 135701
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5 b7g2 e5f6 e7f6 d3e4
+go nodes 302730
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5 b7g2 e5f6 e7f6 d3e4 g2h1 e4h1
+go nodes 339008
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5 b7g2 e5f6 e7f6 d3e4 g2h1 e4h1 b8c6 d2e3
+go nodes 100000000
+
+uci
+isready
+position fen rn1qk1nr/1bppbppp/pp2p3/8/2P1P3/P1NP4/1P1B1PPP/R2QKBNR w KQkq - 0 1 moves d3d4 g8f6 f1d3 b6b5 e4e5 b7g2 e5f6 e7f6 d3e4 g2h1 e4h1
+go nodes 339008
