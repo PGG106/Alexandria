@@ -81,6 +81,7 @@ void NNUE::init(const char *file) {
 void NNUE::update(Accumulator *acc, Position *pos) {
     for (int pov = WHITE; pov <= BLACK; pov++) {
         auto &povAccumulator = (acc)->perspective[pov];
+        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
 
         // return early if we already updated this accumulator (aka it's "clean")
         if (povAccumulator.isClean())
@@ -90,10 +91,8 @@ void NNUE::update(Accumulator *acc, Position *pos) {
             povAccumulator.refresh(pos);
             continue;
         }
-
-        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
-        // if this accumulator is clean, just UE on top of it and avoid the need to scan backwards
-        if (previousPovAccumulator.isClean()) {
+        // if the previous accumulator is clean, just UE on top of it and avoid the need to scan backwards
+        else if (previousPovAccumulator.isClean()) {
             povAccumulator.applyUpdate(previousPovAccumulator);
             continue;
         }
