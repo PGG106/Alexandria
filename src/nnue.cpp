@@ -80,70 +80,71 @@ void NNUE::init(const char *file) {
 
 void NNUE::update(Accumulator *acc, Position *pos) {
     for (int pov = WHITE; pov <= BLACK; pov++) {
-
         auto &povAccumulator = (acc)->perspective[pov];
+        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
 
-        // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+        // return early if we already updated this accumulator (aka it's "clean")
         if (povAccumulator.isClean())
             continue;
-
-        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
-        // if this accumulator is in need of a refresh or the previous one is clean, we can just start updating
-        const bool isUsable = povAccumulator.needsRefresh || previousPovAccumulator.isClean();
-        // if we can't update we need to start scanning backwards
-        // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, this saves us from having to store board states
-        bool shouldRefresh = false;
-
-        if (!isUsable) {
-            int UEableAccs;
-            bool shouldUE = false;
-            for (UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
-                auto &currentAcc = (acc - UEableAccs)->perspective[pov];
-                // check if the current acc should be refreshed
-                shouldRefresh = currentAcc.needsRefresh;
-                if (shouldRefresh) break;
-                    // check if the current acc can be used as a starting point for an UE chain
-                else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
-                    shouldUE = true;
-                    break;
-                }
-            }
-            if (shouldUE) {
-                for (int j = (pos->accumStackHead - 1 - UEableAccs); j <= pos->accumStackHead - 1; j++) {
-                    pos->accumStack[j].perspective[pov].applyUpdate(pos->accumStack[j - 1].perspective[pov]);
-                }
-            }
+        // if the top accumulator needs a refresh, ignore all the other dirty accumulators and just refresh it
+        else if (povAccumulator.needsRefresh) {
+            povAccumulator.refresh(pos);
+            continue;
+        }
+        // if the previous accumulator is clean, just UE on top of it and avoid the need to scan backwards
+        else if (previousPovAccumulator.isClean()) {
+            povAccumulator.applyUpdate(previousPovAccumulator);
+            continue;
         }
 
-// if we are here we either have an up to date accumulator we can UE on top of or we one we need to refresh
-        if (povAccumulator.needsRefresh || shouldRefresh) {
-            povAccumulator.accumulate(pos);
-            // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-            povAccumulator.NNUEAdd.clear();
-            povAccumulator.NNUESub.clear();
-            // mark any accumulator as refreshed
-            povAccumulator.needsRefresh = false;
-        } else {
-            povAccumulator.applyUpdate(previousPovAccumulator);
+        const auto Acc = [&](const int j) -> Pov_Accumulator& {
+            return pos->accumStack[j].perspective[pov];
+        };
+
+        // if we can't update we need to start scanning backwards
+        // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, otherwise we'll start an UE chain
+        for (int UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
+            auto &currentAcc = (acc - UEableAccs)->perspective[pov];
+            // check if the current acc should be refreshed
+            if (currentAcc.needsRefresh) {
+                povAccumulator.refresh(pos);
+                break;
+            }
+            // If not check if it's a valid starting point for an UE chain
+            else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
+                for (int j = (pos->accumStackHead - 1 - UEableAccs); j <= pos->accumStackHead - 1; j++) {
+                    Acc(j).applyUpdate(Acc(j-1));
+                }
+                break;
+            }
         }
     }
 }
 
+void NNUE::Pov_Accumulator::refresh(Position *pos) {
+    this->accumulate(pos);
+    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
+    this->NNUEAdd.clear();
+    this->NNUESub.clear();
+    // mark any accumulator as refreshed
+    this->needsRefresh = false;
+}
+
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
-        const auto Add = &net.FTWeights[add * L1_SIZE];
-        const auto Sub = &net.FTWeights[sub * L1_SIZE];
-        for (int i = 0; i < L1_SIZE; i++) {
-            this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
-        }
+    const auto Add = &net.FTWeights[add * L1_SIZE];
+    const auto Sub = &net.FTWeights[sub * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
+        this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
+    }
 }
 
 void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
-        auto Add = &net.FTWeights[add * L1_SIZE];
-        auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
-        auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
-        for (int i = 0; i < L1_SIZE; i++) {
-            this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
-        }
+    const auto Add = &net.FTWeights[add * L1_SIZE];
+    const auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
+    const auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
+    for (int i = 0; i < L1_SIZE; i++) {
+        this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
+    }
 }
 
 int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias) {
@@ -154,17 +155,16 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
     int weightOffset = 0;
     for (const int16_t *acc : {us, them}) {
         for (int i = 0; i < L1_SIZE; i += CHUNK_SIZE) {
-            vepi16 input   = vec_loadu_epi(reinterpret_cast<const vepi16*>(&acc[i]));
-            vepi16 weight  = vec_loadu_epi(reinterpret_cast<const vepi16*>(&weights[i + weightOffset]));
-            vepi16 clipped = vec_min_epi16(vec_max_epi16(input, Zero), One);
+            const vepi16 input   = vec_loadu_epi(reinterpret_cast<const vepi16*>(&acc[i]));
+            const vepi16 weight  = vec_loadu_epi(reinterpret_cast<const vepi16*>(&weights[i + weightOffset]));
+            const vepi16 clipped = vec_min_epi16(vec_max_epi16(input, Zero), One);
 
             // In squared clipped relu, we want to do (clipped * clipped) * weight.
             // However, as clipped * clipped does not fit in an int16 while clipped * weight does,
             // we instead do mullo(clipped, weight) and then madd by clipped.
-            vepi32 product = vec_madd_epi16(vec_mullo_epi16(clipped, weight), clipped);
+            const vepi32 product = vec_madd_epi16(vec_mullo_epi16(clipped, weight), clipped);
             sum = vec_add_epi32(sum, product);
         }
-
         weightOffset += L1_SIZE;
     }
 
@@ -175,9 +175,9 @@ int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, cons
     int weightOffset = 0;
     for (const int16_t *acc : {us, them}) {
         for (int i = 0; i < L1_SIZE; ++i) {
-            int16_t input   = acc[i];
-            int16_t weight  = weights[i + weightOffset];
-            int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
+            const int16_t input   = acc[i];
+            const int16_t weight  = weights[i + weightOffset];
+            const int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
             sum += static_cast<int16_t>(clipped * weight) * clipped;
         }
 
@@ -211,13 +211,13 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
 
     assert(previousPovAccumulator.isClean());
 
-    // return early if we already updated this accumulator (aka it's "clean"), we can use pending adds to check if it has pending changes (any change will result in at least one add)
+    // return early if we already updated this accumulator (aka it's "clean")
     if (this->isClean())
         return;
 
     // figure out what update we need to apply and do that
-    int adds = NNUEAdd.size();
-    int subs =  NNUESub.size();
+    const int adds = NNUEAdd.size();
+    const int subs =  NNUESub.size();
 
     // Quiets
     if (adds == 1 && subs == 1) {
