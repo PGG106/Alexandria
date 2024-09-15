@@ -165,11 +165,10 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
     }
 }
 
-static inline void PseudoLegalBishopMoves(Position* pos, int color, MoveList* list, MovegenType type) {
-    Bitboard bishops = pos->GetPieceColorBB(BISHOP, color);
-    const int bishopType = GetPiece(BISHOP, color);
+static inline void PseudoLegalSlidersMoves(Position *pos, int color, MoveList *list, MovegenType type) {
     const bool genNoisy = type & MOVEGEN_NOISY;
     const bool genQuiet = type & MOVEGEN_QUIET;
+    Bitboard boardOccupancy = pos->Occupancy(BOTH);
     Bitboard moveMask = 0ULL; // We restrict the number of squares the bishop can travel to
 
     // The type requested includes noisy moves
@@ -180,65 +179,18 @@ static inline void PseudoLegalBishopMoves(Position* pos, int color, MoveList* li
     if (genQuiet)
         moveMask |= ~pos->Occupancy(BOTH);
 
-    while (bishops) {
-        const int from = popLsb(bishops);
-        Bitboard possible_moves = GetBishopAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
-        while (possible_moves) {
-            const int to = popLsb(possible_moves);
-            const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-            AddMove(encode_move(from, to, bishopType, movetype), list);
-        }
-    }
-}
-
-static inline void PseudoLegalRookMoves(Position* pos, int color, MoveList* list, MovegenType type) {
-    Bitboard rooks = pos->GetPieceColorBB(ROOK, color);
-    const int rookType = GetPiece(ROOK, color);
-    const bool genNoisy = type & MOVEGEN_NOISY;
-    const bool genQuiet = type & MOVEGEN_QUIET;
-    Bitboard moveMask = 0ULL; // We restrict the number of squares the rook can travel to
-
-    // The type requested includes noisy moves
-    if (genNoisy)
-        moveMask |= pos->Occupancy(color ^ 1);
-
-    // The type requested includes quiet moves
-    if (genQuiet)
-        moveMask |= ~pos->Occupancy(BOTH);
-
-    while (rooks) {
-        const int from = popLsb(rooks);
-        Bitboard possible_moves = GetRookAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
-        while (possible_moves) {
-            const int to = popLsb(possible_moves);
-            Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-            AddMove(encode_move(from, to, rookType, movetype), list);
-        }
-    }
-}
-
-static inline void PseudoLegalQueenMoves(Position* pos, int color, MoveList* list, MovegenType type) {
-    Bitboard queens = pos->GetPieceColorBB(QUEEN, color);
-    const int queenType = GetPiece(QUEEN, color);
-    const bool genNoisy = type & MOVEGEN_NOISY;
-    const bool genQuiet = type & MOVEGEN_QUIET;
-    Bitboard moveMask = 0ULL; // We restrict the number of squares the queen can travel to
-
-    // The type requested includes noisy moves
-    if (genNoisy)
-        moveMask |= pos->Occupancy(color ^ 1);
-
-    // The type requested includes quiet moves
-    if (genQuiet)
-        moveMask |= ~pos->Occupancy(BOTH);
-
-    while (queens) {
-        const int from = popLsb(queens);
-        Bitboard possible_moves = GetQueenAttacks(from, pos->Occupancy(BOTH)) & moveMask & pos->getCheckmask();
-        while (possible_moves) {
-            const int to = popLsb(possible_moves);
-            Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
-            AddMove(encode_move(from, to, queenType, movetype), list);
+    for (int piecetype = BISHOP; piecetype <= QUEEN; piecetype++) {
+        Bitboard pieces = pos->GetPieceColorBB(piecetype, color);
+        const int coloredPieceValue = GetPiece(piecetype, color);
+        while (pieces) {
+            const int from = popLsb(pieces);
+            Bitboard possible_moves =
+                    pieceAttacks(piecetype, from, boardOccupancy) & moveMask & pos->getCheckmask();
+            while (possible_moves) {
+                const int to = popLsb(possible_moves);
+                const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
+                AddMove(encode_move(from, to, coloredPieceValue, movetype), list);
+            }
         }
     }
 }
@@ -300,9 +252,7 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
     if (checks < 2) {
         PseudoLegalPawnMoves(pos, pos->side, move_list, type);
         PseudoLegalKnightMoves(pos, pos->side, move_list, type);
-        PseudoLegalBishopMoves(pos, pos->side, move_list, type);
-        PseudoLegalRookMoves(pos, pos->side, move_list, type);
-        PseudoLegalQueenMoves(pos, pos->side, move_list, type);
+        PseudoLegalSlidersMoves(pos, pos->side, move_list, type);
     }
     PseudoLegalKingMoves(pos, pos->side, move_list, type);
 }
