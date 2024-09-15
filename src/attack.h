@@ -117,6 +117,8 @@ extern Bitboard bishop_attacks[64][512];
 // rook attacks rable [square][occupancies]
 extern Bitboard rook_attacks[64][4096];
 
+[[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ);
+
 // set occupancies
 [[nodiscard]] Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
 
