@@ -560,7 +560,7 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
 
             // Futility Pruning. At low depths, if the eval is far below alpha,
             // only search tactical moves as trying quiets in such a bad position is futile.
-            if (   depth <= fpDepth()
+            if (   pruningDepth <= fpDepth()
                 && ss->staticEval + futilityMargins[improving][std::min(pruningDepth, 63)] <= alpha)
                 skipQuiets = true;
 
