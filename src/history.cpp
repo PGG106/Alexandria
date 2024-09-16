@@ -133,7 +133,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const int 
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * GetRHScore(pos, sd, move);
+        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
 }
