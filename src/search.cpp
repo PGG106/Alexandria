@@ -290,6 +290,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     for (int i = -4; i < MAXDEPTH; i++) {
         (ss + i)->staticEval = SCORE_NONE;
         (ss + i)->move = NOMOVE;
+        (ss + i)->history = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
@@ -367,6 +368,8 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
     int rawEval;
     int eval;
     int score = -MAXSCORE;
+    ss->history = 0;
+    ss->move = NOMOVE;
     TTEntry tte;
     pvTable->pvLength[ss->ply] = ss->ply;
 
@@ -462,7 +465,6 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         return 0;
     }();
     const bool improving = improvement > 0;
-
     const bool doIIR = depth >= iirMinDepth() && ttBound == HFNONE;
 
     if (   !pvNode
@@ -484,6 +486,9 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             // so we prune more aggressively.
             if (doIIR) margin -= rfpIirCoeff();
 
+            // Scale the margin based on the previous move's history score
+            margin += (ss - 1)->history / rfpHistoryDiv();
+
             // Don't let the margin go negative
             margin = std::max(margin, 0);
 
@@ -496,10 +501,12 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         // If our eval indicates a fail high is likely, we try NMP.
         // We do a reduced search after giving the opponent a free turn, and if that fails high,
         // it means our position is so good we don't even need to make a move. Thus, we return a fail high score.
-        if (   depth > nmpDepth()
-            && eval >= beta
+        if (    depth > nmpDepth()
+            &&  eval >= beta
+            && (ttBound == HFNONE || ttBound == HFLOWER || ttBound == HFEXACT)
+            &&  ss->staticEval >= beta - 30 * depth + 170
             && (ss - 1)->move != NOMOVE
-            && BoardHasNonPawns(pos, pos->side)) {
+            &&  BoardHasNonPawns(pos, pos->side)) {
 
             const int R = (nmpRedConst() + nmpRedDepthCoeff() * depth + nmpRedIirCoeff() * doIIR) / 1024
                         +  std::min(eval - beta, nmpRedEvalDiffMax()) / nmpRedEvalDiffDiv();
@@ -542,15 +549,14 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
         if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
+        bool isQuiet = !isTactical(move);
         totalMoves++;
-        bool isQuiet    = !isTactical(move);
-        int moveHistory = GetHistoryScore(pos, ss, sd, move);
+        ss->history = GetHistoryScore(pos, ss, sd, move);
 
         if (bestScore > -MATE_FOUND) {
 
-            const int pruningReduction = pruningReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / PRUNING_GRAIN;
-
             // pruningDepth is the current depth minus a penalty for late moves, this is helpful because it helps us discriminate the bad moves with more accuracy
+            const int pruningReduction = pruningReductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / PRUNING_GRAIN;
             const int pruningDepth = std::max(depth - pruningReduction, 0);
 
             // Late Move Pruning. If we have searched many moves, but no beta cutoff has occurred,
@@ -563,6 +569,13 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             if (   depth <= fpDepth()
                 && ss->staticEval + futilityMargins[improving][std::min(pruningDepth, 63)] <= alpha)
                 skipQuiets = true;
+
+            // History pruning. At low depths, skip quiet moves whose history is too low,
+            // as it is unlikely for the move to be any good.
+            if (   depth <= hpDepth()
+                && isQuiet
+                && ss->history < historyMargins[improving][std::min(depth, 63)])
+                continue;
 
             // SEE Pruning. At low depths, if the SEE (Static Exchange Evaluation) of the move
             // is extremely low, skip considering it in our search.
@@ -648,8 +661,11 @@ int Negamax(int alpha, int beta, int depth, bool predictedCutNode, ThreadData* t
             // Reduce more if we are predicted to fail high (i.e. we stem from an LMR search earlier in the tree)
             if (predictedCutNode) depthReductionGranular += predictedCutNodeReduction();
 
+            // Use improvement to adjust LMR reduction (reduce less if improved, reduce more if did not improve)
+            depthReductionGranular -= improvementReductionScale() * improvement / (std::abs(improvement) + improvementReductionStretch());
+
             // Use move history to adjust LMR reduction (reduce less if good history, more if bad history)
-            depthReductionGranular -= moveHistory * histReductionMul() / 64;
+            depthReductionGranular -= ss->history * histReductionMul() / 64;
 
             // Divide by 1024 once all the adjustments have been applied
             const int depthReduction = depthReductionGranular / LMR_GRAIN;
@@ -848,14 +864,26 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
             continue;
 
         totalMoves++;
+        ss->history = GetHistoryScore(pos, ss, sd, move);
+
+        if (bestScore > -MATE_FOUND) {
+            // Futility pruning. If static eval is far below alpha, only search moves that win material.
+            if (   !inCheck
+                &&  ss->staticEval + qsFpMargin() <= alpha
+                && !SEE(pos, move, 1))
+                continue;
+        }
 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
+
         // Play the move
         MakeMove<true>(move, pos);
+
         // increment nodes count
         info->nodes++;
+
         // Call Quiescence search recursively
         const int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
 

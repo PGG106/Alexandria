@@ -13,10 +13,13 @@ inline int futilityMargins[2][64];
 inline int lmrReductions[2][64][64];
 inline int pruningReductions[2][64][64];
 inline int lmpMargins[2][64];
+inline int historyMargins[2][64];
+
 
 struct SearchStack {
     int ply;
     int staticEval;
+    int history;
     Move move;
 };
 
