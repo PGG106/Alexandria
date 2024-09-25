@@ -477,6 +477,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
+    const int evalDelta = std::abs(eval - rawEval);
+
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
@@ -668,7 +670,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         info->nodes++;
         const uint64_t nodesBeforeSearch = info->nodes;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
-        if (totalMoves > 1 + pvNode && depth >= 3 && (isQuiet || !ttPv)) {
+        if (totalMoves > 1 + pvNode + (evalDelta > 50) && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
