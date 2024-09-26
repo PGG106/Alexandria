@@ -481,7 +481,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (eval == 0 || rawEval == 0)
             return 0;
         else
-            return 100 * (eval - rawEval) / eval;
+            return 100 * std::abs((eval - rawEval) / eval);
     }();
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
