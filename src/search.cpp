@@ -481,7 +481,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (eval == 0 || rawEval == 0)
             return 0;
         else
-            return 100 * std::abs((eval - rawEval) / eval);
+            return 100 * std::abs(eval - rawEval) / std::abs(eval);
     }();
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
@@ -701,7 +701,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-                if(complexity > 10)
+                if(complexity > 50)
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
