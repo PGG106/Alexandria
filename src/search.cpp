@@ -477,6 +477,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
+    const int complexity = [&] {
+        if (eval == 0 || rawEval == 0)
+            return 0;
+        else
+            return 100 * std::abs(eval - rawEval) / std::abs(eval);
+    }();
+
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
@@ -693,6 +700,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Reduce less if we have been on the PV
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
+
+                if(complexity > 50)
+                    depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / 8192;
