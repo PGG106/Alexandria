@@ -478,8 +478,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     const int complexity = [&] {
-        if (eval == 0 || rawEval == 0
-            || std::abs(eval) > 2000)
+        if (eval == 0 || rawEval == 0)
             return 0;
         else
             return 100 * std::abs(eval - rawEval) / std::abs(eval);
