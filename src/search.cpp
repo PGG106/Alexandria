@@ -902,6 +902,13 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Adjust alpha based on eval
     alpha = std::max(alpha, bestScore);
 
+    const int complexity = [&] {
+        if (ss->staticEval == 0 || rawEval == 0)
+            return 0;
+        else
+            return 100 * std::abs(ss->staticEval - rawEval) / std::abs(ss->staticEval);
+    }();
+
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
     InitMP(&mp, pos, sd, ss, ttMove, QSEARCH, false);
@@ -921,7 +928,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck) {
-            const int futilityBase = ss->staticEval + 192;
+            const int futilityBase = ss->staticEval + 162 + complexity;
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
                 bestScore = std::max(futilityBase, bestScore);
                 continue;
