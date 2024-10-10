@@ -47,6 +47,7 @@
     int eval = EvalPositionRaw(pos);
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->get50MrCounter()) / 200;
+    eval -= pos->hisPly / 25;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
