@@ -839,7 +839,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     }
 
     // If position is a draw return a draw score
-    if (IsDraw(pos))
+    if (MaterialDraw(pos))
         return 0;
 
     // If we reached maxdepth we return a static evaluation of the position
