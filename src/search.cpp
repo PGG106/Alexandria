@@ -844,10 +844,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     if (MaterialDraw(pos))
         return 0;
 
-    // If we reached maxdepth we return a static evaluation of the position
-    if (ss->ply >= MAXDEPTH - 1)
-        return inCheck ? 0 : EvalPosition(pos);
-
     // Upcoming repetition detection
     if (alpha < 0 && hasGameCycle(pos,ss->ply))
     {
@@ -855,6 +851,10 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         if (alpha >= beta)
             return alpha;
     }
+
+    // If we reached maxdepth we return a static evaluation of the position
+    if (ss->ply >= MAXDEPTH - 1)
+        return inCheck ? 0 : EvalPosition(pos);
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
