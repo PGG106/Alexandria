@@ -390,17 +390,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (ss->ply > info->seldepth)
         info->seldepth = ss->ply;
 
-    // recursion escape condition
-    if (depth <= 0)
-        return Quiescence<pvNode>(alpha, beta, td, ss);
-
-    // check if more than Maxtime passed and we have to stop
-    if (td->id == 0 && TimeOver(&td->info)) {
-        StopHelperThreads();
-        td->info.stopped = true;
-        return 0;
-    }
-
     // Check for early return conditions
     if (!rootNode) {
         // If position is a draw return a draw score
@@ -424,6 +413,17 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (alpha >= beta)
                 return alpha;
         }
+    }
+
+    // recursion escape condition
+    if (depth <= 0)
+        return Quiescence<pvNode>(alpha, beta, td, ss);
+
+    // check if more than Maxtime passed and we have to stop
+    if (td->id == 0 && TimeOver(&td->info)) {
+        StopHelperThreads();
+        td->info.stopped = true;
+        return 0;
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
