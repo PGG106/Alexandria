@@ -390,6 +390,25 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (ss->ply > info->seldepth)
         info->seldepth = ss->ply;
 
+    // Check for early return conditions
+    if (!rootNode) {
+        // If position is a draw return a draw score
+        if (IsDraw(pos))
+            return 0;
+
+        // Upcoming repetition detection
+        if (alpha < 0 && hasGameCycle(pos,ss->ply))
+        {
+            alpha = 0;
+            if (alpha >= beta)
+                return alpha;
+        }
+
+        // If we reached maxdepth we return a static evaluation of the position
+        if (ss->ply >= MAXDEPTH - 1)
+            return inCheck ? 0 : EvalPosition(pos);
+    }
+
     // recursion escape condition
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
@@ -401,29 +420,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return 0;
     }
 
-    // Check for early return conditions
     if (!rootNode) {
-        // If position is a draw return a draw score
-        if (IsDraw(pos))
-            return 0;
-
-        // If we reached maxdepth we return a static evaluation of the position
-        if (ss->ply >= MAXDEPTH - 1)
-            return inCheck ? 0 : EvalPosition(pos);
-
         // Mate distance pruning
         alpha = std::max(alpha, -MATE_SCORE + ss->ply);
         beta = std::min(beta, MATE_SCORE - ss->ply - 1);
         if (alpha >= beta)
             return alpha;
-
-        // Upcoming repetition detection
-        if (alpha < 0 && hasGameCycle(pos,ss->ply))
-        {
-            alpha = 0;
-            if (alpha >= beta)
-                return alpha;
-        }
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
@@ -839,7 +841,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     }
 
     // If position is a draw return a draw score
-    if (IsDraw(pos))
+    if (MaterialDraw(pos))
         return 0;
 
     // If we reached maxdepth we return a static evaluation of the position
