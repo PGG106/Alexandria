@@ -332,6 +332,13 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 
     // Stay at current depth if we fail high/low because of the aspiration windows
     while (true) {
+
+        if (alpha < -1000)
+            alpha = -MAXSCORE;
+
+        if (beta > 1000)
+            beta = MAXSCORE;
+
         score = Negamax<true>(alpha, beta, depth, false, td, ss);
 
         // Check if more than Maxtime passed and we have to stop
