@@ -87,7 +87,7 @@ ZobristKey GenerateNonPawnKey(const Position* pos, int side) {
     for (int sq = 0; sq < 64; ++sq) {
         // get piece on that square
         const int piece = pos->PieceOn(sq);
-        if (piece != WP && piece != BP && Color[piece] == side) {
+        if (piece != EMPTY && piece != WP && piece != BP && Color[piece] == side) {
             nonPawnKey ^= PieceKeys[piece][sq];
         }
     }
