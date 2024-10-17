@@ -45,6 +45,8 @@ public:
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
     ZobristKey pawnKey = 0ULL;
+    ZobristKey whiteNonPawnKey = 0ULL;
+    ZobristKey blackNonPawnKey = 0ULL;
     // stores the state of the board  rollback purposes
     int historyStackHead = 0;
     BoardState    history[MAXPLY];
