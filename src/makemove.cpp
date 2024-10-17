@@ -15,6 +15,7 @@ template void ClearPiece<true>(const int piece, const int to, Position* pos);
 // Remove a piece from a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void ClearPiece(const int piece, const int from, Position* pos) {
+    assert(piece != EMPTY);
     // Do this first because if we happened to have moved the king we first need to get1lsb the king bitboard before removing it
     if constexpr(UPDATE){
         std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
@@ -39,6 +40,7 @@ template void AddPiece<true>(const int piece, const int to, Position* pos);
 // Add a piece to a square, the UPDATE params determines whether we want to update the NNUE weights or not
 template <bool UPDATE = true>
 void AddPiece(const int piece, const int to, Position* pos) {
+    assert(piece != EMPTY);
     const int color = Color[piece];
     set_bit(pos->bitboards[piece], to);
     set_bit(pos->occupancies[color], to);
