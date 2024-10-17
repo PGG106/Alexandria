@@ -27,6 +27,10 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     HashKey(pos->posKey, PieceKeys[piece][from]);
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->pawnKey, PieceKeys[piece][from]);
+    else if(Color[piece] == WHITE)
+        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][from]);
+    else
+        HashKey(pos->blackNonPawnKey, PieceKeys[piece][from]);
 }
 
 template void AddPiece<false>(const int piece, const int to, Position* pos);
@@ -42,6 +46,10 @@ void AddPiece(const int piece, const int to, Position* pos) {
     HashKey(pos->posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->pawnKey, PieceKeys[piece][to]);
+    else if(Color[piece] == WHITE)
+        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][to]);
+    else
+        HashKey(pos->blackNonPawnKey, PieceKeys[piece][to]);
     // Do this last because if we happened to have moved the king we first need to re-add to the piece bitboards least we get1lsb an empty bitboard
     if constexpr(UPDATE){
         std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
