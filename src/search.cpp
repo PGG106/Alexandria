@@ -438,9 +438,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (   !pvNode
         &&  ttScore != SCORE_NONE
         &&  ttDepth >= depth
-        && (   (ttBound == HFUPPER && ttScore <= alpha)
-            || (ttBound == HFLOWER && ttScore >= beta)
-            ||  ttBound == HFEXACT))
+        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER)))
         return ttScore;
 
     const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
@@ -466,9 +464,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // We can also use the tt score as a more accurate form of eval
         if (    ttScore != SCORE_NONE
-            && (   (ttBound == HFUPPER && ttScore < eval)
-                || (ttBound == HFLOWER && ttScore > eval)
-                ||  ttBound == HFEXACT))
+                && (ttBound & (ttScore >= eval ? HFLOWER : HFUPPER)))
             eval = ttScore;
     }
     else {
@@ -863,9 +859,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
-        && (   (ttBound == HFUPPER && ttScore <= alpha)
-            || (ttBound == HFLOWER && ttScore >= beta)
-            ||  ttBound == HFEXACT))
+        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER)))
         return ttScore;
 
     const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
@@ -883,9 +877,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
         // We can also use the TT score as a more accurate form of eval
         if (    ttScore != SCORE_NONE
-            && (   (ttBound == HFUPPER && ttScore < bestScore)
-                || (ttBound == HFLOWER && ttScore > bestScore)
-                ||  ttBound == HFEXACT))
+                && (ttBound & (ttScore >= bestScore ? HFLOWER : HFUPPER)))
             bestScore = ttScore;
     }
     // If we don't have any useful info in the TT just call Evalpos

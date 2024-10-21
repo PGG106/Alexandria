@@ -95,8 +95,8 @@ enum {
 
 enum {
     HFNONE,
-    HFUPPER,
     HFLOWER,
+    HFUPPER,
     HFEXACT
 };
 
