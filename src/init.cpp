@@ -3,7 +3,6 @@
 #include "attack.h"
 #include "cuckoo.h"
 #include "magic.h"
-#include "random.h"
 #include "misc.h"
 #include "search.h"
 #include "ttable.h"
@@ -36,31 +35,10 @@ Bitboard rook_masks[64];
 // bishop attacks table [square][pos->occupancies]
 Bitboard bishop_attacks[64][512];
 
-// rook attacks rable [square][pos->occupancies]
+// rook attacks table [square][pos->occupancies]
 Bitboard rook_attacks[64][4096];
 
 Bitboard SQUARES_BETWEEN_BB[64][64];
-
-// Initialize the Zobrist keys
-void initHashKeys() {
-    for (int Typeindex = WP; Typeindex <= BK; ++Typeindex) {
-        for (int squareIndex = 0; squareIndex < 64; ++squareIndex) {
-            PieceKeys[Typeindex][squareIndex] = GetRandomU64Number();
-        }
-    }
-    // loop over board squares
-    for (int square = 0; square < 64; square++)
-        // init random enpassant keys
-        enpassant_keys[square] = GetRandomU64Number();
-
-    // loop over castling keys
-    for (int index = 0; index < 16; index++)
-        // init castling keys
-        CastleKeys[index] = GetRandomU64Number();
-
-    // init random side key
-    SideKey = GetRandomU64Number();
-}
 
 // init attack tables for all the piece types, indexable by square
 void InitAttackTables() {
@@ -209,7 +187,6 @@ void InitAll() {
     // init attacks tables
     InitAttackTables();
     initializeLookupTables();
-    initHashKeys();
     InitReductions();
     // Init TT
     InitTT(16);
