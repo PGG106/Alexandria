@@ -25,6 +25,7 @@ struct SearchData {
     int pawnCorrHist[2][CORRHIST_SIZE] = {};
     int whiteNonPawnCorrHist[2][CORRHIST_SIZE] = {};
     int blackNonPawnCorrHist[2][CORRHIST_SIZE] = {};
+    int contCorrHist[2][6 * 64][6 * 64] = {};
 };
 
 struct PvTable {
