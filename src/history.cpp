@@ -121,7 +121,7 @@ void updateSingleCorrHistScore(int &entry, const int scaledDiff, const int newWe
     entry = std::clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
 }
 
-void updateCorrHistScore(const Position *pos, SearchData *sd, const int depth, const int diff) {
+void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
     assert(newWeight <= CORRHIST_WEIGHT_SCALE);
@@ -129,14 +129,20 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const int depth, c
     updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+
+    if ((ss - 1)->move && (ss - 2)->move)
+        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
 }
 
-int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const int rawEval) {
+int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval) {
     int adjustedEval = rawEval;
 
     adjustedEval += sd->pawnCorrHist[pos->side][pos->pawnKey % CORRHIST_SIZE] / CORRHIST_GRAIN;
     adjustedEval += sd->whiteNonPawnCorrHist[pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE] / CORRHIST_GRAIN;
     adjustedEval += sd->blackNonPawnCorrHist[pos->side][pos->blackNonPawnKey % CORRHIST_SIZE] / CORRHIST_GRAIN;
+
+    if ((ss - 1)->move && (ss - 2)->move)
+        adjustedEval += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
 
     return std::clamp(adjustedEval, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
@@ -157,4 +163,5 @@ void CleanHistories(SearchData* sd) {
     std::memset(sd->pawnCorrHist, 0, sizeof(sd->pawnCorrHist));
     std::memset(sd->whiteNonPawnCorrHist, 0, sizeof(sd->whiteNonPawnCorrHist));
     std::memset(sd->blackNonPawnCorrHist, 0, sizeof(sd->blackNonPawnCorrHist));
+    std::memset(sd->contCorrHist, 0, sizeof(sd->contCorrHist));
 }

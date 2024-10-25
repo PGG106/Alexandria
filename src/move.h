@@ -35,6 +35,7 @@ inline int To(const Move move) { return ((move & 0xFC0) >> 6); }
 inline int FromTo(const Move move) { return move & 0xFFF; }
 inline int Piece(const Move move) { return ((move & 0xF0000) >> 16); }
 inline int PieceTo(const Move move) { return (Piece(move) << 6) | To(move); }
+inline int PieceTypeTo(const Move move) { return (PieceType[Piece(move)] << 6) | To(move); }
 inline int GetMovetype(const Move move) { return ((move & 0xF000) >> 12); }
 inline int getPromotedPiecetype(const Move move) { return (GetMovetype(move) & 3) + 1; }
 inline bool isEnpassant(const Move move) { return GetMovetype(move) == static_cast<int>(Movetype::enPassant); }
