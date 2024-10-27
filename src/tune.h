@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -79,3 +81,29 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 }
 
 TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
+
+// TM STUFF
+// SOFT/HARD bounds
+TUNE_PARAM(baseMultiplier, 54, 20, 150, 125, 0.002)
+TUNE_PARAM(incMultiplier, 85, 50, 150, 125, 0.002)
+TUNE_PARAM(maxBoundMultiplier, 76, 50, 90, 125, 0.002)
+TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 125, 0.002)
+TUNE_PARAM(maxTimeMultiplier, 304, 100, 500, 125, 0.002)
+
+// Bestmove stability
+TUNE_PARAM(bmScale1, 243, 20, 900, 125, 0.002)
+TUNE_PARAM(bmScale2, 135, 20, 150, 125, 0.002)
+TUNE_PARAM(bmScale3, 109, 20, 150, 125, 0.002)
+TUNE_PARAM(bmScale4, 88, 20, 150, 125, 0.002)
+TUNE_PARAM(bmScale5, 68, 20, 150, 125, 0.002)
+
+// Eval stability
+TUNE_PARAM(evalScale1, 125, 20, 150, 125, 0.002)
+TUNE_PARAM(evalScale2, 115, 20, 150, 125, 0.002)
+TUNE_PARAM(evalScale3, 100, 20, 150, 125, 0.002)
+TUNE_PARAM(evalScale4, 94, 20, 150, 125, 0.002)
+TUNE_PARAM(evalScale5, 88, 20, 150, 125, 0.002)
+
+// Node Tm
+TUNE_PARAM(nodeTmBase, 152, 20, 900, 125, 0.002)
+TUNE_PARAM(nodeTmMultiplier, 174, 20, 900, 125, 0.002)
