@@ -80,7 +80,6 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
     return true;
 }
 
-TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
 
 // TM STUFF
 // SOFT/HARD bounds
