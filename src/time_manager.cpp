@@ -32,13 +32,13 @@ void Optimum(SearchInfo* info, int time, int inc) {
     }
     // else if we received wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
     else if (info->timeset) {
-        int basetime = time * 0.054 + inc * 0.85;
+        int basetime = time * 0.058 + inc * 0.86;
         // Never use more than 76% of the total time left for a single move
-        const auto maxtimeBound = 0.76 * time;
+        const auto maxtimeBound = 0.75 * time;
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min(0.76 * basetime, maxtimeBound);
+        const auto optime = std::min(0.77 * basetime, maxtimeBound);
         // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min(3.04 * basetime, maxtimeBound);
+        const auto maxtime = std::min(3.22 * basetime, maxtimeBound);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
@@ -51,12 +51,12 @@ bool StopEarly(const SearchInfo* info) {
 }
 
 void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalStabilityFactor) {
-    constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
-    constexpr double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    constexpr double bestmoveScale[5] = {2.45, 1.32, 1.10, 0.87, 0.67};
+    constexpr double evalScale[5] = {1.26, 1.14, 0.96, 0.95, 0.86};
     const int bestmove = GetBestMove(&td->pvTable);
     // Calculate how many nodes were spent on checking the best move
     const double bestMoveNodesFraction = static_cast<double>(td->nodeSpentTable[FromTo(bestmove)]) / static_cast<double>(td->info.nodes);
-    const double nodeScalingFactor = (1.52 - bestMoveNodesFraction) * 1.74;
+    const double nodeScalingFactor = (1.45 - bestMoveNodesFraction) * 1.84;
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
     const double evalScalingFactor = evalScale[evalStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
