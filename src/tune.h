@@ -56,11 +56,19 @@ inline std::unordered_map<std::string, tunable_param> &tunableParams()
     static std::unordered_map<std::string, tunable_param> tunableParams{};
     return tunableParams;
 }
+
+inline std::vector<tunable_param> &tunables()
+{
+    static std::vector<tunable_param> tunables{};
+    return tunables;
+}
+
 // Actual functions to init and update variables
 inline const int &addTune(std::string name, int defaultValue, int curr_value, int min_value, int max_value, float C_end, float R_end)
 {
     tunable_param &param = tunableParams()[name];
     param = tunable_param{name, defaultValue, curr_value, min_value, max_value, C_end, R_end};
+    tunables().push_back(param);
     return param.currValue;
 }
 
@@ -78,4 +86,28 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
     return true;
 }
 
-TUNE_PARAM(nmpDepth, 3, 1, 5, 1, 0.002)
+// TM STUFF
+// SOFT/HARD bounds
+TUNE_PARAM(baseMultiplier, 54, 20, 150, 7, 0.002)
+TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
+TUNE_PARAM(maxBoundMultiplier, 76, 50, 90, 2, 0.002)
+TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
+TUNE_PARAM(maxTimeMultiplier, 304, 100, 500, 20, 0.002)
+
+// Bestmove stability
+TUNE_PARAM(bmScale1, 243, 50, 300, 10, 0.002)
+TUNE_PARAM(bmScale2, 135, 50, 200, 10, 0.002)
+TUNE_PARAM(bmScale3, 109, 50, 150, 6, 0.002)
+TUNE_PARAM(bmScale4, 88, 40, 110, 5, 0.002)
+TUNE_PARAM(bmScale5, 68, 35, 100, 5, 0.002)
+
+// Eval stability
+TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
+TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale3, 100, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale4, 94, 60, 130, 4, 0.002)
+TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
+
+// Node Tm
+TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
+TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)

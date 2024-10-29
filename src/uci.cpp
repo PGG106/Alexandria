@@ -211,9 +211,9 @@ void UciLoop(int argc, char** argv) {
     std::cout << NAME << "\n";
 
 #ifdef TUNE
-    for (const auto &[key, param] : tunableParams())
-    {
-        std::cout << param << "\n";
+    // spsa info dump
+    for (const auto &param: tunables()) {
+        std::cout << param << std::endl;
     }
 #endif
 
@@ -326,7 +326,7 @@ void UciLoop(int argc, char** argv) {
             break;
         }
 
-        // parse UCI "uci" command
+            // parse UCI "uci" command
         else if (input == "uci") {
             // print engine info
             std::cout << "id name " << NAME << "\n";
@@ -334,15 +334,9 @@ void UciLoop(int argc, char** argv) {
             std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
 #ifdef TUNE
-            for (const auto &[key, param] : tunableParams())
-            {
-                std::cout << "option name " + param.name;
-                std::cout << " type spin default ";
-                std::cout << param.currValue;
-                std::cout << " min ";
-                std::cout << param.minValue;
-                std::cout << " max ";
-                std::cout << param.maxValue << "\n";
+            // spsa info dump
+            for (const auto &param: tunables()) {
+                std::cout << param << std::endl;
             }
 #endif
             std::cout << "uciok" << std::endl;
@@ -350,17 +344,9 @@ void UciLoop(int argc, char** argv) {
             print_uci = true;
         }
 
-        // print board
+            // print board
         else if (input == "d") {
             PrintBoard(&td->pos);
-        }
-
-        // spsa info dump
-        else if (input == "tune") {
-            for (const auto &[key, param] : tunableParams())
-            {
-                std::cout << param << std::endl;
-            }
         }
 
         else if (input == "eval") {// call parse position function
