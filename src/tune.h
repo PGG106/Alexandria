@@ -97,6 +97,7 @@ TUNE_PARAM(bmScale4, 88, 40, 110, 5, 0.002)
 TUNE_PARAM(bmScale5, 68, 35, 100, 5, 0.002)
 
 // Eval stability
+TUNE_PARAM(stabilityFactor, 10, 5, 15, 1, 0.002)
 TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
 TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
 TUNE_PARAM(evalScale3, 100, 80, 150, 4, 0.002)
@@ -106,3 +107,41 @@ TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
 // Node Tm
 TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
 TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+
+// SEARCH STUFF
+
+// ASP WINDOWS
+TUNE_PARAM(aspWinDelta, 12, 6, 18, 1, 0.002)
+TUNE_PARAM(aspWinDepth, 3, 2, 7, 1, 0.002)
+TUNE_PARAM(aspWinDeltaResize, 144, 112, 151, 3, 0.002)
+
+// RFP
+TUNE_PARAM(rfpRed, 91, 50, 150, 5, 0.002)
+
+//NMP
+TUNE_PARAM(nmpStaticevalRedDepth, 30, 10, 50, 2, 0.002)
+TUNE_PARAM(nmpStaticevalRedFixed, 170, 100, 250, 8, 0.002)
+TUNE_PARAM(nmpDepthRedFixed, 170, 100, 250, 8, 0.002)
+TUNE_PARAM(nmpDepthRedRatio, 200, 100, 300, 10, 0.002)
+
+// Razoring
+TUNE_PARAM(rzrDepthMul, 256, 150, 325, 10, 0.002)
+
+// LMR DEPTH
+TUNE_PARAM(lmrDepthHistDiv, 8192, 4096, 16384, 250, 0.002)
+
+// FP
+TUNE_PARAM(fpFixed, 250, 150, 325, 8, 0.002)
+TUNE_PARAM(fpScale, 150, 75, 210, 7, 0.002)
+
+// LMR
+TUNE_PARAM(lmrComplexity, 50, 25, 150, 5, 0.002)
+TUNE_PARAM(lmrQuietHistDiv, 8192, 4096, 16384, 250, 0.002)
+TUNE_PARAM(lmrNoisyHistDiv, 6144, 4096, 16384, 250, 0.002)
+
+//DO-DEEPER
+TUNE_PARAM(DDFixed, 53, 35, 85, 4, 0.002)
+
+// QS STUFF
+TUNE_PARAM(QSFpFixed, 192, 120, 250, 7, 0.002)
+TUNE_PARAM(QSFpSEE, 1, -1, 100, 5, 0.002)

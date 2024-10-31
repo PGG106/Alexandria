@@ -263,7 +263,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             }
 
             // Keep track of eval stability
-            if (score > averageScore - 10 && score < averageScore + 10) {
+            if (std::abs(score - averageScore) < stabilityFactor()) {
                 evalStabilityFactor = std::min(evalStabilityFactor + 1, 4);
             }
             else {
@@ -319,13 +319,13 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
-    int delta = 12;
+    int delta = aspWinDelta();
     // define initial alpha beta bounds
     int alpha = -MAXSCORE;
     int beta = MAXSCORE;
 
     // only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-    if (depth >= 3) {
+    if (depth >= aspWinDepth()) {
         alpha = std::max(-MAXSCORE, prev_eval - delta);
         beta = std::min(prev_eval + delta, MAXSCORE);
     }
@@ -359,7 +359,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= 1.44;
+        delta *= (aspWinDeltaResize() / 100.0);
     }
     return score;
 }
@@ -506,22 +506,22 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - 91 * (depth - improving - canIIR) >= beta)
-            return eval - 91 * (depth - improving - canIIR);
+            && eval - rfpRed() * (depth - improving - canIIR) >= beta)
+            return eval - rfpRed() * (depth - improving - canIIR);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
             && eval >= beta
-            && ss->staticEval >= beta - 30 * depth + 170
+            && ss->staticEval >= beta - nmpStaticevalRedDepth() * depth + nmpStaticevalRedFixed()
             && (ss - 1)->move != NOMOVE
             && depth >= 3
             && ss->ply >= td->nmpPlies
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
-            const int R = 3 + depth / 3 + std::min((eval - beta) / 200, 3);
+            const int R = 3 + depth / 3 + std::min((eval - beta) / nmpDepthRedRatio(), 3);
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             MakeNullMove(pos);
@@ -552,7 +552,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + 256 * depth < alpha)
+        if (depth <= 5 && eval + rzrDepthMul() * depth < alpha)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
@@ -596,7 +596,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             &&  bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / 8192);
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / lmrDepthHistDiv());
 
             if (!skipQuiets) {
 
@@ -608,7 +608,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
                     && lmrDepth < 11
-                    && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
+                    && ss->staticEval + fpFixed() + fpScale() * lmrDepth <= alpha) {
                     skipQuiets = true;
                 }
             }
@@ -702,11 +702,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-                if(complexity > 50)
+                if(complexity > lmrComplexity())
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 8192;
+                depthReduction -= moveHistory / lmrQuietHistDiv();
             }
             else {
                 // Fuck
@@ -714,7 +714,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction += 2;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 6144;
+                depthReduction -= lmrNoisyHistDiv() / 6144;
             }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
@@ -728,7 +728,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (score > alpha && newDepth > reducedDepth) {
                 // Based on the value returned by our reduced search see if we should search deeper or shallower, 
                 // this is an exact yoink of what SF does and frankly i don't care lmao
-                const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
+                const bool doDeeperSearch = score > (bestScore + DDFixed() + 2 * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth)
@@ -922,8 +922,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck) {
-            const int futilityBase = ss->staticEval + 192;
-            if (futilityBase <= alpha && !SEE(pos, move, 1)) {
+            const int futilityBase = ss->staticEval + QSFpFixed();
+            if (futilityBase <= alpha && !SEE(pos, move, QSFpSEE())) {
                 bestScore = std::max(futilityBase, bestScore);
                 continue;
             }
