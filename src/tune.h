@@ -112,7 +112,6 @@ TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
 // ASP WINDOWS
 TUNE_PARAM(aspWinDelta, 12, 6, 18, 1, 0.002)
-TUNE_PARAM(aspWinDepth, 3, 2, 7, 1, 0.002)
 TUNE_PARAM(aspWinDeltaResize, 144, 112, 151, 3, 0.002)
 
 // RFP
