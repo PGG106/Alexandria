@@ -121,7 +121,6 @@ TUNE_PARAM(rfpRed, 91, 50, 150, 5, 0.002)
 //NMP
 TUNE_PARAM(nmpStaticevalRedDepth, 30, 10, 50, 2, 0.002)
 TUNE_PARAM(nmpStaticevalRedFixed, 170, 100, 250, 8, 0.002)
-TUNE_PARAM(nmpDepthRedFixed, 170, 100, 250, 8, 0.002)
 TUNE_PARAM(nmpDepthRedRatio, 200, 100, 300, 10, 0.002)
 
 // Razoring

@@ -714,7 +714,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction += 2;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= lmrNoisyHistDiv() / 6144;
+                depthReduction -= moveHistory / lmrNoisyHistDiv();
             }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
