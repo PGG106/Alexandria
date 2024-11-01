@@ -325,7 +325,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int beta = MAXSCORE;
 
     // only set up the windows is the search depth is bigger or equal than Aspiration_Depth to avoid using windows when the search isn't accurate enough
-    if (depth >= 3) {
+    if (depth >= 4) {
         alpha = std::max(-MAXSCORE, prev_eval - delta);
         beta = std::min(prev_eval + delta, MAXSCORE);
     }
@@ -359,7 +359,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= 1.44;
+        delta *= 1.35;
     }
     return score;
 }
