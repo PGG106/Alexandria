@@ -6,7 +6,6 @@
 #include "misc.h"
 #include "uci.h"
 #include "attack.h"
-#include "magic.h"
 #include "init.h"
 #include "cuckoo.h"
 

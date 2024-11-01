@@ -8,7 +8,6 @@
 #include "piece_data.h"
 #include "attack.h"
 #include "eval.h"
-#include "magic.h"
 #include "makemove.h"
 #include "misc.h"
 #include "threads.h"

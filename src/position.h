@@ -128,8 +128,6 @@ public:
     }
 };
 
-extern Bitboard SQUARES_BETWEEN_BB[64][64];
-
 // Hold the data from the uci input to set search parameters and some search data to populate the uci output
 struct SearchInfo {
     // search start time

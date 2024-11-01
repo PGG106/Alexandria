@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+using std::array;
 #include "types.h"
 #include "position.h"
 
@@ -76,50 +78,385 @@ constexpr Bitboard bishop_magic_numbers[64] = {
     0x6010220080600502ULL };
 
 // generate pawn attacks
-[[nodiscard]] Bitboard MaskPawnAttacks(int side, int square);
+[[nodiscard]] constexpr Bitboard MaskPawnAttacks(int side, int square) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+    // piece bitboard
+    Bitboard bitboard = 0ULL;
+    // set piece on board
+    set_bit(bitboard, square);
+    // white pawns
+    if (!side) {
+        // generate pawn attacks
+        if ((bitboard >> 7) & not_a_file)
+            attacks |= (bitboard >> 7);
+        if ((bitboard >> 9) & not_h_file)
+            attacks |= (bitboard >> 9);
+    }
+    // black pawns
+    else {
+        // generate pawn attacks
+        if ((bitboard << 7) & not_h_file)
+            attacks |= (bitboard << 7);
+        if ((bitboard << 9) & not_a_file)
+            attacks |= (bitboard << 9);
+    }
+    // return attack map
+    return attacks;
+}
 
 // generate knight attacks
-[[nodiscard]] Bitboard MaskKnightAttacks(int square);
+[[nodiscard]] constexpr Bitboard MaskKnightAttacks(int square) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+    // piece bitboard
+    Bitboard bitboard = 0ULL;
+    // set piece on board
+    set_bit(bitboard, square);
+    // generate knight attacks
+    if ((bitboard >> 17) & not_h_file)
+        attacks |= (bitboard >> 17);
+    if ((bitboard >> 15) & not_a_file)
+        attacks |= (bitboard >> 15);
+    if ((bitboard >> 10) & not_hg_file)
+        attacks |= (bitboard >> 10);
+    if ((bitboard >> 6) & not_ab_file)
+        attacks |= (bitboard >> 6);
+    if ((bitboard << 17) & not_a_file)
+        attacks |= (bitboard << 17);
+    if ((bitboard << 15) & not_h_file)
+        attacks |= (bitboard << 15);
+    if ((bitboard << 10) & not_ab_file)
+        attacks |= (bitboard << 10);
+    if ((bitboard << 6) & not_hg_file)
+        attacks |= (bitboard << 6);
+
+    // return attack map
+    return attacks;
+}
 
 // generate king attacks
-[[nodiscard]] Bitboard MaskKingAttacks(int square);
+[[nodiscard]] constexpr Bitboard MaskKingAttacks(int square) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+
+    // piece bitboard
+    Bitboard bitboard = 0ULL;
+
+    // set piece on board
+    set_bit(bitboard, square);
+
+    // generate king attacks
+    if (bitboard >> 8)
+        attacks |= (bitboard >> 8);
+    if ((bitboard >> 9) & not_h_file)
+        attacks |= (bitboard >> 9);
+    if ((bitboard >> 7) & not_a_file)
+        attacks |= (bitboard >> 7);
+    if ((bitboard >> 1) & not_h_file)
+        attacks |= (bitboard >> 1);
+    if (bitboard << 8)
+        attacks |= (bitboard << 8);
+    if ((bitboard << 9) & not_a_file)
+        attacks |= (bitboard << 9);
+    if ((bitboard << 7) & not_h_file)
+        attacks |= (bitboard << 7);
+    if ((bitboard << 1) & not_a_file)
+        attacks |= (bitboard << 1);
+
+    // return attack map
+    return attacks;
+}
+
 
 // mask bishop attacks
-[[nodiscard]] Bitboard MaskBishopAttacks(int square);
+[[nodiscard]] constexpr Bitboard MaskBishopAttacks(int square) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+
+    // init target rank & files
+    int tr = square / 8;
+    int tf = square % 8;
+
+    // mask relevant bishop occupancy bits
+    for (int r = tr + 1, f = tf + 1; r <= 6 && f <= 6; r++, f++)
+        attacks |= (1ULL << (r * 8 + f));
+    for (int r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++)
+        attacks |= (1ULL << (r * 8 + f));
+    for (int r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--)
+        attacks |= (1ULL << (r * 8 + f));
+    for (int r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
+        attacks |= (1ULL << (r * 8 + f));
+
+    // return attack map
+    return attacks;
+}
+
 
 // mask rook attacks
-[[nodiscard]] Bitboard MaskRookAttacks(int square);
+[[nodiscard]] constexpr Bitboard MaskRookAttacks(int square) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+    // init target rank & files
+    int tr = square / 8;
+    int tf = square % 8;
+    // mask relevant rook occupancy bits
+    for (int r = tr + 1; r <= 6; r++)
+        attacks |= (1ULL << (r * 8 + tf));
+    for (int r = tr - 1; r >= 1; r--)
+        attacks |= (1ULL << (r * 8 + tf));
+    for (int f = tf + 1; f <= 6; f++)
+        attacks |= (1ULL << (tr * 8 + f));
+    for (int f = tf - 1; f >= 1; f--)
+        attacks |= (1ULL << (tr * 8 + f));
+    // return attack map
+    return attacks;
+}
 
 // generate bishop attacks on the fly
-[[nodiscard]] Bitboard BishopAttacksOnTheFly(int square, Bitboard block);
+[[nodiscard]] Bitboard constexpr BishopAttacksOnTheFly(int square, Bitboard block) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+    // init target rank & files
+    int tr = square / 8;
+    int tf = square % 8;
+    // generate bishop atacks
+    for (int r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & block)
+            break;
+    }
+
+    for (int r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & block)
+            break;
+    }
+
+    for (int r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & block)
+            break;
+    }
+
+    for (int r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--) {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & block)
+            break;
+    }
+    // return attack map
+    return attacks;
+}
 
 // generate rook attacks on the fly
-[[nodiscard]] Bitboard RookAttacksOnTheFly(int square, Bitboard block);
+[[nodiscard]] constexpr Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
+    // result attacks bitboard
+    Bitboard attacks = 0ULL;
+    // init target rank & files
+    int tr = square / 8;
+    int tf = square % 8;
+    // generate rook attacks
+    for (int r = tr + 1; r <= 7; r++) {
+        attacks |= (1ULL << (r * 8 + tf));
+        if ((1ULL << (r * 8 + tf)) & block)
+            break;
+    }
 
-// pawn attacks table [side][square]
-extern Bitboard pawn_attacks[2][64];
+    for (int r = tr - 1; r >= 0; r--) {
+        attacks |= (1ULL << (r * 8 + tf));
+        if ((1ULL << (r * 8 + tf)) & block)
+            break;
+    }
 
-// knight attacks table [square]
-extern Bitboard knight_attacks[64];
+    for (int f = tf + 1; f <= 7; f++) {
+        attacks |= (1ULL << (tr * 8 + f));
+        if ((1ULL << (tr * 8 + f)) & block)
+            break;
+    }
 
-// king attacks table [square]
-extern Bitboard king_attacks[64];
-
-// bishop attack masks
-extern Bitboard bishop_masks[64];
-
-// rook attack masks
-extern Bitboard rook_masks[64];
-
-// bishop attacks table [square][occupancies]
-extern Bitboard bishop_attacks[64][512];
-
-// rook attacks rable [square][occupancies]
-extern Bitboard rook_attacks[64][4096];
-
-[[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ);
+    for (int f = tf - 1; f >= 0; f--) {
+        attacks |= (1ULL << (tr * 8 + f));
+        if ((1ULL << (tr * 8 + f)) & block)
+            break;
+    }
+    // return attack map
+    return attacks;
+}
 
 // set occupancies
-[[nodiscard]] Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
+[[nodiscard]] constexpr Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
+    // occupancy map
+    Bitboard occupancy = 0ULL;
+    // loop over the range of bits within attack mask
+    for (int count = 0; count < bits_in_mask; count++) {
+        // get LSB index of attacks mask
+        int square = popLsb(attack_mask);
+        // make sure occupancy is on board
+        if (index & (1 << count))
+            // populate occupancy map
+            occupancy |= (1ULL << square);
+    }
+    // return occupancy map
+    return occupancy;
+}
 
-[[nodiscard]] Bitboard GetPieceTypeNonPawnAttacksToSquare(int piecetype,  int pieceSquare, Bitboard occ);
+// pawn attacks table [side][square]
+constexpr auto pawn_attacks = [](){
+    array<array<Bitboard, 64>, 2> p_atk; 
+    for (int square = 0; square < 64; square++) {
+        p_atk[WHITE][square] = MaskPawnAttacks(WHITE, square);
+        p_atk[BLACK][square] = MaskPawnAttacks(BLACK, square);
+   }
+   return p_atk;
+} ();
+
+// knight attacks table [square]
+constexpr auto knight_attacks = [](){
+    array<Bitboard, 64> n_atks; 
+    for (int square = 0; square < 64; square++) {
+        n_atks[square] = MaskKnightAttacks(square);
+    }
+    return n_atks;
+} ();
+
+// king attacks table [square]
+constexpr auto king_attacks = []() {
+    array<Bitboard, 64> k_atks;
+    for (int square = 0; square < 64; square++) { 
+        k_atks[square] = MaskKingAttacks(square);
+    }
+    return k_atks;
+} ();
+
+// bishop attack masks
+constexpr auto bishop_masks = [](){
+    array<Bitboard, 64> b_masks; 
+    for (int square = 0; square < 64; square++) {
+        b_masks[square] = MaskBishopAttacks(square);
+    }
+    return b_masks;
+} ();
+
+// rook attack masks
+constexpr auto rook_masks = [](){
+    array<Bitboard, 64> r_masks; 
+    for (int square = 0; square < 64; square++) {
+        r_masks[square] = MaskRookAttacks(square);
+    }
+    return r_masks;
+} ();
+
+constexpr auto bishop_attacks = [](){
+    array<array<Bitboard, 512>, 64> b_atks {}; // bishop attacks table [square][pos->occupancies]
+    for (int square = 0; square < 64; square++) {
+
+        // init bishop mask
+        Bitboard bishop_mask = bishop_masks[square];
+
+        // get the relevant occupancy bit count
+        int relevant_bits_count = CountBits(bishop_mask);
+
+        // init occupancy indices
+        int occupancy_indices = 1 << relevant_bits_count;
+
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+                // init current occupancy variation
+                Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
+
+                // init magic index
+                uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> (64 - bishop_relevant_bits);
+
+                // init bishop attacks
+                b_atks[square][magic_index] = BishopAttacksOnTheFly(square, occupancy);
+        }
+    }
+    return b_atks;
+} (); 
+
+constexpr auto rook_attacks = []() {
+    array<array<Bitboard, 4096>, 64> r_attacks {}; // rook attacks table [square][pos->occupancies]
+    for (int square = 0; square < 64; square++) {
+        // init rook mask
+        Bitboard rook_mask = rook_masks[square];
+
+        // init relevant occupancy bit count
+        int relevant_bits_count = CountBits(rook_mask);
+
+        // init occupancy indices
+        int occupancy_indices = 1 << relevant_bits_count;
+
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+            // init current occupancy variation
+            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
+
+            // init magic index
+            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >> (64 - rook_relevant_bits);
+
+            // init rook attacks
+            r_attacks[square][magic_index] = RookAttacksOnTheFly(square, occupancy);
+        }
+    }
+    return r_attacks;
+} ();
+
+// get bishop attacks
+[[nodiscard]] constexpr Bitboard GetBishopAttacks(const int square, Bitboard occupancy) {
+    // get bishop attacks assuming current board occupancy
+    occupancy &= bishop_masks[square];
+    occupancy *= bishop_magic_numbers[square];
+    occupancy >>= 64 - bishop_relevant_bits;
+
+    // return bishop attacks
+    return bishop_attacks[square][occupancy];
+}
+
+// get rook attacks
+[[nodiscard]] constexpr Bitboard GetRookAttacks(const int square, Bitboard occupancy) {
+    // get rook attacks assuming current board occupancy
+    occupancy &= rook_masks[square];
+    occupancy *= rook_magic_numbers[square];
+    occupancy >>= 64 - rook_relevant_bits;
+
+    // return rook attacks
+    return rook_attacks[square][occupancy];
+}
+
+// get queen attacks
+[[nodiscard]] constexpr Bitboard GetQueenAttacks(const int square, Bitboard occupancy) {
+    return GetBishopAttacks(square, occupancy) | GetRookAttacks(square, occupancy);
+}
+
+// retrieves attacks for a generic piece (except pawns and kings because that requires actual work)
+[[nodiscard]] constexpr Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ) {
+    assert(piecetype > PAWN && piecetype < KING);
+    switch (piecetype) {
+        case KNIGHT:
+            return knight_attacks[pieceSquare];
+        case BISHOP:
+            return GetBishopAttacks(pieceSquare, occ);
+        case ROOK:
+            return GetRookAttacks(pieceSquare, occ);
+        case QUEEN:
+            return GetQueenAttacks(pieceSquare, occ);
+        default:
+            __builtin_unreachable();
+    }
+}
+
+[[nodiscard]] constexpr Bitboard GetPieceTypeNonPawnAttacksToSquare(int piecetype,  int pieceSquare, Bitboard occ) {
+    assert(piecetype <= KING);
+    if(piecetype == KNIGHT)
+        return knight_attacks[pieceSquare];
+    if(piecetype == BISHOP)
+        return GetBishopAttacks(pieceSquare, occ);
+    if(piecetype == ROOK)
+        return GetRookAttacks(pieceSquare, occ);
+    if(piecetype == QUEEN)
+        return GetQueenAttacks(pieceSquare, occ);
+    if(piecetype == KING)
+        return king_attacks[pieceSquare];
+
+    __builtin_unreachable();
+}
