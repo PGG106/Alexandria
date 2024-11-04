@@ -11,6 +11,8 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #include <sys/mman.h>
 #define USE_MADVISE
+#elif defined(__APPLE__)
+#define USE_POSIX_MEMALIGN
 #else
 #include <stdlib.h>
 #endif
@@ -20,13 +22,17 @@ TTable TT;
 void* AlignedMalloc(size_t size, size_t alignment) {
     #if defined(USE_MADVISE)
     return aligned_alloc(alignment, size);
+    #elif defined(USE_POSIX_MEMALIGN)
+    void* mem = nullptr;
+    posix_memalign(&mem, alignment, size);
+    return mem;
     #else
     return _aligned_malloc(size, alignment);
     #endif
 }
 
 void AlignedFree(void *src) {
-    #if defined(USE_MADVISE)
+    #if defined(USE_MADVISE) || defined(USE_POSIX_MEMALIGN)
     free(src);
     #else
     _aligned_free(src);
