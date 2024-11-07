@@ -499,7 +499,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return true;
     }();
 
-    if (!pvNode
+    if (!ttPv
         && !excludedMove
         && !inCheck) {
         // Reverse futility pruning
