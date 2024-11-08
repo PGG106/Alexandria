@@ -892,13 +892,15 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     else {
         rawEval = EvalPosition(pos);
         bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
-        // Save the eval into the TT
-        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Stand pat
-    if (bestScore >= beta)
+    if (bestScore >= beta) {
+        if(!ttHit)
+            // Save the eval into the TT
+            StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFLOWER, 0, pvNode, ttPv);
         return bestScore;
+    }
 
     // Adjust alpha based on eval
     alpha = std::max(alpha, bestScore);
