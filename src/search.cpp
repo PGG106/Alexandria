@@ -500,8 +500,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }();
 
     // Reverse futility pruning
-    if (   !ttPv
-           && !excludedMove
+    if (   !pvNode
            && !inCheck
            && depth < 10
            && abs(eval) < MATE_FOUND
