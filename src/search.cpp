@@ -560,8 +560,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
     }
 
-    const int pcBeta = beta + 300 - 50 * improving;
-    if (  !pvNode
+    const int pcBeta = beta + 300;
+    if (   !pvNode
+        && !excludedMove
         && depth > 4
         && abs(beta) < MATE_FOUND
         && (ttMove == NOMOVE || isTactical(ttMove))
@@ -574,9 +575,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         while ((move = NextMove(&mp, true)) != NOMOVE) {
 
             if (!IsLegal(pos, move))
-                continue;
-
-            if (move == excludedMove)
                 continue;
 
             // Speculative prefetch of the TT entry
