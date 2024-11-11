@@ -558,42 +558,46 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (razorScore <= alpha)
                 return razorScore;
         }
+    }
 
-        int pcBeta = beta + 300;
-        if (   depth > 4
-               && abs(beta) < MATE_FOUND
-               && (ttMove == NOMOVE || isTactical(ttMove))
-               && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
-               && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
-        {
-            Movepicker mp;
-            int move;
-            InitMP(&mp, pos, sd, ss, NOMOVE, 1,PROBCUT, rootNode);
-            while ((move = NextMove(&mp, true)) != NOMOVE) {
+    const int pcBeta = beta + 300;
+    if (  !pvNode
+        && depth > 4
+        && abs(beta) < MATE_FOUND
+        && (ttMove == NOMOVE || isTactical(ttMove))
+        && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
+        && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
+    {
+        Movepicker mp;
+        Move move;
+        InitMP(&mp, pos, sd, ss, NOMOVE, 1,PROBCUT, rootNode);
+        while ((move = NextMove(&mp, true)) != NOMOVE) {
 
-                if (!IsLegal(pos, move))
-                    continue;
+            if (!IsLegal(pos, move))
+                continue;
 
-                // Speculative prefetch of the TT entry
-                TTPrefetch(keyAfter(pos, move));
-                ss->move = move;
+            if (move == excludedMove)
+                continue;
 
-                // increment nodes count
-                info->nodes++;
+            // Speculative prefetch of the TT entry
+            TTPrefetch(keyAfter(pos, move));
+            ss->move = move;
 
-                // Play the move
-                MakeMove<true>(move, pos);
+            // increment nodes count
+            info->nodes++;
 
-                int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, td, ss + 1);
-                if (pcScore >= pcBeta)
-                    pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1, !cutNode, td, ss + 1);
+            // Play the move
+            MakeMove<true>(move, pos);
 
-                // Take move back
-                UnmakeMove(move, pos);
+            int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, td, ss + 1);
+            if (pcScore >= pcBeta)
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1, !cutNode, td, ss + 1);
 
-                if (pcScore >= pcBeta) {
-                    return pcScore;
-                }
+            // Take move back
+            UnmakeMove(move, pos);
+
+            if (pcScore >= pcBeta) {
+                return pcScore;
             }
         }
     }
