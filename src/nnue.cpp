@@ -251,7 +251,7 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     for (int square = 0; square < 64; square++) {
         const bool input = pos->pieces[square] != EMPTY;
         if (!input) continue;
-        const auto Idx = GetIndex(pos->pieces[square], square, kingSq, flip);
+        const auto Idx = GetIndex(pos->PieceOn(square), square, kingSq, flip);
         const auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
