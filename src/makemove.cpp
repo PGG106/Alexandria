@@ -342,9 +342,11 @@ void MakeMove(const Move move, Position* pos) {
     // Figure out if we need to refresh the accumulator
     if constexpr (UPDATE) {
         if (PieceType[Piece(move)] == KING) {
-            if (shouldFlip(From(move), To(move)) || getBucket(From(move)) != getBucket(To(move))) {
+            auto kingColor = Color[Piece(move)];
+            const auto startBucket = kingColor == WHITE ? (getBucket(From(move) ^ 56)) : (getBucket(From(move)));
+            const auto endBucket = kingColor == WHITE ? (getBucket(To(move) ^ 56)) : (getBucket(To(move)));
+            if (shouldFlip(From(move), To(move)) || startBucket != endBucket) {
                 // tell the right accumulator it'll need a refresh
-                auto kingColor = Color[Piece(move)];
                 pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
             }
         }
