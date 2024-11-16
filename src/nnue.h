@@ -17,20 +17,18 @@ constexpr int FT_QUANT = 362;
 constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
 
-constexpr int buckets[32] = {
-        0, 0, 1, 1,
-        2, 2, 2, 2,
-        3, 3, 3, 3,
-        3, 3, 3, 3,
-        3, 3, 3, 3,
-        3, 3, 3, 3,
-        3, 3, 3, 3,
-        3, 3, 3, 3,
+constexpr int buckets[64] = {
+        0, 0, 1, 1, 1, 1, 0, 0,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3
 };
 
 [[nodiscard]] int getBucket(int kingSquare){
-    const bool flip = get_file[kingSquare] > 3;
-    if (flip) kingSquare ^= 56;
    return buckets[kingSquare];
 }
 
