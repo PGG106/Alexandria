@@ -268,7 +268,8 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
-    const int bucket = getBucket(kingSq);
+    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
+    const int bucket = getBucket(finalKingSq);
     std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }
