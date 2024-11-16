@@ -245,6 +245,7 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
        values[i] = net.FTBiases[i];
     }
 
+    const auto kingSq = KingSQ(pos, pov);
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
 
     for (int square = 0; square < 64; square++) {
@@ -258,7 +259,7 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 }
 
-int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq , bool flip) const {
+int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq, bool flip) const {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
