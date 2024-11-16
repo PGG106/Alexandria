@@ -28,6 +28,12 @@ constexpr int buckets[32] = {
         3, 3, 3, 3,
 };
 
+[[nodiscard]] int getBucket(int kingSquare){
+    const bool flip = get_file[kingSquare] > 3;
+    if (flip) kingSquare ^= 56;
+   return buckets[kingSquare];
+}
+
 #if defined(USE_SIMD)
 constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
 #else
@@ -57,7 +63,7 @@ public:
             bool needsRefresh = false;
 
             void accumulate(Position *pos);
-            [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
+            [[nodiscard]] int GetIndex(const int piece, const int square,const int kingSq , bool flip) const;
             void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
             void applyUpdate(Pov_Accumulator& previousPovAccumulator);
@@ -77,18 +83,18 @@ public:
 
         std::array<Pov_Accumulator, 2> perspective;
 
-        void AppendAddIndex(int piece, int square, std::array<bool, 2> flip) {
+        void AppendAddIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
             assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
-            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
-            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece, square,wkSq, flip[WHITE]));
+            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
         }
 
-        void AppendSubIndex(int piece, int square, std::array<bool, 2> flip) {
+        void AppendSubIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUESub.size() <= 1);
             assert(this->perspective[BLACK].NNUESub.size() <= 1);
-            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
-            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece, square, wkSq, flip[WHITE]));
+            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
         }
 
         void ClearAddIndex() {

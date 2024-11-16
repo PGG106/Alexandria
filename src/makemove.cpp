@@ -19,7 +19,9 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     // Do this first because if we happened to have moved the king we first need to get1lsb the king bitboard before removing it
     if constexpr(UPDATE){
         std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
-        pos->AccumulatorTop().AppendSubIndex(piece, from, flip);
+        auto wkSq = KingSQ(pos, WHITE);
+        auto bkSq = KingSQ(pos, BLACK);
+        pos->AccumulatorTop().AppendSubIndex(piece, from, wkSq, bkSq, flip);
     }
     const int color = Color[piece];
     pop_bit(pos->bitboards[piece], from);
@@ -55,7 +57,9 @@ void AddPiece(const int piece, const int to, Position* pos) {
     // Do this last because if we happened to have moved the king we first need to re-add to the piece bitboards least we get1lsb an empty bitboard
     if constexpr(UPDATE){
         std::array<bool, 2> flip({get_file[KingSQ(pos, WHITE)] > 3, get_file[KingSQ(pos, BLACK)] > 3});
-        pos->AccumulatorTop().AppendAddIndex(piece, to, flip);
+        auto wkSq = KingSQ(pos, WHITE);
+        auto bkSq = KingSQ(pos, BLACK);
+        pos->AccumulatorTop().AppendAddIndex(piece, to, wkSq, bkSq, flip);
     }
 }
 
@@ -338,12 +342,11 @@ void MakeMove(const Move move, Position* pos) {
     // Figure out if we need to refresh the accumulator
     if constexpr (UPDATE) {
         if (PieceType[Piece(move)] == KING) {
-            if (shouldFlip(From(move), To(move))) {
+            if (shouldFlip(From(move), To(move)) || getBucket(From(move)) != getBucket(To(move))) {
                 // tell the right accumulator it'll need a refresh
                 auto kingColor = Color[Piece(move)];
                 pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
             }
-        }
     }
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating

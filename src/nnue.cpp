@@ -245,12 +245,13 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
        values[i] = net.FTBiases[i];
     }
 
-    const bool flip = get_file[KingSQ(pos, pov)] > 3;
+    int kingSq = KingSQ(pos, pov);
+    const bool flip = get_file[kingSq] > 3;
 
     for (int square = 0; square < 64; square++) {
         const bool input = pos->pieces[square] != EMPTY;
         if (!input) continue;
-        const auto Idx = GetIndex(pos->pieces[square], square, flip);
+        const auto Idx = GetIndex(pos->pieces[square], square, kingSq, flip);
         const auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
@@ -258,7 +259,7 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 }
 
-int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip) const {
+int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq , bool flip) const {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
@@ -267,6 +268,7 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
-    std::size_t Idx = pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    const int bucket = getBucket(kingSq);
+    std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }
