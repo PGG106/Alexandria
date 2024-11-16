@@ -264,7 +264,7 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
     const int pieceColor = Color[piece];
-    auto pieceColorPov = pov == WHITE ? pieceColor : (1 ^ pieceColor);
+    auto pieceColorPov = pov == WHITE ? pieceColor : (pieceColor ^ 1);
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
