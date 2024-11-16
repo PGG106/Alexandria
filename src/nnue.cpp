@@ -56,7 +56,7 @@ void NNUE::init(const char *file) {
         // if we don't find the nnue file we use the net embedded in the exe
         uint64_t memoryIndex = 0;
         std::memcpy(net.FTWeights, &gEVALData[memoryIndex], INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t));
-        memoryIndex += NUM_INPUTS * L1_SIZE * sizeof(int16_t);
+        memoryIndex += INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t);
         std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
         memoryIndex += L1_SIZE * sizeof(int16_t);
 
