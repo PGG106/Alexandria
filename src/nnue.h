@@ -17,6 +17,17 @@ constexpr int FT_QUANT = 362;
 constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
 
+constexpr int buckets[32] = {
+        0, 0, 1, 1,
+        2, 2, 2, 2,
+        3, 3, 3, 3,
+        3, 3, 3, 3,
+        3, 3, 3, 3,
+        3, 3, 3, 3,
+        3, 3, 3, 3,
+        3, 3, 3, 3,
+};
+
 #if defined(USE_SIMD)
 constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
 #else
