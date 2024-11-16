@@ -39,7 +39,7 @@ void NNUE::init(const char *file) {
         const size_t fileSize = sizeof(Network);
         const size_t objectsExpected = fileSize / sizeof(int16_t);
 
-        read += fread(net.FTWeights, sizeof(int16_t), NUM_INPUTS * L1_SIZE, nn);
+        read += fread(net.FTWeights, sizeof(int16_t), INPUT_BUCKETS * NUM_INPUTS * L1_SIZE, nn);
         read += fread(net.FTBiases, sizeof(int16_t), L1_SIZE, nn);
         read += fread(net.L1Weights, sizeof(int16_t), L1_SIZE * 2 * OUTPUT_BUCKETS, nn);
         read += fread(net.L1Biases, sizeof(int16_t), OUTPUT_BUCKETS, nn);
@@ -55,7 +55,7 @@ void NNUE::init(const char *file) {
     } else {
         // if we don't find the nnue file we use the net embedded in the exe
         uint64_t memoryIndex = 0;
-        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], NUM_INPUTS * L1_SIZE * sizeof(int16_t));
+        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t));
         memoryIndex += NUM_INPUTS * L1_SIZE * sizeof(int16_t);
         std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
         memoryIndex += L1_SIZE * sizeof(int16_t);

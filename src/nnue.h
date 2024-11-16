@@ -7,13 +7,14 @@
 #include "simd.h"
 #include "types.h"
 
-// Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
+// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
+constexpr int INPUT_BUCKETS = 4;
 constexpr int L1_SIZE = 2048;
 constexpr int OUTPUT_BUCKETS = 8;
 
-constexpr int FT_QUANT  = 362;
-constexpr int L1_QUANT  = 64;
+constexpr int FT_QUANT = 362;
+constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
 
 #if defined(USE_SIMD)
@@ -25,10 +26,10 @@ constexpr int CHUNK_SIZE = 1;
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
-    int16_t FTWeights[NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases [L1_SIZE];
+    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t FTBiases[L1_SIZE];
     int16_t L1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
-    int16_t L1Biases [OUTPUT_BUCKETS];
+    int16_t L1Biases[OUTPUT_BUCKETS];
 };
 
 extern Network net;
