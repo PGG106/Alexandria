@@ -28,7 +28,7 @@ constexpr int buckets[64] = {
         3, 3, 3, 3, 3, 3, 3, 3
 };
 
-[[nodiscard]] int getBucket(int kingSquare){
+[[nodiscard]] inline int getBucket(int kingSquare){
    return buckets[kingSquare];
 }
 

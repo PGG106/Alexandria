@@ -347,6 +347,7 @@ void MakeMove(const Move move, Position* pos) {
                 auto kingColor = Color[Piece(move)];
                 pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
             }
+        }
     }
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
