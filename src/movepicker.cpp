@@ -157,7 +157,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case PICK_BAD_NOISY:
         while (mp->idx < mp->badCaptureList.count) {
-            partialInsertionSort(&mp->badCaptureList, mp->idx);
             const Move move = mp->badCaptureList.moves[mp->idx].move;
             ++mp->idx;
             if (move == mp->ttMove)
