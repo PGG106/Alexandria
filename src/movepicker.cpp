@@ -95,7 +95,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case PICK_GOOD_NOISY:
         while (mp->idx < mp->moveList.count) {
-            partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
             const int SEEThreshold = -score / 32 + 236;
