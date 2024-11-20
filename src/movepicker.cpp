@@ -95,6 +95,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case PICK_GOOD_NOISY:
         while (mp->idx < mp->moveList.count) {
+            partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
             const int SEEThreshold = -score / 32 + 236;
@@ -156,7 +157,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case PICK_BAD_NOISY:
         while (mp->idx < mp->badCaptureList.count) {
-            partialInsertionSort(&mp->badCaptureList, mp->idx);
             const Move move = mp->badCaptureList.moves[mp->idx].move;
             ++mp->idx;
             if (move == mp->ttMove)
