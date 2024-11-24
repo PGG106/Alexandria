@@ -99,6 +99,8 @@ void ParseFen(const std::string& command, Position* pos) {
 
     ResetBoard(pos);
 
+    pos->played_positions.clear();
+
     std::vector<std::string> tokens = split_command(command);
 
     const std::string pos_string = tokens.at(0);
