@@ -48,7 +48,7 @@ public:
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
     // stores the state of the board  rollback purposes
-    int historyStackHead = 0;
+    size_t historyStackHead = 0;
     BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
