@@ -40,7 +40,7 @@ static bool IsRepetition(const Position* pos) {
                 return true;
         }
     return false;
-}
+}//bench
 
 // Returns true if the position is a draw via the 50mr rule
 static bool Is50MrDraw(Position* pos) {
