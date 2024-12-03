@@ -26,7 +26,7 @@ static bool IsRepetition(const Position* pos) {
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
     // Get the point our search should start from
-    int startingPoint = pos->played_positions.size();
+    int startingPoint = pos->played_positions.size() - 1;
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
