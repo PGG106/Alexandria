@@ -21,24 +21,6 @@
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const Position* pos) {
-    assert(pos->hisPly >= pos->get50MrCounter());
-    int counter = 0;
-    // Get the point our search should start from
-    int startingPoint = pos->played_positions.size();
-    // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
-    for (size_t index = 0; index <= pos->played_positions.size(); index += 2)
-        // if we found the same position hashkey as the current position
-        if (pos->played_positions[index] == pos->posKey) {
-
-            // we found a 2-fold repetition within the search tree
-            if (index < pos->historyStackHead)
-                return true;
-
-            counter++;
-            // we found a 3-fold repetition which occurred in part before or at root
-            if (counter >= 2)
-                return true;
-        }
     return false;
 }//bench
 
