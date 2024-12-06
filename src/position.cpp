@@ -239,6 +239,9 @@ void ParseFen(const std::string& command, Position* pos) {
     // Update nnue accumulator to reflect board state
     nnue.accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
+
+    // Clear vector of played positions
+    pos->played_positions.clear();
 }
 
 std::string GetFen(const Position* pos) {
