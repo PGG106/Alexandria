@@ -74,8 +74,6 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
     if (genQuiet) {
         Bitboard push = NORTH(ourPawns, color) & freeSquares & ~0xFF000000000000FFULL;
         Bitboard doublePush = NORTH(push, color) & freeSquares & rank4BB;
-        push &= pos->getCheckmask();
-        doublePush &= pos->getCheckmask();
         while (push) {
             const int to = popLsb(push);
             AddMove(encode_move(to - north, to, pawnType, Movetype::Quiet), list);
@@ -88,7 +86,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
 
     if (genNoisy) {
         // Push promotions
-        Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL & pos->getCheckmask();
+        Bitboard pushPromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL;
         while (pushPromo) {
             const int to = popLsb(pushPromo);
             AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
@@ -98,8 +96,8 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
         }
 
         // Captures and capture-promotions
-        Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy & pos->getCheckmask();
-        Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy & pos->getCheckmask();
+        Bitboard captBB1 = (NORTH(ourPawns, color) >> 1) & ~0x8080808080808080ULL & enemy;
+        Bitboard captBB2 = (NORTH(ourPawns, color) << 1) & ~0x101010101010101ULL & enemy;
         while (captBB1) {
             const int to = popLsb(captBB1);
             const int from = to - north + 1;
@@ -156,7 +154,7 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
 
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & moveMask & pos->getCheckmask();
+        Bitboard possible_moves = knight_attacks[from] & moveMask;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -185,7 +183,7 @@ static inline void PseudoLegalSlidersMoves(Position *pos, int color, MoveList *l
         while (pieces) {
             const int from = popLsb(pieces);
             Bitboard possible_moves =
-                    pieceAttacks(piecetype, from, boardOccupancy) & moveMask & pos->getCheckmask();
+                    pieceAttacks(piecetype, from, boardOccupancy) & moveMask;
             while (possible_moves) {
                 const int to = popLsb(possible_moves);
                 const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -297,7 +295,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
     if (isCastle(move) && pieceType != KING)
         return false;
 
-    if ((CountBits(pos->getCheckers()) >= 2) && pieceType != KING)
+    if (CountBits(pos->getCheckers()) >= 2 && pieceType != KING)
         return false;
 
     const int NORTH = pos->side == WHITE ? -8 : 8;
