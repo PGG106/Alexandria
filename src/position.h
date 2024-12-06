@@ -29,7 +29,6 @@ struct BoardState {
     int fiftyMove = 0;
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
-    Bitboard checkMask = fullCheckmask;
     Bitboard pinned;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
@@ -109,10 +108,6 @@ public:
 
     [[nodiscard]] inline Bitboard getCheckers() const {
         return state.checkers;
-    }
-
-    [[nodiscard]] inline Bitboard getCheckmask() const {
-        return state.checkMask;
     }
 
     [[nodiscard]] inline Bitboard getPinnedMask() const {
