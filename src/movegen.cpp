@@ -458,7 +458,7 @@ bool IsLegal(Position* pos, Move move) {
         return !pos->getCheckers() && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
     else if (pos->getCheckers()) {
-        return (1ULL << to) & (pos->getCheckers() | RayBetween(GetLsbIndex(pos->getCheckers), ksq));
+        return (1ULL << to) & (pos->getCheckers() | RayBetween(GetLsbIndex(pos->getCheckers()), ksq));
     }
     else
         return true;
