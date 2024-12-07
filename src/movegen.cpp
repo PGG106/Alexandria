@@ -295,7 +295,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
     if (isCastle(move) && pieceType != KING)
         return false;
 
-    if (CountBits(pos->getCheckers()) >= 2 && pieceType != KING)
+    if (pieceType != KING && CountBits(pos->getCheckers()) >= 2)
         return false;
 
     const int NORTH = pos->side == WHITE ? -8 : 8;
