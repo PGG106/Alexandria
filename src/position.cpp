@@ -227,15 +227,6 @@ void ParseFen(const std::string& command, Position* pos) {
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
 
-    // If we are in check get the squares between the checking piece and the king
-    if (pos->getCheckers()) {
-        const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->getCheckers());
-        pos->state.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
-    }
-    else
-        pos->state.checkMask = fullCheckmask;
-
     // Update nnue accumulator to reflect board state
     nnue.accumulate(pos->accumStack[0], pos);
     pos->accumStackHead = 1;

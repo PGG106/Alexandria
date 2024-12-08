@@ -326,14 +326,6 @@ void MakeMove(const Move move, Position* pos) {
     HashKey(pos->posKey, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
-    // If we are in check get the squares between the checking piece and the king
-    if (pos->getCheckers()) {
-        const int kingSquare = KingSQ(pos, pos->side);
-        const int pieceLocation = GetLsbIndex(pos->getCheckers());
-        pos->state.checkMask = (1ULL << pieceLocation) | RayBetween(pieceLocation, kingSquare);
-    }
-    else
-        pos->state.checkMask = fullCheckmask;
 
     // Figure out if we need to refresh the accumulator
     if constexpr (UPDATE) {
