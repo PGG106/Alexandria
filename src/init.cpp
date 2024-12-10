@@ -15,9 +15,6 @@
 #include <windows.h>
 #endif
 
-Bitboard FileBBMask[8];
-Bitboard RankBBMask[8];
-
 // pawn attacks table [side][square]
 Bitboard pawn_attacks[2][64];
 
