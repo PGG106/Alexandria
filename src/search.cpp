@@ -800,8 +800,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // take move back
         UnmakeMove(move, pos);
-        if (   td->id == 0
-            && rootNode)
+        if (mainT && rootNode)
             nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
         if (info->stopped)

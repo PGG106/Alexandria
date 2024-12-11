@@ -33,7 +33,7 @@ struct PvTable {
     Move pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 };
 
-// These 2 tables need to be cleaned after each search we just initialize (and subsequently clean them) elsewhere
+// These 2 tables need to be cleaned after each search. We initialize (and subsequently clean them) elsewhere
 inline PvTable pvTable;
 inline uint64_t nodeSpentTable[64 * 64];
 
@@ -42,7 +42,7 @@ struct ThreadData {
     int id = 0;
     Position pos;
     SearchData sd;
-        SearchInfo info;
+    SearchInfo info;
     int RootDepth;
     int nmpPlies;
 };
