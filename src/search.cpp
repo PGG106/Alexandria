@@ -755,7 +755,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         UnmakeMove(move, pos);
         if (   td->id == 0
             && rootNode)
-            td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
+            nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
         if (info->stopped)
             return 0;
