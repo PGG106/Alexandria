@@ -4,7 +4,7 @@
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
-#define NAME "Alexandria-7.1.1"
+#define NAME "Alexandria-7.1.2"
 
 inline int reductions[2][64][64];
 inline int lmp_margin[64][2];
@@ -28,7 +28,6 @@ constexpr int MATE_SCORE = 32000;
 constexpr int MATE_FOUND = MATE_SCORE - MAXPLY;
 constexpr int SCORE_NONE = 32001;
 constexpr int MAXSCORE = 32670;
-constexpr Bitboard fullCheckmask = 0xFFFFFFFFFFFFFFFF;
 
 // board squares
 enum {
