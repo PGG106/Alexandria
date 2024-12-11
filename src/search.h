@@ -33,16 +33,15 @@ struct PvTable {
     Move pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 };
 
-// These 2 tables need to be cleaned after each search we just initialize (and subsequently clean them) elsewhere
-inline PvTable pvTable;
-inline uint64_t nodeSpentTable[64 * 64];
-
 // a collection of all the data a thread needs to conduct a search
 struct ThreadData {
     int id = 0;
     Position pos;
     SearchData sd;
-        SearchInfo info;
+    SearchInfo info;
+    // Since this 2 tables need to be cleaned after each search we just initialize (and subsequently clean them) elsewhere
+    PvTable pvTable;
+    uint64_t nodeSpentTable[64 * 64];
     int RootDepth;
     int nmpPlies;
 };
@@ -68,7 +67,7 @@ template <bool pvNode>
 [[nodiscard]] int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss);
 
 // Gets best move from PV table
-[[nodiscard]] Move GetBestMove();
+[[nodiscard]] Move GetBestMove(const PvTable* pvTable);
 
 // inspired by the Weiss engine
 [[nodiscard]] bool SEE(const Position* pos, const int move, const int threshold);
