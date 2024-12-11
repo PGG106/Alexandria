@@ -563,6 +563,53 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
     }
 
+    const int pcBeta = beta + 300 - 50 * improving;
+    if (  !pvNode
+        && depth > 4
+        && abs(beta) < MATE_FOUND
+        && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
+        && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
+    {
+        Movepicker mp;
+        Move move;
+        InitMP(&mp, pos, sd, ss, NOMOVE, pcBeta - ss->staticEval, PROBCUT, rootNode);
+        while ((move = NextMove(&mp, true)) != NOMOVE) {
+
+            if (!IsLegal(pos, move))
+                continue;
+
+            if (move == excludedMove)
+                continue;
+
+            // Speculative prefetch of the TT entry
+            TTPrefetch(keyAfter(pos, move));
+
+            ss->move = move;
+            ss->contHistEntry = &sd->contHist[PieceTo(move)];
+
+            // increment nodes count
+            info->nodes++;
+
+            // Play the move
+            MakeMove<true>(move, pos);
+
+            int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, td, ss + 1);
+            if (pcScore >= pcBeta)
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
+                                          !cutNode, td, ss + 1);
+
+            // Take move back
+            UnmakeMove(move, pos);
+
+            if (pcScore >= pcBeta) {
+                StoreTTEntry(pos->posKey, MoveToTT(move),
+                             ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
+                             depth - 3, pvNode, ttPv);
+                return pcScore;
+            }
+        }
+    }
+
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
@@ -579,7 +626,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     bool skipQuiets = false;
 
     Movepicker mp;
-    InitMP(&mp, pos, sd, ss, ttMove, SEARCH, rootNode);
+    InitMP(&mp, pos, sd, ss, ttMove, SCORE_NONE,SEARCH, rootNode);
 
     // Keep track of the played quiet and noisy moves
     MoveList quietMoves, noisyMoves;
@@ -908,7 +955,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
-    InitMP(&mp, pos, sd, ss, ttMove, QSEARCH, false);
+    InitMP(&mp, pos, sd, ss, ttMove, SCORE_NONE,QSEARCH, false);
 
     Move bestmove = NOMOVE;
     Move move;
