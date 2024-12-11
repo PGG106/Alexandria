@@ -90,7 +90,7 @@ void ClearForSearch(ThreadData* td) {
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
         // Clean the Pv array
-        std::memset(td->pvTable, 0, sizeof(td->pvTable));
+        std::memset(&td->pvTable, 0, sizeof(td->pvTable));
         // Clean the node table
         std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
 
