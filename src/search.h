@@ -42,7 +42,7 @@ struct ThreadData {
     int id = 0;
     Position pos;
     SearchData sd;
-        SearchInfo info;
+    SearchInfo info;
     int RootDepth;
     int nmpPlies;
 };
