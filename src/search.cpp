@@ -197,7 +197,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
 }
 
 Move GetBestMove() {
-    return pvTable->pvArray[0][0];
+    return pvTable.pvArray[0][0];
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -387,7 +387,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
     if (mainT)
-        pvTable->pvLength[ss->ply] = ss->ply;
+        pvTable.pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
     if (ss->ply > info->seldepth)
@@ -771,11 +771,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 if (pvNode && mainT) {
                     // Update the pv table
-                    pvTable->pvArray[ss->ply][ss->ply] = move;
-                    for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
-                        pvTable->pvArray[ss->ply][nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
+                    pvTable.pvArray[ss->ply][ss->ply] = move;
+                    for (int nextPly = ss->ply + 1; nextPly < pvTable.pvLength[ss->ply + 1]; nextPly++) {
+                        pvTable.pvArray[ss->ply][nextPly] = pvTable.pvArray[ss->ply + 1][nextPly];
                     }
-                    pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
+                    pvTable.pvLength[ss->ply] = pvTable.pvLength[ss->ply + 1];
                 }
 
                 if (score >= beta) {
