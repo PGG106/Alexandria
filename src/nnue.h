@@ -9,7 +9,7 @@
 
 // Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
-constexpr int INPUT_BUCKETS = 4;
+constexpr int INPUT_BUCKETS = 16;
 constexpr int L1_SIZE = 1536;
 constexpr int OUTPUT_BUCKETS = 8;
 
@@ -18,14 +18,14 @@ constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
 
 constexpr int buckets[64] = {
-        0, 0, 1, 1, 1, 1, 0, 0,
-        2, 2, 2, 2, 2, 2, 2, 2,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3
+        0,  1,  2,  3, 3, 2, 1, 0,
+        4,  5,  6,  7,7,6,5,4,
+        8,  9, 10, 11,11,10,9,8,
+        8,  9, 10, 11,11,10,9,8,
+        12, 12, 13, 13,13,13,12,12,
+        12, 12, 13, 13,13,13,12,12,
+        14, 14, 15, 15,15,15,14,14,
+        14, 14, 15, 15,15,15,14,14
 };
 
 [[nodiscard]] inline int getBucket(int kingSquare){
