@@ -45,7 +45,6 @@ struct ThreadData {
     SearchInfo info;
     int RootDepth;
     int nmpPlies;
-    FinnyTable FTable;
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state
