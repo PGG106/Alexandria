@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include "incbin/incbin.h"
+#include "io.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
@@ -125,8 +126,9 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     //this->accumulate(pos);
     // probe the finny table for a cached state
     const auto kingSq = KingSQ(pos, pov);
+    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
-    const int kingBucket = buckets[kingSq];
+    const int kingBucket = buckets[finalKingSq];
     FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
     this->values = cachedEntry->accumCache.perspective[pov].values;
 
