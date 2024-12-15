@@ -126,9 +126,8 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     //this->accumulate(pos);
     // probe the finny table for a cached state
     const auto kingSq = KingSQ(pos, pov);
-    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
-    const int kingBucket = buckets[finalKingSq];
+    const int kingBucket = getBucket(kingSq, pov);
     FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
     this->values = cachedEntry->accumCache.perspective[pov].values;
 
@@ -307,8 +306,7 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
-    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
-    const int bucket = getBucket(finalKingSq);
+    const int bucket = getBucket(kingSq, pov);
     std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }

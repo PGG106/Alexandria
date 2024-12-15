@@ -28,8 +28,9 @@ constexpr int buckets[64] = {
         14, 14, 15, 15, 15, 15, 14, 14
 };
 
-[[nodiscard]] inline int getBucket(int kingSquare){
-   return buckets[kingSquare];
+[[nodiscard]] inline int getBucket(int kingSquare, int side){
+   const auto finalKingSq= side == WHITE ? (kingSquare ^ 56) : (kingSquare);
+   return buckets[finalKingSq];
 }
 
 #if defined(USE_SIMD)
