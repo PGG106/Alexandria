@@ -57,11 +57,11 @@ jobs:
 
       - name: make
         if: runner.os == 'Linux'
-        run: make build=debug
+        run: make build=debug EVALFILE=1536x16.net -j
 
       - name: make build windows
         if: runner.os == 'Windows'
-        run: make build=release
+        run: make build=release EVALFILE=1536x16.net -j
 
       - name: Bench
         run: |
