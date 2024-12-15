@@ -39,7 +39,7 @@ void NNUE::init(const char *file) {
         const size_t fileSize = sizeof(Network);
         const size_t objectsExpected = fileSize / sizeof(int16_t);
 
-        read += fread(net.FTWeights, sizeof(int16_t), NUM_INPUTS * L1_SIZE, nn);
+        read += fread(net.FTWeights, sizeof(int16_t), INPUT_BUCKETS * NUM_INPUTS * L1_SIZE, nn);
         read += fread(net.FTBiases, sizeof(int16_t), L1_SIZE, nn);
         read += fread(net.L1Weights, sizeof(int16_t), L1_SIZE * 2 * OUTPUT_BUCKETS, nn);
         read += fread(net.L1Biases, sizeof(int16_t), OUTPUT_BUCKETS, nn);
@@ -55,8 +55,8 @@ void NNUE::init(const char *file) {
     } else {
         // if we don't find the nnue file we use the net embedded in the exe
         uint64_t memoryIndex = 0;
-        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], NUM_INPUTS * L1_SIZE * sizeof(int16_t));
-        memoryIndex += NUM_INPUTS * L1_SIZE * sizeof(int16_t);
+        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t));
+        memoryIndex += INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t);
         std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
         memoryIndex += L1_SIZE * sizeof(int16_t);
 
@@ -245,12 +245,13 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
        values[i] = net.FTBiases[i];
     }
 
+    const auto kingSq = KingSQ(pos, pov);
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
 
     for (int square = 0; square < 64; square++) {
         const bool input = pos->pieces[square] != EMPTY;
         if (!input) continue;
-        const auto Idx = GetIndex(pos->pieces[square], square, flip);
+        const auto Idx = GetIndex(pos->PieceOn(square), square, kingSq, flip);
         const auto Add = &net.FTWeights[Idx * L1_SIZE];
         for (int j = 0; j < L1_SIZE; j++) {
             values[j] += Add[j];
@@ -258,15 +259,17 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
     }
 }
 
-int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, bool flip) const {
+int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq, bool flip) const {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
     const int pieceColor = Color[piece];
-    auto pieceColorPov = pov == WHITE ? pieceColor : (1 ^ pieceColor);
+    auto pieceColorPov = pov == WHITE ? pieceColor : (pieceColor ^ 1);
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
-    std::size_t Idx = pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
+    const int bucket = getBucket(finalKingSq);
+    std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }

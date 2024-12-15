@@ -1,9 +1,11 @@
  ## Building
-> [!WARNING]
-> Due to a bug present in older gcc versions compiling with versions < 12 isn't officially supported.
+ Clone the Alexandria repository.
 ```bash
 $ git clone https://github.com/PGG106/Alexandria
 $ cd alexandria
+```
+Download the latest neural network for Alexandria from this [repository](https://github.com/PGG106/Alexandria-networks/releases) and save it in the source root as `nn.net`.
+```bash
 $ make 
 $ ./Alexandria
 ```

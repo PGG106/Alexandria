@@ -52,13 +52,16 @@ jobs:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
+      - name: download net
+        run: curl -sOL https://github.com/PGG106/Alexandria-networks/releases/download/net01/1536x16.net
+
       - name: make
         if: runner.os == 'Linux'
-        run: make build=debug
+        run: make build=debug EVALFILE=1536x16.net -j
 
       - name: make build windows
         if: runner.os == 'Windows'
-        run: make build=release
+        run: make build=release EVALFILE=1536x16.net -j
 
       - name: Bench
         run: |

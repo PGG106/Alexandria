@@ -7,14 +7,30 @@
 #include "simd.h"
 #include "types.h"
 
-// Net arch: (768 -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
+// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
-constexpr int L1_SIZE = 2048;
+constexpr int INPUT_BUCKETS = 16;
+constexpr int L1_SIZE = 1536;
 constexpr int OUTPUT_BUCKETS = 8;
 
-constexpr int FT_QUANT  = 362;
-constexpr int L1_QUANT  = 64;
+constexpr int FT_QUANT = 362;
+constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
+
+constexpr int buckets[64] = {
+         0,  1,  2,  3,  3,  2,  1, 0,
+         4,  5,  6,  7,  7,  6,  5, 4,
+         8,  9, 10, 11, 11, 10,  9, 8,
+         8,  9, 10, 11, 11, 10,  9, 8,
+        12, 12, 13, 13, 13, 13, 12, 12,
+        12, 12, 13, 13, 13, 13, 12, 12,
+        14, 14, 15, 15, 15, 15, 14, 14,
+        14, 14, 15, 15, 15, 15, 14, 14
+};
+
+[[nodiscard]] inline int getBucket(int kingSquare){
+   return buckets[kingSquare];
+}
 
 #if defined(USE_SIMD)
 constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
@@ -25,10 +41,10 @@ constexpr int CHUNK_SIZE = 1;
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
-    int16_t FTWeights[NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases [L1_SIZE];
+    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t FTBiases[L1_SIZE];
     int16_t L1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
-    int16_t L1Biases [OUTPUT_BUCKETS];
+    int16_t L1Biases[OUTPUT_BUCKETS];
 };
 
 extern Network net;
@@ -45,7 +61,7 @@ public:
             bool needsRefresh = false;
 
             void accumulate(Position *pos);
-            [[nodiscard]] int GetIndex(const int piece, const int square, const bool flip) const;
+            [[nodiscard]] int GetIndex(const int piece, const int square, const int kingSq , bool flip) const;
             void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
             void applyUpdate(Pov_Accumulator& previousPovAccumulator);
@@ -65,18 +81,18 @@ public:
 
         std::array<Pov_Accumulator, 2> perspective;
 
-        void AppendAddIndex(int piece, int square, std::array<bool, 2> flip) {
+        void AppendAddIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
             assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
-            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
-            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece, square,wkSq, flip[WHITE]));
+            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
         }
 
-        void AppendSubIndex(int piece, int square, std::array<bool, 2> flip) {
+        void AppendSubIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
             assert(this->perspective[WHITE].NNUESub.size() <= 1);
             assert(this->perspective[BLACK].NNUESub.size() <= 1);
-            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece,square,flip[WHITE]));
-            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece,square,flip[BLACK]));
+            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece, square, wkSq, flip[WHITE]));
+            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
         }
 
         void ClearAddIndex() {
