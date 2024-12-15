@@ -122,6 +122,3 @@ struct FinnyTableEntry{
 struct FinnyTable{
     FinnyTableEntry Table[INPUT_BUCKETS][2];
 };
-
-
-
