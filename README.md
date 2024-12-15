@@ -2,10 +2,10 @@
  Clone the Alexandria repository.
 ```bash
 $ git clone https://github.com/PGG106/Alexandria
-```
-Download the latest neural network for Alexandria from this [repository](https://github.com/PGG106/Alexandria-networks/releases) and place it in the root of the `Alexandria` folder.
-```bash
 $ cd alexandria
+```
+Download the latest neural network for Alexandria from this [repository](https://github.com/PGG106/Alexandria-networks/releases) and save it in the source root as `nn.net`.
+```bash
 $ make 
 $ ./Alexandria
 ```
