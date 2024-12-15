@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include "incbin/incbin.h"
+#include "io.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
@@ -122,12 +123,48 @@ void NNUE::update(Accumulator *acc, Position *pos) {
 }
 
 void NNUE::Pov_Accumulator::refresh(Position *pos) {
-    this->accumulate(pos);
+    // probe the finny table for a cached state
+    const auto kingSq = KingSQ(pos, pov);
+    const bool flip = get_file[KingSQ(pos, pov)] > 3;
+    const int kingBucket = getBucket(kingSq, pov);
+    FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
+    this->values = cachedEntry->accumCache.perspective[pov].values;
+
+    if(cachedEntry->occupancies[WK] == 0ULL)
+        for (int i = 0; i < L1_SIZE; i++) {
+            this->values[i] = net.FTBiases[i];
+        }
+
+    // figure out a diff
+    for (int piece = WP; piece <= BK; piece++) {
+        auto added = pos->bitboards[piece] & ~cachedEntry->occupancies[piece];
+        while (added) {
+            auto square = popLsb(added);
+            auto index = GetIndex(piece, square, kingSq, flip);
+            const auto Add = &net.FTWeights[index * L1_SIZE];
+            for (int i = 0; i < L1_SIZE; i++) {
+                this->values[i] += Add[i];
+            }
+        }
+        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
+        while (removed) {
+            auto square = popLsb(removed);
+            auto index = GetIndex(piece, square, kingSq, flip);
+            const auto Sub = &net.FTWeights[index * L1_SIZE];
+            for (int i = 0; i < L1_SIZE; i++) {
+                this->values[i] -= Sub[i];
+            }
+        }
+    }
+
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
     // mark any accumulator as refreshed
     this->needsRefresh = false;
+    // store the refreshed finny table entry value
+    cachedEntry->accumCache.perspective[pov].values = values;
+    std::memcpy( cachedEntry->occupancies,  pos->bitboards, sizeof(Bitboard) * 12);
 }
 
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
@@ -268,8 +305,7 @@ int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
     if(flip) squarePov ^= 0b000'111;
-    const auto finalKingSq =  pov == WHITE ? (kingSq ^ 56) : (kingSq);
-    const int bucket = getBucket(finalKingSq);
+    const int bucket = getBucket(kingSq, pov);
     std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
     return Idx;
 }

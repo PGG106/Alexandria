@@ -28,8 +28,9 @@ constexpr int buckets[64] = {
         14, 14, 15, 15, 15, 15, 14, 14
 };
 
-[[nodiscard]] inline int getBucket(int kingSquare){
-   return buckets[kingSquare];
+[[nodiscard]] inline int getBucket(int kingSquare, int side){
+   const auto finalKingSq= side == WHITE ? (kingSquare ^ 56) : (kingSquare);
+   return buckets[finalKingSq];
 }
 
 #if defined(USE_SIMD)
@@ -111,4 +112,13 @@ public:
     static void update(Accumulator *acc, Position* pos);
     [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
+};
+
+struct FinnyTableEntry{
+    Bitboard occupancies[12] = {0ULL};
+    NNUE::Accumulator accumCache = {};
+};
+
+struct FinnyTable{
+    FinnyTableEntry Table[INPUT_BUCKETS][2];
 };

@@ -335,15 +335,14 @@ void MakeMove(const Move move, Position* pos) {
     if constexpr (UPDATE) {
         if (PieceType[Piece(move)] == KING) {
             auto kingColor = Color[Piece(move)];
-            const auto startBucket = kingColor == WHITE ? (getBucket(From(move) ^ 56)) : (getBucket(From(move)));
-            const auto endBucket = kingColor == WHITE ? (getBucket(To(move) ^ 56)) : (getBucket(To(move)));
+            const auto startBucket = getBucket(From(move), kingColor);
+            const auto endBucket =  getBucket(To(move), kingColor);
             if (shouldFlip(From(move), To(move)) || startBucket != endBucket) {
                 // tell the right accumulator it'll need a refresh
                 pos->accumStack[pos->accumStackHead-1].perspective[kingColor].needsRefresh = true;
             }
         }
     }
-
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
     assert(pos->pawnKey == GeneratePawnKey(pos));
