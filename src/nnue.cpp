@@ -123,7 +123,6 @@ void NNUE::update(Accumulator *acc, Position *pos) {
 }
 
 void NNUE::Pov_Accumulator::refresh(Position *pos) {
-    //this->accumulate(pos);
     // probe the finny table for a cached state
     const auto kingSq = KingSQ(pos, pov);
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
@@ -139,7 +138,6 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     // figure out a diff
     for (int piece = WP; piece <= BK; piece++) {
         auto added = pos->bitboards[piece] & ~cachedEntry->occupancies[piece];
-        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
         while (added) {
             auto square = popLsb(added);
             auto index = GetIndex(piece, square, kingSq, flip);
@@ -148,6 +146,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
                 this->values[i] += Add[i];
             }
         }
+        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
         while (removed) {
             auto square = popLsb(removed);
             auto index = GetIndex(piece, square, kingSq, flip);
