@@ -112,3 +112,15 @@ public:
     [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
 };
+
+struct FinnyTableEntry{
+    Bitboard occupancies[12];
+    NNUE::Accumulator accumCache;
+};
+
+struct FinnyTable{
+    FinnyTableEntry Table[INPUT_BUCKETS][2];
+};
+
+
+
