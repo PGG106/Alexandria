@@ -130,9 +130,16 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     FinnyTableEntry cachedEntry = pos->FTable[pov].Table[kingBucket][flip];
     // figure out a diff
     for(int piece = WP; piece <= BK; piece++) {
-        auto added = cachedEntry.occupancies[piece] & !pos->bitboards[piece];
-        auto removed = pos->bitboards[piece] & !cachedEntry.occupancies[piece];
-
+        auto added = cachedEntry.occupancies[piece] & ~pos->bitboards[piece];
+        auto removed = pos->bitboards[piece] & ~cachedEntry.occupancies[piece];
+        while (added) {
+            auto square = popLsb(added);
+            auto index = GetIndex(piece, square, kingSq, flip);
+        }
+        while (removed) {
+            auto square = popLsb(removed);
+            auto index = GetIndex(piece, square, kingSq, flip);
+        }
     }
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
