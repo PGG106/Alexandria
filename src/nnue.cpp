@@ -130,8 +130,13 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
     this->values = cachedEntry->accumCache.perspective[pov].values;
 
+    if(cachedEntry->occupancies[WK] == 0ULL)
+        for (int i = 0; i < L1_SIZE; i++) {
+            this->values[i] = net.FTBiases[i];
+        }
+
     // figure out a diff
-    for(int piece = WP; piece <= BK; piece++) {
+    for (int piece = WP; piece <= BK; piece++) {
         auto added = pos->bitboards[piece] & ~cachedEntry->occupancies[piece];
         auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
         while (added) {
@@ -151,14 +156,15 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
             }
         }
     }
+
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
     // mark any accumulator as refreshed
     this->needsRefresh = false;
     // store the refreshed finny table entry value
-    cachedEntry->accumCache.perspective[pov].values = this->values;
-    std::memcpy(cachedEntry->occupancies, pos->bitboards, sizeof(Bitboard) * 12);
+    cachedEntry->accumCache.perspective[pov].values = values;
+    std::memcpy( cachedEntry->occupancies,  pos->bitboards, sizeof(Bitboard) * 12);
 }
 
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
@@ -288,11 +294,6 @@ void NNUE::Pov_Accumulator::accumulate(Position *pos) {
             values[j] += Add[j];
         }
     }
-    // save accumulated position in the finny table
-    auto kingBucket = getBucket(kingSq);
-    FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
-    cachedEntry->accumCache.perspective[pov].values = this->values;
-    std::memcpy(cachedEntry->occupancies, pos->bitboards, sizeof(Bitboard) * 12);
 }
 
 int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq, bool flip) const {
