@@ -81,20 +81,22 @@ bool IsDraw(Position* pos) {
 void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
     SearchInfo* info = &td->info;
-    PvTable* pvTable = &td->pvTable;
 
-    // Clean the Pv array
-    std::memset(pvTable, 0, sizeof(td->pvTable));
-    // Clean the node table
-    std::memset(td->nodeSpentTable, 0, sizeof(td->nodeSpentTable));
     // Reset plies and search info
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
-    // Main thread only unpauses any eventual search thread
-    if (td->id == 0)
+    
+    // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
+    if (td->id == 0) {
+        // Clean the Pv array
+        std::memset(&pvTable, 0, sizeof(pvTable));
+        // Clean the node table
+        std::memset(nodeSpentTable, 0, sizeof(nodeSpentTable));
+
         for (auto& helper_thread : threads_data)
             helper_thread.info.stopped = false;
+    }
 }
 
 // returns a bitboard of all the attacks to a specific square
@@ -194,8 +196,8 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     return side != Color[attacker];
 }
 
-Move GetBestMove(const PvTable* pvTable) {
-    return pvTable->pvArray[0][0];
+Move GetBestMove() {
+    return pvTable.pvArray[0][0];
 }
 
 // Starts the search process, this is ideally the point where you can start a multithreaded search
@@ -222,7 +224,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     StopHelperThreads();
     // Print final bestmove found
     std::cout << "bestmove ";
-    PrintMove(GetBestMove(&td->pvTable));
+    PrintMove(GetBestMove());
     std::cout << std::endl;
 }
 
@@ -254,12 +256,12 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         // Only the main thread handles time related tasks
         if (td->id == 0) {
             // Keep track of how many times in a row the best move stayed the same
-            if (GetBestMove(&td->pvTable) == previousBestMove) {
+            if (GetBestMove() == previousBestMove) {
                 bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
             }
             else {
                 bestMoveStabilityFactor = 0;
-                previousBestMove = GetBestMove(&td->pvTable);
+                previousBestMove = GetBestMove();
             }
 
             // Keep track of eval stability
@@ -371,7 +373,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
-    PvTable* pvTable = &td->pvTable;
+    const bool mainT = td->id == 0;
 
     // Initialize the node
     const bool inCheck = pos->getCheckers();
@@ -384,7 +386,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const Move excludedMove = ss->excludedMove;
 
     // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
-    pvTable->pvLength[ss->ply] = ss->ply;
+    if (mainT)
+        pvTable.pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
     if (ss->ply > info->seldepth)
@@ -414,7 +417,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return Quiescence<pvNode>(alpha, beta, td, ss);
 
     // check if more than Maxtime passed and we have to stop
-    if (td->id == 0 && TimeOver(&td->info)) {
+    if (mainT && TimeOver(&td->info)) {
         StopHelperThreads();
         td->info.stopped = true;
         return 0;
@@ -797,9 +800,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // take move back
         UnmakeMove(move, pos);
-        if (   td->id == 0
-            && rootNode)
-            td->nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
+        if (mainT && rootNode)
+            nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
         if (info->stopped)
             return 0;
@@ -813,13 +815,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (score > alpha) {
                 bestMove = move;
 
-                if (pvNode) {
+                if (pvNode && mainT) {
                     // Update the pv table
-                    pvTable->pvArray[ss->ply][ss->ply] = move;
-                    for (int nextPly = ss->ply + 1; nextPly < pvTable->pvLength[ss->ply + 1]; nextPly++) {
-                        pvTable->pvArray[ss->ply][nextPly] = pvTable->pvArray[ss->ply + 1][nextPly];
+                    pvTable.pvArray[ss->ply][ss->ply] = move;
+                    for (int nextPly = ss->ply + 1; nextPly < pvTable.pvLength[ss->ply + 1]; nextPly++) {
+                        pvTable.pvArray[ss->ply][nextPly] = pvTable.pvArray[ss->ply + 1][nextPly];
                     }
-                    pvTable->pvLength[ss->ply] = pvTable->pvLength[ss->ply + 1];
+                    pvTable.pvLength[ss->ply] = pvTable.pvLength[ss->ply + 1];
                 }
 
                 if (score >= beta) {
