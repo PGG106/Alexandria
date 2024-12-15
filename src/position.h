@@ -59,7 +59,7 @@ public:
     NNUE::Accumulator accumStack[MAXPLY];
     int accumStackHead;
 
-    FinnyTable FTable;
+    FinnyTable FTable[2];
 
     inline NNUE::Accumulator& AccumulatorTop() {
         assert(accumStackHead <= MAXPLY);
