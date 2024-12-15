@@ -114,8 +114,8 @@ public:
 };
 
 struct FinnyTableEntry{
-    Bitboard occupancies[12];
-    NNUE::Accumulator accumCache;
+    Bitboard occupancies[12] = {0ULL};
+    NNUE::Accumulator accumCache = {};
 };
 
 struct FinnyTable{
