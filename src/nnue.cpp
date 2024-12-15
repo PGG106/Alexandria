@@ -128,6 +128,12 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     const bool flip = get_file[KingSQ(pos, pov)] > 3;
     const int kingBucket = buckets[kingSq];
     FinnyTableEntry cachedEntry = pos->FTable[pov].Table[kingBucket][flip];
+    // figure out a diff
+    for(int piece = WP; piece <= BK; piece++) {
+        auto added = cachedEntry.occupancies[piece] & !pos->bitboards[piece];
+        auto removed = pos->bitboards[piece] & !cachedEntry.occupancies[piece];
+
+    }
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
