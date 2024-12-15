@@ -122,7 +122,12 @@ void NNUE::update(Accumulator *acc, Position *pos) {
 }
 
 void NNUE::Pov_Accumulator::refresh(Position *pos) {
-    this->accumulate(pos);
+    //this->accumulate(pos);
+    // probe the finny table for a cached state
+    const auto kingSq = KingSQ(pos, pov);
+    const bool flip = get_file[KingSQ(pos, pov)] > 3;
+    const int kingBucket = buckets[kingSq];
+    FinnyTableEntry cachedEntry = pos->FTable.Table[kingBucket][flip];
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
