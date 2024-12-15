@@ -132,8 +132,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     // figure out a diff
     for(int piece = WP; piece <= BK; piece++) {
         auto added = pos->bitboards[piece] & ~cachedEntry.occupancies[piece];
-        auto removed =  ~pos->bitboards[piece] & cachedEntry.occupancies[piece];
-
+        auto removed = cachedEntry.occupancies[piece] & ~pos->bitboards[piece];
         while (added) {
             auto square = popLsb(added);
             auto index = GetIndex(piece, square, kingSq, flip);
@@ -151,11 +150,6 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
             }
         }
     }
-
-    std::cout << "value before accum " << this->values[1] <<std::endl;
-    accumulate(pos);
-    std::cout << "value after accum " << this->values[1] <<std::endl;
-
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
