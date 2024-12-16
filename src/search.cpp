@@ -149,7 +149,7 @@ bool SEE(const Position* pos, const int move, const int threshold) {
     // It doesn't matter if the to square is occupied or not
     Bitboard occupied = pos->Occupancy(BOTH) ^ (1ULL << from);
     if (isEnpassant(move))
-        occupied ^= pos->getEpSquare();
+        occupied ^= 1ULL << pos->getEpSquare();
 
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
