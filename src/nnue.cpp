@@ -163,7 +163,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     // mark any accumulator as refreshed
     this->needsRefresh = false;
     // store the refreshed finny table entry value
-    cachedEntry->accumCache.perspective[pov].values = values;
+    std::memcpy( &cachedEntry->accumCache.perspective[pov].values,  &values, sizeof(values));
     std::memcpy( cachedEntry->occupancies,  pos->bitboards, sizeof(Bitboard) * 12);
 }
 
