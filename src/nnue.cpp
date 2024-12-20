@@ -142,8 +142,11 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
             auto square = popLsb(added);
             auto index = GetIndex(piece, square, kingSq, flip);
             const auto Add = &net.FTWeights[index * L1_SIZE];
-            for (int i = 0; i < L1_SIZE; i++) {
-                this->values[i] += Add[i];
+            for (int i = 0; i < L1_SIZE; i+= ElementsPerVector) {
+                auto cock = vec_loadu_epi(reinterpret_cast<const vepi16 *>(&this->values[i]));
+                auto balls = vec_loadu_epi(reinterpret_cast<const vepi16 *>(&Add[i]));
+                auto cock_balls = vec_add_epi16(cock, balls);
+                vec_storeu_epi(reinterpret_cast<vepi16 *>(&this->values[i]), cock_balls);
             }
         }
         auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
@@ -151,8 +154,11 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
             auto square = popLsb(removed);
             auto index = GetIndex(piece, square, kingSq, flip);
             const auto Sub = &net.FTWeights[index * L1_SIZE];
-            for (int i = 0; i < L1_SIZE; i++) {
-                this->values[i] -= Sub[i];
+            for (int i = 0; i < L1_SIZE; i+= ElementsPerVector) {
+                auto cock = vec_loadu_epi(reinterpret_cast<const vepi16 *>(&this->values[i]));
+                auto balls = vec_loadu_epi(reinterpret_cast<const vepi16 *>(&Sub[i]));
+                auto cock_balls = vec_sub_epi16(cock, balls);
+                vec_storeu_epi(reinterpret_cast<vepi16 *>(&this->values[i]), cock_balls);
             }
         }
     }

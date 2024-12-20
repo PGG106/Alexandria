@@ -100,7 +100,7 @@ void ParsePosition(const std::string& command, Position* pos) {
     }
 
     // Update accumulator state to reflect the new position
-    nnue.refresh(pos->accumStack[0], pos);
+    NNUE::refresh(pos->accumStack[0], pos);
     pos->accumStackHead = 1;
 }
 
