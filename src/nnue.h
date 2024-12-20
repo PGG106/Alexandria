@@ -61,7 +61,6 @@ public:
             std::vector<std::size_t> NNUESub = {};
             bool needsRefresh = false;
 
-            void accumulate(Position *pos);
             [[nodiscard]] int GetIndex(const int piece, const int square, const int kingSq , bool flip) const;
             void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
