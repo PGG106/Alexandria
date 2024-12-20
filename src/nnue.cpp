@@ -238,9 +238,9 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, 
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
+void NNUE::refresh(NNUE::Accumulator& board_accumulator, Position* pos) {
     for(auto& pov_acc : board_accumulator.perspective) {
-        pov_acc.accumulate(pos);
+        pov_acc.refresh(pos);
     }
 }
 

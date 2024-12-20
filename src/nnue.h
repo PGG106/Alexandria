@@ -108,7 +108,7 @@ public:
     };
 
     static void init(const char *file);
-    static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
+    static void refresh(NNUE::Accumulator& board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
     [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
