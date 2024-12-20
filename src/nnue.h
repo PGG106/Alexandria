@@ -61,7 +61,6 @@ public:
             std::vector<std::size_t> NNUESub = {};
             bool needsRefresh = false;
 
-            void accumulate(Position *pos);
             [[nodiscard]] int GetIndex(const int piece, const int square, const int kingSq , bool flip) const;
             void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
             void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
@@ -108,7 +107,7 @@ public:
     };
 
     static void init(const char *file);
-    static void accumulate(NNUE::Accumulator &board_accumulator, Position* pos);
+    static void refresh(NNUE::Accumulator& board_accumulator, Position* pos);
     static void update(Accumulator *acc, Position* pos);
     [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
     [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);

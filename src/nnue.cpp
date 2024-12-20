@@ -163,7 +163,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     // mark any accumulator as refreshed
     this->needsRefresh = false;
     // store the refreshed finny table entry value
-    cachedEntry->accumCache.perspective[pov].values = values;
+    std::memcpy( &cachedEntry->accumCache.perspective[pov].values,  &values, sizeof(values));
     std::memcpy( cachedEntry->occupancies,  pos->bitboards, sizeof(Bitboard) * 12);
 }
 
@@ -238,9 +238,9 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, 
     return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-void NNUE::accumulate(NNUE::Accumulator& board_accumulator, Position* pos) {
+void NNUE::refresh(NNUE::Accumulator& board_accumulator, Position* pos) {
     for(auto& pov_acc : board_accumulator.perspective) {
-        pov_acc.accumulate(pos);
+        pov_acc.refresh(pos);
     }
 }
 
@@ -275,25 +275,6 @@ void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumu
     // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
     this->NNUEAdd.clear();
     this->NNUESub.clear();
-}
-
-void NNUE::Pov_Accumulator::accumulate(Position *pos) {
-    for (int i = 0; i < L1_SIZE; i++) {
-       values[i] = net.FTBiases[i];
-    }
-
-    const auto kingSq = KingSQ(pos, pov);
-    const bool flip = get_file[KingSQ(pos, pov)] > 3;
-
-    for (int square = 0; square < 64; square++) {
-        const bool input = pos->pieces[square] != EMPTY;
-        if (!input) continue;
-        const auto Idx = GetIndex(pos->PieceOn(square), square, kingSq, flip);
-        const auto Add = &net.FTWeights[Idx * L1_SIZE];
-        for (int j = 0; j < L1_SIZE; j++) {
-            values[j] += Add[j];
-        }
-    }
 }
 
 int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq, bool flip) const {
