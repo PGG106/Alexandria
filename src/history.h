@@ -31,6 +31,7 @@ int history_bonus(const int depth);
 void CleanHistories(SearchData* sd);
 // Updates history heuristics for a single move
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus);
+void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus);
 void updateCHScore(SearchStack* ss, const Move move, const int bonus);
 void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, int bonus);
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset);

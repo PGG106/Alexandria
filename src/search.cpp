@@ -482,6 +482,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
+    // Use static evaluation difference to improve quiet move ordering (~9 Elo)
+    if ((ss - 1)->staticEval != SCORE_NONE && isQuiet((ss - 1)->move))
+    {
+        int bonus = std::clamp(-10 * int((ss - 1)->staticEval + ss->staticEval), -1831, 1428) + 623;
+        Move move = (ss - 1)->move;
+        updateOppHHScore(pos, sd, move, bonus);
+    }
+
     const int complexity = [&] {
         if (eval == 0 || rawEval == 0)
             return 0;
