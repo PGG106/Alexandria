@@ -138,6 +138,18 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
     // figure out a diff
     for (int piece = WP; piece <= BK; piece++) {
         auto added = pos->bitboards[piece] & ~cachedEntry->occupancies[piece];
+        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
+        while (added && removed) {
+            auto added_square = popLsb(added);
+            auto added_index = GetIndex(piece, added_square, kingSq, flip);
+            const auto Add = &net.FTWeights[added_index * L1_SIZE];
+            auto removed_square = popLsb(removed);
+            auto removed_index = GetIndex(piece, removed_square, kingSq, flip);
+            const auto Sub = &net.FTWeights[removed_index * L1_SIZE];
+            for (int i = 0; i < L1_SIZE; i++) {
+              this->values[i] = this->values[i] + Add[i] - Sub[i];
+            }
+        }
         while (added) {
             auto square = popLsb(added);
             auto index = GetIndex(piece, square, kingSq, flip);
@@ -146,7 +158,6 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
                 this->values[i] += Add[i];
             }
         }
-        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
         while (removed) {
             auto square = popLsb(removed);
             auto index = GetIndex(piece, square, kingSq, flip);
