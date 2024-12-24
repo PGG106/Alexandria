@@ -22,6 +22,13 @@ void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bon
     sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
+void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
+    // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
+    const int scaledBonus = bonus - sd->searchHistory[pos->side ^ 1][FromTo(move)] * std::abs(bonus) / HH_MAX;
+    // Update move score
+    sd->searchHistory[pos->side ^ 1][FromTo(move)] += scaledBonus;
+}
+
 void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-RH_MAX;RH_MAX] range
     const int scaledBonus = bonus - GetRHScore(pos, sd, move) * std::abs(bonus) / RH_MAX;
