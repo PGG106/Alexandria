@@ -681,7 +681,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (ss->ply < td->RootDepth * 2) {
             // Singular Extensions
             if (   !rootNode
-                &&  depth >= 7
+                &&  depth >= 6
                 &&  move == ttMove
                 && !excludedMove
                 && (ttBound & HFLOWER)
