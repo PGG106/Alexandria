@@ -2,6 +2,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "history.h"
+#include "tune.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
 void ScoreMoves(Movepicker* mp) {
@@ -18,7 +19,7 @@ void ScoreMoves(Movepicker* mp) {
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
             // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
             if (capturedPiece == EMPTY) capturedPiece = PAWN;
-            moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
+            moveList->moves[i].score = SEEValue[capturedPiece] * MVVMultiplier() / 16 + GetCapthistScore(pos, sd, move);
         }
         else {
             moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
@@ -110,7 +111,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
             partialInsertionSort(&mp->moveList, mp->idx);
             const Move move = mp->moveList.moves[mp->idx].move;
             const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold =  mp->movepickerType == PROBCUT ? mp->SEEThreshold : -score / 32 + 236;
+            const int SEEThreshold =  mp->movepickerType == PROBCUT ? mp->SEEThreshold : -score / SEEThresholdDivisor() + SEEThresholdConstant();
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;

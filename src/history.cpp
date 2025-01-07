@@ -4,6 +4,7 @@
 #include "position.h"
 #include "move.h"
 #include "search.h"
+#include "tune.h"
 
 /* History updating works in the same way for all histories, we have 3 methods:
 updateScore: this updates the score of a specific entry of <History-name> type
@@ -12,7 +13,7 @@ GetScore: this is simply a getter for a specific entry of the history table
 */
 
 int history_bonus(const int depth) {
-    return std::min(16 * depth * depth + 32 * depth + 16, 1200);
+    return std::min(HistBonusQuadraticCoefficient() * depth * depth + HistBonusLinearCoefficient() * depth + HistBonusConstant(), HistBonusClamp());
 }
 
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
@@ -130,7 +131,7 @@ void updateSingleCorrHistScore(int &entry, const int scaledDiff, const int newWe
 
 void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
+    const int newWeight = std::min(depth * depth + 2 * depth + 1, CorrHistClamp());
     assert(newWeight <= CORRHIST_WEIGHT_SCALE);
 
     updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
@@ -156,7 +157,9 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
+        return (GetHHScore(pos, sd, move) * MainHistoryScale()
+                + GetCHScore(ss, move) * ContinuationHistoryScale()
+                + rootNode * RootHistoryScale() * GetRHScore(pos, sd, move)) / 128;
     else
         return GetCapthistScore(pos, sd, move);
 }

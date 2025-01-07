@@ -183,3 +183,24 @@ TUNE_PARAM(DDSBase, 53, -1000, 1000, 5, 0.002)
 
 // QS Futility
 TUNE_PARAM(QSFutilityMargin, 192, 0, 20202, 12, 0.002)
+
+// History Bonus
+TUNE_PARAM(HistBonusQuadraticCoefficient, 16, 0, 1000, 0.5, 0.002)
+TUNE_PARAM(HistBonusLinearCoefficient, 32, 0, 1000, 1.5, 0.002)
+TUNE_PARAM(HistBonusConstant, 16, 0, 1000, 0.5, 0.002)
+TUNE_PARAM(HistBonusClamp, 1200, 0, 10101010, 80, 0.002)
+
+// Correction History
+TUNE_PARAM(CorrHistClamp, 128, 0, 1010101, 8, 0.002)
+
+// History Aggregate
+TUNE_PARAM(MainHistoryScale, 128, 0, 2048, 14, 0.002)
+TUNE_PARAM(ContinuationHistoryScale, 128, 0, 2048, 14, 0.002)
+TUNE_PARAM(RootHistoryScale, 512, 0, 2048, 50, 0.002)
+
+// MVV Multiplier
+TUNE_PARAM(MVVMultiplier, 256, 0, 19100, 8, 0.002)
+
+// Bad Capture Threshold
+TUNE_PARAM(SEEThresholdConstant, 236, -1010, 1101, 15, 0.002)
+TUNE_PARAM(SEEThresholdDivisor, 32, -1010, 1101, 1, 0.002)
