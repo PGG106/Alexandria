@@ -11,12 +11,14 @@
 #include "magic.h"
 #include "makemove.h"
 #include "misc.h"
+#include "init.h"
 #include "threads.h"
 #include "movepicker.h"
 #include "ttable.h"
 #include "movegen.h"
 #include "time_manager.h"
 #include "io.h"
+#include "tune.h"
 #include "types.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
@@ -53,7 +55,7 @@ static bool Is50MrDraw(Position* pos) {
         if (!pos->getCheckers())
             return true;
 
-        // if we are in check make sure it's not checkmate 
+        // if we are in check make sure it's not checkmate
         MoveList moveList;
         // generate moves
         GenerateMoves(&moveList, pos, MOVEGEN_ALL);
@@ -82,17 +84,20 @@ void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
     SearchInfo* info = &td->info;
 
+
     // Reset plies and search info
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
-    
+
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
         // Clean the Pv array
         std::memset(&pvTable, 0, sizeof(pvTable));
         // Clean the node table
         std::memset(nodeSpentTable, 0, sizeof(nodeSpentTable));
+
+        InitReductions();
 
         for (auto& helper_thread : threads_data)
             helper_thread.info.stopped = false;
@@ -321,7 +326,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
-    int delta = 12;
+    int delta = aspDelta();
     // define initial alpha beta bounds
     int alpha = -MAXSCORE;
     int beta = MAXSCORE;
@@ -361,7 +366,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= 1.44;
+        delta *= deltaMultiplier() / 100.0;
     }
     return score;
 }
@@ -485,7 +490,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
     if ((ss - 1)->staticEval != SCORE_NONE && isQuiet((ss - 1)->move))
     {
-        int bonus = std::clamp(-10 * int((ss - 1)->staticEval + ss->staticEval), -1830, 1427) + 624;
+        int bonus = std::clamp(sevalBonusScale() * int((ss - 1)->staticEval + ss->staticEval), sevalMinClamp(), sevalMaxClamp()) + sevalTempo();
         Move move = (ss - 1)->move;
         updateOppHHScore(pos, sd, move, bonus);
     }
@@ -494,7 +499,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (eval == 0 || rawEval == 0)
             return 0;
         else
-            return 100 * std::abs(eval - rawEval) / std::abs(eval);
+            return complexityScale() * std::abs(eval - rawEval) / std::abs(eval);
     }();
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
@@ -517,22 +522,22 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - 91 * (depth - improving - canIIR) >= beta)
-            return eval - 91 * (depth - improving - canIIR);
+            && eval - rfpMarginScale() * (depth - improving - canIIR) >= beta)
+            return eval - rfpMarginScale() * (depth - improving - canIIR);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
             && eval >= beta
-            && ss->staticEval >= beta - 30 * depth + 170
+            && ss->staticEval >= beta - nmpSevalDepthMultiplier() * depth + nmpSevalDepthConstant()
             && (ss - 1)->move != NOMOVE
             && depth >= 3
             && ss->ply >= td->nmpPlies
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
-            const int R = 4 + depth / 3 + std::min((eval - beta) / 200, 3);
+            const int R = 4 + depth / 3 + std::min((eval - beta) / nmpEvalBetaDivisor(), nmpEvalBetaCap());
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             MakeNullMove(pos);
@@ -563,7 +568,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + 256 * depth < alpha)
+        if (depth <= 5 && eval + razoringMultiplier() * depth < alpha)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
@@ -571,7 +576,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
     }
 
-    const int pcBeta = beta + 300 - 50 * improving;
+    const int pcBeta = beta + probcutMargin() - probcutImproving() * improving;
     if (  !pvNode
         && depth > 4
         && abs(beta) < MATE_FOUND
@@ -654,7 +659,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             &&  bestScore > -MATE_FOUND) {
 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / 8192);
+            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / lmrDepthHistoryDivsior());
 
             if (!skipQuiets) {
 
@@ -666,7 +671,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
                     && lmrDepth < 11
-                    && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
+                    && ss->staticEval + futilityConstant() + futilityLMRDepthMultiplier() * lmrDepth <= alpha) {
                     skipQuiets = true;
                 }
             }
@@ -698,9 +703,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     extension = 1;
                     // Avoid search explosion by limiting the number of double extensions
                     if (   !pvNode
-                        &&  singularScore < singularBeta - 17
-                        &&  ss->doubleExtensions <= 11) {
-                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 100);
+                        &&  singularScore < singularBeta - SEDoubleExtensionsMargin()
+                        &&  ss->doubleExtensions <= SEDoubleExtensionsLimit()) {
+                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - SETripleExtensionsMargin());
                         ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
                         depth += depth < 10;
                     }
@@ -764,7 +769,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 8192;
+                depthReduction -= moveHistory / QuietHistoryDivisor();
             }
             else {
                 // Fuck
@@ -772,7 +777,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction += 2;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 6144;
+                depthReduction -= moveHistory / CaptureHistoryDivisor();
             }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
@@ -784,9 +789,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
             if (score > alpha && newDepth > reducedDepth) {
-                // Based on the value returned by our reduced search see if we should search deeper or shallower, 
+                // Based on the value returned by our reduced search see if we should search deeper or shallower,
                 // this is an exact yoink of what SF does and frankly i don't care lmao
-                const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
+                const bool doDeeperSearch = score > (bestScore + DDSBase() + 2 * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth)

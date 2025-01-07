@@ -11,6 +11,7 @@ inline Bitboard SideKey;
 inline Bitboard CastleKeys[16];
 
 void InitNewGame(ThreadData* td);
+void InitReductions();
 
 // init slider piece's attack tables
 void InitAttackTables();

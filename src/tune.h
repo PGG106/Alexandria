@@ -111,3 +111,75 @@ TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
 // Node Tm
 TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
 TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+
+
+// Search Parameters
+
+// Aspiration Windows
+TUNE_PARAM(aspDelta, 12, 1, 200, 0.5, 0.002)
+TUNE_PARAM(deltaMultiplier, 144, 101, 400, 15, 0.002)
+
+// Static evaluation history bonus
+TUNE_PARAM(sevalBonusScale, -10, -30, -1, 0.5, 0.002)
+TUNE_PARAM(sevalMinClamp, -1830, -10000, -1, 150, 0.002)
+TUNE_PARAM(sevalMaxClamp, 1427, 1, 10000, 150, 0.002)
+TUNE_PARAM(sevalTempo, 624, -1000, 3000, 69, 0.002)
+
+// Complexity
+TUNE_PARAM(complexityScale, 100, 0, 1000, 20, 0.002)
+
+// RFP
+TUNE_PARAM(rfpMarginScale, 91, 1, 180, 8, 0.002)
+
+// NMP
+TUNE_PARAM(nmpSevalDepthMultiplier, 30, -100, 100, 3, 0.002)
+TUNE_PARAM(nmpSevalDepthConstant, 170, -2000, 2000, 17, 0.002)
+TUNE_PARAM(nmpEvalBetaDivisor, 200, 20, 3000, 15, 0.002)
+TUNE_PARAM(nmpEvalBetaCap, 3, 3, 20, 3, 0.002)
+
+// Razoring
+TUNE_PARAM(razoringMultiplier, 256, 10, 4000, 30, 0.002)
+
+// Probcut
+TUNE_PARAM(probcutMargin, 300, 1, 7000, 30, 0.002)
+TUNE_PARAM(probcutImproving, 50, -100, 100, 8, 0.002)
+
+// LMR (Moves Loop Pruning)
+TUNE_PARAM(lmrCaptureReductionBase, -250, -10000, 10000, 100, 0.002)
+TUNE_PARAM(lmrCaptureReductionDivisor, 2250, 2, 10000, 240, 0.002)
+TUNE_PARAM(lmrQuietReductionBase, 1000, -10000, 10000, 100, 0.002)
+TUNE_PARAM(lmrQuietReductionDivisor, 2000, 2, 10000, 200, 0.002)
+TUNE_PARAM(lmrDepthHistoryDivsior, 8192, 1, 1111111, 345, 0.002)
+
+// LMP
+TUNE_PARAM(NotImprovingLMPMarginConstant, 1500, 0, 30000, 300, 0.002)
+TUNE_PARAM(NotImprovingLMPMarginMultiplier, 500, 0, 30000, 80, 0.002)
+TUNE_PARAM(NotImprovingLMPMarginExponent, 2000, 0, 30000, 100, 0.002)
+TUNE_PARAM(ImprovingLMPMarginConstant, 3000, 0, 30000, 300, 0.002)
+TUNE_PARAM(ImprovingLMPMarginMultiplier, 1000, 0, 30000, 100, 0.002)
+TUNE_PARAM(ImprovingLMPMarginExponent, 2000, 0, 30000, 100, 0.002)
+
+// Futility Pruning
+TUNE_PARAM(futilityConstant, 250, 0, 2025, 20, 0.002)
+TUNE_PARAM(futilityLMRDepthMultiplier, 150, 0, 2024, 13, 0.002)
+
+// SEE Pruning
+TUNE_PARAM(SEEQuietMultiplier, -8000, -1001010, 0, 500, 0.002)
+TUNE_PARAM(SEEQuietExponent, 1000, 500, 3000, 35, 0.002)
+TUNE_PARAM(SEENonQuietMultiplier, -3000, -1001010, 0, 200, 0.002)
+TUNE_PARAM(SEENonQuietExponent, 2000, 500, 3000, 35, 0.002)
+
+// Singular Extensions
+TUNE_PARAM(SEDoubleExtensionsMargin, 17, 0, 1000, 3, 0.002)
+TUNE_PARAM(SEDoubleExtensionsLimit, 11, 7, 100, 4, 0.002)
+TUNE_PARAM(SETripleExtensionsMargin, 100, 0, 1000, 10, 0.002)
+
+// LMR
+TUNE_PARAM(QuietHistoryDivisor, 8192, 1, 10101010, 368, 0.002)
+TUNE_PARAM(CaptureHistoryDivisor, 6144, 1, 1010101, 368, 0.002)
+
+// Full-Window Search Tweaks
+TUNE_PARAM(DDSBase, 53, -1000, 1000, 5, 0.002)
+
+// QS Futility
+TUNE_PARAM(QSFutilityMargin, 192, 0, 20202, 12, 0.002)

@@ -9,6 +9,7 @@
 #include "ttable.h"
 #include "threads.h"
 #include "history.h"
+#include "tune.h"
 #include <cstdint>
 #include <cmath>
 #ifdef _WIN32
@@ -142,17 +143,25 @@ void InitReductions() {
 
     for (int i = 1; i < 64; i++) {
         for (int j = 1; j < 64; j++) {
-            reductions[0][i][j] = -0.25 + log(i) * log(j) / 2.25;
-            reductions[1][i][j] = +1.00 + log(i) * log(j) / 2.00;
+            reductions[0][i][j] = lmrCaptureReductionBase() / 1000.0
+                + log(i) * log(j) / (lmrCaptureReductionDivisor() / 1000.0);
+            reductions[1][i][j] = lmrQuietReductionBase() / 1000.0
+                + log(i) * log(j) / (lmrQuietReductionDivisor() / 1000.0);
         }
     }
 
     for (int depth = 0; depth < 64; depth++) {
-        lmp_margin[depth][0] = 1.5 + 0.5 * std::pow(depth, 2.0); // Not improving
-        lmp_margin[depth][1] = 3.0 + 1.0 * std::pow(depth, 2.0); // improving
+        lmp_margin[depth][0] = NotImprovingLMPMarginConstant() / 1000.0
+            + NotImprovingLMPMarginMultiplier() / 1000.0 * std::pow(
+                depth, NotImprovingLMPMarginExponent() / 1000.0); // Not improving
+        lmp_margin[depth][1] = ImprovingLMPMarginConstant() / 1000.0
+            + ImprovingLMPMarginMultiplier() / 1000.0 * std::pow(
+                depth, ImprovingLMPMarginExponent() / 1000.0); // improving
 
-        see_margin[depth][1] = -80.0 * std::pow(depth, 1.0); // Quiet moves
-        see_margin[depth][0] = -30.0 * std::pow(depth, 2.0); // Non quiets
+        see_margin[depth][1] = SEEQuietMultiplier() / 100.0 * std::pow(
+            depth, SEEQuietExponent() / 1000.0); // Quiet moves
+        see_margin[depth][0] = SEENonQuietMultiplier() / 100.0 * std::pow(
+            depth, SEENonQuietExponent() / 1000.0); // Non quiets
 
     }
 }
