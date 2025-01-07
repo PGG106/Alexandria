@@ -204,3 +204,11 @@ TUNE_PARAM(MVVMultiplier, 256, 0, 19100, 8, 0.002)
 // Bad Capture Threshold
 TUNE_PARAM(SEEThresholdConstant, 236, -1010, 1101, 15, 0.002)
 TUNE_PARAM(SEEThresholdDivisor, 32, -1010, 1101, 1, 0.002)
+
+// Evaluation Parameters
+
+TUNE_PARAM(knightPhaseValue, 384, -1000, 10000, 28, 0.002)
+TUNE_PARAM(bishopPhaseValue, 384, -1000, 10000, 28, 0.002)
+TUNE_PARAM(rookPhaseValue, 640, -1000, 10000, 56, 0.002)
+TUNE_PARAM(queenPhaseValue, 1280, -1000, 10000, 112, 0.002)
+TUNE_PARAM(materialScalingBase, 24576, -1000, 10000, 1372, 0.002)
