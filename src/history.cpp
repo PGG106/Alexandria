@@ -18,21 +18,21 @@ int history_bonus(const int depth) {
 
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
-    const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
+    const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX();
     // Update move score
     sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
 void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
-    const int scaledBonus = bonus - sd->searchHistory[pos->side ^ 1][FromTo(move)] * std::abs(bonus) / HH_MAX;
+    const int scaledBonus = bonus - sd->searchHistory[pos->side ^ 1][FromTo(move)] * std::abs(bonus) / HH_MAX();
     // Update move score
     sd->searchHistory[pos->side ^ 1][FromTo(move)] += scaledBonus;
 }
 
 void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-RH_MAX;RH_MAX] range
-    const int scaledBonus = bonus - GetRHScore(pos, sd, move) * std::abs(bonus) / RH_MAX;
+    const int scaledBonus = bonus - GetRHScore(pos, sd, move) * std::abs(bonus) / RH_MAX();
     // Update move score
     sd->rootHistory[pos->side][FromTo(move)] += scaledBonus;
 }
@@ -47,14 +47,14 @@ void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset) {
     if ((ss - offset)->move) {
         // Scale bonus to fix it in a [-CH_MAX;CH_MAX] range
-        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / CH_MAX;
+        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / CH_MAX();
         (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
     }
 }
 
 void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-CAPTHIST_MAX;CAPTHIST_MAX] range
-    const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / CAPTHIST_MAX;
+    const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / CAPTHIST_MAX();
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
