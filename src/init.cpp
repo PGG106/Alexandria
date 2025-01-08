@@ -231,6 +231,8 @@ void InitNewGame(ThreadData* td) {
 
     CleanHistories(sd);
 
+    InitReductions();
+
     // Clean the PV Table
     for (int index = 0; index < MAXDEPTH + 1; ++index) {
         pvTable.pvLength[index] = 0;

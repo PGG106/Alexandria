@@ -130,6 +130,7 @@ TUNE_PARAM(complexityScale, 100, 0, 1000, 20, 0.002)
 
 // RFP
 TUNE_PARAM(rfpMarginScale, 91, 1, 180, 8, 0.002)
+TUNE_PARAM(rfpImprovingScale, 91, 1, 180, 12, 0.002)
 
 // NMP
 TUNE_PARAM(nmpSevalDepthMultiplier, 30, -100, 100, 3, 0.002)

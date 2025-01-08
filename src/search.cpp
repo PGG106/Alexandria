@@ -97,8 +97,6 @@ void ClearForSearch(ThreadData* td) {
         // Clean the node table
         std::memset(nodeSpentTable, 0, sizeof(nodeSpentTable));
 
-        InitReductions();
-
         for (auto& helper_thread : threads_data)
             helper_thread.info.stopped = false;
     }
@@ -522,8 +520,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - rfpMarginScale() * (depth - improving - canIIR) >= beta)
-            return eval - rfpMarginScale() * (depth - improving - canIIR);
+               && eval - rfpMarginScale() * (depth - canIIR) + rfpImprovingScale() * improving >= beta)
+            return eval - rfpMarginScale() * (depth - canIIR) + rfpImprovingScale() * improving;
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
