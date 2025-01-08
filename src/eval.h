@@ -30,9 +30,9 @@
     const int bishops = CountBits(GetPieceBB(pos, BISHOP));
     const int rooks = CountBits(GetPieceBB(pos, ROOK));
     const int queens = CountBits(GetPieceBB(pos, QUEEN));
-    const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
+    const int phase = std::min(knightPhaseValue() * knights + bishopPhaseValue() * bishops + rookPhaseValue() * rooks + queenPhaseValue() * queens, maxPhaseValue());
     // Scale between [0.75, 1.00]
-    return eval * (materialScalingBase() + phase) / 256;
+    return eval * (materialScalingBase() + phase) / 32768;
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {

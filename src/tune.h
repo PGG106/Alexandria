@@ -216,4 +216,9 @@ TUNE_PARAM(SEEThresholdDivisor, 32, -1010, 1101, 1, 0.002)
 
 // Evaluation Parameters
 
-TUNE_PARAM(materialScalingBase, 192, 0, 10000, 5, 0.002)
+TUNE_PARAM(knightPhaseValue, 384, -1000, 10000, 28, 0.002)
+TUNE_PARAM(bishopPhaseValue, 384, -1000, 10000, 28, 0.002)
+TUNE_PARAM(rookPhaseValue, 640, -1000, 10000, 56, 0.002)
+TUNE_PARAM(queenPhaseValue, 1280, -1000, 10000, 112, 0.002)
+TUNE_PARAM(maxPhaseValue, 8192, 100, 10000, 400, 0.002)
+TUNE_PARAM(materialScalingBase, 24576, -1000, 10000, 1372, 0.002)
