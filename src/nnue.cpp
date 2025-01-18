@@ -66,7 +66,7 @@ void NNUE::init(const char *file) {
         std::memcpy(net.L1Biases, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
     }
 }
-
+// net
 void NNUE::update(Accumulator *acc, Position *pos) {
     for (int pov = WHITE; pov <= BLACK; pov++) {
         auto &povAccumulator = (acc)->perspective[pov];
