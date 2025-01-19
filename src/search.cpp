@@ -313,7 +313,6 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
-        (ss + i)->doubleExtensions = 0;
         (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     for (int i = 0; i < MAXDEPTH; i++) {
@@ -678,30 +677,29 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         int extension = 0;
         // Limit Extensions to try and curb search explosions
-        if (ss->ply < td->RootDepth * 2) {
+        if (ss->ply * 2 < td->RootDepth * 5) {
+
             // Singular Extensions
             if (   !rootNode
-                &&  depth >= 7
+                &&  depth >= 6
                 &&  move == ttMove
                 && !excludedMove
                 && (ttBound & HFLOWER)
                 &&  abs(ttScore) < MATE_FOUND
                 &&  ttDepth >= depth - 3) {
-                const int singularBeta = ttScore - depth;
+                const int singularBeta = ttScore - depth * 5 / 8;
                 const int singularDepth = (depth - 1) / 2;
 
                 ss->excludedMove = ttMove;
-                int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutNode, td, ss);
+                const int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutNode, td, ss);
                 ss->excludedMove = NOMOVE;
 
                 if (singularScore < singularBeta) {
                     extension = 1;
-                    // Avoid search explosion by limiting the number of double extensions
+
                     if (   !pvNode
-                        &&  singularScore < singularBeta - 17
-                        &&  ss->doubleExtensions <= 11) {
-                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 100);
-                        ss->doubleExtensions = (ss - 1)->doubleExtensions + 1;
+                        &&  singularScore < singularBeta - 10) {
+                        extension = 2 + (!isTactical(ttMove) && singularScore < singularBeta - 75);
                         depth += depth < 10;
                     }
                 }
