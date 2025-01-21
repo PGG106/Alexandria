@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -111,3 +113,23 @@ TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
 // Node Tm
 TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
 TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+
+
+// Search
+TUNE_PARAM(rfpMargin, 91, 40, 200, 10, 0.002)
+TUNE_PARAM(nmpReductionEvalDivisor, 200, 100, 400, 20, 0.002)
+TUNE_PARAM(razoringCoeff, 256, 100, 400, 20, 0.002)
+TUNE_PARAM(historyQuietLmrDivisor, 8192, 1, 16383, 100, 0.002)
+TUNE_PARAM(historyNoisyLmrDivisor, 6144, 1, 16383, 100, 0.002)
+TUNE_PARAM(doDeeperBaseMargin, 53, 1, 200, 20, 0.002)
+TUNE_PARAM(qsBaseFutility, 192, -500, 500, 25, 0.002)
+TUNE_PARAM(historyBonusMax, 1200, 1, 4096, 256, 0.002)
+TUNE_PARAM(lmrQuietBase, 100, 40, 150, 7, 0.002)
+TUNE_PARAM(lmrQuietDivisor, 200, 150, 500, 15, 0.002)
+TUNE_PARAM(lmrNoisyBase, -25, -70, 100, 7, 0.002)
+TUNE_PARAM(lmrNoisytDivisor, 225, 150, 500, 15, 0.002)
+TUNE_PARAM(seeQuietMargin, -80, -150, -20, 5, 0.002)
+TUNE_PARAM(seeNoisyMargin, -30, -100, -1, 3, 0.002)
+TUNE_PARAM(futilityCoeff0, 250, 40, 300, 10, 0.002)
+TUNE_PARAM(futilityCoeff1, 150, 40, 200, 10, 0.002)
+TUNE_PARAM(lmrDepthDivisor, 8192, 1, 16383, 100, 0.002)
