@@ -653,8 +653,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   !rootNode
             &&  bestScore > -MATE_FOUND) {
 
+            const int reduction = isQuiet ?  lmrQuietBase() / 100.0 + log(depth) * log(totalMoves) / (lmrQuietDivisor() / 100.0)
+                                          : lmrNoisyBase() / 100.0 + log(depth) * log(totalMoves) / (lmrNoisytDivisor() / 100.0);
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / lmrDepthDivisor());
+            const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
             if (!skipQuiets) {
 
