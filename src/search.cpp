@@ -653,8 +653,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   !rootNode
             &&  bestScore > -MATE_FOUND) {
 
-            const int reduction = isQuiet ?  lmrQuietBase() / 100.0 + log(depth) * log(totalMoves) / (lmrQuietDivisor() / 100.0)
-                                          : lmrNoisyBase() / 100.0 + log(depth) * log(totalMoves) / (lmrNoisytDivisor() / 100.0);
+            const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
             const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
@@ -672,9 +671,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
             }
-            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth :  seeNoisyMargin() * lmrDepth * lmrDepth;
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
-            if (!SEE(pos, move, see_margin))
+            if (!SEE(pos, move, see_margin[lmrDepth][isQuiet]))
                 continue;
         }
 
@@ -738,8 +736,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (totalMoves > 1 && depth >= 3 && (isQuiet || !ttPv)) {
 
             // Get base reduction value
-            int depthReduction = isQuiet ?  lmrQuietBase() / 100.0 + log(depth) * log(totalMoves) / (lmrQuietDivisor() / 100.0)
-                    : lmrNoisyBase() / 100.0 + log(depth) * log(totalMoves) / (lmrNoisytDivisor() / 100.0);
+            int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
             if (isQuiet) {
                 // Fuck
