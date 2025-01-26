@@ -17,16 +17,14 @@ inline std::vector<ThreadData> threads_data;
 [[nodiscard]] inline uint64_t GetTotalNodes() {
     uint64_t nodes = 0ULL;
     for (const auto& td : threads_data) {
-        nodes += td.info.nodes;
+        nodes += td.nodes;
     }
     return nodes;
 }
 
 inline void StopHelperThreads() {
     // Stop helper threads
-    for (auto& td : threads_data) {
-        td.info.stopped = true;
-    }
+    setStop(true);
 
     for (auto& th : threads) {
         if (th.joinable())

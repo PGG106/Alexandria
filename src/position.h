@@ -191,7 +191,7 @@ void ParseFen(const std::string& command, Position* pos);
 // Parse a string of moves in coordinate format and plays them
 void parse_moves(const std::string& moves, Position* pos);
 
-void ResetInfo(SearchInfo* info);
+void ResetInfo();
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 [[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);

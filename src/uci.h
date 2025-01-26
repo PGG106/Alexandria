@@ -8,9 +8,9 @@ struct Position;
 struct SearchInfo;
 
 struct UciOptions {
-    uint64_t Hash = 16;
     static constexpr int MultiPV = 1;
     int Threads = 1;
+    uint64_t Hash = 16;
 };
 
 // Internal flag to decide if to pretty or ugly print search results
@@ -23,7 +23,7 @@ inline bool tryhardmode = false;
 void ParsePosition(const std::string& command, Position* pos);
 
 // parse UCI "go" command
-[[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos);
+[[nodiscard]] bool ParseGo(const std::string& line, Position* pos);
 
 // main UCI loop
 void UciLoop(int argc, char** argv);

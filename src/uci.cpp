@@ -105,8 +105,8 @@ void ParsePosition(const std::string& command, Position* pos) {
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
-bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
-    ResetInfo(info);
+bool ParseGo(const std::string& line, Position* pos) {
+    ResetInfo();
     int depth = -1, movetime = -1;
     int movestogo;
     int time = -1, inc = 0;
@@ -135,23 +135,23 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
 
         if (tokens.at(i) == "wtime" && pos->side == WHITE) {
             time = std::stoi(tokens[i + 1]);
-            info->timeset = true;
+            info.timeset = true;
         }
         if (tokens.at(i) == "btime" && pos->side == BLACK) {
             time = std::stoi(tokens[i + 1]);
-            info->timeset = true;
+            info.timeset = true;
         }
 
         if (tokens.at(i) == "movestogo") {
             movestogo = std::stoi(tokens[i + 1]);
             if (movestogo > 0)
-                info->movestogo = movestogo;
+                info.movestogo = movestogo;
         }
 
-        if (tokens.at(i) == "movetime") {
+            if (tokens.at(i) == "movetime") {
             movetime = std::stoi(tokens[i + 1]);
             time = movetime;
-            info->movetimeset = true;
+            info.movetimeset = true;
         }
 
         if (tokens.at(i) == "depth") {
@@ -159,27 +159,27 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
         }
 
         if (tokens.at(i) == "nodes") {
-            info->nodeset = true;
-            info->nodeslimit = std::stoi(tokens[i + 1]);
+            info.nodeset = true;
+            info.nodeslimit = std::stoi(tokens[i + 1]);
         }
     }
 
-    info->starttime = GetTimeMs();
-    info->depth = depth;
+    info.starttime = GetTimeMs();
+    info.depth = depth;
     // calculate time allocation for the move
-    Optimum(info, time, inc);
+    Optimum(time, inc);
 
     if (depth == -1) {
-        info->depth = MAXDEPTH;
+        info.depth = MAXDEPTH;
     }
     std::cout << "info ";
     std::cout << "time: " << time << " ";
-    std::cout << "start: " << info->starttime << " ";
-    std::cout << "stopOpt: " << info->stoptimeOpt << " ";
-    std::cout << "stopMax: " << info->stoptimeMax << " ";
-    std::cout << "depth: " << info->depth << " ";
-    std::cout << "timeset: " << info->timeset << " ";
-    std::cout << "nodeset: " << info->nodeset << std::endl;
+    std::cout << "start: " << info.starttime << " ";
+    std::cout << "stopOpt: " << info.stoptimeOpt << " ";
+    std::cout << "stopMax: " << info.stoptimeMax << " ";
+    std::cout << "depth: " << info.depth << " ";
+    std::cout << "timeset: " << info.timeset << " ";
+    std::cout << "nodeset: " << info.nodeset << std::endl;
     return true;
 }
 
@@ -204,7 +204,8 @@ void UciLoop(int argc, char** argv) {
 
     bool parsed_position = false;
     UciOptions uciOptions;
-    ThreadData* td(new ThreadData());
+
+    ThreadData* td = &mainTD;
     std::thread main_thread;
     state threads_state = Idle;
     // print engine info
@@ -255,11 +256,11 @@ void UciLoop(int argc, char** argv) {
                 ParsePosition("position startpos", &td->pos);
             }
             // call parse go function
-            bool search = ParseGo(input, &td->info, &td->pos);
+            bool search = ParseGo(input, &td->pos);
             // Start search in a separate thread
             if (search) {
                 threads_state = Search;
-                main_thread = std::thread(RootSearch, td->info.depth, td, &uciOptions);
+                main_thread = std::thread(RootSearch, info.depth, &mainTD, &uciOptions);
             }
         }
 
@@ -303,8 +304,8 @@ void UciLoop(int argc, char** argv) {
                 // Stop helper threads
                 StopHelperThreads();
                 // stop main thread search
-                td->info.stopped = true;
-            } 
+                setStop(true);
+            }
             threads_state = Idle;
         }
 
@@ -314,14 +315,13 @@ void UciLoop(int argc, char** argv) {
                 // Stop helper threads
                 StopHelperThreads();
                 // stop main thread search
-                td->info.stopped = true;
+                setStop(true);
             }
             threads_state = Idle;
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
-            // free thread data
-            delete td;
+
             // quit from the chess engine program execution
             break;
         }

@@ -218,7 +218,6 @@ void InitNewGame(ThreadData* td) {
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
-    SearchInfo* info = &td->info;
 
     CleanHistories(sd);
 
@@ -232,11 +231,11 @@ void InitNewGame(ThreadData* td) {
 
     std::memset(sd->counterMoves, NOMOVE, sizeof(sd->counterMoves));
 
-    // Reset plies and search info
-    info->starttime = GetTimeMs();
-    info->stopped = 0;
-    info->nodes = 0;
-    info->seldepth = 0;
+    // Reset plies and search info  
+    info.starttime = GetTimeMs();
+    setStop(false);
+    mainTD.nodes = 0;
+    info.seldepth = 0;
     // Clear TT
     ClearTT();
 

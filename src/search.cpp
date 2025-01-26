@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <cmath>
 #include "bitboard.h"
 #include "move.h"
 #include "search.h"
@@ -80,23 +79,19 @@ bool IsDraw(Position* pos) {
 
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(ThreadData* td) {
-    // Extract data structures from ThreadData
-    SearchInfo* info = &td->info;
-
-    // Reset plies and search info
-    info->starttime = GetTimeMs();
-    info->nodes = 0;
-    info->seldepth = 0;
+    td->nodes = 0;
     
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
+        // Reset plies and search info
+        info.starttime = GetTimeMs();
+        info.seldepth = 0;
         // Clean the Pv array
         std::memset(&pvTable, 0, sizeof(pvTable));
         // Clean the node table
         std::memset(nodeSpentTable, 0, sizeof(nodeSpentTable));
 
-        for (auto& helper_thread : threads_data)
-            helper_thread.info.stopped = false;
+        setStop(false);
     }
 }
 
@@ -211,7 +206,6 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
 
     // Init thread_data objects
     for (size_t i = 0; i < threads_data.size(); i++) {
-        threads_data[i].info = td->info;
         threads_data[i].pos = td->pos;
     }
 
@@ -252,7 +246,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
 
         // If we stop (not at an exact depth) we print a final info string
-        printFinalInfoString = td->info.stopped;
+        printFinalInfoString = stop();
 
         // Only the main thread handles time related tasks
         if (td->id == 0) {
@@ -275,30 +269,30 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
 
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
             if (   td->RootDepth > 7
-                && td->info.timeset) {
-                ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor);
+                && info.timeset) {
+                ScaleTm(bestMoveStabilityFactor, evalStabilityFactor);
             }
 
             // check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
-            if (StopEarly(&td->info) || NodesOver(&td->info))
+            if (StopEarly() || NodesOver())
                 // Stop main-thread search
-                td->info.stopped = true;
+                setStop(true);
         }
 
         // Print a final info string if we have to
         if (td->id == 0 && printFinalInfoString)
-            PrintUciOutput(prevScore, currentDepth - 1, td, options);
+            PrintUciOutput(prevScore, currentDepth - 1, options);
 
         // stop calculating and return best move so far
-        if (td->info.stopped)
+        if (stop())
             break;
 
         // If it's the main thread print the uci output
         if (td->id == 0)
-            PrintUciOutput(score, currentDepth, td, options);
+            PrintUciOutput(score, currentDepth, options);
 
         // Seldepth should only be related to the current ID loop
-        td->info.seldepth = 0;
+        info.seldepth = 0;
         prevScore = score;
     }
 }
@@ -337,14 +331,14 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         score = Negamax<true>(alpha, beta, depth, false, td, ss);
 
         // Check if more than Maxtime passed and we have to stop
-        if (td->id == 0 && TimeOver(&td->info)) {
+        if (td->id == 0 && TimeOver()) {
             StopHelperThreads();
-            td->info.stopped = true;
+            setStop(true);
             break;
         }
 
         // Stop calculating and return best move so far
-        if (td->info.stopped) break;
+        if (stop()) break;
 
         // We fell outside the window, so try again with a bigger window, since we failed low we can adjust beta to decrease the total window size
         if (score <= alpha) {
@@ -372,7 +366,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Extract data structures from ThreadData
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
-    SearchInfo* info = &td->info;
     const bool mainT = td->id == 0;
 
     // Initialize the node
@@ -390,8 +383,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         pvTable.pvLength[ss->ply] = ss->ply;
 
     // Check for the highest depth reached in search to report it to the cli
-    if (ss->ply > info->seldepth)
-        info->seldepth = ss->ply;
+    if (ss->ply > info.seldepth)
+        info.seldepth = ss->ply;
 
     // Check for early return conditions
     if (!rootNode) {
@@ -417,9 +410,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return Quiescence<pvNode>(alpha, beta, td, ss);
 
     // check if more than Maxtime passed and we have to stop
-    if (mainT && TimeOver(&td->info)) {
+    if (mainT && TimeOver()) {
         StopHelperThreads();
-        td->info.stopped = true;
+        setStop(true);
         return 0;
     }
 
@@ -596,7 +589,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
             // increment nodes count
-            info->nodes++;
+            td->nodes++;
 
             // Play the move
             MakeMove<true>(move, pos);
@@ -731,8 +724,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         AddMove(move, isQuiet ? &quietMoves : &noisyMoves);
 
         // increment nodes count
-        info->nodes++;
-        const uint64_t nodesBeforeSearch = info->nodes;
+        td->nodes++;
+        const uint64_t nodesBeforeSearch = td->nodes;
         // Conditions to consider LMR. Calculate how much we should reduce the search depth.
         if (totalMoves > 1 && depth >= 3 && (isQuiet || !ttPv)) {
 
@@ -809,9 +802,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // take move back
         UnmakeMove(move, pos);
         if (mainT && rootNode)
-            nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
+            nodeSpentTable[FromTo(move)] += td->nodes - nodesBeforeSearch;
 
-        if (info->stopped)
+        if (stop())
             return 0;
 
         // If the score of the current move is the best we've found until now
@@ -882,7 +875,6 @@ template <bool pvNode>
 int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
-    SearchInfo* info = &td->info;
     const bool inCheck = pos->getCheckers();
     // tte is an TT entry, it will store the values fetched from the TT
     TTEntry tte;
@@ -890,9 +882,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     int rawEval;
 
     // check if more than Maxtime passed and we have to stop
-    if (td->id == 0 && TimeOver(&td->info)) {
+    if (td->id == 0 && TimeOver()) {
         StopHelperThreads();
-        td->info.stopped = true;
+        setStop(true);
         return 0;
     }
 
@@ -991,14 +983,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Play the move
         MakeMove<true>(move, pos);
         // increment nodes count
-        info->nodes++;
+        td->nodes++;
         // Call Quiescence search recursively
         const int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
 
         // take move back
         UnmakeMove(move, pos);
 
-        if (info->stopped)
+        if (stop())
             return 0;
 
         // If the score of the current move is the best we've found until now

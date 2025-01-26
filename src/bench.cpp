@@ -66,7 +66,7 @@ const char* benchmarkfens[52] = {
 void StartBench(int depth) {
     // init all
     UciOptions uciOptions;
-    ThreadData* td(new ThreadData());
+    ThreadData* td = &mainTD;
     uint64_t totalNodes = 0;
     InitTT(64);
     InitNewGame(td);
@@ -75,13 +75,12 @@ void StartBench(int depth) {
         ParseFen(benchmarkfens[positions], &td->pos);
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
         RootSearch(depth, td, &uciOptions);
-        totalNodes += td->info.nodes;
+        totalNodes += td->nodes;
     }
     auto end = std::chrono::steady_clock::now();
     auto totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << "\n";
     std::cout << totalNodes << " nodes " << signed(totalNodes / (totalTime + 1) * 1000) << " nps" << std::endl;
-    delete td;
 }
 
 void BenchInference() {

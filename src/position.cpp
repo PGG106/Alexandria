@@ -9,6 +9,7 @@
 #include "magic.h"
 #include "init.h"
 #include "cuckoo.h"
+#include "search.h"
 
 NNUE nnue = NNUE();
 
@@ -27,17 +28,16 @@ void ResetBoard(Position* pos) {
     pos->state.plyFromNull = 0;
 }
 
-void ResetInfo(SearchInfo* info) {
-    info->depth = 0;
-    info->nodes = 0;
-    info->starttime = 0;
-    info->stoptimeOpt = 0;
-    info->stoptimeMax = 0;
-    info->movestogo = -1;
-    info->stopped = false;
-    info->timeset = false;
-    info->movetimeset = false;
-    info->nodeset = false;
+void ResetInfo() {
+    info.depth = 0;
+    info.starttime = 0;
+    info.stoptimeOpt = 0;
+    info.stoptimeMax = 0;
+    info.movestogo = -1;
+    info.timeset = false;
+    info.movetimeset = false;
+    info.nodeset = false;
+    setStop(false);
 }
 
 // Generates zobrist key from scratch

@@ -21,6 +21,8 @@ using ZobristKey = uint64_t;
 using Move = uint32_t;
 using PackedMove = uint16_t;
 
+using u64 = uint64_t;
+
 constexpr Move NOMOVE = 0;
 constexpr int MAXPLY = 256;
 constexpr int MAXDEPTH = MAXPLY;
