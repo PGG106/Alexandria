@@ -142,8 +142,8 @@ void InitReductions() {
 
     for (int i = 1; i < 64; i++) {
         for (int j = 1; j < 64; j++) {
-            reductions[0][i][j] = -0.25 + log(i) * log(j) / 2.25;
-            reductions[1][i][j] = +1.00 + log(i) * log(j) / 2.00;
+            reductions[0][i][j] = lmrNoisyBase() / 100.0 + log(i) * log(j) / (lmrNoisytDivisor() / 100.0);
+            reductions[1][i][j] = lmrQuietBase() / 100.0 + log(i) * log(j) /  (lmrQuietDivisor() / 100.0);
         }
     }
 
@@ -151,8 +151,8 @@ void InitReductions() {
         lmp_margin[depth][0] = 1.5 + 0.5 * std::pow(depth, 2.0); // Not improving
         lmp_margin[depth][1] = 3.0 + 1.0 * std::pow(depth, 2.0); // improving
 
-        see_margin[depth][1] = -80.0 * std::pow(depth, 1.0); // Quiet moves
-        see_margin[depth][0] = -30.0 * std::pow(depth, 2.0); // Non quiets
+        see_margin[depth][1] = seeQuietMargin() * std::pow(depth, 1.0); // Quiet moves
+        see_margin[depth][0] = seeNoisyMargin() * std::pow(depth, 2.0); // Non quiets
 
     }
 }

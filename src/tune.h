@@ -88,26 +88,46 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 // TM STUFF
 // SOFT/HARD bounds
-TUNE_PARAM(baseMultiplier, 54, 20, 150, 7, 0.002)
-TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
-TUNE_PARAM(maxBoundMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(maxTimeMultiplier, 304, 100, 500, 20, 0.002)
+TUNE_PARAM(baseMultiplier, 59, 20, 150, 7, 0.002)
+TUNE_PARAM(incMultiplier, 84, 50, 150, 5, 0.002)
+TUNE_PARAM(maxBoundMultiplier, 73, 50, 90, 2, 0.002)
+TUNE_PARAM(optTimeMultiplier, 79, 50, 90, 2, 0.002)
+TUNE_PARAM(maxTimeMultiplier, 284, 100, 500, 20, 0.002)
 
 // Bestmove stability
-TUNE_PARAM(bmScale1, 243, 50, 300, 10, 0.002)
-TUNE_PARAM(bmScale2, 135, 50, 200, 10, 0.002)
-TUNE_PARAM(bmScale3, 109, 50, 150, 6, 0.002)
-TUNE_PARAM(bmScale4, 88, 40, 110, 5, 0.002)
-TUNE_PARAM(bmScale5, 68, 35, 100, 5, 0.002)
+TUNE_PARAM(bmScale1, 247, 50, 300, 10, 0.002)
+TUNE_PARAM(bmScale2, 147, 50, 200, 10, 0.002)
+TUNE_PARAM(bmScale3, 116, 50, 150, 6, 0.002)
+TUNE_PARAM(bmScale4, 90, 40, 110, 5, 0.002)
+TUNE_PARAM(bmScale5, 65, 35, 100, 5, 0.002)
 
 // Eval stability
-TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
-TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale3, 100, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale4, 94, 60, 130, 4, 0.002)
-TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
+TUNE_PARAM(evalScale1, 120, 90, 160, 4, 0.002)
+TUNE_PARAM(evalScale2, 118, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale3, 103, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale4, 100, 60, 130, 4, 0.002)
+TUNE_PARAM(evalScale5, 83, 40, 110, 4, 0.002)
 
 // Node Tm
 TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
-TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+TUNE_PARAM(nodeTmMultiplier, 183, 80, 250, 8, 0.002)
+
+
+// Search
+TUNE_PARAM(rfpMargin, 79, 40, 200, 10, 0.002)
+TUNE_PARAM(nmpReductionEvalDivisor, 195, 100, 400, 20, 0.002)
+TUNE_PARAM(razoringCoeff, 243, 100, 400, 20, 0.002)
+TUNE_PARAM(historyQuietLmrDivisor, 8177, 1, 16383, 100, 0.002)
+TUNE_PARAM(historyNoisyLmrDivisor, 5941, 1, 16383, 100, 0.002)
+TUNE_PARAM(doDeeperBaseMargin, 117, 1, 200, 20, 0.002)
+TUNE_PARAM(qsBaseFutility, 295, -500, 500, 25, 0.002)
+TUNE_PARAM(historyBonusMax, 1286, 1, 4096, 256, 0.002)
+TUNE_PARAM(lmrQuietBase, 106, 40, 150, 7, 0.002)
+TUNE_PARAM(lmrQuietDivisor, 229, 150, 500, 15, 0.002)
+TUNE_PARAM(lmrNoisyBase, -27, -70, 100, 7, 0.002)
+TUNE_PARAM(lmrNoisytDivisor, 234, 150, 500, 15, 0.002)
+TUNE_PARAM(seeQuietMargin, -93, -150, -20, 5, 0.002)
+TUNE_PARAM(seeNoisyMargin, -34, -100, -1, 3, 0.002)
+TUNE_PARAM(futilityCoeff0, 242, 40, 300, 10, 0.002)
+TUNE_PARAM(futilityCoeff1, 137, 40, 200, 10, 0.002)
+TUNE_PARAM(lmrDepthDivisor, 8135, 1, 16383, 100, 0.002)

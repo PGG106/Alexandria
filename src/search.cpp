@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <cmath>
 #include "bitboard.h"
 #include "move.h"
 #include "search.h"
@@ -516,8 +517,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - 91 * (depth - improving - canIIR) >= beta)
-            return eval - 91 * (depth - improving - canIIR);
+            && eval - rfpMargin() * (depth - improving - canIIR) >= beta)
+            return eval - rfpMargin() * (depth - improving - canIIR);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
@@ -531,7 +532,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
-            const int R = 4 + depth / 3 + std::min((eval - beta) / 200, 3);
+            const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             MakeNullMove(pos);
@@ -562,7 +563,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + 256 * depth < alpha)
+        if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
@@ -652,8 +653,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   !rootNode
             &&  bestScore > -MATE_FOUND) {
 
+            const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
-            const int lmrDepth = std::max(0, depth - reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] + moveHistory / 8192);
+            const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
             if (!skipQuiets) {
 
@@ -665,13 +667,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
                     && lmrDepth < 11
-                    && ss->staticEval + 250 + 150 * lmrDepth <= alpha) {
+                    && ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth <= alpha) {
                     skipQuiets = true;
                 }
             }
-
+            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth :  seeNoisyMargin() * lmrDepth * lmrDepth;
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
-            if (!SEE(pos, move, see_margin[std::min(lmrDepth, 63)][isQuiet]))
+            if (!SEE(pos, move, see_margin))
                 continue;
         }
 
@@ -762,7 +764,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 8192;
+                depthReduction -= moveHistory / historyQuietLmrDivisor();
             }
             else {
                 // Fuck
@@ -770,7 +772,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     depthReduction += 2;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / 6144;
+                depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
 
             // adjust the reduction so that we can't drop into Qsearch and to prevent extensions
@@ -784,7 +786,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (score > alpha && newDepth > reducedDepth) {
                 // Based on the value returned by our reduced search see if we should search deeper or shallower, 
                 // this is an exact yoink of what SF does and frankly i don't care lmao
-                const bool doDeeperSearch = score > (bestScore + 53 + 2 * newDepth);
+                const bool doDeeperSearch = score > (bestScore + doDeeperBaseMargin() + 2 * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth)
@@ -977,7 +979,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (    bestScore > -MATE_FOUND
             && !inCheck) {
-            const int futilityBase = ss->staticEval + 192;
+            const int futilityBase = ss->staticEval + qsBaseFutility();
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
                 bestScore = std::max(futilityBase, bestScore);
                 continue;

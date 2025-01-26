@@ -336,7 +336,7 @@ void UciLoop(int argc, char** argv) {
 #ifdef TUNE
             // spsa info dump
             for (const auto &param: tunables()) {
-                std::cout << param << std::endl;
+                std::cout << "option name " << param.name << " type spin default " << param.defaultValue <<" min " <<param.minValue <<" max " << param.maxValue << std::endl;
             }
 #endif
             std::cout << "uciok" << std::endl;
