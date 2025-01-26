@@ -150,10 +150,6 @@ void InitReductions() {
     for (int depth = 0; depth < 64; depth++) {
         lmp_margin[depth][0] = 1.5 + 0.5 * std::pow(depth, 2.0); // Not improving
         lmp_margin[depth][1] = 3.0 + 1.0 * std::pow(depth, 2.0); // improving
-
-        see_margin[depth][1] = seeQuietMargin() * std::pow(depth, 1.0); // Quiet moves
-        see_margin[depth][0] = seeNoisyMargin() * std::pow(depth, 2.0); // Non quiets
-
     }
 }
 
