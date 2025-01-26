@@ -672,7 +672,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 }
             }
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
-            if (!SEE(pos, move, see_margin[lmrDepth][isQuiet]))
+            if (!SEE(pos, move, see_margin[lmrDepth][isQuiet])) //huh
                 continue;
         }
 
