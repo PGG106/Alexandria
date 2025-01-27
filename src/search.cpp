@@ -366,6 +366,10 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     return score;
 }
 
+int futilityMargin(const int depth, const bool improving, const bool canIIR){
+    return rfpDepthMargin() * depth - rfpImprovingMargin() * improving - rfpIIRMargin() * canIIR;
+}
+
 // Negamax alpha beta search
 template <bool pvNode>
 int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, SearchStack* ss) {
@@ -517,8 +521,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - rfpMargin() * (depth - improving - canIIR) >= beta)
-            return eval - rfpMargin() * (depth - improving - canIIR);
+            && eval - futilityMargin(depth, improving, canIIR) >= beta)
+            return eval - futilityMargin(depth, improving, canIIR);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
@@ -671,7 +675,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
             }
-            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth :  seeNoisyMargin() * lmrDepth * lmrDepth;
+            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : seeNoisyMargin() * lmrDepth * lmrDepth;
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
             if (!SEE(pos, move, see_margin))
                 continue;

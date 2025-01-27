@@ -114,7 +114,9 @@ TUNE_PARAM(nodeTmMultiplier, 183, 80, 250, 8, 0.002)
 
 
 // Search
-TUNE_PARAM(rfpMargin, 79, 40, 200, 10, 0.002)
+TUNE_PARAM(rfpDepthMargin, 79, 40, 200, 10, 0.002)
+TUNE_PARAM(rfpImprovingMargin, 79, 40, 200, 10, 0.002)
+TUNE_PARAM(rfpIIRMargin, 79, 40, 200, 10, 0.002)
 TUNE_PARAM(nmpReductionEvalDivisor, 195, 100, 400, 20, 0.002)
 TUNE_PARAM(razoringCoeff, 243, 100, 400, 20, 0.002)
 TUNE_PARAM(historyQuietLmrDivisor, 8177, 1, 16383, 100, 0.002)
