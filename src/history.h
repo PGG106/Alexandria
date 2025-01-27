@@ -20,6 +20,7 @@ constexpr int CORRHIST_MAX = 16384;
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves, const bool rootNode);
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
+int history_malus(const int depth);
 // Getters for the history heuristics
 [[nodiscard]] int GetHHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetRHScore(const Position* pos, const SearchData* sd, const Move move);
