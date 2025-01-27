@@ -12,11 +12,11 @@ GetScore: this is simply a getter for a specific entry of the history table
 */
 
 int history_bonus(const int depth) {
-    return std::min(154 * depth - 102, historyBonusMax());
+    return std::min(154 * depth - 50, historyBonusMax());
 }
 
 int history_malus(const int depth) {
-    return std::min(831 * depth - 269, historyMalusMax());
+    return std::min(400 * depth - 130, historyMalusMax());
 }
 
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
