@@ -281,6 +281,8 @@ void UciLoop(int argc, char** argv) {
 #ifdef TUNE
             else {
                 updateTuneVariable(tokens.at(2), std::stoi(tokens.at(4)));
+                // make sure reduction tables are refreshed
+                InitReductions();
         }
 #else
             else std::cout << "Unknown command: " << input << std::endl;
