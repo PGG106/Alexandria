@@ -19,6 +19,30 @@ int history_malus(const int depth) {
     return std::min(historyMalusMul() * depth + historyMalusOffset(), historyMalusMax());
 }
 
+int capthistory_bonus(const int depth) {
+    return std::min(capthistoryBonusMul() * depth + capthistoryBonusOffset(), capthistoryBonusMax());
+}
+
+int capthistory_malus(const int depth) {
+    return std::min(capthistoryMalusMul() * depth + capthistoryMalusOffset(), capthistoryMalusMax());
+}
+
+int conthistory_bonus(const int depth) {
+    return std::min(conthistoryBonusMul() * depth + conthistoryBonusOffset(), conthistoryBonusMax());
+}
+
+int conthistory_malus(const int depth) {
+    return std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax());
+}
+
+int roothistory_bonus(const int depth) {
+    return std::min(roothistoryBonusMul() * depth + roothistoryBonusOffset(), roothistoryBonusMax());
+}
+
+int roothistory_malus(const int depth) {
+    return std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax());
+}
+
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
@@ -68,34 +92,40 @@ void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, i
 // Update all histories
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves, const bool rootNode) {
     const int bonus = history_bonus(depth);
+    const int capthist_bonus = capthistory_bonus(depth);
+    const int conthist_bonus = conthistory_bonus(depth);
+    const int roothist_bonus = roothistory_bonus(depth);
     const int malus = history_malus(depth);
+    const int conthist_malus = conthistory_malus(depth);
+    const int roothist_malus = roothistory_malus(depth);
+    const int capthist_malus = capthistory_malus(depth);
     if (!isTactical(bestMove))
     {
         // increase bestMove HH and CH score
         updateHHScore(pos, sd, bestMove, bonus);
-        updateCHScore(ss, bestMove, bonus);
+        updateCHScore(ss, bestMove, conthist_bonus);
         if (rootNode)
-            updateRHScore(pos, sd, bestMove, bonus);
+            updateRHScore(pos, sd, bestMove, roothist_bonus);
         // Loop through all the quiet moves
         for (int i = 0; i < quietMoves->count; i++) {
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i].move;
             if (move == bestMove) continue;
             updateHHScore(pos, sd, move, -malus);
-            updateCHScore(ss, move, -malus);
+            updateCHScore(ss, move, -conthist_malus);
             if (rootNode)
-              updateRHScore(pos, sd, move, -malus);
+              updateRHScore(pos, sd, move, -roothist_malus);
         }
     }
     else {
         // increase the bestMove Capthist score
-        updateCapthistScore(pos, sd, bestMove, bonus);
+        updateCapthistScore(pos, sd, bestMove, capthist_bonus);
     }
     // For all the noisy moves that didn't cause a cut-off, even is the bestMove wasn't a noisy move, decrease the capthist score
     for (int i = 0; i < noisyMoves->count; i++) {
         const Move move = noisyMoves->moves[i].move;
         if (move == bestMove) continue;
-        updateCapthistScore(pos, sd, move, -malus);
+        updateCapthistScore(pos, sd, move, -capthist_malus);
     }
 }
 

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -123,12 +125,35 @@ TUNE_PARAM(historyQuietLmrDivisor, 8218, 1, 16383, 100, 0.002)
 TUNE_PARAM(historyNoisyLmrDivisor, 6016, 1, 16383, 100, 0.002)
 TUNE_PARAM(doDeeperBaseMargin, 121, 1, 200, 20, 0.002)
 TUNE_PARAM(qsBaseFutility, 291, -500, 500, 25, 0.002)
+// HH
 TUNE_PARAM(historyBonusMul, 251, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyBonusOffset, 31, -1024, 1024, 64, 0.002)
 TUNE_PARAM(historyBonusMax, 2265, 1, 4096, 256, 0.002)
 TUNE_PARAM(historyMalusMul, 335, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyMalusOffset, -98, -1024, 1024, 64, 0.002)
 TUNE_PARAM(historyMalusMax, 1654, 1, 4096, 256, 0.002)
+// Capthist
+TUNE_PARAM(capthistoryBonusMul, 251, 1, 1500, 32, 0.002)
+TUNE_PARAM(capthistoryBonusOffset, 31, -1024, 1024, 64, 0.002)
+TUNE_PARAM(capthistoryBonusMax, 2265, 1, 4096, 256, 0.002)
+TUNE_PARAM(capthistoryMalusMul, 335, 1, 1500, 32, 0.002)
+TUNE_PARAM(capthistoryMalusOffset, -98, -1024, 1024, 64, 0.002)
+TUNE_PARAM(capthistoryMalusMax, 1654, 1, 4096, 256, 0.002)
+// Conthist
+TUNE_PARAM(conthistoryBonusMul, 251, 1, 1500, 32, 0.002)
+TUNE_PARAM(conthistoryBonusOffset, 31, -1024, 1024, 64, 0.002)
+TUNE_PARAM(conthistoryBonusMax, 2265, 1, 4096, 256, 0.002)
+TUNE_PARAM(conthistoryMalusMul, 335, 1, 1500, 32, 0.002)
+TUNE_PARAM(conthistoryMalusOffset, -98, -1024, 1024, 64, 0.002)
+TUNE_PARAM(conthistoryMalusMax, 1654, 1, 4096, 256, 0.002)
+// Roothist
+TUNE_PARAM(roothistoryBonusMul, 251, 1, 1500, 32, 0.002)
+TUNE_PARAM(roothistoryBonusOffset, 31, -1024, 1024, 64, 0.002)
+TUNE_PARAM(roothistoryBonusMax, 2265, 1, 4096, 256, 0.002)
+TUNE_PARAM(roothistoryMalusMul, 335, 1, 1500, 32, 0.002)
+TUNE_PARAM(roothistoryMalusOffset, -98, -1024, 1024, 64, 0.002)
+TUNE_PARAM(roothistoryMalusMax, 1654, 1, 4096, 256, 0.002)
+// LMR
 TUNE_PARAM(lmrQuietBase, 109, 40, 150, 7, 0.002)
 TUNE_PARAM(lmrQuietDivisor, 232, 150, 500, 15, 0.002)
 TUNE_PARAM(lmrNoisyBase, -33, -70, 100, 7, 0.002)
