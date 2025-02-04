@@ -250,8 +250,6 @@ void UciLoop(int argc, char** argv) {
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
-            // make sure reduction tables are refreshed
-            InitReductions();
 
             if (!parsed_position) { // call parse position function
                 ParsePosition("position startpos", &td->pos);
