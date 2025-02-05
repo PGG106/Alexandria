@@ -88,11 +88,10 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 // TM STUFF
 // SOFT/HARD bounds
-TUNE_PARAM(baseMultiplier, 67, 20, 150, 7, 0.002)
-TUNE_PARAM(incMultiplier, 91, 50, 150, 5, 0.002)
-TUNE_PARAM(maxBoundMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(optTimeMultiplier, 80, 50, 90, 2, 0.002)
-TUNE_PARAM(maxTimeMultiplier, 253, 100, 500, 20, 0.002)
+TUNE_PARAM(baseMultiplier, 54, 20, 150, 7, 0.002)
+TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
+TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
+TUNE_PARAM(maxTimeMultiplier, 304, 100, 500, 20, 0.002)
 
 // Bestmove stability
 TUNE_PARAM(bmScale1, 243, 50, 300, 10, 0.002)
@@ -109,8 +108,8 @@ TUNE_PARAM(evalScale4, 94, 60, 130, 4, 0.002)
 TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
 
 // Node Tm
-TUNE_PARAM(nodeTmBase, 146, 100, 300, 10, 0.002)
-TUNE_PARAM(nodeTmMultiplier, 194, 80, 250, 8, 0.002)
+TUNE_PARAM(nodeTmBase, 152, 100, 300, 10, 0.002)
+TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
 // Search
 TUNE_PARAM(rfpDepthMargin, 87, 40, 200, 10, 0.002)
