@@ -48,7 +48,6 @@ struct Network {
     int16_t L1Biases[OUTPUT_BUCKETS];
 };
 
-extern Network net;
 struct Position;
 
 class NNUE {

@@ -23,60 +23,13 @@ const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-Network net;
+const Network *net;
 
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
 void NNUE::init(const char *file) {
-
-    // open the nn file
-    FILE *nn = fopen(file, "rb");
-
-    // if it's not invalid read the config values from it
-    if (nn) {
-        // initialize an accumulator for every input of the second layer
-        size_t read = 0;
-        const size_t fileSize = sizeof(Network);
-        const size_t objectsExpected = fileSize / sizeof(int16_t);
-
-        read += fread(net.FTWeights, sizeof(int16_t), INPUT_BUCKETS * NUM_INPUTS * L1_SIZE, nn);
-        read += fread(net.FTBiases, sizeof(int16_t), L1_SIZE, nn);
-        read += fread(net.L1Weights, sizeof(int16_t), L1_SIZE * 2 * OUTPUT_BUCKETS, nn);
-        read += fread(net.L1Biases, sizeof(int16_t), OUTPUT_BUCKETS, nn);
-
-        if (read != objectsExpected) {
-            std::cout << "Error loading the net, aborting ";
-            std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
-            exit(1);
-        }
-
-        // after reading the config we can close the file
-        fclose(nn);
-    } else {
-        // if we don't find the nnue file we use the net embedded in the exe
-        uint64_t memoryIndex = 0;
-        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t));
-        memoryIndex += INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t);
-        std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
-        memoryIndex += L1_SIZE * sizeof(int16_t);
-
-        std::memcpy(net.L1Weights, &gEVALData[memoryIndex], L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t));
-        memoryIndex += L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t);
-        std::memcpy(net.L1Biases, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
-    }
-
-    int16_t transposedL1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
-    for (int weight = 0; weight < 2 * L1_SIZE; ++weight)
-    {
-        for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket)
-        {
-            const int srcIdx = weight * OUTPUT_BUCKETS + bucket;
-            const int dstIdx = bucket * 2 * L1_SIZE + weight;
-            transposedL1Weights[dstIdx] = net.L1Weights[srcIdx];
-        }
-    }
-    std::memcpy(net.L1Weights, transposedL1Weights, L1_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
+    net = reinterpret_cast<const Network*>(gEVALData);
 }
 
 void NNUE::update(Accumulator *acc, Position *pos) {
@@ -132,7 +85,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
 
     if(cachedEntry->occupancies[WK] == 0ULL)
         for (int i = 0; i < L1_SIZE; i++) {
-            this->values[i] = net.FTBiases[i];
+            this->values[i] = net->FTBiases[i];
         }
 
     // figure out a diff
@@ -142,10 +95,10 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
         while (added && removed) {
             auto added_square = popLsb(added);
             auto added_index = GetIndex(piece, added_square, kingSq, flip);
-            const auto Add = &net.FTWeights[added_index * L1_SIZE];
+            const auto Add = &net->FTWeights[added_index * L1_SIZE];
             auto removed_square = popLsb(removed);
             auto removed_index = GetIndex(piece, removed_square, kingSq, flip);
-            const auto Sub = &net.FTWeights[removed_index * L1_SIZE];
+            const auto Sub = &net->FTWeights[removed_index * L1_SIZE];
             for (int i = 0; i < L1_SIZE; i++) {
               this->values[i] = this->values[i] + Add[i] - Sub[i];
             }
@@ -153,7 +106,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
         while (added) {
             auto square = popLsb(added);
             auto index = GetIndex(piece, square, kingSq, flip);
-            const auto Add = &net.FTWeights[index * L1_SIZE];
+            const auto Add = &net->FTWeights[index * L1_SIZE];
             for (int i = 0; i < L1_SIZE; i++) {
                 this->values[i] += Add[i];
             }
@@ -161,7 +114,7 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
         while (removed) {
             auto square = popLsb(removed);
             auto index = GetIndex(piece, square, kingSq, flip);
-            const auto Sub = &net.FTWeights[index * L1_SIZE];
+            const auto Sub = &net->FTWeights[index * L1_SIZE];
             for (int i = 0; i < L1_SIZE; i++) {
                 this->values[i] -= Sub[i];
             }
@@ -179,17 +132,17 @@ void NNUE::Pov_Accumulator::refresh(Position *pos) {
 }
 
 void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
-    const auto Add = &net.FTWeights[add * L1_SIZE];
-    const auto Sub = &net.FTWeights[sub * L1_SIZE];
+    const auto Add = &net->FTWeights[add * L1_SIZE];
+    const auto Sub = &net->FTWeights[sub * L1_SIZE];
     for (int i = 0; i < L1_SIZE; i++) {
         this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
     }
 }
 
 void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
-    const auto Add = &net.FTWeights[add * L1_SIZE];
-    const auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
-    const auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
+    const auto Add = &net->FTWeights[add * L1_SIZE];
+    const auto Sub1 = &net->FTWeights[sub1 * L1_SIZE];
+    const auto Sub2 = &net->FTWeights[sub2 * L1_SIZE];
     for (int i = 0; i < L1_SIZE; i++) {
         this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
     }
@@ -246,7 +199,7 @@ int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, 
     them = board_accumulator.perspective[stm ^ 1].values.data();
 
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
-    return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
+    return ActivateFTAndAffineL1(us, them, &net->L1Weights[bucketOffset], net->L1Biases[outputBucket]);
 }
 
 void NNUE::refresh(NNUE::Accumulator& board_accumulator, Position* pos) {
