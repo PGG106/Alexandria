@@ -52,15 +52,13 @@ bool StopEarly(const SearchInfo* info) {
 
 void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalStabilityFactor) {
     constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
-    constexpr double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     const int bestmove = GetBestMove();
     // Calculate how many nodes were spent on checking the best move
     const double bestMoveNodesFraction = static_cast<double>(nodeSpentTable[FromTo(bestmove)]) / static_cast<double>(td->info.nodes);
     const double nodeScalingFactor = (1.52 - bestMoveNodesFraction) * 1.74;
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
-    const double evalScalingFactor = evalScale[evalStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
-    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.stoptimeMax);
+    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor, td->info.stoptimeMax);
 
 }
 
