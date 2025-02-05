@@ -28,7 +28,7 @@ const Network *net;
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
-void NNUE::init(const char *file) {
+void NNUE::init() {
     net = reinterpret_cast<const Network*>(gEVALData);
 }
 
