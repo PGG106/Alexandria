@@ -95,18 +95,18 @@ TUNE_PARAM(optTimeMultiplier, 80, 50, 90, 2, 0.002)
 TUNE_PARAM(maxTimeMultiplier, 253, 100, 500, 20, 0.002)
 
 // Bestmove stability
-TUNE_PARAM(bmScale1, 259, 50, 300, 10, 0.002)
-TUNE_PARAM(bmScale2, 160, 50, 200, 10, 0.002)
-TUNE_PARAM(bmScale3, 124, 50, 150, 6, 0.002)
-TUNE_PARAM(bmScale4, 98, 40, 110, 5, 0.002)
-TUNE_PARAM(bmScale5, 66, 35, 100, 5, 0.002)
+TUNE_PARAM(bmScale1, 243, 50, 300, 10, 0.002)
+TUNE_PARAM(bmScale2, 135, 50, 200, 10, 0.002)
+TUNE_PARAM(bmScale3, 109, 50, 150, 6, 0.002)
+TUNE_PARAM(bmScale4, 88, 40, 110, 5, 0.002)
+TUNE_PARAM(bmScale5, 68, 35, 100, 5, 0.002)
 
 // Eval stability
-TUNE_PARAM(evalScale1, 124, 90, 160, 4, 0.002)
-TUNE_PARAM(evalScale2, 119, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale3, 98, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale4, 91, 60, 130, 4, 0.002)
-TUNE_PARAM(evalScale5, 95, 40, 110, 4, 0.002)
+TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
+TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale3, 100, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale4, 94, 60, 130, 4, 0.002)
+TUNE_PARAM(evalScale5, 88, 40, 110, 4, 0.002)
 
 // Node Tm
 TUNE_PARAM(nodeTmBase, 146, 100, 300, 10, 0.002)

@@ -51,8 +51,8 @@ bool StopEarly(const SearchInfo* info) {
 }
 
 void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalStabilityFactor) {
-    constexpr double bestmoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
-    constexpr double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    const double bestmoveScale[5] = {bmScale1() / 100.0, bmScale2() / 100.0, bmScale3() / 100.0, bmScale4() / 100.0, bmScale5() / 100.0};
+    const double evalScale[5] = {evalScale1() / 100.0, evalScale2() / 100.0, evalScale3() / 100.0, evalScale4() / 100.0, evalScale5() / 100.0};
     const int bestmove = GetBestMove();
     // Calculate how many nodes were spent on checking the best move
     const double bestMoveNodesFraction = static_cast<double>(nodeSpentTable[FromTo(bestmove)]) / static_cast<double>(td->info.nodes);
