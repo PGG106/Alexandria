@@ -91,25 +91,25 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 TUNE_PARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
 TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
 TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(maxTimeMultiplier, 316, 100, 500, 20, 0.002)
+TUNE_PARAM(maxTimeMultiplier, 323, 100, 500, 20, 0.002)
 
 // Bestmove stability
-TUNE_PARAM(bmScale1, 239, 50, 300, 10, 0.002)
-TUNE_PARAM(bmScale2, 128, 50, 200, 10, 0.002)
-TUNE_PARAM(bmScale3, 106, 50, 150, 6, 0.002)
-TUNE_PARAM(bmScale4, 90, 40, 110, 5, 0.002)
-TUNE_PARAM(bmScale5, 70, 35, 100, 5, 0.002)
+TUNE_PARAM(bmScale1, 238, 50, 300, 10, 0.002)
+TUNE_PARAM(bmScale2, 129, 50, 200, 10, 0.002)
+TUNE_PARAM(bmScale3, 107, 50, 150, 6, 0.002)
+TUNE_PARAM(bmScale4, 91, 40, 110, 5, 0.002)
+TUNE_PARAM(bmScale5, 71, 35, 100, 5, 0.002)
 
 // Eval stability
 TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
-TUNE_PARAM(evalScale2, 113, 80, 150, 4, 0.002)
+TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
 TUNE_PARAM(evalScale3, 103, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale4, 93, 60, 130, 4, 0.002)
+TUNE_PARAM(evalScale4, 92, 60, 130, 4, 0.002)
 TUNE_PARAM(evalScale5, 87, 40, 110, 4, 0.002)
 
 // Node Tm
-TUNE_PARAM(nodeTmBase, 154, 100, 300, 10, 0.002)
-TUNE_PARAM(nodeTmMultiplier, 173, 80, 250, 8, 0.002)
+TUNE_PARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
+TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
 // Search
 TUNE_PARAM(rfpDepthMargin, 88, 40, 200, 10, 0.002)
