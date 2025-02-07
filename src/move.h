@@ -15,6 +15,18 @@ struct MoveList {
     int count = 0;
 };
 
+// move list structure
+struct StackMoveList {
+    Move moves[64];
+    int count = 0;
+    void addMove(Move move){
+        if(count < 64) {
+            moves[count] = move;
+            count++;
+        }
+    }
+};
+
 enum class Movetype {
     Quiet, doublePush, KSCastle,
     QSCastle, Capture, enPassant,
