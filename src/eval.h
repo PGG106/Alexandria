@@ -44,7 +44,7 @@
 
 // position evaluation
 [[nodiscard]] inline int EvalPosition(Position* pos) {
-    int eval = EvalPositionRaw(pos);
+    int eval = EvalPositionRaw(pos) / 2;
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->get50MrCounter()) / 200;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
