@@ -663,7 +663,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             if (!skipQuiets) {
 
-                int adjusted_lmp_margin = std::min(lmp_margin[std::min(depth, 63)][improving], 32);
+                int adjusted_lmp_margin = std::min(lmp_margin[std::min(depth, 63)][improving], 48);
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
                 if (totalMoves > adjusted_lmp_margin ) {
                     skipQuiets = true;
