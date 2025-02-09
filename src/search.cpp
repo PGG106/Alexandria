@@ -114,7 +114,7 @@ static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
 }
 
 // inspired by the Weiss engine
-bool SEE(const Position* pos, const int move, const int threshold) {
+bool SEE(const Position* pos, const Move move, const int threshold) {
 
     // We can't win any material from castling, nor can we lose any
     if (isCastle(move))

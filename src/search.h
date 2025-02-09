@@ -70,7 +70,7 @@ template <bool pvNode>
 [[nodiscard]] Move GetBestMove();
 
 // inspired by the Weiss engine
-[[nodiscard]] bool SEE(const Position* pos, const int move, const int threshold);
+[[nodiscard]] bool SEE(const Position* pos, const Move move, const int threshold);
 
 // Checks if the current position is a draw
 [[nodiscard]] bool IsDraw(Position* pos);

@@ -250,6 +250,9 @@ void UciLoop(int argc, char** argv) {
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
+#ifdef TUNE
+            InitReductions();
+#endif
 
             if (!parsed_position) { // call parse position function
                 ParsePosition("position startpos", &td->pos);
