@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "move.h"
 
 struct Position;
 struct SearchData;
@@ -17,7 +18,7 @@ constexpr int CORRHIST_SIZE = 16384;
 constexpr int CORRHIST_MAX = 16384;
 
 // Functions used to update the history heuristics
-void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const MoveList* quietMoves, const MoveList* noisyMoves, const bool rootNode);
+void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const StackMoveList* quietMoves, const StackMoveList* noisyMoves, const bool rootNode);
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
 int history_malus(const int depth);

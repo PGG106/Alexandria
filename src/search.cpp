@@ -641,7 +641,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     InitMP(&mp, pos, sd, ss, ttMove, SCORE_NONE,SEARCH, rootNode);
 
     // Keep track of the played quiet and noisy moves
-    MoveList quietMoves, noisyMoves;
+    StackMoveList quietMoves, noisyMoves;
 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
@@ -732,7 +732,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         MakeMove<true>(move, pos);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
         // Add any played move to the matching list
-        AddMove(move, isQuiet ? &quietMoves : &noisyMoves);
+        if(isQuiet)
+            quietMoves.addMove(move);
+        else
+            noisyMoves.addMove(move);
 
         // increment nodes count
         info->nodes++;
