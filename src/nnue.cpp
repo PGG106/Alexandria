@@ -2,7 +2,9 @@
 #include "simd.h"
 #include <algorithm>
 #include "position.h"
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include "incbin/incbin.h"
