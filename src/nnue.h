@@ -28,8 +28,8 @@ constexpr int buckets[64] = {
         14, 14, 15, 15, 15, 15, 14, 14
 };
 
-[[nodiscard]] inline int getBucket(int kingSquare, int side){
-   const auto finalKingSq= side == WHITE ? (kingSquare ^ 56) : (kingSquare);
+[[nodiscard]] inline int getBucket(int kingSquare, int side) {
+   const auto finalKingSq = side == WHITE ? (kingSquare ^ 56) : (kingSquare);
    return buckets[finalKingSq];
 }
 
@@ -51,73 +51,25 @@ struct Network {
 extern Network net;
 struct Position;
 
-class NNUE {
-public:
-    // per pov accumulator
-    struct Pov_Accumulator{
-            std::array<int16_t, L1_SIZE> values;
-            int pov;
-            std::vector<std::size_t> NNUEAdd = {};
-            std::vector<std::size_t> NNUESub = {};
-            bool needsRefresh = false;
+struct NNUE {
 
-            [[nodiscard]] int GetIndex(const int piece, const int square, const int kingSq , bool flip) const;
-            void addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub);
-            void addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2);
-            void applyUpdate(Pov_Accumulator& previousPovAccumulator);
-            void refresh(Position *pos);
+    using PovAccumulator = std::array<int16_t, L1_SIZE>;
 
-            [[nodiscard]] bool isClean() const {
-                return NNUEAdd.empty();
-            }
-    };
-// final total accumulator that holds the 2 povs
-    struct Accumulator {
+    struct FinnyTableEntry {
+        Bitboard occupancies[12] = {};
+        NNUE::PovAccumulator accumCache;
 
-        Accumulator(){
-            this->perspective[WHITE].pov = WHITE;
-            this->perspective[BLACK].pov = BLACK;
-        }
-
-        std::array<Pov_Accumulator, 2> perspective;
-
-        void AppendAddIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
-            assert(this->perspective[WHITE].NNUEAdd.size() <= 1);
-            assert(this->perspective[BLACK].NNUEAdd.size() <= 1);
-            this->perspective[WHITE].NNUEAdd.emplace_back(perspective[WHITE].GetIndex(piece, square,wkSq, flip[WHITE]));
-            this->perspective[BLACK].NNUEAdd.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
-        }
-
-        void AppendSubIndex(int piece, int square, const int wkSq, const int bkSq, std::array<bool, 2> flip) {
-            assert(this->perspective[WHITE].NNUESub.size() <= 1);
-            assert(this->perspective[BLACK].NNUESub.size() <= 1);
-            this->perspective[WHITE].NNUESub.emplace_back(perspective[WHITE].GetIndex(piece, square, wkSq, flip[WHITE]));
-            this->perspective[BLACK].NNUESub.emplace_back(perspective[BLACK].GetIndex(piece, square, bkSq, flip[BLACK]));
-        }
-
-        void ClearAddIndex() {
-            this->perspective[WHITE].NNUEAdd.clear();
-            this->perspective[BLACK].NNUEAdd.clear();
-        }
-
-        void ClearSubIndex() {
-            this->perspective[WHITE].NNUESub.clear();
-            this->perspective[BLACK].NNUESub.clear();
+        FinnyTableEntry() {
+            for (int i = 0; i < L1_SIZE; ++i)
+                accumCache[i] = net.FTBiases[i];
         }
     };
 
+    using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
+
+    static int activateAffine(Position *pos, const int16_t *weights, const int16_t bias);
+    static int povActivateAffine(Position *pos, const int side, const int16_t *l1weights);
+    static int output(Position *pos);
     static void init(const char *file);
-    static void refresh(NNUE::Accumulator& board_accumulator, Position* pos);
-    static void update(Accumulator *acc, Position* pos);
-    [[nodiscard]] static int32_t ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias);
-    [[nodiscard]] static int32_t output(const NNUE::Accumulator &board_accumulator, const int stm, const int outputBucket);
-};
-
-struct FinnyTableEntry{
-    Bitboard occupancies[12] = {0ULL};
-    NNUE::Accumulator accumCache = {};
-};
-
-struct FinnyTable{
-    FinnyTableEntry Table[INPUT_BUCKETS][2];
+    static size_t getIndex(const int piece, const int square, const int side, const int ksq, const bool flip);
 };
