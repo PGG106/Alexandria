@@ -95,7 +95,7 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
     #endif
 
     const int kingSq = KingSQ(pos, side);
-    const bool flip = get_file[KingSQ(pos, side)] > 3;
+    const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
     FinnyTableEntry &cachedEntry = pos->FTable[side][kingBucket][flip];
 
@@ -107,12 +107,12 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
         Bitboard removed = cachedEntry.occupancies[piece] & ~pos->bitboards[piece];
         while (added) {
             int square = popLsb(added);
-            add.emplace_back(getIndex(piece, square, side, kingSq, flip));
+            add.emplace_back(getIndex(piece, square, side, kingBucket, flip));
         }
 
         while (removed) {
             int square = popLsb(removed);
-            remove.emplace_back(getIndex(piece, square, side, kingSq, flip));
+            remove.emplace_back(getIndex(piece, square, side, kingBucket, flip));
         }
 
         cachedEntry.occupancies[piece] = pos->bitboards[piece];
@@ -204,7 +204,7 @@ int NNUE::output(Position *pos) {
     return activateAffine(pos, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-size_t NNUE::getIndex(const int piece, const int square, const int side, const int ksq, const bool flip) {
+size_t NNUE::getIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
@@ -214,7 +214,5 @@ size_t NNUE::getIndex(const int piece, const int square, const int side, const i
     // Get the final indexes of the updates, accounting for hm
     auto squarePov = side == WHITE ? (square ^ 0b111'000) : square;
     if (flip) squarePov ^= 0b000'111;
-    const int bucket = getBucket(ksq, side);
-    size_t idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
-    return idx;
+    return bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
 }

@@ -33,12 +33,6 @@ constexpr int buckets[64] = {
    return buckets[finalKingSq];
 }
 
-#if defined(USE_SIMD)
-constexpr int CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
-#else
-constexpr int CHUNK_SIZE = 1;
-#endif
-
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
@@ -71,5 +65,5 @@ struct NNUE {
     static int povActivateAffine(Position *pos, const int side, const int16_t *l1weights);
     static int output(Position *pos);
     static void init(const char *file);
-    static size_t getIndex(const int piece, const int square, const int side, const int ksq, const bool flip);
+    static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
 };
