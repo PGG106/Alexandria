@@ -56,7 +56,11 @@ public:
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
 
-    NNUE::FinnyTable FTable;
+    NNUE::FinnyTable FTable{};
+
+    inline void resetFinnyTable() {
+        FTable = NNUE::FinnyTable{};
+    }
 
     [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
