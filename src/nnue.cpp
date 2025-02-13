@@ -126,14 +126,14 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
         }
         
         for (size_t added : add) {
-            vepi16 *addVec = reinterpret_cast<vepi16*>(&net.FTWeights[added * L1_SIZE]);
+            vepi16 *addVec = reinterpret_cast<vepi16*>(&net.FTWeights[added * L1_SIZE + i]);
             for (int j = 0; j < NUM_REGI; ++j) {
                 regs[j] = vec_add_epi16(regs[j], addVec[j]);
             }
         }
 
         for (size_t removed : remove) {
-            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[removed * L1_SIZE]);
+            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[removed * L1_SIZE + i]);
             for (int j = 0; j < NUM_REGI; ++j) {
                 regs[j] = vec_sub_epi16(regs[j], removedVec[j]);
             }
