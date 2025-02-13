@@ -99,20 +99,21 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
     const int kingBucket = getBucket(kingSq, side);
     FinnyTableEntry &cachedEntry = pos->FTable[side][kingBucket][flip];
 
-    std::vector<size_t> add, remove;
-    add.reserve(32); remove.reserve(32); // Max add or remove is 32 unless illegal position
+
+    size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
+    size_t addCnt = 0, removeCnt = 0;
 
     for (int piece = WP; piece <= BK; piece++) {
         Bitboard added = pos->bitboards[piece] & ~cachedEntry.occupancies[piece];
         Bitboard removed = cachedEntry.occupancies[piece] & ~pos->bitboards[piece];
         while (added) {
             int square = popLsb(added);
-            add.emplace_back(getIndex(piece, square, side, kingBucket, flip));
+            add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
         }
 
         while (removed) {
             int square = popLsb(removed);
-            remove.emplace_back(getIndex(piece, square, side, kingBucket, flip));
+            remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
         }
 
         cachedEntry.occupancies[piece] = pos->bitboards[piece];
@@ -124,18 +125,18 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
         for (int j = 0; j < NUM_REGI; ++j) {
             regs[j] = vec_loadu_epi(&entryVec[j]);
         }
-        
-        for (size_t added : add) {
-            vepi16 *addVec = reinterpret_cast<vepi16*>(&net.FTWeights[added * L1_SIZE + i]);
-            for (int j = 0; j < NUM_REGI; ++j) {
-                regs[j] = vec_add_epi16(regs[j], addVec[j]);
+
+        for (size_t j = 0; j < addCnt; ++j) {
+            vepi16 *addedVec = reinterpret_cast<vepi16*>(&net.FTWeights[add[j] * L1_SIZE + i]);
+            for (int k = 0; k < NUM_REGI; ++k) {
+                regs[k] = vec_add_epi16(regs[k], addedVec[k]);
             }
         }
 
-        for (size_t removed : remove) {
-            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[removed * L1_SIZE + i]);
-            for (int j = 0; j < NUM_REGI; ++j) {
-                regs[j] = vec_sub_epi16(regs[j], removedVec[j]);
+        for (size_t j = 0; j < removeCnt; ++j) {
+            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[remove[j] * L1_SIZE + i]);
+            for (int k = 0; k < NUM_REGI; ++k) {
+                regs[k] = vec_sub_epi16(regs[k], removedVec[k]);
             }
         }
 
