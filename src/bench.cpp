@@ -71,7 +71,7 @@ void StartBench(int depth) {
     InitTT(64);
     InitNewGame(td);
     auto start = std::chrono::steady_clock::now();
-    for (int positions = 0; positions < 51; positions++) {
+    for (int positions = 0; positions < 52; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
         RootSearch(depth, td, &uciOptions);
