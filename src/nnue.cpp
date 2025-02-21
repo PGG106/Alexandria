@@ -84,7 +84,7 @@ void NNUE::init(const char *file) {
 int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weights) {
 
     #if defined(USE_SIMD)
-    constexpr int NUM_REGI = 16;
+    constexpr int NUM_REGI = 8;
     constexpr int TILE_SIZE = NUM_REGI * sizeof(vepi16) / sizeof(int16_t);
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
