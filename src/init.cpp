@@ -216,8 +216,6 @@ void InitNewGame(ThreadData* td) {
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
 
-    pos->resetFinnyTable();
-
     CleanHistories(sd);
 
     // Clean the PV Table
