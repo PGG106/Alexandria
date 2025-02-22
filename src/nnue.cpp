@@ -2,7 +2,9 @@
 #include "simd.h"
 #include <algorithm>
 #include "position.h"
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include "incbin/incbin.h"
@@ -79,225 +81,139 @@ void NNUE::init(const char *file) {
     std::memcpy(net.L1Weights, transposedL1Weights, L1_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
 }
 
-void NNUE::update(Accumulator *acc, Position *pos) {
-    for (int pov = WHITE; pov <= BLACK; pov++) {
-        auto &povAccumulator = (acc)->perspective[pov];
-        auto &previousPovAccumulator = (acc - 1)->perspective[pov];
+int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weights) {
 
-        // return early if we already updated this accumulator (aka it's "clean")
-        if (povAccumulator.isClean())
-            continue;
-        // if the top accumulator needs a refresh, ignore all the other dirty accumulators and just refresh it
-        else if (povAccumulator.needsRefresh) {
-            povAccumulator.refresh(pos);
-            continue;
-        }
-        // if the previous accumulator is clean, just UE on top of it and avoid the need to scan backwards
-        else if (previousPovAccumulator.isClean()) {
-            povAccumulator.applyUpdate(previousPovAccumulator);
-            continue;
-        }
-
-        const auto Acc = [&](const int j) -> Pov_Accumulator& {
-            return pos->accumStack[j].perspective[pov];
-        };
-
-        // if we can't update we need to start scanning backwards
-        // if in our scan we'll find an accumulator that needs a refresh we'll just refresh the top one, otherwise we'll start an UE chain
-        for (int UEableAccs = 1; UEableAccs < MAXPLY; UEableAccs++) {
-            auto &currentAcc = (acc - UEableAccs)->perspective[pov];
-            // check if the current acc should be refreshed
-            if (currentAcc.needsRefresh) {
-                povAccumulator.refresh(pos);
-                break;
-            }
-            // If not check if it's a valid starting point for an UE chain
-            else if ((acc - UEableAccs - 1)->perspective[pov].isClean()) {
-                for (int j = (pos->accumStackHead - 1 - UEableAccs); j <= pos->accumStackHead - 1; j++) {
-                    Acc(j).applyUpdate(Acc(j-1));
-                }
-                break;
-            }
-        }
-    }
-}
-
-void NNUE::Pov_Accumulator::refresh(Position *pos) {
-    // probe the finny table for a cached state
-    const auto kingSq = KingSQ(pos, pov);
-    const bool flip = get_file[KingSQ(pos, pov)] > 3;
-    const int kingBucket = getBucket(kingSq, pov);
-    FinnyTableEntry* cachedEntry = &pos->FTable[pov].Table[kingBucket][flip];
-    this->values = cachedEntry->accumCache.perspective[pov].values;
-
-    if(cachedEntry->occupancies[WK] == 0ULL)
-        for (int i = 0; i < L1_SIZE; i++) {
-            this->values[i] = net.FTBiases[i];
-        }
-
-    // figure out a diff
-    for (int piece = WP; piece <= BK; piece++) {
-        auto added = pos->bitboards[piece] & ~cachedEntry->occupancies[piece];
-        auto removed = cachedEntry->occupancies[piece] & ~pos->bitboards[piece];
-        while (added && removed) {
-            auto added_square = popLsb(added);
-            auto added_index = GetIndex(piece, added_square, kingSq, flip);
-            const auto Add = &net.FTWeights[added_index * L1_SIZE];
-            auto removed_square = popLsb(removed);
-            auto removed_index = GetIndex(piece, removed_square, kingSq, flip);
-            const auto Sub = &net.FTWeights[removed_index * L1_SIZE];
-            for (int i = 0; i < L1_SIZE; i++) {
-              this->values[i] = this->values[i] + Add[i] - Sub[i];
-            }
-        }
-        while (added) {
-            auto square = popLsb(added);
-            auto index = GetIndex(piece, square, kingSq, flip);
-            const auto Add = &net.FTWeights[index * L1_SIZE];
-            for (int i = 0; i < L1_SIZE; i++) {
-                this->values[i] += Add[i];
-            }
-        }
-        while (removed) {
-            auto square = popLsb(removed);
-            auto index = GetIndex(piece, square, kingSq, flip);
-            const auto Sub = &net.FTWeights[index * L1_SIZE];
-            for (int i = 0; i < L1_SIZE; i++) {
-                this->values[i] -= Sub[i];
-            }
-        }
-    }
-
-    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-    this->NNUEAdd.clear();
-    this->NNUESub.clear();
-    // mark any accumulator as refreshed
-    this->needsRefresh = false;
-    // store the refreshed finny table entry value
-    std::memcpy( &cachedEntry->accumCache.perspective[pov].values,  &values, sizeof(values));
-    std::memcpy( cachedEntry->occupancies,  pos->bitboards, sizeof(Bitboard) * 12);
-}
-
-void NNUE::Pov_Accumulator::addSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub) {
-    const auto Add = &net.FTWeights[add * L1_SIZE];
-    const auto Sub = &net.FTWeights[sub * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        this->values[i] = prev_acc.values[i] - Sub[i] + Add[i];
-    }
-}
-
-void NNUE::Pov_Accumulator::addSubSub(NNUE::Pov_Accumulator &prev_acc, std::size_t add, std::size_t sub1, std::size_t sub2) {
-    const auto Add = &net.FTWeights[add * L1_SIZE];
-    const auto Sub1 = &net.FTWeights[sub1 * L1_SIZE];
-    const auto Sub2 = &net.FTWeights[sub2 * L1_SIZE];
-    for (int i = 0; i < L1_SIZE; i++) {
-        this->values[i] =  prev_acc.values[i] - Sub1[i] - Sub2[i] + Add[i];
-    }
-}
-
-int32_t NNUE::ActivateFTAndAffineL1(const int16_t *us, const int16_t *them, const int16_t *weights, const int16_t bias) {
     #if defined(USE_SIMD)
-    vepi32 sum  = vec_zero_epi32();
+    constexpr int NUM_REGI = 8;
+    constexpr int TILE_SIZE = NUM_REGI * sizeof(vepi16) / sizeof(int16_t);
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
-    int weightOffset = 0;
-    for (const int16_t *acc : {us, them}) {
-        for (int i = 0; i < L1_SIZE; i += CHUNK_SIZE) {
-            const vepi16 input   = vec_loadu_epi(reinterpret_cast<const vepi16*>(&acc[i]));
-            const vepi16 weight  = vec_loadu_epi(reinterpret_cast<const vepi16*>(&weights[i + weightOffset]));
-            const vepi16 clipped = vec_min_epi16(vec_max_epi16(input, Zero), One);
-
-            // In squared clipped relu, we want to do (clipped * clipped) * weight.
-            // However, as clipped * clipped does not fit in an int16 while clipped * weight does,
-            // we instead do mullo(clipped, weight) and then madd by clipped.
-            const vepi32 product = vec_madd_epi16(vec_mullo_epi16(clipped, weight), clipped);
-            sum = vec_add_epi32(sum, product);
-        }
-        weightOffset += L1_SIZE;
-    }
-
-    return (vec_reduce_add_epi32(sum) / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
-
+    vepi16 regs[NUM_REGI];
+    vepi32 sum = vec_zero_epi32();
     #else
     int sum = 0;
-    int weightOffset = 0;
-    for (const int16_t *acc : {us, them}) {
-        for (int i = 0; i < L1_SIZE; ++i) {
-            const int16_t input   = acc[i];
-            const int16_t weight  = weights[i + weightOffset];
-            const int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
-            sum += static_cast<int16_t>(clipped * weight) * clipped;
+    #endif
+
+    const int kingSq = KingSQ(pos, side);
+    const bool flip = get_file[kingSq] > 3;
+    const int kingBucket = getBucket(kingSq, side);
+    FinnyTableEntry &cachedEntry = pos->FTable[side][kingBucket][flip];
+
+
+    size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
+    size_t addCnt = 0, removeCnt = 0;
+
+    for (int piece = WP; piece <= BK; piece++) {
+        Bitboard added = pos->bitboards[piece] & ~cachedEntry.occupancies[piece];
+        Bitboard removed = cachedEntry.occupancies[piece] & ~pos->bitboards[piece];
+        while (added) {
+            int square = popLsb(added);
+            add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
         }
 
-        weightOffset += L1_SIZE;
+        while (removed) {
+            int square = popLsb(removed);
+            remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
+        }
+
+        cachedEntry.occupancies[piece] = pos->bitboards[piece];
     }
 
-    return (sum / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
+    #if defined(USE_SIMD)
+    for (int i = 0; i < L1_SIZE; i += TILE_SIZE) {
+        vepi16 *entryVec = reinterpret_cast<vepi16*>(&cachedEntry.accumCache[i]);
+        for (int j = 0; j < NUM_REGI; ++j) {
+            regs[j] = vec_loadu_epi(&entryVec[j]);
+        }
+
+        for (size_t j = 0; j < addCnt; ++j) {
+            vepi16 *addedVec = reinterpret_cast<vepi16*>(&net.FTWeights[add[j] * L1_SIZE + i]);
+            for (int k = 0; k < NUM_REGI; ++k) {
+                regs[k] = vec_add_epi16(regs[k], addedVec[k]);
+            }
+        }
+
+        for (size_t j = 0; j < removeCnt; ++j) {
+            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[remove[j] * L1_SIZE + i]);
+            for (int k = 0; k < NUM_REGI; ++k) {
+                regs[k] = vec_sub_epi16(regs[k], removedVec[k]);
+            }
+        }
+
+        for (int j = 0; j < NUM_REGI; ++j) {
+            vec_storeu_epi(&entryVec[j], regs[j]);
+        }
+
+        const vepi16 *l1weightVec = reinterpret_cast<const vepi16*>(&l1weights[i]);
+        for (int j = 0; j < NUM_REGI; ++j) {
+
+            // We have Squared Clipped ReLU (SCReLU) as our activation function.
+            // We first clip the input (the CReLU part)
+            regs[j] = vec_min_epi16(vec_max_epi16(regs[j], Zero), One);
+
+            // Load the weight
+            const vepi16 weight = vec_loadu_epi(&l1weightVec[j]);
+
+            // What we want to do here is square regs[j] (aka CReLU) to achieve SCReLU and then multiply by the weight.
+            // However, as regs[j] * regs[j] does not fit in an int16 while regs[j] * weight does,
+            // we instead do mullo(regs[j], weight) and then madd by regs[j].
+            const vepi32 product = vec_madd_epi16(vec_mullo_epi16(regs[j], weight), regs[j]);
+            sum = vec_add_epi32(sum, product);
+        }
+    }
+
+    return vec_reduce_add_epi32(sum);
+    #else
+
+    NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
+
+    for (size_t added : add) {
+        for (int i = 0; i < L1_SIZE; ++i) {
+            accumCache[i] += net.FTWeights[added * L1_SIZE + i];
+        }
+    }
+
+    for (size_t removed : remove) {
+        for (int i = 0; i < L1_SIZE; ++i) {
+            accumCache[i] -= net.FTWeights[removed * L1_SIZE + i];
+        }
+    }
+
+    for (int i = 0; i < L1_SIZE; ++i) {
+        const int16_t input   = accumCache[i];
+        const int16_t weight  = l1weights[i];
+        const int16_t clipped = std::clamp(input, int16_t(0), int16_t(FT_QUANT));
+        sum += static_cast<int16_t>(clipped * weight) * clipped;
+    }
+
+    return sum;
     #endif
 }
 
-int32_t NNUE::output(const NNUE::Accumulator& board_accumulator, const int stm, const int outputBucket) {
-    // this function takes the net output for the current accumulators and returns the eval of the position
-    // according to the net
-    const int16_t* us;
-    const int16_t* them;
+int NNUE::activateAffine(Position *pos, const int16_t *weights, const int16_t bias) {
+    int sum =    povActivateAffine(pos, pos->side    , &weights[0])
+               + povActivateAffine(pos, pos->side ^ 1, &weights[L1_SIZE]);
 
-    us = board_accumulator.perspective[stm].values.data();
-    them = board_accumulator.perspective[stm ^ 1].values.data();
+    return (sum / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
+}
 
+int NNUE::output(Position *pos) {
+    const int pieceCount = pos->PieceCount();
+    const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
-    return ActivateFTAndAffineL1(us, them, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
+
+    return activateAffine(pos, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
-void NNUE::refresh(NNUE::Accumulator& board_accumulator, Position* pos) {
-    for(auto& pov_acc : board_accumulator.perspective) {
-        pov_acc.refresh(pos);
-    }
-}
-
-void NNUE::Pov_Accumulator::applyUpdate(NNUE::Pov_Accumulator& previousPovAccumulator) {
-
-    assert(previousPovAccumulator.isClean());
-
-    // return early if we already updated this accumulator (aka it's "clean")
-    if (this->isClean())
-        return;
-
-    // figure out what update we need to apply and do that
-    const int adds = NNUEAdd.size();
-    const int subs =  NNUESub.size();
-
-    // Quiets
-    if (adds == 1 && subs == 1) {
-        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-    }
-    // Captures
-    else if (adds == 1 && subs == 2) {
-        this->addSubSub(previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0],this->NNUESub[1]);
-    }
-    // Castling
-    else {
-        this->addSub( previousPovAccumulator, this->NNUEAdd[0], this->NNUESub[0]);
-        this->addSub(*this, this->NNUEAdd[1], this->NNUESub[1]);
-        // Note that for second addSub, we put acc instead of acc - 1 because we are updating on top of
-        // the half-updated accumulator
-    }
-
-    // Reset the add and sub vectors for this accumulator, this will make it "clean" for future updates
-    this->NNUEAdd.clear();
-    this->NNUESub.clear();
-}
-
-int NNUE::Pov_Accumulator::GetIndex(const int piece, const int square, const int kingSq, bool flip) const {
+size_t NNUE::getIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
     const int pieceColor = Color[piece];
-    auto pieceColorPov = pov == WHITE ? pieceColor : (pieceColor ^ 1);
+    const int pieceColorPov = pieceColor ^ side;
+
     // Get the final indexes of the updates, accounting for hm
-    auto squarePov = pov == WHITE ? (square ^ 0b111'000) : square;
-    if(flip) squarePov ^= 0b000'111;
-    const int bucket = getBucket(kingSq, pov);
-    std::size_t Idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
-    return Idx;
+    auto squarePov = side == WHITE ? (square ^ 0b111'000) : square;
+    if (flip) squarePov ^= 0b000'111;
+    return bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
 }

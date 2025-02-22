@@ -98,10 +98,6 @@ void ParsePosition(const std::string& command, Position* pos) {
             parse_moves(moves_substr, pos);
         }
     }
-
-    // Update accumulator state to reflect the new position
-    nnue.refresh(pos->accumStack[0], pos);
-    pos->accumStackHead = 1;
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
