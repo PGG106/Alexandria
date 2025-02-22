@@ -61,7 +61,7 @@ const char* benchmarkfens[52] = {
     "2r2b2/5p2/5k2/p1r1pP2/P2pB3/1P3P2/K1P3R1/7R w - - 23 93" ,
     "8/P6p/2K1q1pk/2Q5/4p3/8/7P/8 w - - 4 44",
 };
-
+//
 void StartBench(int depth) {
     // init all
     UciOptions uciOptions;
