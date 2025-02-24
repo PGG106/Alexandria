@@ -674,9 +674,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     && ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth <= alpha) {
                     skipQuiets = true;
                 }
-
+                const auto pruningHistory = GetCHScore(ss, move);
                 // hist pruning
-                if (isQuiet && moveHistory < -1000 + -4000 * depth) {
+                if (isQuiet &&  pruningHistory < -4000 * depth) {
                     skipQuiets = true;
                 }
             }
