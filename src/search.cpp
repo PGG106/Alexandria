@@ -676,7 +676,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 }
 
                 // hist pruning
-                if (moveHistory < -1000 + -4000 * depth) {
+                if (isQuiet && moveHistory < -1000 + -4000 * depth) {
                     skipQuiets = true;
                 }
             }
