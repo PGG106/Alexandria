@@ -55,11 +55,15 @@ public:
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
+  
+    NNUE::Accumulator accumStack[MAXPLY];
+    int accumStackHead;
 
-    NNUE::FinnyTable FTable{};
+    FinnyTable FTable[2];
 
-    inline void resetFinnyTable() {
-        FTable = NNUE::FinnyTable{};
+    inline NNUE::Accumulator& AccumulatorTop() {
+        assert(accumStackHead <= MAXPLY);
+        return accumStack[accumStackHead - 1];
     }
 
     [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {

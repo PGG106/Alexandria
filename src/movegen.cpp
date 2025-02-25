@@ -426,13 +426,13 @@ bool IsLegal(Position* pos, Move move) {
         int offset = color == WHITE ? 8 : -8;
         int ourPawn = GetPiece(PAWN, color);
         int theirPawn = GetPiece(PAWN, color ^ 1);
-        ClearPiece(ourPawn, from, pos);
-        ClearPiece(theirPawn, to + offset, pos);
-        AddPiece(ourPawn, to, pos);
+        ClearPiece<false>(ourPawn, from, pos);
+        ClearPiece<false>(theirPawn, to + offset, pos);
+        AddPiece<false>(ourPawn, to, pos);
         bool isLegal = !IsSquareAttacked(pos, ksq, color ^ 1);
-        AddPiece(ourPawn, from, pos);
-        AddPiece(theirPawn, to + offset, pos);
-        ClearPiece(ourPawn, to, pos);
+        AddPiece<false>(ourPawn, from, pos);
+        AddPiece<false>(theirPawn, to + offset, pos);
+        ClearPiece<false>(ourPawn, to, pos);
         return isLegal;
     }
     else if (isCastle(move)) {
@@ -449,9 +449,9 @@ bool IsLegal(Position* pos, Move move) {
 
     if (pieceType == KING) {
         int king = GetPiece(KING, color);
-        ClearPiece(king, ksq, pos);
+        ClearPiece<false>(king, ksq, pos);
         bool isLegal = !IsSquareAttacked(pos, to, color ^ 1);
-        AddPiece(king, ksq, pos);
+        AddPiece<false>(king, ksq, pos);
         return isLegal;
     }
     else if (pos->getPinnedMask() & (1ULL << from)) {

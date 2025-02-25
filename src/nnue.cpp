@@ -167,15 +167,13 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
 
     NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
 
-    for (int i = 0; i < addCnt; i++) {
-        const auto added = add[i];
+    for (size_t added : add) {
         for (int i = 0; i < L1_SIZE; ++i) {
             accumCache[i] += net.FTWeights[added * L1_SIZE + i];
         }
     }
 
-      for (int i = 0; i < removeCnt; i++) {
-        const auto removed = remove[i];
+    for (size_t removed : remove) {
         for (int i = 0; i < L1_SIZE; ++i) {
             accumCache[i] -= net.FTWeights[removed * L1_SIZE + i];
         }

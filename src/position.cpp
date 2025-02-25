@@ -227,6 +227,10 @@ void ParseFen(const std::string& command, Position* pos) {
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
 
+    // Update nnue accumulator to reflect board state
+    NNUE::refresh(pos->accumStack[0], pos);
+    pos->accumStackHead = 1;
+
     // Clear vector of played positions
     pos->played_positions.clear();
 }
