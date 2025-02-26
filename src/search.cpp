@@ -676,7 +676,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 }
                 const auto pruningHistory = GetCHScore(ss, move);
                 // hist pruning
-                if(isQuiet && pruningHistory <= -CH_MAX + 25){
+                if( depth <= 2 && isQuiet && pruningHistory <= -CH_MAX + 25){
                     skipQuiets = true;
                 }
             }
