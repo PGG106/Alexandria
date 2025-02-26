@@ -177,7 +177,7 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
       for (int i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int i = 0; i < L1_SIZE; ++i) {
-            accumCache[i] += net.FTWeights[removed * L1_SIZE + i];
+            accumCache[i] -= net.FTWeights[removed * L1_SIZE + i];
         }
     }
 
