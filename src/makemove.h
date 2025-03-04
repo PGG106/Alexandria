@@ -4,10 +4,8 @@
 
 struct Position;
 
-template <bool UPDATE>
 void ClearPiece(const int piece, const int from, Position* pos);
 
-template <bool UPDATE>
 void AddPiece(const int piece, const int to, Position* pos);
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
