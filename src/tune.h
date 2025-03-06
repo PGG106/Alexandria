@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
+#define TUNE
 
 /*
 How tuning works in alex, a brief summary:
@@ -159,3 +160,7 @@ TUNE_PARAM(seeNoisyMargin, -27, -100, -1, 3, 0.002)
 TUNE_PARAM(futilityCoeff0, 253, 40, 300, 10, 0.002)
 TUNE_PARAM(futilityCoeff1, 119, 40, 200, 10, 0.002)
 TUNE_PARAM(lmrDepthDivisor, 8271, 1, 16383, 100, 0.002)
+
+// Eval mat scale
+TUNE_PARAM(matScaleBase, 192, 20, 512, 5, 0.002)
+TUNE_PARAM(matScaleDivisor, 256, 20, 512, 5, 0.002)

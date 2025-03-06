@@ -31,7 +31,7 @@
     const int queens = CountBits(GetPieceBB(pos, QUEEN));
     const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
     // Scale between [0.75, 1.00]
-    return eval * (192 + phase) / 256;
+    return eval * (matScaleBase() + phase) / matScaleDivisor();
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {
