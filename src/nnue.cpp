@@ -68,7 +68,7 @@ void NNUE::init(const char *file) {
         std::memcpy(net.L1Biases, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
     }
 }
-
+//
 int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weights) {
 
     #if defined(USE_SIMD)
