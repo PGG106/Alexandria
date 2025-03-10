@@ -531,7 +531,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && eval >= beta
             && ss->staticEval >= beta - 30 * depth + 170
             && (ss - 1)->move != NOMOVE
-            && depth >= 3
+            && depth >= 2
             && ss->ply >= td->nmpPlies
             && BoardHasNonPawns(pos, pos->side)) {
 
