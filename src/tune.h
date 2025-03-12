@@ -29,6 +29,22 @@ To add a variable for tuning we call the addTune function in initTunables, this 
         constexpr int Name() { return Default; }
 #endif
 
+
+#ifdef TUNE_TMPARAM
+#define STRINGIFY(x) #x
+#define HELPER1(x) STRINGIFY(GCC diagnostic ignored x)
+#define GCC_WARNING(x) _Pragma(HELPER1(x))
+#define TMTUNE_PARAM(Name, Default, Min, Max, C_end, R_end) \
+        _Pragma("GCC diagnostic push") \
+        GCC_WARNING("-Wdangling-reference")               \
+        inline const int& tuned_##Name = addTune(#Name, Default, Default, Min, Max, C_end, R_end); \
+        _Pragma("GCC diagnostic pop") \
+        inline int Name() { return tuned_##Name; }
+#else
+#define TUNE_TMPARAM(Name, Default, Min, Max, C_end, R_end) \
+        constexpr int Name() { return Default; }
+#endif
+
 // This class acts as a fancy string constructor, it's used just to store all the info OB wants for a tune
 struct tunable_param {
     std::string name;
@@ -88,28 +104,28 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 // TM STUFF
 // SOFT/HARD bounds
-TUNE_PARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
-TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
-TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(maxTimeMultiplier, 323, 100, 500, 20, 0.002)
+TUNE_TMPARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
+TUNE_TMPARAM(incMultiplier, 85, 50, 150, 5, 0.002)
+TUNE_TMPARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
+TUNE_TMPARAM(maxTimeMultiplier, 323, 100, 500, 20, 0.002)
 
 // Bestmove stability
-TUNE_PARAM(bmScale1, 238, 50, 300, 10, 0.002)
-TUNE_PARAM(bmScale2, 129, 50, 200, 10, 0.002)
-TUNE_PARAM(bmScale3, 107, 50, 150, 6, 0.002)
-TUNE_PARAM(bmScale4, 91, 40, 110, 5, 0.002)
-TUNE_PARAM(bmScale5, 71, 35, 100, 5, 0.002)
+TUNE_TMPARAM(bmScale1, 238, 50, 300, 10, 0.002)
+TUNE_TMPARAM(bmScale2, 129, 50, 200, 10, 0.002)
+TUNE_TMPARAM(bmScale3, 107, 50, 150, 6, 0.002)
+TUNE_TMPARAM(bmScale4, 91, 40, 110, 5, 0.002)
+TUNE_TMPARAM(bmScale5, 71, 35, 100, 5, 0.002)
 
 // Eval stability
-TUNE_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
-TUNE_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale3, 103, 80, 150, 4, 0.002)
-TUNE_PARAM(evalScale4, 92, 60, 130, 4, 0.002)
-TUNE_PARAM(evalScale5, 87, 40, 110, 4, 0.002)
+TUNE_TMPARAM(evalScale1, 125, 90, 160, 4, 0.002)
+TUNE_TMPARAM(evalScale2, 115, 80, 150, 4, 0.002)
+TUNE_TMPARAM(evalScale3, 103, 80, 150, 4, 0.002)
+TUNE_TMPARAM(evalScale4, 92, 60, 130, 4, 0.002)
+TUNE_TMPARAM(evalScale5, 87, 40, 110, 4, 0.002)
 
 // Node Tm
-TUNE_PARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
-TUNE_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+TUNE_TMPARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
+TUNE_TMPARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
 // Search
 TUNE_PARAM(rfpDepthMargin, 88, 40, 200, 10, 0.002)
