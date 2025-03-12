@@ -277,7 +277,7 @@ void UciLoop(int argc, char** argv) {
                 uciOptions.Threads = std::stoi(tokens.at(4));
                 std::cout << "Set Threads to " << uciOptions.Threads << std::endl;;
             }
-#ifdef TUNE
+#ifdef TUNE_TM
             else {
                 updateTuneVariable(tokens.at(2), std::stoi(tokens.at(4)));
         }
@@ -332,7 +332,7 @@ void UciLoop(int argc, char** argv) {
             std::cout << "id author Zuppa, CJ and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
-#ifdef TUNE
+#ifdef TUNE_TM
             // spsa info dump
             for (const auto &param: tunables()) {
                 std::cout << "option name " << param.name << " type spin default " << param.defaultValue <<" min " <<param.minValue <<" max " << param.maxValue << std::endl;
