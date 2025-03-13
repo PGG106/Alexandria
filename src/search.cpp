@@ -567,7 +567,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
+        if (alpha < 2000 && depth <= 5 && eval + razoringCoeff() * depth < alpha)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
