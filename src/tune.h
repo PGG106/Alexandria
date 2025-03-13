@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-#define TUNE_TM
 
 /*
 How tuning works in alex, a brief summary:
@@ -105,28 +104,28 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 // TM STUFF
 // SOFT/HARD bounds
-TUNE_TM_PARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
-TUNE_TM_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
+TUNE_TM_PARAM(baseMultiplier, 53, 20, 150, 7, 0.002)
+TUNE_TM_PARAM(incMultiplier, 84, 50, 150, 5, 0.002)
 TUNE_TM_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_TM_PARAM(maxTimeMultiplier, 323, 100, 500, 20, 0.002)
+TUNE_TM_PARAM(maxTimeMultiplier, 328, 100, 500, 20, 0.002)
 
 // Bestmove stability
-TUNE_TM_PARAM(bmScale1, 238, 50, 300, 10, 0.002)
-TUNE_TM_PARAM(bmScale2, 129, 50, 200, 10, 0.002)
+TUNE_TM_PARAM(bmScale1, 241, 50, 300, 10, 0.002)
+TUNE_TM_PARAM(bmScale2, 124, 50, 200, 10, 0.002)
 TUNE_TM_PARAM(bmScale3, 107, 50, 150, 6, 0.002)
 TUNE_TM_PARAM(bmScale4, 91, 40, 110, 5, 0.002)
-TUNE_TM_PARAM(bmScale5, 71, 35, 100, 5, 0.002)
+TUNE_TM_PARAM(bmScale5, 70, 35, 100, 5, 0.002)
 
 // Eval stability
-TUNE_TM_PARAM(evalScale1, 125, 90, 160, 4, 0.002)
+TUNE_TM_PARAM(evalScale1, 126, 90, 160, 4, 0.002)
 TUNE_TM_PARAM(evalScale2, 115, 80, 150, 4, 0.002)
 TUNE_TM_PARAM(evalScale3, 103, 80, 150, 4, 0.002)
 TUNE_TM_PARAM(evalScale4, 92, 60, 130, 4, 0.002)
 TUNE_TM_PARAM(evalScale5, 87, 40, 110, 4, 0.002)
 
 // Node Tm
-TUNE_TM_PARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
-TUNE_TM_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
+TUNE_TM_PARAM(nodeTmBase, 155, 100, 300, 10, 0.002)
+TUNE_TM_PARAM(nodeTmMultiplier, 173, 80, 250, 8, 0.002)
 
 // Search
 TUNE_PARAM(rfpDepthMargin, 88, 40, 200, 10, 0.002)
