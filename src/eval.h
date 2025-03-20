@@ -24,14 +24,22 @@
     return false;
 }
 
+[[nodiscard]] static inline int getMaterialValue(const Position* pos) {
+
+    int pawns = CountBits(GetPieceBB(pos, PAWN));
+    int knights = CountBits(GetPieceBB(pos, KNIGHT));
+    int bishops = CountBits(GetPieceBB(pos, BISHOP));
+    int rooks = CountBits(GetPieceBB(pos, ROOK));
+    int queens = CountBits(GetPieceBB(pos, QUEEN));
+
+    return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015) / 32;
+}
+
 [[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
-    const int knights = CountBits(GetPieceBB(pos, KNIGHT));
-    const int bishops = CountBits(GetPieceBB(pos, BISHOP));
-    const int rooks = CountBits(GetPieceBB(pos, ROOK));
-    const int queens = CountBits(GetPieceBB(pos, QUEEN));
-    const int phase = std::min(3 * knights + 3 * bishops + 5 * rooks + 10 * queens, 64);
-    // Scale between [0.75, 1.00]
-    return eval * (192 + phase) / 256;
+
+    const int scale = 700 + getMaterialValue(pos);
+
+    return (eval * scale) / 1024;
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos) {
