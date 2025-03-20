@@ -481,9 +481,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else {
         // If we don't have anything in the TT we have to call evalposition
         rawEval = EvalPosition(pos);
-        eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
     }
 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
@@ -955,9 +955,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // If we don't have any useful info in the TT just call Evalpos
     else {
         rawEval = EvalPosition(pos);
-        bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
     }
 
     // Stand pat
