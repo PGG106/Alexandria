@@ -24,7 +24,7 @@
     return false;
 }
 
-[[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
+[[nodiscard]] static inline int getMaterialValue(const Position* pos) {
 
     int pawns = CountBits(GetPieceBB(pos, PAWN));
     int knights = CountBits(GetPieceBB(pos, KNIGHT));
@@ -32,7 +32,12 @@
     int rooks = CountBits(GetPieceBB(pos, ROOK));
     int queens = CountBits(GetPieceBB(pos, QUEEN));
 
-    const int scale = 700 + (pawns * SEEValue[PAWN] + knights * SEEValue[KNIGHT] + bishops * SEEValue[BISHOP] + rooks * SEEValue[ROOK] + queens * SEEValue[QUEEN]) / 32;
+    return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015) / 32;
+}
+
+[[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
+
+    const int scale = 700 + getMaterialValue(pos);
 
     return (eval * scale) / 1024;
 }
