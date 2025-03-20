@@ -482,6 +482,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // If we don't have anything in the TT we have to call evalposition
         rawEval = EvalPosition(pos);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
+        rawEval = (rawEval + eval) / 2;
         // Save the eval into the TT
         StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
