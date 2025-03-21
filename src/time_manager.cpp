@@ -11,28 +11,18 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
     const int safety_overhead = std::min(300, time / 2);
     time -= safety_overhead;
+
+
     // if we received a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
         info->stoptimeMax = info->starttime + time;
         info->stoptimeOpt = info->starttime + time;
     }
     // else If we received a movestogo parameter we use total_time/movestogo
-    else if (info->timeset && info->movestogo != -1) {
-        // Divide the time you have left for how many moves you have to play
-        const auto basetime = time / info->movestogo;
-        // Never use more than 76% of the total time left for a single move
-        const auto maxtimeBound = 0.76 * time;
-        // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtimeBound);
-        // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min((maxTimeMultiplier() / 100.0) * basetime, maxtimeBound);
-        info->stoptimeMax = info->starttime + maxtime;
-        info->stoptimeBaseOpt = optime;
-        info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
-    }
-    // else if we received wtime/btime we calculate an over and upper bound for the time usage based on fixed coefficients
     else if (info->timeset) {
-        int basetime = time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
+        const int movestogo = info->movestogo != -1 ? info->movestogo : 20;
+        // Divide the time you have left for how many moves you have to play
+        const auto basetime = time / movestogo;
         // Never use more than 76% of the total time left for a single move
         const auto maxtimeBound = 0.76 * time;
         // optime is the time we use to stop if we just cleared a depth
