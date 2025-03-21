@@ -61,7 +61,6 @@ struct SearchData {
     int contCorrHist[2][6 * 64][6 * 64] = {};
 };
 
-
 // a collection of all the data a thread needs to conduct a search
 struct ThreadData {
     int id = 0;
