@@ -83,23 +83,3 @@ void StartBench(int depth) {
     std::cout << totalNodes << " nodes " << signed(totalNodes / (totalTime + 1) * 1000) << " nps" << std::endl;
     delete td;
 }
-
-void BenchInference() {
-    // init all
-    InitAll();
-    ThreadData* td(new ThreadData());
-    InitTT(64);
-    int dummy_eval = 0;
-    int64_t sum = 0;
-    int count = 100000000;
-    for (int i = 0; i < count; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        dummy_eval = EvalPosition(&td->pos);
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-        sum += duration.count();
-    }
-    std::cout << "Average NS: " << (sum / count) << std::endl;
-    std::cout << "Dummy: " << dummy_eval << std::endl;
-    delete td;
-}

@@ -44,6 +44,12 @@ struct ThreadData {
     SearchInfo info;
     int RootDepth;
     int nmpPlies;
+
+    NNUE::FinnyTable FTable{};
+
+    inline void resetFinnyTable() {
+        FTable = NNUE::FinnyTable{};
+    }
 };
 
 // ClearForSearch handles the cleaning of the thread data from a clean state

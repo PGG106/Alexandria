@@ -61,9 +61,9 @@ struct NNUE {
 
     using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
 
-    static int activateAffine(Position *pos, const int16_t *weights, const int16_t bias);
-    static int povActivateAffine(Position *pos, const int side, const int16_t *l1weights);
-    static int output(Position *pos);
+    static int activateAffine(Position *pos, FinnyTable* FinnyPointer, const int16_t *weights, const int16_t bias);
+    static int povActivateAffine(Position *pos, FinnyTable* FinnyPointer, const int side, const int16_t *l1weights);
+    static int output(Position *pos, FinnyTable* FinnyPointer);
     static void init(const char *file);
     static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
 };
