@@ -348,15 +348,6 @@ void UciLoop(int argc, char** argv) {
             PrintBoard(&td->pos);
         }
 
-        else if (input == "eval") {// call parse position function
-            if (!parsed_position) {
-                ParsePosition("position startpos", &td->pos);
-            }
-            // print position eval
-            std::cout << "Raw eval: " << EvalPositionRaw(&td->pos) << std::endl;
-            std::cout << "Scaled eval: " << EvalPosition(&td->pos) << std::endl;
-        }
-
         else if (input == "bench") {
             tryhardmode = true;
             StartBench();

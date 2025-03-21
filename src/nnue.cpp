@@ -81,7 +81,7 @@ void NNUE::init(const char *file) {
     std::memcpy(net.L1Weights, transposedL1Weights, L1_SIZE * sizeof(int16_t) * 2 * OUTPUT_BUCKETS);
 }
 
-int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weights) {
+int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  const int side, const int16_t *l1weights) {
 
     #if defined(USE_SIMD)
     constexpr int NUM_REGI = 8;
@@ -97,7 +97,7 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
-    FinnyTableEntry &cachedEntry = pos->FTable[side][kingBucket][flip];
+    FinnyTableEntry &cachedEntry = (*FinnyPointer)[side][kingBucket][flip];
 
 
     size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
@@ -192,19 +192,19 @@ int NNUE::povActivateAffine(Position *pos, const int side, const int16_t *l1weig
     #endif
 }
 
-int NNUE::activateAffine(Position *pos, const int16_t *weights, const int16_t bias) {
-    int sum =    povActivateAffine(pos, pos->side    , &weights[0])
-               + povActivateAffine(pos, pos->side ^ 1, &weights[L1_SIZE]);
+int NNUE::activateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer, const int16_t *weights, const int16_t bias) {
+    int sum =    povActivateAffine(pos, FinnyPointer, pos->side    , &weights[0])
+               + povActivateAffine(pos, FinnyPointer, pos->side ^ 1, &weights[L1_SIZE]);
 
     return (sum / FT_QUANT + bias) * NET_SCALE / (FT_QUANT * L1_QUANT);
 }
 
-int NNUE::output(Position *pos) {
+int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
 
-    return activateAffine(pos, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
+    return activateAffine(pos, FinnyPointer, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
 }
 
 size_t NNUE::getIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {

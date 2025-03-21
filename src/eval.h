@@ -42,13 +42,13 @@
     return (eval * scale) / 1024;
 }
 
-[[nodiscard]] inline int EvalPositionRaw(Position* pos) {
-    return nnue.output(pos);
+[[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer) {
+    return nnue.output(pos, FinnyPointer);
 }
 
 // position evaluation
-[[nodiscard]] inline int EvalPosition(Position* pos) {
-    int eval = EvalPositionRaw(pos);
+[[nodiscard]] inline int EvalPosition(Position* pos, NNUE::FinnyTable* FinnyPointer) {
+    int eval = EvalPositionRaw(pos, FinnyPointer);
     eval = ScaleMaterial(pos, eval);
     eval = eval * (200 - pos->get50MrCounter()) / 200;
     eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
