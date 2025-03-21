@@ -21,11 +21,9 @@ void Optimum(SearchInfo* info, int time, int inc) {
         // Divide the time you have left for how many moves you have to play
         const auto basetime = time / info->movestogo;
         // Never use more than 76% of the total time left for a single move
-        const auto maxtimeBound = 0.76 * time;
+        const auto maxtime = 0.76 * time;
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtimeBound);
-        // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min((maxTimeMultiplier() / 100.0) * basetime, maxtimeBound);
+        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtime);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
@@ -34,11 +32,9 @@ void Optimum(SearchInfo* info, int time, int inc) {
     else if (info->timeset) {
         int basetime = time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
         // Never use more than 76% of the total time left for a single move
-        const auto maxtimeBound = 0.76 * time;
+        const auto maxtime = 0.76 * time;
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtimeBound);
-        // maxtime is the absolute maximum time we can spend on a search (unless it is bigger than the bound)
-        const auto maxtime = std::min((maxTimeMultiplier() / 100.0) * basetime, maxtimeBound);
+        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtime);
         info->stoptimeMax = info->starttime + maxtime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
