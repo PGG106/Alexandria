@@ -27,19 +27,6 @@ void ResetBoard(Position* pos) {
     pos->state.plyFromNull = 0;
 }
 
-void ResetInfo(SearchInfo* info) {
-    info->depth = 0;
-    info->nodes = 0;
-    info->starttime = 0;
-    info->stoptimeOpt = 0;
-    info->stoptimeMax = 0;
-    info->movestogo = -1;
-    info->stopped = false;
-    info->timeset = false;
-    info->movetimeset = false;
-    info->nodeset = false;
-}
-
 // Generates zobrist key from scratch
 ZobristKey GeneratePosKey(const Position* pos) {
     Bitboard finalkey = 0;

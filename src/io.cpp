@@ -9,6 +9,7 @@
 #include "io.h"
 #include "uci.h"
 #include "ttable.h"
+#include "search.h"
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 

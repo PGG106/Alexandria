@@ -117,31 +117,6 @@ public:
 
 extern Bitboard SQUARES_BETWEEN_BB[64][64];
 
-// Hold the data from the uci input to set search parameters and some search data to populate the uci output
-struct SearchInfo {
-    // search start time
-    uint64_t starttime = 0;
-    // search time initial lower bound if present
-    uint64_t stoptimeBaseOpt = 0;
-    // search time scaled lower bound if present
-    uint64_t stoptimeOpt = 0;
-    // search time upper bound if present
-    uint64_t stoptimeMax = 0;
-    // max depth to reach for depth limited searches
-    int depth = -1;
-    int seldepth = -1;
-    // types of search limits
-    bool timeset = false;
-    bool nodeset = false;
-    bool movetimeset = false;
-
-    int movestogo = -1;
-    uint64_t nodes = 0;
-    uint64_t nodeslimit = 0;
-
-    bool stopped = false;
-};
-
 // castling rights update constants
 constexpr int castling_rights[64] = {
      7, 15, 15, 15,  3, 15, 15, 11,
