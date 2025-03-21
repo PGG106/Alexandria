@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include "history.h"
 #include "position.h"
 #include "uci.h"
+#include "threads.h"
 
 struct SearchStack {
     // don't init. search will init before entering the negamax method
@@ -15,17 +15,6 @@ struct SearchStack {
     int (*contHistEntry)[12 * 64];
 };
 
-struct SearchData {
-    int searchHistory[2][64 * 64] = {};
-    int rootHistory[2][64 * 64] = {};
-    int captHist[12 * 64][6] = {};
-    int counterMoves[64 * 64] = {};
-    int contHist[12 * 64][12 * 64] = {};
-    int pawnCorrHist[2][CORRHIST_SIZE] = {};
-    int whiteNonPawnCorrHist[2][CORRHIST_SIZE] = {};
-    int blackNonPawnCorrHist[2][CORRHIST_SIZE] = {};
-    int contCorrHist[2][6 * 64][6 * 64] = {};
-};
 
 struct PvTable {
     int pvLength[MAXDEPTH + 1];
@@ -35,22 +24,6 @@ struct PvTable {
 // These 2 tables need to be cleaned after each search. We initialize (and subsequently clean them) elsewhere
 inline PvTable pvTable;
 inline uint64_t nodeSpentTable[64 * 64];
-
-// a collection of all the data a thread needs to conduct a search
-struct ThreadData {
-    int id = 0;
-    Position pos;
-    SearchData sd;
-    SearchInfo info;
-    int RootDepth;
-    int nmpPlies;
-
-    NNUE::FinnyTable FTable{};
-
-    inline void resetFinnyTable() {
-        FTable = NNUE::FinnyTable{};
-    }
-};
 
 // ClearForSearch handles the cleaning of the thread data from a clean state
 void ClearForSearch(ThreadData* td);
