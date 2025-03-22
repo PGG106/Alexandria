@@ -91,7 +91,6 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 TUNE_PARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
 TUNE_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
 TUNE_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
-TUNE_PARAM(maxTimeMultiplier, 323, 100, 500, 20, 0.002)
 
 // Bestmove stability
 TUNE_PARAM(bmScale1, 238, 50, 300, 10, 0.002)
