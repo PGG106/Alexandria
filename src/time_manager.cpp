@@ -15,19 +15,18 @@ void Optimum(SearchInfo* info, int time, int inc) {
     if (info->movetimeset) {
         info->stoptimeMax = info->starttime + time;
         info->stoptimeOpt = info->starttime + time;
+        return;
     }
-    else {
-        // Divide the time you have left for how many moves you have to play, if it's an X+Y time control assume 20ish moves to go and add a fraction of the increment
-        const bool cyclicTC = info->movestogo != 0;
-        const auto basetime = cyclicTC ? time / info->movestogo : time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
-        // optime is the time we use to stop if we just cleared a depth
-        const auto optime = (optTimeMultiplier() / 100.0) * basetime;
-        info->stoptimeBaseOpt = optime;
-        info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
-        // Never use more than 76% of the total time left for a single move
-        const auto maxtime = 0.76 * time;
-        info->stoptimeMax = info->starttime + maxtime;
-    }
+    const bool cyclicTC = info->movestogo != 0;
+    // Divide the time you have left for how many moves you have to play, if it's an X+Y time control assume 20ish moves to go and add a fraction of the increment
+    const auto basetime = cyclicTC ? time / info->movestogo : time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
+    // optime is the time we use to stop if we just cleared a depth
+    const auto optime = (optTimeMultiplier() / 100.0) * basetime;
+    info->stoptimeBaseOpt = optime;
+    info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
+    // Never use more than 76% of the total time left for a single move
+    const auto maxtime = 0.76 * time;
+    info->stoptimeMax = info->starttime + maxtime;
 }
 
 bool StopEarly(const SearchInfo* info) {
