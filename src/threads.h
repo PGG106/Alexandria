@@ -29,7 +29,7 @@ struct SearchInfo {
     bool nodeset = false;
     bool movetimeset = false;
 
-    int movestogo = -1;
+    int movestogo = 0;
     uint64_t nodes = 0;
     uint64_t nodeslimit = 0;
 
@@ -41,7 +41,7 @@ struct SearchInfo {
         starttime = 0;
         stoptimeOpt = 0;
         stoptimeMax = 0;
-        movestogo = -1;
+        movestogo = 0;
         stopped = false;
         timeset = false;
         movetimeset = false;
