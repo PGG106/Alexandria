@@ -18,14 +18,15 @@ void Optimum(SearchInfo* info, int time, int inc) {
     }
     else {
         // Divide the time you have left for how many moves you have to play, if it's an X+Y time control assume 20ish moves to go and add a fraction of the increment
-        const auto basetime = info->movestogo != -1 ? time / info->movestogo : time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
-        // Never use more than 76% of the total time left for a single move
-        const auto maxtime = 0.76 * time;
+        const bool cyclicTC = info->movestogo != 0;
+        const auto basetime = cyclicTC ? time / info->movestogo : time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
         // optime is the time we use to stop if we just cleared a depth
-        const auto optime = std::min((optTimeMultiplier() / 100.0) * basetime, maxtime);
-        info->stoptimeMax = info->starttime + maxtime;
+        const auto optime = (optTimeMultiplier() / 100.0) * basetime;
         info->stoptimeBaseOpt = optime;
         info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
+        // Never use more than 76% of the total time left for a single move
+        const auto maxtime = 0.76 * time;
+        info->stoptimeMax = info->starttime + maxtime;
     }
 }
 
