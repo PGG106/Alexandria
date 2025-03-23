@@ -74,8 +74,7 @@ static bool Is50MrDraw(Position* pos) {
 bool IsDraw(Position* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
     return IsRepetition(pos)
-        || Is50MrDraw(pos)
-        || MaterialDraw(pos);
+        || Is50MrDraw(pos);
 }
 
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
