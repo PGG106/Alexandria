@@ -21,10 +21,10 @@ void Optimum(SearchInfo *info, int time, int inc) {
     const auto timeLeft =  std::max(1, time + inc * (movesToGo - 1) - safety_overhead * (2 + movesToGo));
     double optScale = 0;
     if(cyclicTC){
-        optScale = std::min(0.90 / movesToGo, 0.88 * time / double(timeLeft)); // figure this out later
+        optScale = std::min(0.90 / movesToGo, 0.88 * time / double(timeLeft));
     }
     else{
-        optScale = std::min(0.90 / movesToGo, 0.88 * time / double(timeLeft));
+        optScale = 0.20 * time / double(timeLeft);
     }
     // optime is the time we use to stop if we just cleared a depth
     const auto optime = optScale * timeLeft;
