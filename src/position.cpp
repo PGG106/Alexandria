@@ -14,6 +14,7 @@ NNUE nnue = NNUE();
 
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
+    pos->history.head = 0;
     // reset board position (pos->pos->bitboards)
     std::memset(pos->state.bitboards, 0ULL, sizeof(pos->state.bitboards));
 
