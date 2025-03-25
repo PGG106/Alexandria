@@ -23,17 +23,16 @@
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
 struct BoardState {
+    int pieces[64];
+    // Occupancies bitboards based on piece and side
+    Bitboard bitboards[12] = {};
+    Bitboard occupancies[2] = {};
     int castlePerm = 15;
-    int capture = EMPTY;
     int enPas = 0;
     int fiftyMove = 0;
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard pinned;
-    int pieces[64];
-    // Occupancies bitboards based on piece and side
-    Bitboard bitboards[12] = {};
-    Bitboard occupancies[2] = {};
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
@@ -103,10 +102,6 @@ public:
 
     [[nodiscard]] inline Bitboard getPinnedMask() const {
         return state.pinned;
-    }
-
-    [[nodiscard]] inline int getCapturedPiece() const {
-        return history[historyStackHead].capture;
     }
 
     inline void ChangeSide() {

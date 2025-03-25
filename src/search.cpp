@@ -611,7 +611,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                                           !cutNode, td, ss + 1);
 
             // Take move back
-            UnmakeMove(move, pos);
+            UnmakeMove(pos);
 
             if (pcScore >= pcBeta) {
                 StoreTTEntry(pos->posKey, MoveToTT(move),
@@ -814,7 +814,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
-        UnmakeMove(move, pos);
+        UnmakeMove(pos);
         if (mainT && rootNode)
             nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
@@ -1003,7 +1003,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         const int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
 
         // take move back
-        UnmakeMove(move, pos);
+        UnmakeMove(pos);
 
         if (info->stopped)
             return 0;

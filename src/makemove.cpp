@@ -112,7 +112,6 @@ void MakeEp(const Move move, Position* pos) {
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
-    pos->history[pos->historyStackHead].capture = pieceCap;
     const int capturedPieceLocation = targetSquare + SOUTH;
     ClearPiece(pieceCap, capturedPieceLocation, pos);
 
@@ -160,8 +159,6 @@ void MakePromocapture(const Move move, Position* pos) {
     assert(GetPieceType(pieceCap) != KING);
     ClearPiece(pieceCap, targetSquare, pos);
 
-    pos->history[pos->historyStackHead].capture = pieceCap;
-
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -201,7 +198,6 @@ void MakeCapture(const Move move, Position* pos) {
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
     ClearPiece(pieceCap, targetSquare, pos);
-    pos->history[pos->historyStackHead].capture = pieceCap;
 
     MovePiece(piece, sourceSquare, targetSquare, pos);
 
@@ -304,7 +300,7 @@ void MakeMove(const Move move, Position* pos) {
     assert(pos->pawnKey == GeneratePawnKey(pos));
 }
 
-void UnmakeMove(const Move move, Position* pos) {
+void UnmakeMove(Position* pos) {
     // quiet moves
     pos->hisPly--;
     pos->historyStackHead--;
