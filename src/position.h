@@ -47,6 +47,11 @@ struct historyStack{
         historyStack[head] = state;
         head++;
     }
+
+    inline BoardState pop() {
+        return historyStack[--head];
+    }
+
 };
 
 struct Position {
@@ -185,7 +190,5 @@ void UpdatePinsAndCheckers(Position* pos, const int side);
 Bitboard RayBetween(int square1, int square2);
 
 ZobristKey keyAfter(const Position* pos, const Move move);
-
-void restorePreviousBoardState(Position* pos);
 
 bool hasGameCycle(Position* pos, int ply);

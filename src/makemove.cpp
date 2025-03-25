@@ -301,8 +301,7 @@ void UnmakeMove(Position* pos) {
     // quiet moves
     pos->hisPly--;
 
-    pos->history.head--;
-    restorePreviousBoardState(pos);
+    pos->state = pos->history.pop();
 
     // change side
     pos->ChangeSide();
@@ -336,8 +335,7 @@ void MakeNullMove(Position* pos) {
 void TakeNullMove(Position* pos) {
     pos->hisPly--;
 
-    pos->history.head--;
-    restorePreviousBoardState(pos);
+    pos->state = pos->history.pop();
 
     pos->ChangeSide();
     pos->posKey = pos->played_positions.back();
