@@ -297,7 +297,7 @@ void MakeMove(const Move move, Position* pos) {
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
-    assert(pos->pawnKey == GeneratePawnKey(pos));
+    assert(pos->state.pawnKey == GeneratePawnKey(pos));
 }
 
 void UnmakeMove(Position* pos) {
