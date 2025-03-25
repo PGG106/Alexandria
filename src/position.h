@@ -30,13 +30,15 @@ struct BoardState {
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard pinned;
+    int pieces[64];
+    // Occupancies bitboards based on piece and side
+    Bitboard bitboards[12] = {};
+    Bitboard occupancies[2] = {};
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
 struct Position {
 public:
-    int pieces[64]; // array that stores for every square of the board what piece is on it
-
     int side = -1; // what side has to move
 
     BoardState state;
@@ -52,21 +54,17 @@ public:
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
 
-    // Occupancies bitboards based on piece and side
-    Bitboard bitboards[12] = {};
-    Bitboard occupancies[2] = {};
-
     [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
         if (occupancySide == BOTH)
-            return occupancies[WHITE] | occupancies[BLACK];
+            return state.occupancies[WHITE] | state.occupancies[BLACK];
         else
-            return occupancies[occupancySide];
+            return state.occupancies[occupancySide];
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
     [[nodiscard]] inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
-        return bitboards[piecetype + color * 6];
+        return state.bitboards[piecetype + color * 6];
     }
 
     [[nodiscard]] inline int PieceCount() const {
@@ -75,7 +73,7 @@ public:
 
     [[nodiscard]] inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
-        return pieces[square];
+        return state.pieces[square];
     }
 
     [[nodiscard]] inline ZobristKey getPoskey() const {
