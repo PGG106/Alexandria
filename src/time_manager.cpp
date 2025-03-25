@@ -24,7 +24,7 @@ void Optimum(SearchInfo *info, int time, int inc) {
         optScale = std::min(0.90 / movesToGo, 0.88 * time / double(timeLeft));
     }
     else{
-        optScale = std::min(0.010, 0.20 * time / double(timeLeft));
+        optScale = std::min(0.025, 0.20 * time / double(timeLeft));
     }
     // optime is the time we use to stop if we just cleared a depth
     const auto optime = optScale * timeLeft;
