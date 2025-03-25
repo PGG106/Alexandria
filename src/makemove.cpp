@@ -246,7 +246,7 @@ template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
 
     if constexpr (UPDATE) {
-        saveBoardState(pos);
+        pos->history.push(pos->state);
     }
 
     // Store position key in the array of searched position
@@ -285,9 +285,6 @@ void MakeMove(const Move move, Position* pos) {
         MakeCapture(move, pos);
     }
 
-    if constexpr (UPDATE)
-        pos->historyStackHead++;
-
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
@@ -303,8 +300,8 @@ void MakeMove(const Move move, Position* pos) {
 void UnmakeMove(Position* pos) {
     // quiet moves
     pos->hisPly--;
-    pos->historyStackHead--;
 
+    pos->history.head--;
     restorePreviousBoardState(pos);
 
     // change side
@@ -318,7 +315,7 @@ void UnmakeMove(Position* pos) {
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos) {
-    saveBoardState(pos);
+    pos->history.push(pos->state);
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->posKey);
     // Update the zobrist key asap so we can prefetch
@@ -328,7 +325,6 @@ void MakeNullMove(Position* pos) {
     TTPrefetch(pos->getPoskey());
 
     pos->hisPly++;
-    pos->historyStackHead++;
     pos->state.fiftyMove++;
     pos->state.plyFromNull = 0;
 
@@ -339,8 +335,8 @@ void MakeNullMove(Position* pos) {
 // Take back a null move
 void TakeNullMove(Position* pos) {
     pos->hisPly--;
-    pos->historyStackHead--;
 
+    pos->history.head--;
     restorePreviousBoardState(pos);
 
     pos->ChangeSide();

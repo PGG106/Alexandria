@@ -450,13 +450,9 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     return newKey;
 }
 
-void saveBoardState(Position* pos) {
-    pos->history[pos->historyStackHead] = pos->state;
-}
-
 void restorePreviousBoardState(Position* pos)
 {
-    pos->state = pos->history[pos->historyStackHead];
+    pos->state = pos->history.historyStack[pos->history.head];
 }
 
 bool hasGameCycle(Position* pos, int ply) {

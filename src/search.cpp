@@ -34,7 +34,7 @@ static bool IsRepetition(const Position* pos) {
         if (pos->played_positions[startingPoint - index] == pos->posKey) {
 
             // we found a 2-fold repetition within the search tree
-            if (index < pos->historyStackHead)
+            if (index < pos->history.head)
                 return true;
 
             counter++;
