@@ -9,15 +9,15 @@
     if (pos->PieceCount() == 2)
         return true;
     // KN v K, KB v K
-    else if (pos->PieceCount() == 3 && ((CountBits(GetPieceBB(pos, KNIGHT)) == 1) || (CountBits(GetPieceBB(pos, BISHOP)) == 1)))
+    else if (pos->PieceCount() == 3 && ((CountBits(pos->GetPieceBB(KNIGHT)) == 1) || (CountBits(pos->GetPieceBB(BISHOP)) == 1)))
         return true;
     // If we have 4 pieces on the board
     else if (pos->PieceCount() == 4) {
         // KNN v K, KN v KN
-        if ((CountBits(GetPieceBB(pos, KNIGHT)) == 2))
+        if ((CountBits(pos->GetPieceBB(KNIGHT)) == 2))
             return true;
         // KB v KB
-        else if (((CountBits(GetPieceBB(pos, BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
+        else if (((CountBits(pos->GetPieceBB(BISHOP)) == 2)) && CountBits(pos->GetPieceColorBB(BISHOP, WHITE)) == 1)
             return true;
     }
 
@@ -26,11 +26,11 @@
 
 [[nodiscard]] static inline int getMaterialValue(const Position* pos) {
 
-    int pawns = CountBits(GetPieceBB(pos, PAWN));
-    int knights = CountBits(GetPieceBB(pos, KNIGHT));
-    int bishops = CountBits(GetPieceBB(pos, BISHOP));
-    int rooks = CountBits(GetPieceBB(pos, ROOK));
-    int queens = CountBits(GetPieceBB(pos, QUEEN));
+    int pawns = CountBits(pos->GetPieceBB( PAWN));
+    int knights = CountBits(pos->GetPieceBB(KNIGHT));
+    int bishops = CountBits(pos->GetPieceBB(BISHOP));
+    int rooks = CountBits(pos->GetPieceBB(ROOK));
+    int queens = CountBits(pos->GetPieceBB(QUEEN));
 
     return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015) / 32;
 }

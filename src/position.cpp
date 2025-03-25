@@ -298,10 +298,6 @@ void parse_moves(const std::string& moves, Position* pos) {
     }
 }
 
-// Returns the bitboard of a piecetype
-Bitboard GetPieceBB(const Position* pos, const int piecetype) {
-    return pos->GetPieceColorBB(piecetype, WHITE) | pos->GetPieceColorBB(piecetype, BLACK);
-}
 
 bool oppCanWinMaterial(const Position* pos, const int side) {
     Bitboard occ = pos->Occupancy(BOTH);

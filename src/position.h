@@ -81,6 +81,11 @@ public:
         return state.bitboards[piecetype + color * 6];
     }
 
+    // Returns the bitboard of a piecetype
+    [[nodiscard]] inline Bitboard GetPieceBB(const int piecetype) const {
+        return GetPieceColorBB(piecetype, WHITE) | GetPieceColorBB(piecetype, BLACK);
+    }
+
     [[nodiscard]] inline int PieceCount() const {
         return CountBits(Occupancy(BOTH));
     }
@@ -163,9 +168,6 @@ void ParseFen(const std::string& command, Position* pos);
 [[nodiscard]] std::string GetFen(const Position* pos);
 // Parse a string of moves in coordinate format and plays them
 void parse_moves(const std::string& moves, Position* pos);
-
-// Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-[[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);
 
 // Returns the threats bitboard of the pieces of <side> color
 [[nodiscard]] Bitboard getThreats(const Position* pos, const int side);
