@@ -168,14 +168,6 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
     if (depth == -1) {
         info->depth = MAXDEPTH;
     }
-    std::cout << "info ";
-    std::cout << "time: " << time << " ";
-    std::cout << "start: " << info->starttime << " ";
-    std::cout << "stopOpt: " << info->stoptimeOpt << " ";
-    std::cout << "stopMax: " << info->stoptimeMax << " ";
-    std::cout << "depth: " << info->depth << " ";
-    std::cout << "timeset: " << info->timeset << " ";
-    std::cout << "nodeset: " << info->nodeset << std::endl;
     return true;
 }
 

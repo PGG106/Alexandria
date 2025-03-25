@@ -47,6 +47,15 @@ struct SearchInfo {
         movetimeset = false;
         nodeset = false;
     }
+
+    inline void print(){
+        std::cout << "start: " << starttime << " ";
+        std::cout << "stopOpt: " << stoptimeOpt << " ";
+        std::cout << "stopMax: " << stoptimeMax << " ";
+        std::cout << "depth: " << depth << " ";
+        std::cout << "timeset: " << timeset << " ";
+        std::cout << "nodeset: " << nodeset << std::endl;
+    }
 };
 
 struct SearchData {
