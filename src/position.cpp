@@ -207,9 +207,9 @@ void ParseFen(const std::string& command, Position* pos) {
         pos->state.occupancies[BLACK] |= pos->state.bitboards[piece];
 
     pos->posKey = GeneratePosKey(pos);
-    pos->pawnKey = GeneratePawnKey(pos);
-    pos->whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
-    pos->blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
+    pos->state.pawnKey = GeneratePawnKey(pos);
+    pos->state.whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
+    pos->state.blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);

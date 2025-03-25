@@ -18,11 +18,11 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     pos->state.pieces[from] = EMPTY;
     HashKey(pos->posKey, PieceKeys[piece][from]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->pawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.pawnKey, PieceKeys[piece][from]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][from]);
     else
-        HashKey(pos->blackNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][from]);
 }
 
 void AddPiece(const int piece, const int to, Position* pos) {
@@ -33,11 +33,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
     pos->state.pieces[to] = piece;
     HashKey(pos->posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->pawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.pawnKey, PieceKeys[piece][to]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][to]);
     else
-        HashKey(pos->blackNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][to]);
 }
 
 void MovePiece(const int piece, const int from, const int to, Position* pos) {

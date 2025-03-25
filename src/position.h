@@ -34,6 +34,9 @@ struct BoardState {
     // Occupancies bitboards based on piece and side
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
+    ZobristKey pawnKey = 0ULL;
+    ZobristKey whiteNonPawnKey = 0ULL;
+    ZobristKey blackNonPawnKey = 0ULL;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
@@ -45,9 +48,7 @@ public:
     int hisPly = 0; // total number of halfmoves
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
-    ZobristKey pawnKey = 0ULL;
-    ZobristKey whiteNonPawnKey = 0ULL;
-    ZobristKey blackNonPawnKey = 0ULL;
+
     // stores the state of the board  rollback purposes
     int historyStackHead = 0;
     BoardState    history[MAXPLY];
