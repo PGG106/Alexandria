@@ -13,7 +13,7 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos);
 // Reverts the previously played move
-void UnmakeMove(const Move move, Position* pos);
+void UnmakeMove(Position* pos);
 // makes a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos);
 // Reverts the previously played null move

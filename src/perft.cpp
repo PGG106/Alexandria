@@ -50,7 +50,7 @@ void PerftDriver(int depth, Position* pos) {
         PerftDriver(depth - 1, pos);
 
         // take back
-        UnmakeMove(move, pos);
+        UnmakeMove(pos);
     }
 }
 
@@ -85,7 +85,7 @@ unsigned long long PerftTest(int depth, Position* pos) {
         PerftDriver(depth - 1, pos);
 
         // take back
-        UnmakeMove(move, pos);
+        UnmakeMove(pos);
 
         // old nodes
         long old_nodes = nodes - cummulative_nodes;

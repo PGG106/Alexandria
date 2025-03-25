@@ -168,9 +168,9 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack*
     const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
     assert(newWeight <= CORRHIST_WEIGHT_SCALE);
 
-    updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->state.pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state.whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state.blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
 
     if ((ss - 1)->move && (ss - 2)->move)
         updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
@@ -179,9 +179,9 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack*
 int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval) {
     int adjustment = 0;
 
-    adjustment += sd->pawnCorrHist[pos->side][pos->pawnKey % CORRHIST_SIZE];
-    adjustment += sd->whiteNonPawnCorrHist[pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE];
-    adjustment += sd->blackNonPawnCorrHist[pos->side][pos->blackNonPawnKey % CORRHIST_SIZE];
+    adjustment += sd->pawnCorrHist[pos->side][pos->state.pawnKey % CORRHIST_SIZE];
+    adjustment += sd->whiteNonPawnCorrHist[pos->side][pos->state.whiteNonPawnKey % CORRHIST_SIZE];
+    adjustment += sd->blackNonPawnCorrHist[pos->side][pos->state.blackNonPawnKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];

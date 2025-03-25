@@ -13,31 +13,31 @@ void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
 void ClearPiece(const int piece, const int from, Position* pos) {
     assert(piece != EMPTY);
     const int color = Color[piece];
-    pop_bit(pos->bitboards[piece], from);
-    pop_bit(pos->occupancies[color], from);
-    pos->pieces[from] = EMPTY;
+    pop_bit(pos->state.bitboards[piece], from);
+    pop_bit(pos->state.occupancies[color], from);
+    pos->state.pieces[from] = EMPTY;
     HashKey(pos->posKey, PieceKeys[piece][from]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->pawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.pawnKey, PieceKeys[piece][from]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][from]);
     else
-        HashKey(pos->blackNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][from]);
 }
 
 void AddPiece(const int piece, const int to, Position* pos) {
     assert(piece != EMPTY);
     const int color = Color[piece];
-    set_bit(pos->bitboards[piece], to);
-    set_bit(pos->occupancies[color], to);
-    pos->pieces[to] = piece;
+    set_bit(pos->state.bitboards[piece], to);
+    set_bit(pos->state.occupancies[color], to);
+    pos->state.pieces[to] = piece;
     HashKey(pos->posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->pawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.pawnKey, PieceKeys[piece][to]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->whiteNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][to]);
     else
-        HashKey(pos->blackNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][to]);
 }
 
 void MovePiece(const int piece, const int from, const int to, Position* pos) {
@@ -112,7 +112,6 @@ void MakeEp(const Move move, Position* pos) {
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
-    pos->history[pos->historyStackHead].capture = pieceCap;
     const int capturedPieceLocation = targetSquare + SOUTH;
     ClearPiece(pieceCap, capturedPieceLocation, pos);
 
@@ -160,8 +159,6 @@ void MakePromocapture(const Move move, Position* pos) {
     assert(GetPieceType(pieceCap) != KING);
     ClearPiece(pieceCap, targetSquare, pos);
 
-    pos->history[pos->historyStackHead].capture = pieceCap;
-
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -201,7 +198,6 @@ void MakeCapture(const Move move, Position* pos) {
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
     ClearPiece(pieceCap, targetSquare, pos);
-    pos->history[pos->historyStackHead].capture = pieceCap;
 
     MovePiece(piece, sourceSquare, targetSquare, pos);
 
@@ -301,70 +297,15 @@ void MakeMove(const Move move, Position* pos) {
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
-    assert(pos->pawnKey == GeneratePawnKey(pos));
+    assert(pos->state.pawnKey == GeneratePawnKey(pos));
 }
 
-void UnmakeMove(const Move move, Position* pos) {
+void UnmakeMove(Position* pos) {
     // quiet moves
     pos->hisPly--;
     pos->historyStackHead--;
 
     restorePreviousBoardState(pos);
-
-    // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
-    // parse move flag
-    const bool capture = isCapture(move);
-    const bool enpass = isEnpassant(move);
-    const bool castling = isCastle(move);
-    const bool promotion = isPromo(move);
-
-    const int piece = promotion ? GetPiece(getPromotedPiecetype(move), pos->side ^ 1) : Piece(move);
-
-    // clear the piece on the target square
-    ClearPiece(piece, targetSquare, pos);
-    // no matter what add back the piece that was originally moved, ignoring any promotion
-    AddPiece(Piece(move), sourceSquare, pos);
-
-    // handle captures
-    if (capture) {
-        const int SOUTH = pos->side == WHITE ? -8 : 8;
-        // Retrieve the captured piece we have to restore
-        const int piececap = pos->getCapturedPiece();
-        const int capturedPieceLocation = enpass ? targetSquare + SOUTH : targetSquare;
-        AddPiece(piececap, capturedPieceLocation, pos);
-    }
-
-    // handle castling moves
-    if (castling) {
-        // switch target square
-        switch (targetSquare) {
-            // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece(WR, f1, h1, pos);
-            break;
-
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece(WR, d1, a1, pos);
-            break;
-
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece(BR, f8, h8, pos);
-            break;
-
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece(BR, d8, a8, pos);
-            break;
-        }
-    }
 
     // change side
     pos->ChangeSide();

@@ -23,50 +23,48 @@
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
 struct BoardState {
+    int pieces[64];
+    // Occupancies bitboards based on piece and side
+    Bitboard bitboards[12] = {};
+    Bitboard occupancies[2] = {};
     int castlePerm = 15;
-    int capture = EMPTY;
     int enPas = 0;
     int fiftyMove = 0;
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard pinned;
+    ZobristKey pawnKey = 0ULL;
+    ZobristKey whiteNonPawnKey = 0ULL;
+    ZobristKey blackNonPawnKey = 0ULL;
 }; // stores a move and the state of the game before that move is made
 // for rollback purposes
 
 struct Position {
 public:
-    int pieces[64]; // array that stores for every square of the board what piece is on it
-
     int side = -1; // what side has to move
 
     BoardState state;
     int hisPly = 0; // total number of halfmoves
     // unique  hashkey  that encodes a board position
     ZobristKey posKey = 0ULL;
-    ZobristKey pawnKey = 0ULL;
-    ZobristKey whiteNonPawnKey = 0ULL;
-    ZobristKey blackNonPawnKey = 0ULL;
+
     // stores the state of the board  rollback purposes
     int historyStackHead = 0;
     BoardState    history[MAXPLY];
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
 
-    // Occupancies bitboards based on piece and side
-    Bitboard bitboards[12] = {};
-    Bitboard occupancies[2] = {};
-
     [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {
         assert(occupancySide >= WHITE && occupancySide <= BOTH);
         if (occupancySide == BOTH)
-            return occupancies[WHITE] | occupancies[BLACK];
+            return state.occupancies[WHITE] | state.occupancies[BLACK];
         else
-            return occupancies[occupancySide];
+            return state.occupancies[occupancySide];
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
     [[nodiscard]] inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
-        return bitboards[piecetype + color * 6];
+        return state.bitboards[piecetype + color * 6];
     }
 
     [[nodiscard]] inline int PieceCount() const {
@@ -75,7 +73,7 @@ public:
 
     [[nodiscard]] inline int PieceOn(const int square) const {
         assert(square >= 0 && square <= 63);
-        return pieces[square];
+        return state.pieces[square];
     }
 
     [[nodiscard]] inline ZobristKey getPoskey() const {
@@ -104,10 +102,6 @@ public:
 
     [[nodiscard]] inline Bitboard getPinnedMask() const {
         return state.pinned;
-    }
-
-    [[nodiscard]] inline int getCapturedPiece() const {
-        return history[historyStackHead].capture;
     }
 
     inline void ChangeSide() {

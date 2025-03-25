@@ -15,13 +15,13 @@ NNUE nnue = NNUE();
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
     // reset board position (pos->pos->bitboards)
-    std::memset(pos->bitboards, 0ULL, sizeof(pos->bitboards));
+    std::memset(pos->state.bitboards, 0ULL, sizeof(pos->state.bitboards));
 
     // reset pos->occupancies (pos->pos->bitboards)
-    std::memset(pos->occupancies, 0ULL, sizeof(pos->occupancies));
+    std::memset(pos->state.occupancies, 0ULL, sizeof(pos->state.occupancies));
 
     for (int index = 0; index < 64; ++index) {
-        pos->pieces[index] = EMPTY;
+        pos->state.pieces[index] = EMPTY;
     }
     pos->state.castlePerm = 0;
     pos->state.plyFromNull = 0;
@@ -116,8 +116,8 @@ void ParseFen(const std::string& command, Position* pos) {
                 const int piece = char_pieces[current_char];
                 if (piece != EMPTY) {
                     // set piece on corresponding bitboard
-                    set_bit(pos->bitboards[piece], square);
-                    pos->pieces[square] = piece;
+                    set_bit(pos->state.bitboards[piece], square);
+                    pos->state.pieces[square] = piece;
                 }
                 fen_counter++;
             }
@@ -200,16 +200,16 @@ void ParseFen(const std::string& command, Position* pos) {
 
     for (int piece = WP; piece <= WK; piece++)
         // populate white occupancy bitboard
-        pos->occupancies[WHITE] |= pos->bitboards[piece];
+        pos->state.occupancies[WHITE] |= pos->state.bitboards[piece];
 
     for (int piece = BP; piece <= BK; piece++)
         // populate white occupancy bitboard
-        pos->occupancies[BLACK] |= pos->bitboards[piece];
+        pos->state.occupancies[BLACK] |= pos->state.bitboards[piece];
 
     pos->posKey = GeneratePosKey(pos);
-    pos->pawnKey = GeneratePawnKey(pos);
-    pos->whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
-    pos->blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
+    pos->state.pawnKey = GeneratePawnKey(pos);
+    pos->state.whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
+    pos->state.blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos, pos->side);
