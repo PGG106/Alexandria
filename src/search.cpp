@@ -401,7 +401,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (!rootNode) {
         // If position is a draw return a draw score
         if (IsDraw(pos))
-            return 0;
+            return (info->nodes & 2) - 1;
 
         // Upcoming repetition detection
         if (alpha < 0 && hasGameCycle(pos,ss->ply))
@@ -905,7 +905,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
     // If position is a draw return a draw score
     if (MaterialDraw(pos))
-        return 0;
+        return (info->nodes & 2) - 1;
 
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
