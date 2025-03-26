@@ -50,8 +50,7 @@
 [[nodiscard]] inline int EvalPosition(Position* pos, NNUE::FinnyTable* FinnyPointer) {
     int eval = EvalPositionRaw(pos, FinnyPointer);
     eval = ScaleMaterial(pos, eval);
-    eval = eval * (200 - pos->get50MrCounter()) / 200;
-    eval = (eval / 16) * 16 - 1 + (pos->posKey & 0x2);
+    eval = eval * (150 - pos->get50MrCounter()) / 150;
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;
