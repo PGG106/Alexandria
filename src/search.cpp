@@ -436,9 +436,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
-    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
+    bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const bool ttmoveLegal = IsLegal(pos, ttMove);
+    ttHit &= ttmoveLegal;
+    const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     const uint8_t ttDepth = tte.depth;
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
@@ -586,6 +588,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         Move move;
         InitMP(&mp, pos, sd, ss, NOMOVE, pcBeta - ss->staticEval, PROBCUT, rootNode);
         while ((move = NextMove(&mp, true)) != NOMOVE) {
+
+            if(move == ttMove && !ttmoveLegal)
+                continue;
 
             if (!IsLegal(pos, move))
                 continue;
