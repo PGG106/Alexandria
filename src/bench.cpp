@@ -59,8 +59,7 @@ const char* benchmarkfens[52] = {
     "2rr2k1/1p4bp/p1q1p1p1/4Pp1n/2PB4/1PN3P1/P3Q2P/2RR2K1 w - f6 0 20",
     "3br1k1/p1pn3p/1p3n2/5pNq/2P1p3/1PN3PP/P2Q1PB1/4R1K1 w - - 0 23",
     "2r2b2/5p2/5k2/p1r1pP2/P2pB3/1P3P2/K1P3R1/7R w - - 23 93" ,
-    "8/P6p/2K1q1pk/2Q5/4p3/8/7P/8 w - - 4 44",
-    "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
+    "8/P6p/2K1q1pk/2Q5/4p3/8/7P/8 w - - 4 44"
 };
 
 void StartBench(int depth) {
@@ -71,7 +70,7 @@ void StartBench(int depth) {
     InitTT(64);
     InitNewGame(td);
     auto start = std::chrono::steady_clock::now();
-    for (int positions = 0; positions < 52; positions++) {
+    for (int positions = 0; positions < 51; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
         RootSearch(depth, td, &uciOptions);
