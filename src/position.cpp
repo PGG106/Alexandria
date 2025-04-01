@@ -453,48 +453,5 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
 
 bool hasGameCycle(Position* pos, int ply) {
 
-    int end = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
-
-    if (end < 3)
-        return false;
-
-    // lamba function to return the zobrist key of a position that appeared i plies ago
-    const auto OldKey = [pos](int i)
-    {
-        return pos->played_positions[pos->played_positions.size() - i];
-    };
-
-    const Bitboard occ = pos->Occupancy(BOTH);
-    const ZobristKey originalKey = pos->posKey;
-    ZobristKey other = (originalKey ^ OldKey(1));
-
-    for (int i = 3; i <= end; i += 2)
-    {
-        ZobristKey currKey = OldKey(i);
-        other ^= ~(currKey ^ OldKey(i-1));
-
-        const auto diff = originalKey ^ currKey;
-        uint32_t slot = H1(diff);
-        if (diff != keys[slot])
-            slot = H2(diff);
-
-        if (diff != keys[slot])
-            continue;
-
-        const auto move = cuckooMoves[slot];
-
-        if ((occ & RayBetween(From(move), To(move))) == 0ULL)
-        {
-            // repetition is after root, done
-            if (ply > i)
-                return true;
-
-            auto piece = pos->PieceOn(From(move));
-            if (piece == EMPTY)
-                piece = pos->PieceOn(To(move));
-
-            return Color[piece] == pos->side;
-        }
-    }
     return false;
 }
