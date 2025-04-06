@@ -483,7 +483,7 @@ bool hasGameCycle(Position* pos, int ply) {
 
         const auto move = cuckooMoves[slot];
 
-        if ((occ & RayBetween(From(move), To(move))) == 0ULL)
+        if ((occ & (RayBetween(From(move), To(move))) ^ To(move)) == 0ULL)
         {
             // repetition is after root, done
             if (ply > i)
