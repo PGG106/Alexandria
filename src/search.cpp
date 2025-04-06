@@ -962,7 +962,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
     // Stand pat
     if (bestScore >= beta)
-        return bestScore;
+        return (bestScore + beta) / 2;
 
     // Adjust alpha based on eval
     alpha = std::max(alpha, bestScore);
