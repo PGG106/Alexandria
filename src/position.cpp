@@ -489,15 +489,17 @@ bool hasGameCycle(Position* pos, int ply) {
         const int to = To(move);
         const int from = From(move);
 
-        if (!((RayBetween(to, from) ^to) & occ))
+        if (!((RayBetween(to, from) ^ to) & occ))
         {
             // repetition is after root, done
             if (ply > i)
                 return true;
 
-            auto piece = pos->PieceOn(From(move));
+            auto piece = pos->PieceOn(from);
             if (piece == EMPTY)
-                piece = pos->PieceOn(To(move));
+                piece = pos->PieceOn(to);
+
+            assert(piece != EMPTY);
 
             return Color[piece] == pos->side;
         }
