@@ -480,7 +480,7 @@ bool hasGameCycle(Position* pos, int ply) {
 
         if (diff != keys[slot])
             continue;
-
+//
         const auto move = cuckooMoves[slot];
 
         if ((occ & (RayBetween(From(move), To(move)) ^ To(move))) == 0ULL)
