@@ -489,7 +489,7 @@ bool hasGameCycle(Position* pos, int ply) {
         const int to = To(move);
         const int from = From(move);
 
-        if (!((RayBetween(to, from) ^ to) & occ))
+        if (!((RayBetween(to, from)) & occ))
         {
             // repetition is after root, done
             if (ply > i)
