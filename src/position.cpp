@@ -466,12 +466,15 @@ bool hasGameCycle(Position* pos, int ply) {
 
     const Bitboard occ = pos->Occupancy(BOTH);
     const ZobristKey originalKey = pos->posKey;
-    ZobristKey other = (originalKey ^ OldKey(1));
+    ZobristKey other = (originalKey ^ OldKey(1) ^ SideKey);
 
     for (int i = 3; i <= end; i += 2)
     {
         ZobristKey currKey = OldKey(i);
-        other ^= ~(currKey ^ OldKey(i-1));
+        other ^= currKey ^ OldKey(i-1) ^ SideKey;
+
+        if (other != 0)
+            continue;
 
         const auto diff = originalKey ^ currKey;
         uint32_t slot = H1(diff);
@@ -483,15 +486,20 @@ bool hasGameCycle(Position* pos, int ply) {
 
         const auto move = cuckooMoves[slot];
 
-        if ((occ & RayBetween(From(move), To(move))) == 0ULL)
+        const int to = To(move);
+        const int from = From(move);
+
+        if (!((RayBetween(to, from)) & occ))
         {
             // repetition is after root, done
             if (ply > i)
                 return true;
 
-            auto piece = pos->PieceOn(From(move));
+            auto piece = pos->PieceOn(from);
             if (piece == EMPTY)
-                piece = pos->PieceOn(To(move));
+                piece = pos->PieceOn(to);
+
+            assert(piece != EMPTY);
 
             return Color[piece] == pos->side;
         }
