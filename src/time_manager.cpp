@@ -27,6 +27,7 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // Never use more than 76% of the total time left for a single move
     const auto maxtime = 0.76 * time;
     info->stoptimeMax = info->starttime + maxtime;
+    info->scaled_opt_max  = 0.4 * time;
 }
 
 bool StopEarly(const SearchInfo* info) {
@@ -44,7 +45,7 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalSt
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
     const double evalScalingFactor = evalScale[evalStabilityFactor];
     // Scale the search time based on how many nodes we spent and how the best move changed
-    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.stoptimeMax);
+    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.scaled_opt_max);
 
 }
 

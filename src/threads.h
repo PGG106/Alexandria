@@ -21,6 +21,7 @@ struct SearchInfo {
     uint64_t stoptimeOpt = 0;
     // search upper bound if present
     uint64_t stoptimeMax = 0;
+    uint64_t scaled_opt_max = 0;
     // max depth to reach for depth limited searches
     int depth = -1;
     int seldepth = -1;
