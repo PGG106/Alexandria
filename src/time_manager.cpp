@@ -27,7 +27,7 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // Never use more than 76% of the total time left for a single move
     const auto maxtime = 0.76 * time;
     info->stoptimeMax = info->starttime + maxtime;
-    info->scaled_opt_max  = 0.4 * time;
+    info->scaled_opt_max  = 0.5 * time;
 }
 
 bool StopEarly(const SearchInfo* info) {
