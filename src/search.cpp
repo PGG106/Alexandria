@@ -452,7 +452,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
 
-    const bool canIIR = depth >= 4 && ttMove == NOMOVE;
+    const bool canIIR = depth > 4 && ttMove == NOMOVE;
 
     // clean killers and excluded move for the next ply
     (ss + 1)->excludedMove = NOMOVE;
