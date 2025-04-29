@@ -32,6 +32,11 @@ else
 endif
 endif
 
+# Detect Windows
+ifeq ($(OS), Windows_NT)
+    $(error Fuck off windows)
+endif
+
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
