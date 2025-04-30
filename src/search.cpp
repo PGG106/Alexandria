@@ -529,7 +529,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
             && eval >= beta
-            && ss->staticEval >= beta - 30 * depth + 170
+            && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
             && (ss - 1)->move != NOMOVE
             && ss->ply >= td->nmpPlies
             && BoardHasNonPawns(pos, pos->side)) {
@@ -574,7 +574,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
     }
 
-    const int pcBeta = beta + 300 - 50 * improving;
+    const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
     if (  !pvNode
         && depth > 4
         && abs(beta) < MATE_FOUND

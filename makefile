@@ -32,7 +32,6 @@ else
 endif
 endif
 
-
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
