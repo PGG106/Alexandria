@@ -1,12 +1,10 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <cmath>
 #include "bitboard.h"
 #include "move.h"
 #include "search.h"
 #include "history.h"
-#include "piece_data.h"
 #include "attack.h"
 #include "eval.h"
 #include "magic.h"
@@ -164,7 +162,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
         // Remove used pieces from attackers
         attackers &= occupied;
 
-        Bitboard myAttackers = attackers & pos->Occupancy(side);
+        Bitboard myAttackers = attackers & pos->Occupancy(side) & ~pos->getPinnedMask();
         if (!myAttackers) {
             break;
         }
