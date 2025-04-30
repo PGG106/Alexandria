@@ -5,7 +5,7 @@
 
 // set/get/pop bit macros
 inline void set_bit(Bitboard& bitboard, const int square) { bitboard |= (1ULL << square); }
-[[nodiscard]] inline int get_bit(const Bitboard bitboard, const int square) { return bitboard & (1ULL << square); }
+[[nodiscard]] inline bool get_bit(const Bitboard bitboard, const int square) { return bitboard & (1ULL << square);}
 inline void pop_bit(Bitboard& bitboard, const int square) { bitboard &= ~(1ULL << square); }
 
 [[nodiscard]] inline int GetLsbIndex(Bitboard bitboard) {

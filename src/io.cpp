@@ -29,7 +29,7 @@ void PrintBitboard(const Bitboard bitboard) {
                 printf("  %d ", 8 - rank);
 
             // print bit state (either 1 or 0)
-            printf(" %d", get_bit(bitboard, square) ? 1 : 0);
+            std::cout << " " << get_bit(bitboard, square);
         }
 
         // print new line every rank
