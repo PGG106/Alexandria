@@ -409,7 +409,7 @@ int KingSQ(const Position* pos, const int c) {
     return GetLsbIndex(pos->GetPieceColorBB(KING, c));
 }
 
-void updatePinsCheckSide(Position* pos, const int side){
+void updatePinsSide(Position* pos, const int side){
     const Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
@@ -432,8 +432,27 @@ void updatePinsCheckSide(Position* pos, const int side){
 }
 
 void UpdatePinsAndCheckers(Position* pos) {
-    updatePinsCheckSide(pos, WHITE);
-    updatePinsCheckSide(pos, BLACK);
+
+    const int side = pos->side;
+    const Bitboard them = pos->Occupancy(side ^ 1);
+    const int kingSquare = KingSQ(pos, side);
+    const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
+    const Bitboard knightCheckers = pos->GetPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];
+    const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
+    const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
+    Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
+    pos->state.checkers = pawnCheckers | knightCheckers;
+
+    while (sliderAttacks) {
+        const int sq = popLsb(sliderAttacks);
+        const Bitboard blockers = RayBetween(kingSquare, sq) & pos->Occupancy(side);
+        const int numBlockers = CountBits(blockers);
+        if (!numBlockers)
+            pos->state.checkers |= 1ULL << sq;
+    }
+
+    updatePinsSide(pos, WHITE);
+    updatePinsSide(pos, BLACK);
 }
 
 Bitboard RayBetween(int square1, int square2) {
