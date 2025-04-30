@@ -157,7 +157,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
 
     int side = Color[attacker] ^ 1;
 
-    const Bitboard allowed = ~(pos->getPinnedMask(pos->side) | pos->getPinnedMask(BLACK));
+    const Bitboard allowed = ~(pos->getPinnedMask(WHITE) | pos->getPinnedMask(BLACK));
 
     // Make captures until one side runs out, or fail to beat threshold
     while (true) {
