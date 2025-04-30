@@ -290,7 +290,7 @@ void MakeMove(const Move move, Position* pos) {
     // Xor the new side into the key
     HashKey(pos->posKey, SideKey);
     // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos, pos->side);
+    UpdatePinsAndCheckers(pos);
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->posKey == GeneratePosKey(pos));
@@ -328,7 +328,7 @@ void MakeNullMove(Position* pos) {
     pos->state.plyFromNull = 0;
 
     // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos, pos->side);
+    UpdatePinsAndCheckers(pos);
 }
 
 // Take back a null move

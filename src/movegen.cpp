@@ -454,7 +454,7 @@ bool IsLegal(Position* pos, Move move) {
         AddPiece(king, ksq, pos);
         return isLegal;
     }
-    else if (pos->getPinnedMask() & (1ULL << from)) {
+    else if (pos->getPinnedMask(pos->side) & (1ULL << from)) {
         return !pos->getCheckers() && (((1ULL << to) & RayBetween(ksq, from)) || ((1ULL << from) & RayBetween(ksq, to)));
     }
     else if (pos->getCheckers()) {

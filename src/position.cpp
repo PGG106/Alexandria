@@ -213,7 +213,7 @@ void ParseFen(const std::string& command, Position* pos) {
     pos->state.blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
 
     // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos, pos->side);
+    UpdatePinsAndCheckers(pos);
 
     // Clear vector of played positions
     pos->played_positions.clear();
@@ -409,7 +409,7 @@ int KingSQ(const Position* pos, const int c) {
     return GetLsbIndex(pos->GetPieceColorBB(KING, c));
 }
 
-void UpdatePinsAndCheckers(Position* pos, const int side) {
+void updatePinsCheckSide(Position* pos, const int side){
     const Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->GetPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
@@ -417,7 +417,7 @@ void UpdatePinsAndCheckers(Position* pos, const int side) {
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
-    pos->state.pinned = 0ULL;
+    pos->state.pinned[side] = 0ULL;
     pos->state.checkers = pawnCheckers | knightCheckers;
 
     while (sliderAttacks) {
@@ -427,8 +427,13 @@ void UpdatePinsAndCheckers(Position* pos, const int side) {
         if (!numBlockers)
             pos->state.checkers |= 1ULL << sq;
         else if (numBlockers == 1)
-            pos->state.pinned |= blockers;
+            pos->state.pinned[side] |= blockers;
     }
+}
+
+void UpdatePinsAndCheckers(Position* pos) {
+    updatePinsCheckSide(pos, WHITE);
+    updatePinsCheckSide(pos, BLACK);
 }
 
 Bitboard RayBetween(int square1, int square2) {
