@@ -157,7 +157,16 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
 
     int side = Color[attacker] ^ 1;
 
-    const Bitboard allowed = ~(pos->getPinnedMask(WHITE) | pos->getPinnedMask(BLACK));
+    const Bitboard whitePinned = pos->getPinnedMask(WHITE);
+    const Bitboard blackPinned = pos->getPinnedMask(BLACK);
+    const Bitboard pinnedPieces = whitePinned | blackPinned;
+
+    // allow limited movement for pinned pieces, as long as they move along the axis they are pinned on (diagonal counts as an axis) OR they capture the pinning piece
+    const Bitboard whiteRay = RayBetween(KingSQ(pos, WHITE), to) | 1ULL << to;
+    const Bitboard blackRay = RayBetween(KingSQ(pos, BLACK), to) | 1ULL << to;
+
+    // mask out pinned pieces from attackers unless they can move over one axis
+    const Bitboard allowed = ~pinnedPieces | (whitePinned & whiteRay) | (blackPinned & blackRay);
 
     // Make captures until one side runs out, or fail to beat threshold
     while (true) {
