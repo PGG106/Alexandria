@@ -736,8 +736,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
 
+        const auto oppPinnedPieces = CountBits(pos->getPinnedMask(pos->side ^ 1));
+
         // Play the move
         MakeMove<true>(move, pos);
+        const bool movePins = CountBits(pos->getPinnedMask(pos->side)) > oppPinnedPieces;
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
         // Add any played move to the matching list
         if(isQuiet)
@@ -753,6 +756,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
+
+            if(movePins)
+                depthReduction -= 1;
 
             if (isQuiet) {
                 // Fuck
