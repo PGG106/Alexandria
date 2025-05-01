@@ -32,7 +32,7 @@ struct BoardState {
     int fiftyMove = 0;
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
-    Bitboard pinned;
+    Bitboard pinned[2];
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
@@ -114,8 +114,8 @@ public:
         return state.checkers;
     }
 
-    [[nodiscard]] inline Bitboard getPinnedMask() const {
-        return state.pinned;
+    [[nodiscard]] inline Bitboard getPinnedMask(int color) const {
+        return state.pinned[color];
     }
 
     inline void ChangeSide() {
@@ -185,7 +185,7 @@ void parse_moves(const std::string& moves, Position* pos);
 // Get on what square of the board the king of color c resides
 [[nodiscard]] int KingSQ(const Position* pos, const int c);
 
-void UpdatePinsAndCheckers(Position* pos, const int side);
+void UpdatePinsAndCheckers(Position* pos);
 
 Bitboard RayBetween(int square1, int square2);
 
