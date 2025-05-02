@@ -375,8 +375,8 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     return score;
 }
 
-int futilityMargin(const int depth, const bool improving, const bool canIIR){
-    return rfpDepthMargin() * depth - rfpImprovingMargin() * improving - rfpIIRMargin() * canIIR;
+int futilityMargin(const int depth, const bool improving, const bool canIIR, const int complexity){
+    return rfpDepthMargin() * depth - rfpImprovingMargin() * improving - rfpIIRMargin() * canIIR + complexity / 2;
 }
 
 // Negamax alpha beta search
@@ -530,8 +530,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - futilityMargin(depth, improving, canIIR) >= beta)
-            return eval - futilityMargin(depth, improving, canIIR);
+            && eval - futilityMargin(depth, improving, canIIR, complexity) >= beta)
+            return eval - futilityMargin(depth, improving, canIIR, complexity);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
