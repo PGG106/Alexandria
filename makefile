@@ -34,6 +34,11 @@ endif
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
+   $(error KazApps shield)
+endif
+
+# Detect Windows
+ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
 	SUFFIX   := .exe
 	CXXFLAGS += -static
