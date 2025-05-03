@@ -503,11 +503,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         updateOppHHScore(pos, sd, move, bonus);
     }
 
+    const int correction = std::abs(eval - rawEval);
+
     const int complexity = [&] {
         if (eval == 0 || rawEval == 0)
             return 0;
         else
-            return 100 * std::abs(eval - rawEval) / std::abs(eval);
+            return 100 * correction / std::abs(eval);
     }();
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
@@ -530,8 +532,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - futilityMargin(depth, improving, canIIR, complexity) >= beta)
-            return eval - futilityMargin(depth, improving, canIIR, complexity);
+            && eval - futilityMargin(depth, improving, canIIR, correction) >= beta)
+            return eval - futilityMargin(depth, improving, canIIR, correction);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
