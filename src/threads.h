@@ -62,6 +62,7 @@ struct SearchData {
     int searchHistory[2][64 * 64] = {};
     int rootHistory[2][64 * 64] = {};
     int captHist[12 * 64][6] = {};
+    int pawnHist[12 * 64][PH_SIZE] = {};
     int counterMoves[64 * 64] = {};
     int contHist[12 * 64][12 * 64] = {};
     int pawnCorrHist[2][CORRHIST_SIZE] = {};
