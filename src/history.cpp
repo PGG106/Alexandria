@@ -20,11 +20,11 @@ int history_malus(const int depth) {
 }
 
 int pawnhistory_bonus(const int depth) {
-    return std::min(historyBonusMul() * depth + historyBonusOffset(), historyBonusMax());
+    return std::min(pawnhistoryBonusMul() * depth + pawnhistoryBonusOffset(), pawnhistoryBonusMax());
 }
 
 int pawnhistory_malus(const int depth) {
-    return std::min(historyMalusMul() * depth + historyMalusOffset(), historyMalusMax());
+    return std::min(pawnhistoryMalusMul() * depth + pawnhistoryMalusOffset(), pawnhistoryMalusMax());
 }
 
 int capthistory_bonus(const int depth) {
