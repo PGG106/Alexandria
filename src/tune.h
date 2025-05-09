@@ -152,7 +152,7 @@ TUNE_PARAM(historyMalusMax, 865, 1, 4096, 256, 0.002)
 TUNE_PARAM(capthistoryBonusMul, 336, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryBonusOffset, -89, -1024, 1024, 64, 0.002)
 TUNE_PARAM(capthistoryBonusMax, 2071, 1, 4096, 256, 0.002)
-TUNE_PARAM(capthistoryMalusMul, 3333, 1, 1500, 32, 0.002)
+TUNE_PARAM(capthistoryMalusMul, 333, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryMalusOffset, -84, -1024, 1024, 64, 0.002)
 TUNE_PARAM(capthistoryMalusMax, 1553, 1, 4096, 256, 0.002)
 // Conthist
