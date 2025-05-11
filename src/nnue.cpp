@@ -127,14 +127,14 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
         }
 
         for (size_t j = 0; j < addCnt; ++j) {
-            vepi16 *addedVec = reinterpret_cast<vepi16*>(&net.FTWeights[add[j] * L1_SIZE + i]);
+            vepi16 *addedVec = reinterpret_cast<vepi16*>(&net.FTWeights[add[j] + i]);
             for (int k = 0; k < NUM_REGI; ++k) {
                 regs[k] = vec_add_epi16(regs[k], addedVec[k]);
             }
         }
 
         for (size_t j = 0; j < removeCnt; ++j) {
-            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[remove[j] * L1_SIZE + i]);
+            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[remove[j] + i]);
             for (int k = 0; k < NUM_REGI; ++k) {
                 regs[k] = vec_sub_epi16(regs[k], removedVec[k]);
             }
@@ -169,15 +169,15 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
 
       for (int i = 0; i < addCnt; i++) {
         const auto added = add[i];
-        for (int i = 0; i < L1_SIZE; ++i) {
-            accumCache[i] += net.FTWeights[added * L1_SIZE + i];
+        for (int j = 0; j < L1_SIZE; ++j) {
+            accumCache[j] += net.FTWeights[added + j];
         }
     }
 
       for (int i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
-        for (int i = 0; i < L1_SIZE; ++i) {
-            accumCache[i] -= net.FTWeights[removed * L1_SIZE + i];
+        for (int j = 0; j < L1_SIZE; ++j) {
+            accumCache[j] -= net.FTWeights[removed + j];
         }
     }
 
@@ -215,7 +215,7 @@ size_t NNUE::getIndex(const int piece, const int square, const int side, const i
     const int pieceColorPov = pieceColor ^ side;
 
     // Get the final indexes of the updates, accounting for hm
-    auto squarePov = side == WHITE ? (square ^ 0b111'000) : square;
-    if (flip) squarePov ^= 0b000'111;
-    return bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    auto squarePov = square ^ (0b111'000 * !side) ^ (0b000'111 * flip);
+    auto idx = bucket * NUM_INPUTS + pieceColorPov * COLOR_STRIDE + piecetype * PIECE_STRIDE + squarePov;
+    return idx * L1_SIZE;
 }

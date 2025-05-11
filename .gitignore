@@ -443,3 +443,6 @@ perf.data.old
 /Alexandria.vcxproj.filters
 
 .idea
+
+# Don't commit the net by accident
+nn.net
