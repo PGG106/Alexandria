@@ -21,7 +21,7 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
         }
         else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode) + + GetPHScore(pos, sd, move);
+            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode) + GetPHScore(pos, sd, move)/2;
         }
     }
 }
