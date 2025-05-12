@@ -24,10 +24,10 @@ Move ParseMove(const std::string& moveString, Position* pos) {
     GenerateMoves(&moveList, pos, MOVEGEN_ALL);
 
     // parse source square
-    const int sourceSquare = (moveString[0] - 'a') + (8 - (moveString[1] - '0')) * 8;
+    const unsigned int sourceSquare = (moveString[0] - 'a') + (8 - (moveString[1] - '0')) * 8;
 
     // parse target square
-    const int targetSquare = (moveString[2] - 'a') + (8 - (moveString[3] - '0')) * 8;
+    const unsigned int targetSquare = (moveString[2] - 'a') + (8 - (moveString[3] - '0')) * 8;
 
     // loop over the moves within a move list
     for (int move_count = 0; move_count < moveList.count; move_count++) {
