@@ -10,6 +10,8 @@ struct MoveList;
 
 constexpr int HH_MAX = 8192;
 constexpr int RH_MAX = 8192;
+constexpr int PH_MAX = 16384;
+constexpr int PH_SIZE = 2048;
 constexpr int CH_MAX = 16384;
 constexpr int CAPTHIST_MAX = 16384;
 constexpr int CORRHIST_WEIGHT_SCALE = 1024;
@@ -26,6 +28,7 @@ int history_malus(const int depth);
 [[nodiscard]] int GetHHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetRHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetCHScore(const SearchStack* ss, const Move move);
+[[nodiscard]] int GetPHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset);
 [[nodiscard]] int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode);

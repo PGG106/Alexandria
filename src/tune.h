@@ -148,6 +148,13 @@ TUNE_PARAM(historyBonusMax, 2663, 1, 4096, 256, 0.002)
 TUNE_PARAM(historyMalusMul, 377, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyMalusOffset, 50, -1024, 1024, 64, 0.002)
 TUNE_PARAM(historyMalusMax, 865, 1, 4096, 256, 0.002)
+// Pawnhist
+TUNE_PARAM(pawnhistoryBonusMul, 336, 1, 1500, 32, 0.002)
+TUNE_PARAM(pawnhistoryBonusOffset, -89, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pawnhistoryBonusMax, 2071, 1, 4096, 256, 0.002)
+TUNE_PARAM(pawnhistoryMalusMul, 333, 1, 1500, 32, 0.002)
+TUNE_PARAM(pawnhistoryMalusOffset, -84, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pawnhistoryMalusMax, 1553, 1, 4096, 256, 0.002)
 // Capthist
 TUNE_PARAM(capthistoryBonusMul, 336, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryBonusOffset, -89, -1024, 1024, 64, 0.002)
