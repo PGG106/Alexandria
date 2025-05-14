@@ -156,9 +156,6 @@ const constexpr char* square_to_coordinates[] = {
 // ASCII pieces
 constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
-// NNUE
-extern NNUE nnue;
-
 [[nodiscard]] ZobristKey GeneratePosKey(const Position* pos);
 [[nodiscard]] ZobristKey GeneratePawnKey(const Position* pos);
 // parse FEN string
