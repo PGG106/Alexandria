@@ -72,7 +72,7 @@ public:
        return history.historyStack[history.head];
     }
 
-    [[nodiscard]] inline const BoardState state() const  {
+    [[nodiscard]] inline const BoardState& state() const  {
         return history.historyStack[history.head];
     }
 
