@@ -20,7 +20,7 @@
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const Position* pos) {
-    assert(pos->hisPly >= pos->get50MrCounter());
+    assert(pos->state().hisPly >= pos->get50MrCounter());
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());

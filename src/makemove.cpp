@@ -244,7 +244,9 @@ bool shouldFlip(int from, int to) {
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
-    pos->history.push(pos->state());
+    if constexpr (UPDATE) {
+        pos->history.push(pos->state());
+    }
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->getPoskey());
@@ -290,7 +292,7 @@ void MakeMove(const Move move, Position* pos) {
     UpdatePinsAndCheckers(pos);
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
-    assert(pos->posKey == GeneratePosKey(pos));
+    assert(pos->getPoskey() == GeneratePosKey(pos));
     assert(pos->state().pawnKey == GeneratePawnKey(pos));
 }
 
