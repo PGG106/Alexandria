@@ -43,7 +43,7 @@
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer) {
-    return nnue.output(pos, FinnyPointer);
+    return NNUE::output(pos, FinnyPointer);
 }
 
 // position evaluation
