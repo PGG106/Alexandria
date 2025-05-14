@@ -13,31 +13,31 @@ void inline HashKey(ZobristKey& originalKey , ZobristKey key) {
 void ClearPiece(const int piece, const int from, Position* pos) {
     assert(piece != EMPTY);
     const int color = Color[piece];
-    pop_bit(pos->state.bitboards[piece], from);
-    pop_bit(pos->state.occupancies[color], from);
-    pos->state.pieces[from] = EMPTY;
-    HashKey(pos->posKey, PieceKeys[piece][from]);
+    pop_bit(pos->state().bitboards[piece], from);
+    pop_bit(pos->state().occupancies[color], from);
+    pos->state().pieces[from] = EMPTY;
+    HashKey(pos->state().posKey, PieceKeys[piece][from]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->state.pawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state().pawnKey, PieceKeys[piece][from]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
     else
-        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][from]);
+        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][from]);
 }
 
 void AddPiece(const int piece, const int to, Position* pos) {
     assert(piece != EMPTY);
     const int color = Color[piece];
-    set_bit(pos->state.bitboards[piece], to);
-    set_bit(pos->state.occupancies[color], to);
-    pos->state.pieces[to] = piece;
-    HashKey(pos->posKey, PieceKeys[piece][to]);
+    set_bit(pos->state().bitboards[piece], to);
+    set_bit(pos->state().occupancies[color], to);
+    pos->state().pieces[to] = piece;
+    HashKey(pos->state().posKey, PieceKeys[piece][to]);
     if(GetPieceType(piece) == PAWN)
-        HashKey(pos->state.pawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state().pawnKey, PieceKeys[piece][to]);
     else if(Color[piece] == WHITE)
-        HashKey(pos->state.whiteNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
     else
-        HashKey(pos->state.blackNonPawnKey, PieceKeys[piece][to]);
+        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
 }
 
 void MovePiece(const int piece, const int from, const int to, Position* pos) {
@@ -47,18 +47,18 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
-    HashKey(pos->posKey, CastleKeys[pos->getCastlingPerm()]);
+    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
     // update castling rights
-    pos->state.castlePerm &= castling_rights[source_square];
-    pos->state.castlePerm &= castling_rights[target_square];
+    pos->state().castlePerm &= castling_rights[source_square];
+    pos->state().castlePerm &= castling_rights[target_square];
     // Xor the new one
-    HashKey(pos->posKey, CastleKeys[pos->getCastlingPerm()]);
+    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
 }
 
 inline void resetEpSquare(Position* pos) {
     if (pos->getEpSquare() != no_sq) {
-        HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
-        pos->state.enPas = no_sq;
+        HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
+        pos->state().enPas = no_sq;
     }
 }
 
@@ -103,7 +103,7 @@ void MakeCastle(const Move move, Position* pos) {
 }
 
 void MakeEp(const Move move, Position* pos) {
-    pos->state.fiftyMove = 0;
+    pos->state().fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -122,12 +122,12 @@ void MakeEp(const Move move, Position* pos) {
 
     // Reset EP square
     assert(pos->getEpSquare() != no_sq);
-    HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
-    pos->state.enPas = no_sq;
+    HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
+    pos->state().enPas = no_sq;
 }
 
 void MakePromo(const Move move, Position* pos) {
-    pos->state.fiftyMove = 0;
+    pos->state().fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -146,7 +146,7 @@ void MakePromo(const Move move, Position* pos) {
 }
 
 void MakePromocapture(const Move move, Position* pos) {
-    pos->state.fiftyMove = 0;
+    pos->state().fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -177,7 +177,7 @@ void MakeQuiet(const Move move, Position* pos) {
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
-        pos->state.fiftyMove = 0;
+        pos->state().fiftyMove = 0;
 
     MovePiece(piece,sourceSquare,targetSquare,pos);
 
@@ -192,7 +192,7 @@ void MakeCapture(const Move move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
 
-    pos->state.fiftyMove = 0;
+    pos->state().fiftyMove = 0;
 
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
@@ -207,7 +207,7 @@ void MakeCapture(const Move move, Position* pos) {
 }
 
 void MakeDP(const Move move, Position* pos)
-{   pos->state.fiftyMove = 0;
+{   pos->state().fiftyMove = 0;
 
     // parse move
     const int sourceSquare = From(move);
@@ -223,9 +223,9 @@ void MakeDP(const Move move, Position* pos)
     int epSquareCandidate = targetSquare + SOUTH;
     if(!(pawn_attacks[pos->side][epSquareCandidate] & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
         epSquareCandidate = no_sq;
-    pos->state.enPas = epSquareCandidate;
+    pos->state().enPas = epSquareCandidate;
     if(pos->getEpSquare() != no_sq)
-    HashKey(pos->posKey, enpassant_keys[pos->getEpSquare()]);
+    HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
 template void MakeMove<true>(const Move move, Position* pos);
@@ -244,13 +244,12 @@ bool shouldFlip(int from, int to) {
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
-
     if constexpr (UPDATE) {
-        pos->history.push(pos->state);
+        pos->history.push(pos->state());
     }
 
     // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->posKey);
+    pos->played_positions.emplace_back(pos->getPoskey());
 
     // parse move flag
     const bool capture = isCapture(move);
@@ -259,9 +258,9 @@ void MakeMove(const Move move, Position* pos) {
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
     // increment fifty move rule counter
-    pos->state.fiftyMove++;
-    pos->state.plyFromNull++;
-    pos->hisPly++;
+    pos->state().fiftyMove++;
+    pos->state().plyFromNull++;
+    pos->state().hisPly++;
 
     if(castling){
         MakeCastle(move,pos);
@@ -288,44 +287,35 @@ void MakeMove(const Move move, Position* pos) {
     // change side
     pos->ChangeSide();
     // Xor the new side into the key
-    HashKey(pos->posKey, SideKey);
+    HashKey(pos->state().posKey, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
-    assert(pos->posKey == GeneratePosKey(pos));
-    assert(pos->state.pawnKey == GeneratePawnKey(pos));
+    assert(pos->getPoskey() == GeneratePosKey(pos));
+    assert(pos->state().pawnKey == GeneratePawnKey(pos));
 }
 
 void UnmakeMove(Position* pos) {
-    // quiet moves
-    pos->hisPly--;
-
-    pos->state = pos->history.pop();
-
-    // change side
+    pos->history.pop();
     pos->ChangeSide();
-
-    // restore zobrist key (done at the end to avoid overwriting the value while moving pieces back to their place)
-    // we don't need to do the same for the pawn key because the unmake function correctly restores it already
-    pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos) {
-    pos->history.push(pos->state);
+    pos->history.push(pos->state());
     // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->posKey);
+    pos->played_positions.emplace_back(pos->getPoskey());
     // Update the zobrist key asap so we can prefetch
     resetEpSquare(pos);
     pos->ChangeSide();
-    HashKey(pos->posKey, SideKey);
+    HashKey(pos->state().posKey, SideKey);
     TTPrefetch(pos->getPoskey());
 
-    pos->hisPly++;
-    pos->state.fiftyMove++;
-    pos->state.plyFromNull = 0;
+    pos->state().hisPly++;
+    pos->state().fiftyMove++;
+    pos->state().plyFromNull = 0;
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
@@ -333,11 +323,7 @@ void MakeNullMove(Position* pos) {
 
 // Take back a null move
 void TakeNullMove(Position* pos) {
-    pos->hisPly--;
-
-    pos->state = pos->history.pop();
-
+    pos->history.pop();
     pos->ChangeSide();
-    pos->posKey = pos->played_positions.back();
     pos->played_positions.pop_back();
 }
