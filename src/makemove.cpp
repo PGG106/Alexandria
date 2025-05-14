@@ -231,16 +231,6 @@ void MakeDP(const Move move, Position* pos)
 template void MakeMove<true>(const Move move, Position* pos);
 template void MakeMove<false>(const Move move, Position* pos);
 
-bool shouldFlip(int from, int to) {
-    const bool prevFlipped = get_file[from] > 3;
-    const bool flipped = get_file[to] > 3;
-
-    if (prevFlipped != flipped)
-        return true;
-
-    return false;
-}
-
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos) {
