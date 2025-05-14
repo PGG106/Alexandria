@@ -193,10 +193,10 @@ void ParseFen(const std::string& command, Position* pos) {
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
-        pos->hisPly = std::stoi(HisPly);
+        pos->state().hisPly = std::stoi(HisPly);
     }
     else {
-        pos->hisPly = 0;
+        pos->state().hisPly = 0;
     }
 
     for (int piece = WP; piece <= WK; piece++)
@@ -207,7 +207,7 @@ void ParseFen(const std::string& command, Position* pos) {
         // populate white occupancy bitboard
         pos->state().occupancies[BLACK] |= pos->state().bitboards[piece];
 
-    pos->posKey = GeneratePosKey(pos);
+    pos->state().posKey = GeneratePosKey(pos);
     pos->state().pawnKey = GeneratePawnKey(pos);
     pos->state().whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
     pos->state().blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
@@ -281,7 +281,7 @@ std::string GetFen(const Position* pos) {
     // Parse fifty moves counter
     fifty_move = std::to_string(pos->get50MrCounter());
     // Parse Hisply moves counter
-    HisPly = std::to_string(pos->hisPly);
+    HisPly = std::to_string(pos->state().hisPly);
 
     return pos_string + " " + turn + " " + castle_perm + " " + ep_square + " " + fifty_move + " " + HisPly;
 }
@@ -484,7 +484,7 @@ bool hasGameCycle(Position* pos, int ply) {
     };
 
     const Bitboard occ = pos->Occupancy(BOTH);
-    const ZobristKey originalKey = pos->posKey;
+    const ZobristKey originalKey = pos->getPoskey();
     ZobristKey other = (originalKey ^ OldKey(1) ^ SideKey);
 
     for (int i = 3; i <= end; i += 2)

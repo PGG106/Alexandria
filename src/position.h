@@ -36,8 +36,9 @@ struct BoardState {
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
-}; // stores a move and the state of the game before that move is made
-// for rollback purposes
+    ZobristKey posKey = 0ULL;
+    int hisPly = 0;
+};
 
 struct historyStack{
     BoardState    historyStack[MAXPLY];
@@ -58,11 +59,6 @@ struct historyStack{
 struct Position {
 public:
     int side = -1; // what side has to move
-
-    int hisPly = 0; // total number of halfmoves
-    // unique  hashkey  that encodes a board position
-    ZobristKey posKey = 0ULL;
-
     // stores the state of the board  rollback purposes
     historyStack history;
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
@@ -99,7 +95,7 @@ public:
     }
 
     [[nodiscard]] inline ZobristKey getPoskey() const {
-        return posKey;
+        return state().posKey;
     }
 
     [[nodiscard]] inline int get50MrCounter() const {

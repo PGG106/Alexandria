@@ -29,7 +29,7 @@ static bool IsRepetition(const Position* pos) {
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
-        if (pos->played_positions[startingPoint - index] == pos->posKey) {
+        if (pos->played_positions[startingPoint - index] == pos->getPoskey()) {
 
             // we found a 2-fold repetition within the search tree
             if (index < pos->history.head)
@@ -492,7 +492,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         rawEval = EvalPosition(pos, &td->FTable);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
-        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
@@ -622,7 +622,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             UnmakeMove(pos);
 
             if (pcScore >= pcBeta) {
-                StoreTTEntry(pos->posKey, MoveToTT(move),
+                StoreTTEntry(pos->getPoskey(), MoveToTT(move),
                              ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
                              depth - 3, pvNode, ttPv);
                 return pcScore;
@@ -886,7 +886,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
             updateCorrHistScore(pos, sd, ss, depth, bestScore - ss->staticEval);
         }
-        StoreTTEntry(pos->posKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(pos->getPoskey(), MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
     }
 
     return bestScore;
@@ -965,7 +965,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         rawEval = EvalPosition(pos, &td->FTable);
         bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
-        StoreTTEntry(pos->posKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Stand pat
@@ -1042,7 +1042,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreTTEntry(pos->posKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->getPoskey(), MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }
