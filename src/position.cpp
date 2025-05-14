@@ -16,16 +16,16 @@ NNUE nnue = NNUE();
 void ResetBoard(Position* pos) {
     pos->history.head = 0;
     // reset board position (pos->pos->bitboards)
-    std::memset(pos->state.bitboards, 0ULL, sizeof(pos->state.bitboards));
+    std::memset(pos->state().bitboards, 0ULL, sizeof(pos->state().bitboards));
 
     // reset pos->occupancies (pos->pos->bitboards)
-    std::memset(pos->state.occupancies, 0ULL, sizeof(pos->state.occupancies));
+    std::memset(pos->state().occupancies, 0ULL, sizeof(pos->state().occupancies));
 
     for (int index = 0; index < 64; ++index) {
-        pos->state.pieces[index] = EMPTY;
+        pos->state().pieces[index] = EMPTY;
     }
-    pos->state.castlePerm = 0;
-    pos->state.plyFromNull = 0;
+    pos->state().castlePerm = 0;
+    pos->state().plyFromNull = 0;
 }
 
 // Generates zobrist key from scratch
@@ -117,8 +117,8 @@ void ParseFen(const std::string& command, Position* pos) {
                 const int piece = char_pieces[current_char];
                 if (piece != EMPTY) {
                     // set piece on corresponding bitboard
-                    set_bit(pos->state.bitboards[piece], square);
-                    pos->state.pieces[square] = piece;
+                    set_bit(pos->state().bitboards[piece], square);
+                    pos->state().pieces[square] = piece;
                 }
                 fen_counter++;
             }
@@ -155,16 +155,16 @@ void ParseFen(const std::string& command, Position* pos) {
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->state.castlePerm) |= WKCA;
+            (pos->state().castlePerm) |= WKCA;
             break;
         case 'Q':
-            (pos->state.castlePerm) |= WQCA;
+            (pos->state().castlePerm) |= WQCA;
             break;
         case 'k':
-            (pos->state.castlePerm) |= BKCA;
+            (pos->state().castlePerm) |= BKCA;
             break;
         case 'q':
-            (pos->state.castlePerm) |= BQCA;
+            (pos->state().castlePerm) |= BQCA;
             break;
         case '-':
             break;
@@ -178,18 +178,18 @@ void ParseFen(const std::string& command, Position* pos) {
         const int rank = 8 - (ep_square[1] - '0');
 
         // init enpassant square
-        pos->state.enPas = rank * 8 + file;
+        pos->state().enPas = rank * 8 + file;
     }
     // no enpassant square
     else
-        pos->state.enPas = no_sq;
+        pos->state().enPas = no_sq;
 
     // Read fifty moves counter
     if (!fifty_move.empty()) {
-        pos->state.fiftyMove = std::stoi(fifty_move);
+        pos->state().fiftyMove = std::stoi(fifty_move);
     }
     else {
-        pos->state.fiftyMove = 0;
+        pos->state().fiftyMove = 0;
     }
     // Read Hisply moves counter
     if (!HisPly.empty()) {
@@ -201,16 +201,16 @@ void ParseFen(const std::string& command, Position* pos) {
 
     for (int piece = WP; piece <= WK; piece++)
         // populate white occupancy bitboard
-        pos->state.occupancies[WHITE] |= pos->state.bitboards[piece];
+        pos->state().occupancies[WHITE] |= pos->state().bitboards[piece];
 
     for (int piece = BP; piece <= BK; piece++)
         // populate white occupancy bitboard
-        pos->state.occupancies[BLACK] |= pos->state.bitboards[piece];
+        pos->state().occupancies[BLACK] |= pos->state().bitboards[piece];
 
     pos->posKey = GeneratePosKey(pos);
-    pos->state.pawnKey = GeneratePawnKey(pos);
-    pos->state.whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
-    pos->state.blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
+    pos->state().pawnKey = GeneratePawnKey(pos);
+    pos->state().whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
+    pos->state().blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
@@ -415,14 +415,14 @@ void updatePinsSide(Position* pos, const int side){
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
-    pos->state.pinned[side] = 0ULL;
+    pos->state().pinned[side] = 0ULL;
 
     while (sliderAttacks) {
         const int sq = popLsb(sliderAttacks);
         const Bitboard blockers = RayBetween(kingSquare, sq) & pos->Occupancy(side);
         const int numBlockers = CountBits(blockers);
         if (numBlockers == 1)
-            pos->state.pinned[side] |= blockers;
+            pos->state().pinned[side] |= blockers;
     }
 }
 
@@ -436,14 +436,14 @@ void UpdatePinsAndCheckers(Position* pos) {
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
-    pos->state.checkers = pawnCheckers | knightCheckers;
+    pos->state().checkers = pawnCheckers | knightCheckers;
 
     while (sliderAttacks) {
         const int sq = popLsb(sliderAttacks);
         const Bitboard blockers = RayBetween(kingSquare, sq) & pos->Occupancy(side);
         const int numBlockers = CountBits(blockers);
         if (!numBlockers)
-            pos->state.checkers |= 1ULL << sq;
+            pos->state().checkers |= 1ULL << sq;
     }
 
     updatePinsSide(pos, WHITE);

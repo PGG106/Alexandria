@@ -104,8 +104,8 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
     size_t addCnt = 0, removeCnt = 0;
 
     for (int piece = WP; piece <= BK; piece++) {
-        Bitboard added = pos->state.bitboards[piece] & ~cachedEntry.occupancies[piece];
-        Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state.bitboards[piece];
+        Bitboard added = pos->state().bitboards[piece] & ~cachedEntry.occupancies[piece];
+        Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state().bitboards[piece];
         while (added) {
             int square = popLsb(added);
             add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
@@ -116,7 +116,7 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
             remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
         }
 
-        cachedEntry.occupancies[piece] = pos->state.bitboards[piece];
+        cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
     }
 
     #if defined(USE_SIMD)
