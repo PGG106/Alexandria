@@ -964,6 +964,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     else {
         rawEval = EvalPosition(pos, &td->FTable);
         bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
+        // Save the eval into the TT
+        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Stand pat
