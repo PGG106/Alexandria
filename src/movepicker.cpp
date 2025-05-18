@@ -16,8 +16,6 @@ void ScoreMoves(Movepicker* mp) {
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-            // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
-            if (capturedPiece == EMPTY) capturedPiece = PAWN;
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
         }
         else {
