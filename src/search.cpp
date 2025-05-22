@@ -480,8 +480,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
         // if we had a hit with no eval, cache the eval
-        if(tte.eval == SCORE_NONE)
-        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        if (tte.eval == SCORE_NONE)
+            StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
 
         // We can also use the tt score as a more accurate form of eval
@@ -955,6 +955,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
 
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
+        if (tte.eval == SCORE_NONE)
+            StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
         ss->staticEval = bestScore = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
 
         // We can also use the TT score as a more accurate form of eval
