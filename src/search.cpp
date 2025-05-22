@@ -524,10 +524,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }();
 
     if (!pvNode
-        && !excludedMove
         && !inCheck) {
         // Reverse futility pruning
         if (   depth < 10
+            && !excludedMove
             && abs(eval) < MATE_FOUND
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, canIIR) >= beta)
@@ -575,7 +575,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
+        if (depth <= 5 && eval + razoringCoeff() * depth < alpha && !excludedMove)
         {
             const int razorScore = Quiescence<false>(alpha, beta, td, ss);
             if (razorScore <= alpha)
