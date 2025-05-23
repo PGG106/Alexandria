@@ -525,7 +525,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }();
 
     if (!pvNode
-        && !excludedMove
         && !inCheck) {
         // Reverse futility pruning
         if (   depth < 10
@@ -542,6 +541,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
             && (ss - 1)->move != NOMOVE
             && ss->ply >= td->nmpPlies
+            && !excludedMove
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
