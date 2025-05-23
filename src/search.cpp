@@ -524,64 +524,67 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return true;
     }();
 
+    // Reverse futility pruning
+    if (   !pvNode
+        && !excludedMove
+        && depth < 10
+        && abs(eval) < MATE_FOUND
+        && (ttMove == NOMOVE || isTactical(ttMove))
+        && eval - futilityMargin(depth, improving, canIIR) >= beta)
+        return eval - futilityMargin(depth, improving, canIIR);
+
+    // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
+    // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
+    // to prevent falling into zugzwangs.
     if (!pvNode
-        && !excludedMove) {
-        // Reverse futility pruning
-        if (   depth < 10
-            && abs(eval) < MATE_FOUND
-            && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - futilityMargin(depth, improving, canIIR) >= beta)
-            return eval - futilityMargin(depth, improving, canIIR);
+        && !excludedMove
+        && eval >= ss->staticEval
+        && eval >= beta
+        && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
+        && (ss - 1)->move != NOMOVE
+        && ss->ply >= td->nmpPlies
+        && !inCheck
+        && BoardHasNonPawns(pos, pos->side)) {
 
-        // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
-        // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
-        // to prevent falling into zugzwangs.
-        if (   eval >= ss->staticEval
-            && eval >= beta
-            && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
-            && (ss - 1)->move != NOMOVE
-            && ss->ply >= td->nmpPlies
-            && !inCheck
-            && BoardHasNonPawns(pos, pos->side)) {
+        ss->move = NOMOVE;
+        const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
+        ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
-            ss->move = NOMOVE;
-            const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
-            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        MakeNullMove(pos);
 
-            MakeNullMove(pos);
+        // Search moves at a reduced depth to find beta cutoffs.
+        int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - canIIR, !cutNode, td, ss + 1);
 
-            // Search moves at a reduced depth to find beta cutoffs.
-            int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - canIIR, !cutNode, td, ss + 1);
+        TakeNullMove(pos);
 
-            TakeNullMove(pos);
+        // fail-soft beta cutoff
+        if (nmpScore >= beta) {
+            // Don't return unproven mates but still return beta
+            if (nmpScore > MATE_FOUND)
+                nmpScore = beta;
 
-            // fail-soft beta cutoff
-            if (nmpScore >= beta) {
-                // Don't return unproven mates but still return beta
-                if (nmpScore > MATE_FOUND)
-                    nmpScore = beta;
+            // If we don't have to do a verification search just return the score
+            if (td->nmpPlies || depth < 15)
+                return nmpScore;
 
-                // If we don't have to do a verification search just return the score
-                if (td->nmpPlies || depth < 15)
-                    return nmpScore;
+            // Verification search to avoid zugzwangs: if we are at an high enough depth we perform another reduced search without nmp for at least nmpPlies
+            td->nmpPlies = ss->ply + (depth - R) * 2 / 3;
+            int verificationScore = Negamax<false>(beta - 1, beta, depth - R, false, td, ss);
+            td->nmpPlies = 0;
 
-                // Verification search to avoid zugzwangs: if we are at an high enough depth we perform another reduced search without nmp for at least nmpPlies
-                td->nmpPlies = ss->ply + (depth - R) * 2 / 3;
-                int verificationScore = Negamax<false>(beta - 1, beta, depth - R, false, td, ss);
-                td->nmpPlies = 0;
-
-                // If the verification search holds return the score
-                if (verificationScore >= beta)
-                    return nmpScore;
-            }
+            // If the verification search holds return the score
+            if (verificationScore >= beta)
+                return nmpScore;
         }
-        // Razoring
-        if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
-        {
-            const int razorScore = Quiescence<false>(alpha, beta, td, ss);
-            if (razorScore <= alpha)
-                return razorScore;
-        }
+    }
+
+    // Razoring
+    if (    !pvNode
+        && !excludedMove
+        && depth <= 5 && eval + razoringCoeff() * depth < alpha) {
+        const int razorScore = Quiescence<false>(alpha, beta, td, ss);
+        if (razorScore <= alpha)
+            return razorScore;
     }
 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
