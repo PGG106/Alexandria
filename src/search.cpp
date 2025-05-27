@@ -664,7 +664,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
         if (   !rootNode
-            &&  bestScore > -MATE_FOUND) {
+            &&  bestScore > -MATE_FOUND
+            && BoardHasNonPawns(pos, pos->side)) {
 
             const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
@@ -684,8 +685,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
             }
-            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : seeNoisyMargin() * lmrDepth * lmrDepth;
+
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
+            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : seeNoisyMargin() * lmrDepth * lmrDepth;
             if (!SEE(pos, move, see_margin))
                 continue;
         }
