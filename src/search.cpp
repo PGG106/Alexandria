@@ -873,7 +873,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
     if (totalMoves == 0) {
-        return excludedMove ? -MAXSCORE
+        return excludedMove ? alpha
              :      inCheck ? -MATE_SCORE + ss->ply
                             : 0;
     }
