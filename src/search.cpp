@@ -684,8 +684,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
 
-                if(isQuiet && moveHistory < -4000 * depth)
+                if(isQuiet && moveHistory < -4000 * depth) {
+                    skipQuiets = true;
                     continue;
+                }
             }
             int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : seeNoisyMargin() * lmrDepth * lmrDepth;
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
