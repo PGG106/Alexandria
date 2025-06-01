@@ -688,6 +688,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                     continue;
                 }
+
+                // Panic button
+                if(isQuiet && GetCHScore(ss,move) < - 7000) {
+                    continue;
+                }
             }
             int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : seeNoisyMargin() * lmrDepth * lmrDepth;
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
