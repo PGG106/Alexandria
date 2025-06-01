@@ -684,7 +684,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
 
-                if(isQuiet && moveHistory < -4000 * depth) {
+                if(isQuiet && moveHistory < histPruningMargin() * depth) {
                     skipQuiets = true;
                     continue;
                 }
