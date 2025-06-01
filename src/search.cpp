@@ -690,7 +690,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 }
 
                 // Panic button
-                if(isQuiet && GetSingleCHScore(ss, move, 1) < -7000) {
+                if(isQuiet && GetSingleCHScore(ss, move, 1) < -10000) {
                     continue;
                 }
             }
