@@ -53,8 +53,6 @@ ZobristKey GeneratePosKey(const Position* pos) {
     assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
     // add to the key the status of the castling permissions
     finalkey ^= CastleKeys[pos->getCastlingPerm()];
-    // add the 50 mr state
-    finalkey ^= MoveRuleKeys[pos->get50MrCounter()];
 
     return finalkey;
 }
@@ -465,7 +463,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     const int piece = Piece(move);
     const int captured = pos->PieceOn(targetSquare);
 
-    ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare] ^ MoveRuleKeys[pos->get50MrCounter()];
+    ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
 
     auto nextfiftyMrCounter = pos->get50MrCounter() + 1;
 

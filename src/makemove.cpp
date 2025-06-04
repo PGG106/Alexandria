@@ -240,8 +240,6 @@ void MakeMove(const Move move, Position* pos) {
 
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->getPoskey());
-    // yeet old 50mr key
-    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
 
     // parse move flag
     const bool capture = isCapture(move);
@@ -280,8 +278,6 @@ void MakeMove(const Move move, Position* pos) {
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos->state().posKey, SideKey);
-    // add new 50mr key
-    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
 
@@ -301,8 +297,6 @@ void MakeNullMove(Position* pos) {
     pos->history.push(pos->state());
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->getPoskey());
-    // yeet old 50mr key
-    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
     // Update the zobrist key asap so we can prefetch
     resetEpSquare(pos);
 
@@ -310,8 +304,6 @@ void MakeNullMove(Position* pos) {
     pos->state().fiftyMove++;
     pos->state().plyFromNull = 0;
 
-    // add new 50mr key
-    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos->state().posKey, SideKey);

@@ -17,6 +17,7 @@
 #include "time_manager.h"
 #include "io.h"
 #include "types.h"
+#include "init.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const Position* pos) {
@@ -445,7 +446,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
-    const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
+    const ZobristKey adjustedKey = pos->getPoskey() ^ MoveRuleKeys[pos->get50MrCounter()];
+    const bool ttHit = !excludedMove && ProbeTTEntry(adjustedKey, &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -493,7 +495,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         rawEval = EvalPosition(pos, &td->FTable);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
-        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(adjustedKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
@@ -623,7 +625,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             UnmakeMove(pos);
 
             if (pcScore >= pcBeta) {
-                StoreTTEntry(pos->getPoskey(), MoveToTT(move),
+                StoreTTEntry(adjustedKey, MoveToTT(move),
                              ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
                              depth - 3, pvNode, ttPv);
                 return pcScore;
@@ -892,7 +894,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
             updateCorrHistScore(pos, sd, ss, depth, bestScore - ss->staticEval);
         }
-        StoreTTEntry(pos->getPoskey(), MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(adjustedKey, MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
     }
 
     return bestScore;
@@ -934,7 +936,8 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     }
 
     // ttHit is true if and only if we find something in the TT
-    const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
+    const ZobristKey adjustedKey = pos->getPoskey() ^ MoveRuleKeys[pos->get50MrCounter()];
+    const bool ttHit = ProbeTTEntry(adjustedKey, &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
@@ -971,7 +974,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         rawEval = EvalPosition(pos, &td->FTable);
         bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
         // Save the eval into the TT
-        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
+        StoreTTEntry(adjustedKey, NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
     }
 
     // Stand pat
@@ -1048,7 +1051,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreTTEntry(pos->getPoskey(), MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(adjustedKey, MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }
