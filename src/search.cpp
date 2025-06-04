@@ -370,7 +370,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         else
             break;
         // Progressively increase how much the windows are increased by at each fail
-        delta *= 1.44;
+        delta += delta / 3;
     }
     return score;
 }
