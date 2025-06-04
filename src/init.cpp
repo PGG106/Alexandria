@@ -57,6 +57,11 @@ void initHashKeys() {
 
     // init random side key
     SideKey = GetRandomU64Number();
+
+    // one key for each 50mr state
+    for( int index = 0; index < 101; index++ ){
+        MoveRuleKeys[index] = GetRandomU64Number();
+    }
 }
 
 // init attack tables for all the piece types, indexable by square
