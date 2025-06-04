@@ -301,7 +301,7 @@ void MakeNullMove(Position* pos) {
     resetEpSquare(pos);
     pos->ChangeSide();
     HashKey(pos->state().posKey, SideKey);
-    TTPrefetch(pos->getPoskey());
+    TTPrefetch(pos->getPoskey() ^ MoveRuleKeys[pos->get50MrCounter() + 1]);
 
     pos->state().hisPly++;
     pos->state().fiftyMove++;
