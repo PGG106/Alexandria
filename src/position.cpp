@@ -53,6 +53,9 @@ ZobristKey GeneratePosKey(const Position* pos) {
     assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
     // add to the key the status of the castling permissions
     finalkey ^= CastleKeys[pos->getCastlingPerm()];
+    // add the 50 mr state
+    finalkey ^= MoveRuleKeys[pos->get50MrCounter()];
+
     return finalkey;
 }
 
