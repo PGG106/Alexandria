@@ -305,16 +305,18 @@ void MakeNullMove(Position* pos) {
     HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
     // Update the zobrist key asap so we can prefetch
     resetEpSquare(pos);
-    pos->ChangeSide();
-    // Xor the new side into the key
-    HashKey(pos->state().posKey, SideKey);
-    // add new 50mr key
-    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
-    TTPrefetch(pos->getPoskey());
 
     pos->state().hisPly++;
     pos->state().fiftyMove++;
     pos->state().plyFromNull = 0;
+
+    // add new 50mr key
+    HashKey(pos->state().posKey, MoveRuleKeys[pos->get50MrCounter()]);
+    pos->ChangeSide();
+    // Xor the new side into the key
+    HashKey(pos->state().posKey, SideKey);
+
+    TTPrefetch(pos->getPoskey());
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
