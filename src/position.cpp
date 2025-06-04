@@ -467,7 +467,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     if (captured != EMPTY)
         newKey ^= PieceKeys[captured][targetSquare];
 
-    return newKey;
+    return 0;
 }
 
 bool hasGameCycle(Position* pos, int ply) {
