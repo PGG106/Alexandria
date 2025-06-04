@@ -9,23 +9,29 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
     if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
-    const int safety_overhead = std::min(300, time / 2);
-    time -= safety_overhead;
+    const int safety_overhead = std::min(25, time / 2);
     // if we received a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
-        info->stoptimeMax = info->starttime + time;
-        info->stoptimeOpt = info->starttime + time;
+        info->stoptimeMax = info->starttime + time - safety_overhead;
+        info->stoptimeOpt = info->starttime + time - safety_overhead;
         return;
     }
     const bool cyclicTC = info->movestogo != 0;
-    // Divide the time you have left for how many moves you have to play, if it's an X+Y time control assume 20ish moves to go and add a fraction of the increment
-    const auto basetime = cyclicTC ? time / info->movestogo : time * (baseMultiplier() / 1000.0) + inc * (incMultiplier() / 100.0);
+    const int movesToGo  = cyclicTC ? std::min(info->movestogo, 50) : 50;
+    const auto timeLeft = std::max(1, time + inc * (movesToGo - 1) - safety_overhead * (2 + movesToGo));
+    double optScale = 0;
+    if(cyclicTC){
+        optScale = std::min(0.90 / movesToGo, 0.88 * time / double(timeLeft));
+    }
+    else{
+        optScale = std::min(0.025, 0.20 * time / double(timeLeft));
+    }
     // optime is the time we use to stop if we just cleared a depth
-    const auto optime = (optTimeMultiplier() / 100.0) * basetime;
+    const auto optime =  optScale * timeLeft;
     info->stoptimeBaseOpt = optime;
     info->stoptimeOpt = info->starttime + info->stoptimeBaseOpt;
     // Never use more than 76% of the total time left for a single move
-    const auto maxtime = 0.76 * time;
+    const auto maxtime = 0.76 * time - safety_overhead;
     info->stoptimeMax = info->starttime + maxtime;
 }
 
