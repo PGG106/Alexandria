@@ -274,7 +274,6 @@ void MakeMove(const Move move, Position* pos) {
         MakeCapture(move, pos);
     }
 
-    // change side
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos->state().posKey, SideKey);
