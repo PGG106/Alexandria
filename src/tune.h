@@ -105,9 +105,8 @@ inline bool updateTuneVariable(std::string tune_variable_name, int value)
 
 // TM STUFF
 // SOFT/HARD bounds
-TUNE_TM_PARAM(baseMultiplier, 51, 20, 150, 7, 0.002)
-TUNE_TM_PARAM(incMultiplier, 85, 50, 150, 5, 0.002)
-TUNE_TM_PARAM(optTimeMultiplier, 76, 50, 90, 2, 0.002)
+TUNE_TM_PARAM(optScaleFixed, 25, 10, 55, 2, 0.002)
+TUNE_TM_PARAM(optScaleTimeLeft, 200, 75, 350, 15, 0.002)
 
 // Bestmove stability
 TUNE_TM_PARAM(bmScale1, 238, 50, 300, 10, 0.002)
