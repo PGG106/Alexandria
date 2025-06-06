@@ -307,8 +307,9 @@ void MakeNullMove(Position* pos) {
     pos->state().fiftyMove++;
     pos->state().plyFromNull = 0;
 
-    // Update pinmasks and checkers
-    UpdatePinsAndCheckers(pos);
+    // we haven't moved any piece, so pins stay unchanged, as far as checkers for the opponent's side:
+    // if the opponent was in check before we could play this move we would've won, so they weren't
+    // that can't change after a nullmove, therefore do not update pins and checkers
 }
 
 // Take back a null move
