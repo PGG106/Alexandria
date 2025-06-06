@@ -457,6 +457,11 @@ Bitboard RayBetween(int square1, int square2) {
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
 ZobristKey keyAfter(const Position* pos, const Move move) {
 
+    if(move == NOMOVE){
+        ZobristKey newKey = pos->getPoskey() ^ SideKey;
+        return newKey;
+    }
+
     const int sourceSquare = From(move);
     const int targetSquare = To(move);
     const int piece = Piece(move);

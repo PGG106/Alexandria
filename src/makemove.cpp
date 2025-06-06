@@ -274,7 +274,6 @@ void MakeMove(const Move move, Position* pos) {
         MakeCapture(move, pos);
     }
 
-    // change side
     pos->ChangeSide();
     // Xor the new side into the key
     HashKey(pos->state().posKey, SideKey);
@@ -297,11 +296,9 @@ void MakeNullMove(Position* pos) {
     pos->history.push(pos->state());
     // Store position key in the array of searched position
     pos->played_positions.emplace_back(pos->getPoskey());
-    // Update the zobrist key asap so we can prefetch
     resetEpSquare(pos);
     pos->ChangeSide();
     HashKey(pos->state().posKey, SideKey);
-    TTPrefetch(pos->getPoskey());
 
     pos->state().hisPly++;
     pos->state().fiftyMove++;

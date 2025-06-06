@@ -548,6 +548,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
+            TTPrefetch(keyAfter(pos, NOMOVE));
             MakeNullMove(pos);
 
             // Search moves at a reduced depth to find beta cutoffs.
