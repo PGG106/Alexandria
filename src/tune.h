@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -180,4 +182,8 @@ TUNE_PARAM(seeNoisyMargin, -26, -100, -1, 3, 0.002)
 TUNE_PARAM(futilityCoeff0, 250, 40, 300, 10, 0.002)
 TUNE_PARAM(futilityCoeff1, 120, 40, 200, 10, 0.002)
 TUNE_PARAM(histPruningMargin, -4000, -16384, 0, 256, 0.002)
+// Static Eval move ordering (SEMO)
+TUNE_PARAM(semoFixed, 624, -1000, 1000, 25, 0.002)
+TUNE_PARAM(semoMax, 1427, 0, 2000, 75, 0.002)
+TUNE_PARAM(semoMin, -1830, -2000, 0, 75, 0.002)
 
