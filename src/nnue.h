@@ -16,7 +16,7 @@ constexpr int OUTPUT_BUCKETS = 8;
 constexpr int FT_QUANT = 255;
 constexpr int L1_QUANT = 64;
 constexpr int NET_SCALE = 400;
-//
+
 constexpr int buckets[64] = {
          0,  1,  2,  3,  3,  2,  1, 0,
          4,  5,  6,  7,  7,  6,  5, 4,
