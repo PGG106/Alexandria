@@ -32,7 +32,7 @@ constexpr int buckets[64] = {
    const auto finalKingSq = side == WHITE ? (kingSquare ^ 56) : (kingSquare);
    return buckets[finalKingSq];
 }
-
+//
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
