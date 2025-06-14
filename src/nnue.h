@@ -34,7 +34,7 @@ constexpr int buckets[64] = {
 }
 
 using NNUEIndices = std::array<std::size_t, 2>;
-//
+
 struct Network {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
     int16_t FTBiases[L1_SIZE];
