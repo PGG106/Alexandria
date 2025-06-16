@@ -123,6 +123,8 @@ void StoreTTEntry(const ZobristKey key, const PackedMove move, int score, int ev
         tte->eval = static_cast<int16_t>(eval);
         tte->depth = static_cast<uint8_t>(depth);
     }
+    else if (tte->depth > 8 && BoundFromTT(tte->ageBoundPV) != HFEXACT)
+        tte->depth -= 1;
 }
 
 int GetHashfull() {
