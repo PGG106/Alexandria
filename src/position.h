@@ -37,6 +37,7 @@ struct BoardState {
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
     ZobristKey minorKey = 0ULL;
+    ZobristKey majorKey = 0ULL;
     ZobristKey posKey = 0ULL;
     int hisPly = 0;
 };

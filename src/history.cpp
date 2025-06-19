@@ -172,6 +172,7 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack*
     updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->majorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE], scaledDiff, newWeight);
 
     if ((ss - 1)->move && (ss - 2)->move)
         updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
@@ -184,6 +185,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     adjustment += sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
     adjustment += sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
     adjustment += sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE];
+    adjustment += sd->majorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
@@ -208,5 +210,6 @@ void CleanHistories(SearchData* sd) {
     std::memset(sd->whiteNonPawnCorrHist, 0, sizeof(sd->whiteNonPawnCorrHist));
     std::memset(sd->blackNonPawnCorrHist, 0, sizeof(sd->blackNonPawnCorrHist));
     std::memset(sd->contCorrHist, 0, sizeof(sd->contCorrHist));
-    std::memset(sd->minorCorrHist, 0, sizeof(sd->pawnCorrHist));
+    std::memset(sd->minorCorrHist, 0, sizeof(sd->minorCorrHist));
+    std::memset(sd->majorCorrHist, 0, sizeof(sd->majorCorrHist));
 }

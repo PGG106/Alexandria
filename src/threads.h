@@ -69,6 +69,7 @@ struct SearchData {
     int blackNonPawnCorrHist[2][CORRHIST_SIZE] = {};
     int contCorrHist[2][6 * 64][6 * 64] = {};
     int minorCorrHist[2][CORRHIST_SIZE] = {};
+    int majorCorrHist[2][CORRHIST_SIZE] = {};
 };
 
 // a collection of all the data a thread needs to conduct a search

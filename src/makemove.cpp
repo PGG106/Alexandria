@@ -21,10 +21,11 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][from]);
     else {
-        // update minor key
+        // update minor/major keys
         if(isMinor(piece))
-            HashKey(pos->state().minorKey, PieceKeys[piece][from]);;
-        // TODO: Major key
+            HashKey(pos->state().minorKey, PieceKeys[piece][from]);
+        else
+            HashKey(pos->state().majorKey, PieceKeys[piece][from]);
         // color keys
         if(Color[piece] == WHITE)
             HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
