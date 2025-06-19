@@ -164,16 +164,15 @@ void updateSingleCorrHistScore(int &entry, const int scaledDiff, const int newWe
 }
 
 void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff) {
-    const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
     assert(newWeight <= CORRHIST_WEIGHT_SCALE);
 
-    updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE], diff, newWeight);
+    updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], diff, newWeight);
+    updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], diff, newWeight);
 
     if ((ss - 1)->move && (ss - 2)->move)
-        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
+        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], diff, newWeight);
 }
 
 int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval) {
@@ -186,7 +185,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
 
-    return std::clamp(rawEval + adjustment / CORRHIST_GRAIN, -MATE_FOUND + 1, MATE_FOUND - 1);
+    return std::clamp(rawEval + adjustment, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
