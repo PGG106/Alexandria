@@ -185,7 +185,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     adjustment += sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
     adjustment += sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
     adjustment += sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE];
-    adjustment += sd->majorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE];
+    adjustment += sd->majorCorrHist[pos->side][pos->state().majorKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];

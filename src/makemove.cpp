@@ -45,10 +45,11 @@ void AddPiece(const int piece, const int to, Position* pos) {
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][to]);
     else {
-        // update minor key
+        // update minor/major keys
         if(isMinor(piece))
-            HashKey(pos->state().minorKey, PieceKeys[piece][to]);;
-        // TODO: Major key
+            HashKey(pos->state().minorKey, PieceKeys[piece][to]);
+        else
+            HashKey(pos->state().majorKey, PieceKeys[piece][to]);
         // color keys
         if(Color[piece] == WHITE)
             HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
