@@ -311,7 +311,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         prevScore = score;
     }
 }
-
+//
 int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score;
     td->RootDepth = depth;
