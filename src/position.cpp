@@ -69,6 +69,19 @@ ZobristKey GeneratePawnKey(const Position* pos) {
     return pawnKey;
 }
 
+// Generates zobrist key for the minor pieces (knights and bishops) from scratch
+ZobristKey GenerateMinorKey(const Position* pos) {
+    Bitboard minorKey = 0;
+    for (int sq = 0; sq < 64; ++sq) {
+        // get piece on that square
+        const int piece = pos->PieceOn(sq);
+        if (isMinor(piece)) {
+            minorKey ^= PieceKeys[piece][sq];
+        }
+    }
+    return minorKey;
+}
+
 // Generates zobrist key (for non-pawns) from scratch
 ZobristKey GenerateNonPawnKey(const Position* pos, int side) {
     Bitboard nonPawnKey = 0;
@@ -211,6 +224,7 @@ void ParseFen(const std::string& command, Position* pos) {
     pos->state().pawnKey = GeneratePawnKey(pos);
     pos->state().whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
     pos->state().blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
+    pos->state().minorKey = GenerateMinorKey(pos);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
@@ -397,6 +411,11 @@ int GetPieceType(const int piece) {
     if (piece == EMPTY)
         return EMPTY;
     return PieceType[piece];
+}
+
+bool isMinor(const int piece){
+    const int piecetype = GetPieceType(piece);
+    return (piecetype == KNIGHT || piecetype == BISHOP);
 }
 
 // Returns true if side has at least one piece on the board that isn't a pawn or the king, false otherwise

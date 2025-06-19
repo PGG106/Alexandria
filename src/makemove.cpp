@@ -17,12 +17,20 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     pop_bit(pos->state().occupancies[color], from);
     pos->state().pieces[from] = EMPTY;
     HashKey(pos->state().posKey, PieceKeys[piece][from]);
+    // update pawn key
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][from]);
-    else if(Color[piece] == WHITE)
-        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
-    else
-        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][from]);
+    else {
+        // update minor key
+        if(isMinor(piece))
+            HashKey(pos->state().minorKey, PieceKeys[piece][from]);;
+        // TODO: Major key
+        // color keys
+        if(Color[piece] == WHITE)
+            HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
+        else
+            HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][from]);
+    }
 }
 
 void AddPiece(const int piece, const int to, Position* pos) {
@@ -32,12 +40,20 @@ void AddPiece(const int piece, const int to, Position* pos) {
     set_bit(pos->state().occupancies[color], to);
     pos->state().pieces[to] = piece;
     HashKey(pos->state().posKey, PieceKeys[piece][to]);
+    // update pawn key
     if(GetPieceType(piece) == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][to]);
-    else if(Color[piece] == WHITE)
-        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
-    else
-        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
+    else {
+        // update minor key
+        if(isMinor(piece))
+            HashKey(pos->state().minorKey, PieceKeys[piece][to]);;
+        // TODO: Major key
+        // color keys
+        if(Color[piece] == WHITE)
+            HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
+        else
+            HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
+    }
 }
 
 void MovePiece(const int piece, const int from, const int to, Position* pos) {

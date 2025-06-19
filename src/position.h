@@ -36,6 +36,7 @@ struct BoardState {
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
+    ZobristKey minorKey = 0ULL;
     ZobristKey posKey = 0ULL;
     int hisPly = 0;
 };
@@ -179,6 +180,8 @@ void parse_moves(const std::string& moves, Position* pos);
 
 // Returns the piece_type of a piece
 [[nodiscard]] int GetPieceType(const int piece);
+
+[[nodiscard]] bool isMinor(int piece);
 
 // Returns true if side has at least one piece on the board that isn't a pawn, false otherwise
 [[nodiscard]] bool BoardHasNonPawns(const Position* pos, const int side);
