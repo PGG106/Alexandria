@@ -186,7 +186,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
 
-    return std::clamp(rawEval + adjustment / CORRHIST_GRAIN, -MATE_FOUND + 1, MATE_FOUND - 1);
+    return std::clamp(rawEval + adjustment / 65536, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
