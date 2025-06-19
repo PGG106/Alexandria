@@ -158,22 +158,22 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move)
     return sd->captHist[PieceTo(move)][capturedPiece];
 }
 
-void updateSingleCorrHistScore(int &entry, const int scaledDiff, const int newWeight) {
-    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    entry = std::clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
-}
-
 void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff) {
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = std::min(depth * depth + 2 * depth + 1, 128);
-    assert(newWeight <= CORRHIST_WEIGHT_SCALE);
+    const int bonus = std::clamp(diff * depth * 163 / 1024, -CORRHIST_WEIGHT_SCALE / 4, CORRHIST_WEIGHT_SCALE / 4);
 
-    updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    const auto pawnScaledBonus = bonus - (sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE]) * std::abs(bonus) / CORRHIST_MAX;
+    sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE] += pawnScaledBonus;
 
-    if ((ss - 1)->move && (ss - 2)->move)
-        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
+    const auto whiteScaledBonus = bonus - (sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE]) * std::abs(bonus) / CORRHIST_MAX;
+    sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE] += whiteScaledBonus;
+
+    const auto blackScaledBonus = bonus - (sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE]) * std::abs(bonus) / CORRHIST_MAX;
+    sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE] += blackScaledBonus;
+
+    if ((ss - 1)->move && (ss - 2)->move){
+        const auto contScaledBonus = bonus * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)] / CORRHIST_MAX;
+        sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)] += contScaledBonus;
+    }
 }
 
 int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval) {
