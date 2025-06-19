@@ -208,5 +208,5 @@ void CleanHistories(SearchData* sd) {
     std::memset(sd->whiteNonPawnCorrHist, 0, sizeof(sd->whiteNonPawnCorrHist));
     std::memset(sd->blackNonPawnCorrHist, 0, sizeof(sd->blackNonPawnCorrHist));
     std::memset(sd->contCorrHist, 0, sizeof(sd->contCorrHist));
-    std::memset(sd->minorCorrHist, 0, sizeof(sd->pawnCorrHist));
+    std::memset(sd->minorCorrHist, 0, sizeof(sd->minorCorrHist));
 }
