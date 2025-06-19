@@ -172,7 +172,7 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack*
     updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], scaledDiff, newWeight);
     updateSingleCorrHistScore(sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE], scaledDiff, newWeight);
-    updateSingleCorrHistScore(sd->majorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE], scaledDiff, newWeight);
+    updateSingleCorrHistScore(sd->majorCorrHist[pos->side][pos->state().majorKey % CORRHIST_SIZE], scaledDiff, newWeight);
 
     if ((ss - 1)->move && (ss - 2)->move)
         updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)], scaledDiff, newWeight);
