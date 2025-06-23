@@ -11,7 +11,7 @@ void ScoreMoves(Movepicker* mp) {
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
     // Loop through all the move in the movelist
-    for (int i = mp->idx; i < moveList->count; i++) {
+    for (int i = 0; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
@@ -139,6 +139,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case GEN_QUIETS:
         GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
+        mp->idx = 0;
         ScoreMoves(mp);
         ++mp->stage;
         goto top;
