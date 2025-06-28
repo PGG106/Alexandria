@@ -42,7 +42,7 @@ struct Network {
     int16_t L1Biases[OUTPUT_BUCKETS];
 };
 
-extern Network net;
+extern const Network *net;
 struct Position;
 
 struct NNUE {
@@ -55,7 +55,7 @@ struct NNUE {
 
         FinnyTableEntry() {
             for (int i = 0; i < L1_SIZE; ++i)
-                accumCache[i] = net.FTBiases[i];
+                accumCache[i] = net->FTBiases[i];
         }
     };
 
@@ -64,6 +64,6 @@ struct NNUE {
     static int activateAffine(Position *pos, FinnyTable* FinnyPointer, const int16_t *weights, const int16_t bias);
     static int povActivateAffine(Position *pos, FinnyTable* FinnyPointer, const int side, const int16_t *l1weights);
     static int output(Position *pos, FinnyTable* FinnyPointer);
-    static void init(const char *file);
+    static void init();
     static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
 };

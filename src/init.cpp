@@ -206,7 +206,7 @@ void InitAll() {
     InitReductions();
     // Init TT
     InitTT(16);
-    NNUE::init("nn.net");
+    NNUE::init();
     initCuckoo();
 }
 
