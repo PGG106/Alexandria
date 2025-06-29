@@ -3,10 +3,7 @@
 #include <algorithm>
 #include "position.h"
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include "incbin/incbin.h"
 #include "io.h"
 
@@ -25,48 +22,13 @@ const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-Network net;
+const Network *net;
 
 // Thanks to Disservin for having me look at his code and Luecx for the
 // invaluable help and the immense patience
 
-void NNUE::init(const char *file) {
-
-    // open the nn file
-    FILE *nn = fopen(file, "rb");
-
-    // if it's not invalid read the config values from it
-    if (nn) {
-        // initialize an accumulator for every input of the second layer
-        size_t read = 0;
-        const size_t fileSize = sizeof(Network);
-        const size_t objectsExpected = fileSize / sizeof(int16_t);
-
-        read += fread(net.FTWeights, sizeof(int16_t), INPUT_BUCKETS * NUM_INPUTS * L1_SIZE, nn);
-        read += fread(net.FTBiases, sizeof(int16_t), L1_SIZE, nn);
-        read += fread(net.L1Weights, sizeof(int16_t), L1_SIZE * 2 * OUTPUT_BUCKETS, nn);
-        read += fread(net.L1Biases, sizeof(int16_t), OUTPUT_BUCKETS, nn);
-
-        if (read != objectsExpected) {
-            std::cout << "Error loading the net, aborting ";
-            std::cout << "Expected " << objectsExpected << " shorts, got " << read << "\n";
-            exit(1);
-        }
-
-        // after reading the config we can close the file
-        fclose(nn);
-    } else {
-        // if we don't find the nnue file we use the net embedded in the exe
-        uint64_t memoryIndex = 0;
-        std::memcpy(net.FTWeights, &gEVALData[memoryIndex], INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t));
-        memoryIndex += INPUT_BUCKETS * NUM_INPUTS * L1_SIZE * sizeof(int16_t);
-        std::memcpy(net.FTBiases, &gEVALData[memoryIndex], L1_SIZE * sizeof(int16_t));
-        memoryIndex += L1_SIZE * sizeof(int16_t);
-
-        std::memcpy(net.L1Weights, &gEVALData[memoryIndex], L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t));
-        memoryIndex += L1_SIZE * 2 * OUTPUT_BUCKETS * sizeof(int16_t);
-        std::memcpy(net.L1Biases, &gEVALData[memoryIndex], OUTPUT_BUCKETS * sizeof(int16_t));
-    }
+void NNUE::init() {
+    net = reinterpret_cast<const Network*>(gEVALData);
 }
 
 int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  const int side, const int16_t *l1weights) {
@@ -115,14 +77,14 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
         }
 
         for (size_t j = 0; j < addCnt; ++j) {
-            vepi16 *addedVec = reinterpret_cast<vepi16*>(&net.FTWeights[add[j] + i]);
+            const auto *addedVec = reinterpret_cast<const vepi16*>(&net->FTWeights[add[j] + i]);
             for (int k = 0; k < NUM_REGI; ++k) {
                 regs[k] = vec_add_epi16(regs[k], addedVec[k]);
             }
         }
 
         for (size_t j = 0; j < removeCnt; ++j) {
-            vepi16 *removedVec = reinterpret_cast<vepi16*>(&net.FTWeights[remove[j] + i]);
+            const auto *removedVec = reinterpret_cast<const vepi16*>(&net->FTWeights[remove[j] + i]);
             for (int k = 0; k < NUM_REGI; ++k) {
                 regs[k] = vec_sub_epi16(regs[k], removedVec[k]);
             }
@@ -192,7 +154,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
 
-    return activateAffine(pos, FinnyPointer, &net.L1Weights[bucketOffset], net.L1Biases[outputBucket]);
+    return activateAffine(pos, FinnyPointer, &net->L1Weights[bucketOffset], net->L1Biases[outputBucket]);
 }
 
 size_t NNUE::getIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {
