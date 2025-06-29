@@ -76,6 +76,20 @@ bool IsDraw(Position* pos) {
         || MaterialDraw(pos);
 }
 
+bool ForcedMove(Position *pos) {
+    int legalMoveCount = 0;
+    MoveList moveList;
+    // generate moves
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
+    for (int i = 0; i < moveList.count; i++) {
+        const Move move = moveList.moves[i].move;
+        if (IsLegal(pos, move)) {
+            legalMoveCount++;
+        }
+    }
+    return legalMoveCount == 1;
+}
+
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
@@ -254,6 +268,11 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     bool printFinalInfoString = false;
 
     std::memset(td->sd.rootHistory, 0, sizeof(td->sd.rootHistory));
+
+    // needs a better place to exist in, fine for now
+    if(ForcedMove(&td->pos)){
+        ForcedTm(td);
+    }
 
     // Call the Negamax function in an iterative deepening framework
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
