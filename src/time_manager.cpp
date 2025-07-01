@@ -55,7 +55,7 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalSt
 }
 
 void ForcedTm(ThreadData* td){
-    td->info.stoptimeOpt = td->info.starttime + td->info.stoptimeBaseOpt * 0.1;
+    td->info.stoptimeOpt = td->info.starttime + td->info.stoptimeBaseOpt * 0.2;
 }
 
 bool NodesOver(const SearchInfo* info) {
