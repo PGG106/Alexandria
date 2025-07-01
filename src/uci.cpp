@@ -250,7 +250,8 @@ void UciLoop(int argc, char** argv) {
             // Start search in a separate thread
             if (search) {
                 threads_state = Search;
-                main_thread = std::thread(RootSearch, td->info.depth, td, &uciOptions);
+                RootSearch(td->info.depth, td, &uciOptions);
+                //main_thread = std::thread(RootSearch, td->info.depth, td, &uciOptions);
             }
         }
 
