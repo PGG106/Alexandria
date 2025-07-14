@@ -117,17 +117,17 @@ int NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  cons
 
     NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
 
-      for (int i = 0; i < addCnt; i++) {
+      for (size_t i = 0; i < addCnt; i++) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] += net.FTWeights[added + j];
+            accumCache[j] += net->FTWeights[added + j];
         }
     }
 
-      for (int i = 0; i < removeCnt; i++) {
+      for (size_t i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] -= net.FTWeights[removed + j];
+            accumCache[j] -= net->FTWeights[removed + j];
         }
     }
 
