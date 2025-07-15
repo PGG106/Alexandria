@@ -111,6 +111,5 @@ constexpr int PieceType[12] = { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
                                 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 
 // Contains the material Values of the pieces
-constexpr int SEEValue[15] = { 100, 422, 422, 642, 1015, 0,
-                               100, 422, 422, 642, 1015, 0, 0, 0, 0 };
-
+const int SEEValue[15] = { seePawnValue(), seeKnightValue(), seeBishopValue(), seeRookValue(), seeQueenValue(), 0,
+                               seePawnValue(), seeKnightValue(), seeBishopValue(), seeRookValue(), seeQueenValue(), 0, 0, 0, 0 };
