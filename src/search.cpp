@@ -529,10 +529,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && !excludedMove
         && !inCheck) {
 
-        if( (ss-1)->reduction >= 3 && (ss-1)->staticEval != SCORE_NONE && ss->staticEval + (ss-1)->staticEval <= 0){
-            ++depth;
-        }
-
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
@@ -589,6 +585,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (razorScore <= alpha)
                 return razorScore;
         }
+
+        if( (ss-1)->reduction >= 3 && (ss-1)->staticEval != SCORE_NONE && ss->staticEval + (ss-1)->staticEval <= 0){
+            ++depth;
+        }
+
     }
 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
