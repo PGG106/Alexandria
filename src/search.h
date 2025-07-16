@@ -13,6 +13,7 @@ struct SearchStack {
     int ply;
     Move searchKiller;
     int (*contHistEntry)[12 * 64];
+    int reduction;
 };
 
 
