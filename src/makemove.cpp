@@ -126,7 +126,7 @@ void MakeEp(const Move move, Position* pos) {
     pos->state().enPas = no_sq;
 }
 
-void MakePromo(const Move move, Position* pos) {
+void MakePromo(const Move move, Position* pos, const bool capture) {
     pos->state().fiftyMove = 0;
 
     // parse move
@@ -134,33 +134,15 @@ void MakePromo(const Move move, Position* pos) {
     const int targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotedPiece , targetSquare, pos);
 
-    resetEpSquare(pos);
-
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-}
-
-void MakePromocapture(const Move move, Position* pos) {
-    pos->state().fiftyMove = 0;
-
-    // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
-    const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-
-    const int pieceCap = pos->PieceOn(targetSquare);
-    assert(pieceCap != EMPTY);
-    assert(GetPieceType(pieceCap) != KING);
-    ClearPiece(pieceCap, targetSquare, pos);
-
-    // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    if(capture){
+        const int pieceCap = pos->PieceOn(targetSquare);
+        assert(pieceCap != EMPTY);
+        assert(GetPieceType(pieceCap) != KING);
+        ClearPiece(pieceCap, targetSquare, pos);
+    }
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
     AddPiece(promotedPiece , targetSquare, pos);
 
@@ -261,11 +243,8 @@ void MakeMove(const Move move, Position* pos) {
     else if(enpass){
         MakeEp(move,pos);
     }
-    else if(promotion && capture){
-        MakePromocapture(move,pos);
-    }
     else if(promotion){
-        MakePromo(move,pos);
+        MakePromo(move,pos, capture);
     }
     else if(!capture){
         MakeQuiet(move,pos);
