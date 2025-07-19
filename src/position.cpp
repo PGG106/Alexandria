@@ -10,8 +10,6 @@
 #include "init.h"
 #include "cuckoo.h"
 
-NNUE nnue = NNUE();
-
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
     pos->history.head = 0;
