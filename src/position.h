@@ -64,6 +64,10 @@ public:
     // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
     std::vector<ZobristKey> played_positions = {};
 
+    Position() {
+        played_positions.reserve(512);
+    }
+
     [[nodiscard]] inline BoardState& state()  {
        return history.historyStack[history.head];
     }
