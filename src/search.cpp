@@ -529,7 +529,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && !excludedMove
         && !inCheck) {
 
-        if( depth >= 2 && (ss-1)->reduction >= 1 && (ss-1)->staticEval != SCORE_NONE && ss->staticEval + (ss-1)->staticEval  >= 150){
+        // Hindsight reduction
+        if( depth >= 2 && (ss-1)->reduction >= 1 && (ss-1)->staticEval != SCORE_NONE && ss->staticEval + (ss-1)->staticEval >= hindsightEval()){
             depth--;
         }
 
@@ -816,7 +817,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int reducedDepth = newDepth - depthReduction;
             // search current move with reduced depth:
-            ss->reduction = depthReduction;
+            ss->reduction = static_cast<int16_t >(depthReduction);
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
             ss->reduction = 0;
 
