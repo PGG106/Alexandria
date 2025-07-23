@@ -324,6 +324,7 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->searchKiller = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
         (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->reduction = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
@@ -527,6 +528,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (!pvNode
         && !excludedMove
         && !inCheck) {
+
+        // Hindsight reduction
+        if( depth >= 2 && (ss-1)->reduction >= 1 && (ss-1)->staticEval != SCORE_NONE && ss->staticEval + (ss-1)->staticEval >= hindsightEval()){
+            depth--;
+        }
+
         // Reverse futility pruning
         if (   depth < 10
             && abs(eval) < MATE_FOUND
@@ -810,7 +817,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int reducedDepth = newDepth - depthReduction;
             // search current move with reduced depth:
+            ss->reduction = static_cast<int16_t >(depthReduction);
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
+            ss->reduction = 0;
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
             if (score > alpha && newDepth > reducedDepth) {
