@@ -813,7 +813,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
 
             // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
-            int reducedDepth = std::clamp(newDepth - depthReduction, 1 , newDepth + pvNode);
+            int reducedDepth = std::clamp(newDepth - depthReduction, 1 , newDepth + (pvNode  && !bestMove));
             // search current move with reduced depth:
             ss->reduction = static_cast<int16_t >(depthReduction);
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
