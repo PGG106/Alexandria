@@ -812,7 +812,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
 
-            // clamp the reduced depth so that we can't drop into Qsearch and to prevent extensions
+            // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
             int reducedDepth = std::clamp(newDepth - depthReduction, 1 , newDepth + 1);
             // search current move with reduced depth:
             ss->reduction = static_cast<int16_t >(depthReduction);
