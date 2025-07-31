@@ -25,7 +25,7 @@ static bool IsRepetition(const Position* pos) {
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
     // Get the point our search should start from
-    int startingPoint = pos->played_positions.size();
+    auto startingPoint = pos->played_positions.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
@@ -122,7 +122,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
     int from = From(move);
 
     int target = isEnpassant(move) ? PAWN : pos->PieceOn(to);
-    int promo = getPromotedPiecetype(move);
+    auto promo = getPromotedPiecetype(move);
     int value = SEEValue[target] - threshold;
 
     // If we promote, we get the promoted piece and lose the pawn
@@ -814,6 +814,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
             int reducedDepth = std::max(1, std::min(newDepth - depthReduction, newDepth))  + pvNode;
+
             // search current move with reduced depth:
             ss->reduction = static_cast<int16_t >(depthReduction);
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
