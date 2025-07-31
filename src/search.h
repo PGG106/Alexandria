@@ -16,7 +16,6 @@ struct SearchStack {
     int16_t reduction;
 };
 
-
 struct PvTable {
     int pvLength[MAXDEPTH + 1];
     Move pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
