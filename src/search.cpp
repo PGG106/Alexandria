@@ -812,8 +812,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
 
-            // adjust the reduced depth so that we can't drop into Qsearch and to prevent extensions
-            int reducedDepth = std::max(1, std::min(newDepth - depthReduction, newDepth));
+            // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
+            int reducedDepth = std::max(1, std::min(newDepth - depthReduction, newDepth))  + pvNode;
+
             // search current move with reduced depth:
             ss->reduction = static_cast<int16_t >(depthReduction);
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
