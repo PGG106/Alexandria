@@ -812,7 +812,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
             else {
-                depthReduction -= moveHistory / historyNoisyLmrDivisor();
+                depthReduction -= moveHistory / historyPvLmrDivisor();
             }
 
             // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
