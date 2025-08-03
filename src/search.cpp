@@ -1014,7 +1014,11 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
                 bestScore = std::max(futilityBase, bestScore);
                 continue;
             }
+
+            if(totalMoves > 2)
+                continue;
         }
+
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
