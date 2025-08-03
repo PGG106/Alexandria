@@ -812,6 +812,15 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
             else {
+
+                // Fuck
+                if (cutNode)
+                    depthReduction += 2;
+
+                // Reduce more if we are not improving
+                if (!improving)
+                    depthReduction += 1;
+
                 depthReduction -= moveHistory / historyPvLmrDivisor();
             }
 
