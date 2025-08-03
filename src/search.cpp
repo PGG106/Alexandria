@@ -1015,7 +1015,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
                 continue;
             }
 
-            if(totalMoves > 2)
+            if(!isPromo(move) &&  totalMoves > 2)
                 continue;
         }
 
