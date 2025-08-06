@@ -37,9 +37,7 @@
 
 [[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
 
-    const int scale = 700 + getMaterialValue(pos);
-
-    return (eval * scale) / 1024;
+    return eval;
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer) {
