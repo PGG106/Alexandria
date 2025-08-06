@@ -1014,7 +1014,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
                 continue;
             }
 
-            if(!SEE(pos,move,-100))
+            if(!SEE(pos,move,-50))
                 continue;
         }
         // Speculative prefetch of the TT entry
