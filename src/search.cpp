@@ -409,9 +409,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     // Check for early return conditions
     if (!rootNode) {
-        // If position is a draw return a draw score
-        if (IsDraw(pos))
-            return (info->nodes & 2) - 1;
 
         // Upcoming repetition detection
         if (alpha < 0 && hasGameCycle(pos,ss->ply))
@@ -420,6 +417,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (alpha >= beta)
                 return alpha;
         }
+
+        // If position is a draw return a draw score
+        if (IsDraw(pos))
+            return (info->nodes & 2) - 1;
 
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
@@ -930,14 +931,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         return 0;
     }
 
-    // If position is a draw return a draw score
-    if (MaterialDraw(pos))
-        return (info->nodes & 2) - 1;
-
-    // If we reached maxdepth we return a static evaluation of the position
-    if (ss->ply >= MAXDEPTH - 1)
-        return inCheck ? 0 : EvalPosition(pos,&td->FTable);
-
     // Upcoming repetition detection
     if (alpha < 0 && hasGameCycle(pos,ss->ply))
     {
@@ -945,6 +938,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         if (alpha >= beta)
             return alpha;
     }
+
+    // If position is a draw return a draw score
+    if (MaterialDraw(pos))
+        return (info->nodes & 2) - 1;
+
+    // If we reached maxdepth we return a static evaluation of the position
+    if (ss->ply >= MAXDEPTH - 1)
+        return inCheck ? 0 : EvalPosition(pos,&td->FTable);
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
