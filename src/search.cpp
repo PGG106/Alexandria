@@ -99,7 +99,7 @@ void ClearForSearch(ThreadData* td) {
 }
 
 // returns a bitboard of all the attacks to a specific square
-static inline Bitboard AttacksTo(const Position* pos, int to, Bitboard occ) {
+static inline Bitboard AttacksTo(const Position* pos, const unsigned int to, Bitboard occ) {
     Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
@@ -118,10 +118,10 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
     if (isCastle(move))
         return threshold <= 0;
 
-    int to = To(move);
-    int from = From(move);
+    auto to = To(move);
+    auto from = From(move);
 
-    int target = isEnpassant(move) ? PAWN : pos->PieceOn(to);
+    auto target = isEnpassant(move) ? PAWN : pos->PieceOn(to);
     auto promo = getPromotedPiecetype(move);
     int value = SEEValue[target] - threshold;
 
@@ -968,7 +968,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         if (ttHit) {
             // If the value in the TT is valid we use that, otherwise we call the static evaluation function
             rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
-            ss->staticEval = bestScore = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
+            bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
 
             // We can also use the TT score as a more accurate form of eval
             if (    ttScore != SCORE_NONE

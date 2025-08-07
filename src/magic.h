@@ -4,7 +4,7 @@
 #include "types.h"
 
 // get bishop attacks
-[[nodiscard]] inline Bitboard GetBishopAttacks(const int square, Bitboard occupancy) {
+[[nodiscard]] inline Bitboard GetBishopAttacks(const unsigned int square, Bitboard occupancy) {
     // get bishop attacks assuming current board occupancy
     occupancy &= bishop_masks[square];
     occupancy *= bishop_magic_numbers[square];
@@ -15,7 +15,7 @@
 }
 
 // get rook attacks
-[[nodiscard]] inline Bitboard GetRookAttacks(const int square, Bitboard occupancy) {
+[[nodiscard]] inline Bitboard GetRookAttacks(const unsigned int square, Bitboard occupancy) {
     // get rook attacks assuming current board occupancy
     occupancy &= rook_masks[square];
     occupancy *= rook_magic_numbers[square];
@@ -26,6 +26,6 @@
 }
 
 // get queen attacks
-[[nodiscard]] inline Bitboard GetQueenAttacks(const int square, Bitboard occupancy) {
+[[nodiscard]] inline Bitboard GetQueenAttacks(const unsigned int square, Bitboard occupancy) {
     return GetBishopAttacks(square, occupancy) | GetRookAttacks(square, occupancy);
 }

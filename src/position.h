@@ -89,7 +89,7 @@ public:
         return CountBits(Occupancy(BOTH));
     }
 
-    [[nodiscard]] inline int PieceOn(const int square) const {
+    [[nodiscard]] inline int PieceOn(const unsigned int square) const {
         assert(square >= 0 && square <= 63);
         return state().pieces[square];
     }
@@ -188,7 +188,7 @@ void parse_moves(const std::string& moves, Position* pos);
 
 void UpdatePinsAndCheckers(Position* pos);
 
-Bitboard RayBetween(int square1, int square2);
+Bitboard RayBetween(unsigned int square1, unsigned int square2);
 
 ZobristKey keyAfter(const Position* pos, const Move move);
 

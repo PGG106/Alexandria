@@ -448,7 +448,7 @@ void UpdatePinsAndCheckers(Position* pos) {
     updatePinsSide(pos, BLACK);
 }
 
-Bitboard RayBetween(int square1, int square2) {
+Bitboard RayBetween(const unsigned int square1, const unsigned int square2) {
     return SQUARES_BETWEEN_BB[square1][square2];
 }
 
