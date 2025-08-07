@@ -122,4 +122,3 @@ extern Bitboard rook_attacks[64][4096];
 // set occupancies
 [[nodiscard]] Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
 
-[[nodiscard]] Bitboard GetPieceTypeNonPawnAttacksToSquare(int piecetype,  int pieceSquare, Bitboard occ);
