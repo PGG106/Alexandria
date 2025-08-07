@@ -209,7 +209,7 @@ Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
 
 // retrieves attacks for a generic piece (except pawns and kings because that requires actual work)
 [[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ){
-    assert(piecetype > PAWN && piecetype < KING);
+    assert(piecetype > PAWN && piecetype <= KING);
     switch (piecetype) {
         case KNIGHT:
             return knight_attacks[pieceSquare];
