@@ -963,32 +963,33 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         rawEval = ss->staticEval = SCORE_NONE;
         bestScore = -MAXSCORE;
     }
-    // If we have a ttHit with a valid eval use that
-    else if (ttHit) {
+    else{
+        // If we have a ttHit with a valid eval use that
+        if (ttHit) {
+            // If the value in the TT is valid we use that, otherwise we call the static evaluation function
+            rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
+            ss->staticEval = bestScore = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
 
-        // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
-        ss->staticEval = bestScore = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
+            // We can also use the TT score as a more accurate form of eval
+            if (    ttScore != SCORE_NONE
+                    && (ttBound & (ttScore >= bestScore ? HFLOWER : HFUPPER)))
+                bestScore = ttScore;
+        }
+            // If we don't have any useful info in the TT just call Evalpos
+        else {
+            rawEval = EvalPosition(pos, &td->FTable);
+            bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
+            StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, false, ttPv);
+        }
 
-        // We can also use the TT score as a more accurate form of eval
-        if (    ttScore != SCORE_NONE
-            && (ttBound & (ttScore >= bestScore ? HFLOWER : HFUPPER)))
-            bestScore = ttScore;
+        // Stand pat
+        if (bestScore >= beta) {
+            return (bestScore + beta) / 2;
+        }
+
+        // Adjust alpha based on eval
+        alpha = std::max(alpha, bestScore);
     }
-    // If we don't have any useful info in the TT just call Evalpos
-    else {
-        rawEval = EvalPosition(pos, &td->FTable);
-        bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
-        // Save the eval into the TT
-        StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
-    }
-
-    // Stand pat
-    if (bestScore >= beta)
-        return (bestScore + beta) / 2;
-
-    // Adjust alpha based on eval
-    alpha = std::max(alpha, bestScore);
 
     Movepicker mp;
     // If we aren't in check we generate just the captures, otherwise we generate all the moves
