@@ -17,6 +17,7 @@ void ScoreMoves(Movepicker* mp) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
+            moveList->moves[i].score += (getPromotedPiecetype(move) == QUEEN) * 16384;
         }
         else {
             moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
