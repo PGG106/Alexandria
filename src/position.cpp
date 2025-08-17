@@ -403,13 +403,13 @@ bool BoardHasNonPawns(const Position* pos, const int side) {
 }
 
 // Get on what square of the board the king of color c resides
-int KingSQ(const Position* pos, const int c) {
+Square KingSQ(const Position* pos, const int c) {
     return GetLsbIndex(pos->GetPieceColorBB(KING, c));
 }
 
 void updatePinsSide(Position* pos, const int side){
     const Bitboard them = pos->Occupancy(side ^ 1);
-    const int kingSquare = KingSQ(pos, side);
+    const Square kingSquare = KingSQ(pos, side);
     const Bitboard bishopsQueens = pos->GetPieceColorBB(BISHOP, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->GetPieceColorBB(ROOK, side ^ 1) | pos->GetPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & GetBishopAttacks(kingSquare, them)) | (rooksQueens & GetRookAttacks(kingSquare, them));
@@ -460,8 +460,8 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
         return newKey;
     }
 
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
     const int  captured = pos->PieceOn(targetSquare);
 
@@ -508,8 +508,8 @@ bool hasGameCycle(Position* pos, int ply) {
 
         const auto move = cuckooMoves[slot];
 
-        const int to = To(move);
-        const int from = From(move);
+        const Square to = To(move);
+        const Square from = From(move);
 
         if (!((RayBetween(to, from) ^ 1ULL << to) & occ))
         {

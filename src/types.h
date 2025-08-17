@@ -19,6 +19,7 @@ using TTKey = uint16_t;
 using ZobristKey = uint64_t;
 using Move = uint32_t;
 using PackedMove = uint16_t;
+using Square = uint8_t;
 
 constexpr Move NOMOVE = 0;
 constexpr int MAXPLY = 256;

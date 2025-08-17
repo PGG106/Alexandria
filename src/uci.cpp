@@ -32,7 +32,7 @@ Move ParseMove(const std::string& moveString, Position* pos) {
     // loop over the moves within a move list
     for (int move_count = 0; move_count < moveList.count; move_count++) {
         // init move
-        const int move = moveList.moves[move_count].move;
+        const Move move = moveList.moves[move_count].move;
         // make sure source & target squares are available within the generated move
         if (sourceSquare == From(move) &&
             targetSquare == To(move)) {

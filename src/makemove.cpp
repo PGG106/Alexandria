@@ -64,8 +64,8 @@ inline void resetEpSquare(Position* pos) {
 
 void MakeCastle(const Move move, Position* pos) {
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
@@ -106,8 +106,8 @@ void MakeEp(const Move move, Position* pos) {
     pos->state().fiftyMove = 0;
 
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
@@ -130,8 +130,8 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
     pos->state().fiftyMove = 0;
 
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // Remove the piece fom the square it moved from
@@ -153,8 +153,8 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
 
 void MakeQuiet(const Move move, Position* pos) {
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
@@ -170,8 +170,8 @@ void MakeQuiet(const Move move, Position* pos) {
 
 void MakeCapture(const Move move, Position* pos) {
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
 
     pos->state().fiftyMove = 0;
@@ -192,8 +192,8 @@ void MakeDP(const Move move, Position* pos)
 {   pos->state().fiftyMove = 0;
 
     // parse move
-    const int sourceSquare = From(move);
-    const int targetSquare = To(move);
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
     const int piece = Piece(move);
 
     MovePiece(piece,sourceSquare,targetSquare, pos);

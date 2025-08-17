@@ -89,7 +89,7 @@ public:
         return CountBits(Occupancy(BOTH));
     }
 
-    [[nodiscard]] inline int PieceOn(const unsigned int square) const {
+    [[nodiscard]] inline int PieceOn(const Square square) const {
         assert(square >= 0 && square <= 63);
         return state().pieces[square];
     }
@@ -184,7 +184,7 @@ void parse_moves(const std::string& moves, Position* pos);
 [[nodiscard]] bool BoardHasNonPawns(const Position* pos, const int side);
 
 // Get on what square of the board the king of color c resides
-[[nodiscard]] int KingSQ(const Position* pos, const int c);
+[[nodiscard]] Square KingSQ(const Position* pos, const int c);
 
 void UpdatePinsAndCheckers(Position* pos);
 

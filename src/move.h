@@ -42,8 +42,8 @@ inline Move encode_move(const int source, const int target, const int piece, con
     return (source) | (target << 6) | (static_cast<int>(movetype) << 12) | (piece << 16);
 }
 
-inline unsigned int From(const Move move) { return move & 0x3F; }
-inline unsigned int To(const Move move) { return ((move & 0xFC0) >> 6); }
+inline Square From(const Move move) { return move & 0x3F; }
+inline Square To(const Move move) { return ((move & 0xFC0) >> 6); }
 inline unsigned int FromTo(const Move move) { return move & 0xFFF; }
 inline unsigned int Piece(const Move move) { return ((move & 0xF0000) >> 16); }
 inline unsigned int PieceTo(const Move move) { return (Piece(move) << 6) | To(move); }
