@@ -44,7 +44,7 @@ struct historyStack{
     BoardState    boardStateHistory[MAXPLY + 1];
     int head = 0;
 
-    void push(BoardState state) {
+    void push(const BoardState& state) {
         assert(head < MAXPLY);
         head++;
         boardStateHistory[head] = state;
