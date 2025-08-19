@@ -41,7 +41,7 @@ struct BoardState {
 };
 
 struct historyStack{
-    BoardState    boardStateHistory[MAXPLY + 1];
+    BoardState    boardStateHistory[MAXPLY];
     int head = 0;
 
     void push(const BoardState& state) {
