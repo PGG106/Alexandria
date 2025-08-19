@@ -41,19 +41,19 @@ struct BoardState {
 };
 
 struct historyStack{
-    BoardState    historyStack[MAXPLY];
+    BoardState    boardStateHistory[MAXPLY + 1];
     int head = 0;
 
-    inline void push(BoardState state) {
+    void push(BoardState state) {
+        assert(head < MAXPLY);
         head++;
-        historyStack[head] = state;
+        boardStateHistory[head] = state;
     }
 
-    inline void pop() {
+    void pop() {
         assert(head > 0);
         head--;
     }
-
 };
 
 struct Position {
@@ -65,11 +65,11 @@ public:
     std::vector<ZobristKey> played_positions = {};
 
     [[nodiscard]] inline BoardState& state()  {
-       return history.historyStack[history.head];
+       return history.boardStateHistory[history.head];
     }
 
     [[nodiscard]] inline const BoardState& state() const  {
-        return history.historyStack[history.head];
+        return history.boardStateHistory[history.head];
     }
 
     [[nodiscard]] inline Bitboard Occupancy(const int occupancySide) const {
