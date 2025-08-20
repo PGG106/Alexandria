@@ -269,6 +269,7 @@ void UciLoop(int argc, char** argv) {
                 uciOptions.Threads = std::stoi(tokens.at(4));
                 std::cout << "Set Threads to " << uciOptions.Threads << std::endl;;
             }
+
 #ifdef TUNE
             else {
                 updateTuneVariable(tokens.at(2), std::stoi(tokens.at(4)));
@@ -297,6 +298,14 @@ void UciLoop(int argc, char** argv) {
                 td->info.stopped = true;
             } 
             threads_state = Idle;
+        }
+
+        // parse UCI "position" command
+        else if (input == "wait") {
+            // call parse position function
+            while (!td->info.stopped) {
+                ;
+            }
         }
 
         // parse UCI "quit" command
