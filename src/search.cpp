@@ -946,6 +946,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
             return alpha;
     }
 
+    if (info->stopped)
+        return 0;
+
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
