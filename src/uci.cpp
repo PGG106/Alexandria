@@ -282,7 +282,6 @@ void UciLoop(int argc, char** argv) {
         // parse UCI "isready" command
         else if (input == "isready") {
             std::cout << "readyok"<< std::endl;
-            continue;
         }
 
         // parse UCI "ucinewgame" command
@@ -296,7 +295,9 @@ void UciLoop(int argc, char** argv) {
                 StopHelperThreads();
                 // stop main thread search
                 td->info.stopped = true;
-            } 
+                if (main_thread.joinable())
+                    main_thread.join();
+            }
             threads_state = Idle;
         }
 
@@ -306,6 +307,8 @@ void UciLoop(int argc, char** argv) {
             while (!td->info.stopped) {
                 ;
             }
+            if (main_thread.joinable())
+                main_thread.join();
         }
 
         // parse UCI "quit" command
@@ -316,10 +319,10 @@ void UciLoop(int argc, char** argv) {
                 // stop main thread search
                 td->info.stopped = true;
             }
-            threads_state = Idle;
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
+            threads_state = Idle;
             // free thread data
             delete td;
             // quit from the chess engine program execution
