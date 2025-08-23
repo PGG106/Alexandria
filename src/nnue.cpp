@@ -4,7 +4,6 @@
 #include "position.h"
 #include <cstdint>
 #include <cstring>
-#include "incbin/incbin.h"
 #include "io.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -14,7 +13,14 @@
 //     const unsigned char *const gEVALEnd;     // a marker to the end
 //     const unsigned int         gEVALSize;    // the size of the embedded file
 // Note that this does not work in Microsoft Visual Studio.
-#if !defined(_MSC_VER)
+#if defined(__cpp_pp_embed)
+const unsigned char gEVALData[] = {
+#embed EVALFILE
+};
+const unsigned int gEVALDataSize = sizeof(gEVALData) / sizeof(gEVALData[0]);
+const unsigned char* const gEVALEnd = &gEVALData[gEVALDataSize];
+#elif ! defined(_MSC_VER)
+#include "incbin/incbin.h"
 INCBIN(EVAL, EVALFILE);
 #else
 const unsigned char gEVALData[1] = {};
