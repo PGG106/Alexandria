@@ -407,6 +407,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (ss->ply > info->seldepth)
         info->seldepth = ss->ply;
 
+    // check if more than Maxtime passed and we have to stop
+    if (mainT && TimeOver(&td->info)) {
+        StopHelperThreads();
+        td->info.stopped = true;
+        return 0;
+    }
+
     // Check for early return conditions
     if (!rootNode) {
         // If position is a draw return a draw score
@@ -429,13 +436,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // recursion escape condition
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
-
-    // check if more than Maxtime passed and we have to stop
-    if (mainT && TimeOver(&td->info)) {
-        StopHelperThreads();
-        td->info.stopped = true;
-        return 0;
-    }
 
     if (!rootNode) {
         // Mate distance pruning
@@ -945,6 +945,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         if (alpha >= beta)
             return alpha;
     }
+
+    if (info->stopped)
+        return 0;
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
