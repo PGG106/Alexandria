@@ -75,7 +75,7 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 void updatePHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     const int scaledBonus = bonus - GetPHScore(pos, sd, move) * std::abs(bonus) / PH_MAX;
     // Update move score
-    sd->pawnHist[PieceTo(move)][pos->state().pawnKey % PH_SIZE] += scaledBonus;
+    sd->pawnHist[pos->state().pawnKey % PH_SIZE][PieceTo(move)] += scaledBonus;
 }
 
 void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
@@ -153,7 +153,7 @@ int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
 }
 
 int GetPHScore(const Position* pos, const SearchData* sd, const Move move) {
-    return sd->pawnHist[PieceTo(move)][pos->state().pawnKey % PH_SIZE];
+    return sd->pawnHist[pos->state().pawnKey % PH_SIZE][PieceTo(move)];
 }
 
 int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {
