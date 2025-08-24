@@ -43,6 +43,14 @@ int roothistory_malus(const int depth) {
     return std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax());
 }
 
+int pawnhistory_bonus(const int depth) {
+    return std::min(pawnhistoryBonusMul() * depth + pawnhistoryBonusOffset(), pawnhistoryBonusMax());
+}
+
+int pawnhistory_malus(const int depth) {
+    return std::min(pawnhistoryMalusMul() * depth + pawnhistoryMalusOffset(), pawnhistoryMalusMax());
+}
+
 void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
@@ -62,6 +70,12 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
     const int scaledBonus = bonus - GetRHScore(pos, sd, move) * std::abs(bonus) / RH_MAX;
     // Update move score
     sd->rootHistory[pos->side][FromTo(move)] += scaledBonus;
+}
+
+void updatePHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
+    const int scaledBonus = bonus - GetPHScore(pos, sd, move) * std::abs(bonus) / PH_MAX;
+    // Update move score
+    sd->pawnHist[PieceTo(move)][pos->state().pawnKey % PH_SIZE] += scaledBonus;
 }
 
 void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
@@ -92,10 +106,12 @@ void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, i
 // Update all histories
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const StackMoveList* quietMoves, const StackMoveList* noisyMoves, const bool rootNode) {
     const int bonus = history_bonus(depth);
+    const int pawnhist_bonus = pawnhistory_bonus(depth);
     const int capthist_bonus = capthistory_bonus(depth);
     const int conthist_bonus = conthistory_bonus(depth);
     const int roothist_bonus = roothistory_bonus(depth);
     const int malus = history_malus(depth);
+    const int pawnhist_malus = pawnhistory_malus(depth);
     const int conthist_malus = conthistory_malus(depth);
     const int roothist_malus = roothistory_malus(depth);
     const int capthist_malus = capthistory_malus(depth);
@@ -103,6 +119,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
     {
         // increase bestMove HH and CH score
         updateHHScore(pos, sd, bestMove, bonus);
+        updatePHScore(pos, sd, bestMove, pawnhist_bonus);
         updateCHScore(ss, bestMove, conthist_bonus);
         if (rootNode)
             updateRHScore(pos, sd, bestMove, roothist_bonus);
@@ -112,6 +129,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
             const Move move = quietMoves->moves[i];
             if (move == bestMove) continue;
             updateHHScore(pos, sd, move, -malus);
+            updatePHScore(pos, sd, bestMove, -pawnhist_malus);
             updateCHScore(ss, move, -conthist_malus);
             if (rootNode)
               updateRHScore(pos, sd, move, -roothist_malus);
@@ -132,6 +150,10 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 // Returns the history score of a move
 int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
     return sd->searchHistory[pos->side][FromTo(move)];
+}
+
+int GetPHScore(const Position* pos, const SearchData* sd, const Move move) {
+    return sd->pawnHist[PieceTo(move)][pos->state().pawnKey % PH_SIZE];
 }
 
 int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {
@@ -191,7 +213,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
+        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move) + GetPHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
 }
@@ -202,6 +224,7 @@ void CleanHistories(SearchData* sd) {
     std::memset(sd->rootHistory, 0, sizeof(sd->rootHistory));
     std::memset(sd->contHist, 0, sizeof(sd->contHist));
     std::memset(sd->captHist, 0, sizeof(sd->captHist));
+    std::memset(sd->pawnHist, 0, sizeof(sd->pawnHist));
     std::memset(sd->pawnCorrHist, 0, sizeof(sd->pawnCorrHist));
     std::memset(sd->whiteNonPawnCorrHist, 0, sizeof(sd->whiteNonPawnCorrHist));
     std::memset(sd->blackNonPawnCorrHist, 0, sizeof(sd->blackNonPawnCorrHist));
