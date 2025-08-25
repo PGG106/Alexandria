@@ -252,7 +252,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     ClearForSearch(td);
     UpdateTableAge();
     bool printFinalInfoString = false;
-    bool shortUCI = true;
+    bool shortUCI = options->shortUci;
 
     std::memset(td->sd.rootHistory, 0, sizeof(td->sd.rootHistory));
 
