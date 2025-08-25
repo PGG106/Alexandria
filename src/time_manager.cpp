@@ -9,7 +9,7 @@ void Optimum(SearchInfo* info, int time, int inc) {
     // If ccrl sent us a negative time just assume we have a workable amount of time to search for a move
     if (time < 0) time = 1000;
     // Reserve some time overhead to avoid timing out in the engine-gui communication process
-    const int safety_overhead = std::min(25, time / 2);
+    const int safety_overhead = std::min(75, time / 2);
     // if we received a movetime command we need to spend exactly that amount of time on the move, so we don't scale
     if (info->movetimeset) {
         info->stoptimeMax = info->starttime + time - safety_overhead;
