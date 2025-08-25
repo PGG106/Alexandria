@@ -269,7 +269,7 @@ void UciLoop(int argc, char** argv) {
                 uciOptions.Threads = std::stoi(tokens.at(4));
                 std::cout << "Set Threads to " << uciOptions.Threads << std::endl;;
             }
-            else if (tokens.at(2) == "UCI_Minimal") {
+            else if (tokens.at(2) == "Minimal") {
                 auto value = tokens.at(4) == "true";
                 uciOptions.shortUci = value;
             }
