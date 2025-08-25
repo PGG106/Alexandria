@@ -252,6 +252,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     ClearForSearch(td);
     UpdateTableAge();
     bool printFinalInfoString = false;
+    bool shortUCI = options->shortUci;
 
     std::memset(td->sd.rootHistory, 0, sizeof(td->sd.rootHistory));
 
@@ -259,9 +260,6 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
         score = AspirationWindowSearch(averageScore, currentDepth, td);
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
-
-        // If we stop (not at an exact depth) we print a final info string
-        printFinalInfoString = td->info.stopped;
 
         // Only the main thread handles time related tasks
         if (td->id == 0) {
@@ -294,6 +292,9 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 td->info.stopped = true;
         }
 
+        // If we stop (not at an exact depth) we print a final info string
+        printFinalInfoString = td->info.stopped;
+
         // Print a final info string if we have to
         if (td->id == 0 && printFinalInfoString)
             PrintUciOutput(prevScore, currentDepth - 1, td, options);
@@ -303,7 +304,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             break;
 
         // If it's the main thread print the uci output
-        if (td->id == 0)
+        if (td->id == 0 && !shortUCI)
             PrintUciOutput(score, currentDepth, td, options);
 
         // Seldepth should only be related to the current ID loop
