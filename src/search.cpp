@@ -304,7 +304,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             break;
 
         // If it's the main thread print the uci output
-        if (td->id == 0 && !shortUCI)
+        if (td->id == 0 && (!shortUCI || currentDepth == finalDepth))
             PrintUciOutput(score, currentDepth, td, options);
 
         // Seldepth should only be related to the current ID loop
