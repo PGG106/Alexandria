@@ -43,11 +43,10 @@ int roothistory_malus(const int depth) {
     return std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax());
 }
 
-void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
+void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus, const Bitboard threats) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
-    const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
+    const int scaledBonus = bonus - GetHHScore(pos, sd, move, threats) * std::abs(bonus) / HH_MAX;
     // Update move score
-    const auto threats = getThreats(pos, pos->side);
     const auto threatenedSourceSquare = get_bit(threats, From(move));
     const auto threatenedLandingSquare = get_bit(threats, To(move));
     sd->searchHistory[pos->side][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)] += scaledBonus;
@@ -105,10 +104,12 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
     const int conthist_malus = conthistory_malus(depth);
     const int roothist_malus = roothistory_malus(depth);
     const int capthist_malus = capthistory_malus(depth);
+    // cache threats here to avoid overpaying for them
+    const auto threats = getThreats(pos, pos->side);
     if (!isTactical(bestMove))
     {
         // increase bestMove HH and CH score
-        updateHHScore(pos, sd, bestMove, bonus);
+        updateHHScore(pos, sd, bestMove, bonus, threats);
         updateCHScore(ss, bestMove, conthist_bonus);
         if (rootNode)
             updateRHScore(pos, sd, bestMove, roothist_bonus);
@@ -117,7 +118,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i];
             if (move == bestMove) continue;
-            updateHHScore(pos, sd, move, -malus);
+            updateHHScore(pos, sd, move, -malus, threats);
             updateCHScore(ss, move, -conthist_malus);
             if (rootNode)
               updateRHScore(pos, sd, move, -roothist_malus);
@@ -136,8 +137,7 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 }
 
 // Returns the history score of a move
-int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
-    const auto threats = getThreats(pos, pos->side);
+int GetHHScore(const Position* pos, const SearchData* sd, const Move move, const Bitboard threats) {
     const auto threatenedSourceSquare = get_bit(threats, From(move));
     const auto threatenedLandingSquare = get_bit(threats, To(move));
     return sd->searchHistory[pos->side][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)];
@@ -198,9 +198,9 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     return std::clamp(rawEval + adjustment / CORRHIST_GRAIN, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
 
-int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
+int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode, const Bitboard threats) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
+        return GetHHScore(pos, sd, move, threats) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
 }

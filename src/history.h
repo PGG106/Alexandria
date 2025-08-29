@@ -23,16 +23,16 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 int history_bonus(const int depth);
 int history_malus(const int depth);
 // Getters for the history heuristics
-[[nodiscard]] int GetHHScore(const Position* pos, const SearchData* sd, const Move move);
+[[nodiscard]] int GetHHScore(const Position* pos, const SearchData* sd, const Move move, const Bitboard threats);
 [[nodiscard]] int GetRHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetCHScore(const SearchStack* ss, const Move move);
 [[nodiscard]] int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset);
 [[nodiscard]] int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move);
-[[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode);
+[[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode, const Bitboard threats);
 // Clean all the history tables
 void CleanHistories(SearchData* sd);
 // Updates history heuristics for a single move
-void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus);
+void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bonus, Bitboard threats);
 void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus);
 void updateCHScore(SearchStack* ss, const Move move, const int bonus);
 void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, int bonus);
