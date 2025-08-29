@@ -4,7 +4,7 @@
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
-#define NAME "Alexandria-8.1.2"
+#define NAME "Alexandria-8.1.4"
 
 inline int reductions[2][64][64];
 inline int lmp_margin[64][2];
