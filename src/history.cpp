@@ -47,14 +47,20 @@ void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bon
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
     // Update move score
-    sd->searchHistory[pos->side][FromTo(move)] += scaledBonus;
+    const auto threats = getThreats(pos, pos->side);
+    const auto threatenedSourceSquare = get_bit(threats, From(move));
+    const auto threatenedLandingSquare = get_bit(threats, To(move));
+    sd->searchHistory[pos->side][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)] += scaledBonus;
 }
 
 void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
-    const int scaledBonus = bonus - sd->searchHistory[pos->side ^ 1][FromTo(move)] * std::abs(bonus) / HH_MAX;
+    const auto threats = getThreats(pos, pos->side);
+    const auto threatenedSourceSquare = get_bit(threats, From(move));
+    const auto threatenedLandingSquare = get_bit(threats, To(move));
+    const int scaledBonus = bonus - sd->searchHistory[pos->side ^ 1][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)] * std::abs(bonus) / HH_MAX;
     // Update move score
-    sd->searchHistory[pos->side ^ 1][FromTo(move)] += scaledBonus;
+    sd->searchHistory[pos->side ^ 1][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)] += scaledBonus;
 }
 
 void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
@@ -131,7 +137,10 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 
 // Returns the history score of a move
 int GetHHScore(const Position* pos, const SearchData* sd, const Move move) {
-    return sd->searchHistory[pos->side][FromTo(move)];
+    const auto threats = getThreats(pos, pos->side);
+    const auto threatenedSourceSquare = get_bit(threats, From(move));
+    const auto threatenedLandingSquare = get_bit(threats, To(move));
+    return sd->searchHistory[pos->side][threatenedSourceSquare][threatenedLandingSquare][FromTo(move)];
 }
 
 int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {

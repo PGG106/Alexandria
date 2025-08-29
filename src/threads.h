@@ -59,7 +59,7 @@ struct SearchInfo {
 };
 
 struct SearchData {
-    int searchHistory[2][64 * 64] = {};
+    int searchHistory[2][2][2][64 * 64] = {};
     int rootHistory[2][64 * 64] = {};
     int captHist[12 * 64][6] = {};
     Move counterMoves[64 * 64] = {};
