@@ -10,6 +10,7 @@ void ScoreMoves(Movepicker* mp) {
     SearchData* sd = mp->sd;
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
+    const Bitboard threats = getThreats(pos, pos->side);
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
@@ -19,7 +20,7 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
         }
         else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
+            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode, threats);
         }
     }
 }

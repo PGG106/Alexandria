@@ -657,6 +657,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Keep track of the played quiet and noisy moves
     StackMoveList quietMoves, noisyMoves;
 
+    const bool threats = getThreats(pos, pos->side);
+
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
 
@@ -667,7 +669,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const bool isQuiet = !isTactical(move);
 
-        const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
+        const int moveHistory = GetHistoryScore(pos, sd, move, ss, false, threats);
         if (   !rootNode
             &&  bestScore > -MATE_FOUND) {
 
