@@ -1006,6 +1006,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // loop over moves within the movelist
     while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
 
+        if (info->stopped)
+            return 0;
+
         if (!IsLegal(pos, move))
             continue;
 
