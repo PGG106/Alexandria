@@ -429,6 +429,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 return alpha;
         }
 
+        // Mate distance pruning
+        alpha = std::max(alpha, -MATE_SCORE + ss->ply);
+        beta = std::min(beta, MATE_SCORE - ss->ply - 1);
+        if (alpha >= beta)
+            return alpha;
+
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
             return inCheck ? 0 : EvalPosition(pos, &td->FTable);
@@ -437,14 +443,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // recursion escape condition
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
-
-    if (!rootNode) {
-        // Mate distance pruning
-        alpha = std::max(alpha, -MATE_SCORE + ss->ply);
-        beta = std::min(beta, MATE_SCORE - ss->ply - 1);
-        if (alpha >= beta)
-            return alpha;
-    }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
@@ -515,9 +513,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const bool improving = [&] {
         if (inCheck)
             return false;
-        else if ((ss - 2)->staticEval != SCORE_NONE)
+        if ((ss - 2)->staticEval != SCORE_NONE)
             return ss->staticEval > (ss - 2)->staticEval;
-        else if ((ss - 4)->staticEval != SCORE_NONE)
+        if ((ss - 4)->staticEval != SCORE_NONE)
             return ss->staticEval > (ss - 4)->staticEval;
         return true;
     }();
@@ -877,7 +875,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                             sd->counterMoves[FromTo((ss - 1)->move)] = move;
                     }
                     // Update the history heuristics based on the new best move
-                    UpdateHistories(pos, sd, ss, depth + (eval <= alpha), bestMove, &quietMoves, &noisyMoves, rootNode);
+                    UpdateHistories(pos, sd, ss, depth, bestMove, &quietMoves, &noisyMoves, rootNode);
 
                     // node (move) fails high
                     break;
