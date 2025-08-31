@@ -684,6 +684,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
+                    && !isQuiet
                     && lmrDepth < 11
                     && ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth <= alpha) {
                     skipQuiets = true;
