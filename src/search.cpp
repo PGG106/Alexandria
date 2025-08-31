@@ -52,7 +52,7 @@ static bool Is50MrDraw(Position* pos) {
         if (!pos->getCheckers())
             return true;
 
-        // if we are in check make sure it's not checkmate 
+        // if we are in check make sure it's not checkmate
         MoveList moveList;
         // generate moves
         GenerateMoves(&moveList, pos, MOVEGEN_ALL);
@@ -85,7 +85,7 @@ void ClearForSearch(ThreadData* td) {
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
-    
+
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
         // Clean the Pv array
@@ -750,11 +750,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Play the move
         MakeMove<true>(move, pos);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
-        // Add any played move to the matching list
-        if(isQuiet)
-            quietMoves.addMove(move);
-        else
-            noisyMoves.addMove(move);
 
         // increment nodes count
         info->nodes++;
@@ -819,7 +814,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
             if (score > alpha && newDepth > reducedDepth) {
-                // Based on the value returned by our reduced search see if we should search deeper or shallower, 
+                // Based on the value returned by our reduced search see if we should search deeper or shallower,
                 // this is an exact yoink of what SF does and frankly i don't care lmao
                 const bool doDeeperSearch = score > (bestScore + doDeeperBaseMargin() + 2 * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
@@ -886,6 +881,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 alpha = score;
             }
         }
+        // Add any searched move to the matching list
+        if (isQuiet)
+            quietMoves.addMove(move);
+        else
+            noisyMoves.addMove(move);
     }
 
     // We don't have any legal moves to make in the current postion. If we are in singular search, return -infinite.
