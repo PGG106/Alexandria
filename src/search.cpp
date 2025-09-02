@@ -77,11 +77,11 @@ bool IsDraw(Position* pos) {
 }
 
 bool isMate(const int score) {
-    return (score > MATE_FOUND && score < MATE_SCORE);
+    return (score > MATE_FOUND);
 }
 
 bool isMated(const int score) {
-    return (score > -MATE_SCORE && score < -MATE_FOUND);
+    return (score < -MATE_FOUND);
 }
 
 bool isDecisive(const int score) {
