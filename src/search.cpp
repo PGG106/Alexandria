@@ -700,7 +700,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     && isQuiet
                     && lmrDepth < 11
                     && futilityValue <= alpha) {
-                    if (bestScore <= futilityValue && !isDecisive(bestScore))
+                    if (bestScore <= futilityValue && !isDecisive(bestScore) && !isMate(futilityValue))
                         bestScore = futilityValue;
                     skipQuiets = true;
                     continue;
