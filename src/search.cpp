@@ -76,6 +76,18 @@ bool IsDraw(Position* pos) {
         || MaterialDraw(pos);
 }
 
+bool isMate(const int score) {
+    return (score > MATE_FOUND && score < MATE_SCORE);
+}
+
+bool isMated(const int score) {
+    return (score > -MATE_SCORE && score < -MATE_FOUND);
+}
+
+bool isDecisive(const int score) {
+    return isMate(score) || isMated(score);
+}
+
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
 void ClearForSearch(ThreadData* td) {
     // Extract data structures from ThreadData
@@ -682,11 +694,16 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
 
+                const int futilityValue = ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth;
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
+                    && isQuiet
                     && lmrDepth < 11
-                    && ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth <= alpha) {
+                    && futilityValue <= alpha) {
+                    if (bestScore <= futilityValue && !isDecisive(bestScore))
+                        bestScore = futilityValue;
                     skipQuiets = true;
+                    continue;
                 }
 
                 if(isQuiet && moveHistory < histPruningMargin() * depth) {
