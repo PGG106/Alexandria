@@ -516,9 +516,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (inCheck)
             return false;
         else if ((ss - 2)->staticEval != SCORE_NONE)
-            return ss->staticEval > (ss - 2)->staticEval;
+            return ss->staticEval > (ss - 2)->staticEval || ss->staticEval >= beta + 17;
         else if ((ss - 4)->staticEval != SCORE_NONE)
-            return ss->staticEval > (ss - 4)->staticEval;
+            return ss->staticEval > (ss - 4)->staticEval || ss->staticEval >= beta + 17;
         return true;
     }();
 
@@ -678,7 +678,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (!skipQuiets) {
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
-                if (totalMoves > lmp_margin[std::min(depth, 63)][improving || ss->staticEval >= beta + 17]) {
+                if (totalMoves > lmp_margin[std::min(depth, 63)][improving]) {
                     skipQuiets = true;
                 }
 
