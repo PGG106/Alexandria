@@ -680,24 +680,21 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         const bool isQuiet = !isTactical(move);
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
-        if (   !rootNode
+        if (!rootNode
             && !isMated(bestScore)) {
-
             const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
             const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
-            if (!skipQuiets) {
+            // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
+            if (totalMoves > lmp_margin[std::min(depth, 63)][improving]) {
+                skipQuiets = true;
+            }
 
-                // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
-                if (totalMoves > lmp_margin[std::min(depth, 63)][improving]) {
-                    skipQuiets = true;
-                }
-
+            if (isQuiet) {
                 const int futilityValue = ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth;
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
-                    && isQuiet
                     && lmrDepth < 11
                     && futilityValue <= alpha) {
                     if (bestScore <= futilityValue && !isDecisive(bestScore) && !isMate(futilityValue))
@@ -706,8 +703,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     continue;
                 }
 
-                if(isQuiet && moveHistory < histPruningMargin() * depth) {
+                if (moveHistory < histPruningMargin() * depth) {
                     skipQuiets = true;
+                    continue;
+                }
+            } else {
+                const int capturedPiece = GetPieceType(pos->PieceOn(To(move)));
+                const int noisyFutilityValue = ss->staticEval + SEEValue[capturedPiece] + 150 * lmrDepth;
+                if (noisyFutilityValue <= alpha) {
                     continue;
                 }
             }
