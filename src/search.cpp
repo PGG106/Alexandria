@@ -545,7 +545,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // Reverse futility pruning
         if (   depth < 10
-            && abs(eval) < MATE_FOUND
+            && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, canIIR) >= beta)
             return eval - futilityMargin(depth, improving, canIIR);
@@ -575,7 +575,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
                 // Don't return unproven mates but still return beta
-                if (nmpScore > MATE_FOUND)
+                if (isMate(nmpScore))
                     nmpScore = beta;
 
                 // If we don't have to do a verification search just return the score
@@ -604,7 +604,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
     if (  !pvNode
         && depth > 4
-        && abs(beta) < MATE_FOUND
+        && !isDecisive(beta)
         && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
         && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
     {
@@ -681,7 +681,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
         if (   !rootNode
-            &&  bestScore > -MATE_FOUND) {
+            && !isMated(bestScore)) {
 
             const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
@@ -727,7 +727,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 &&  move == ttMove
                 && !excludedMove
                 && (ttBound & HFLOWER)
-                &&  abs(ttScore) < MATE_FOUND
+                && !isDecisive(ttScore)
                 &&  ttDepth >= depth - 3) {
                 const int singularBeta = ttScore - depth * 5 / 8;
                 const int singularDepth = (depth - 1) / 2;
@@ -1021,7 +1021,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     int totalMoves = 0;
 
     // loop over moves within the movelist
-    while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
+    while ((move = NextMove(&mp, !isMated(bestScore))) != NOMOVE) {
 
         if (info->stopped)
             return 0;
@@ -1032,7 +1032,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
-        if (    bestScore > -MATE_FOUND
+        if (   !isMated(bestScore)
             && !inCheck) {
             const int futilityBase = ss->staticEval + qsBaseFutility();
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {
