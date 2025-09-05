@@ -25,3 +25,6 @@ This project would not have been possible without the following people
 * Morgan Houppin, author of [Stash](https://github.com/mhouppin/stash-bot) for being a real G
 * Older Alexandria's nets were trained with [Cudad](https://github.com/Luecx/CudAD), a big thanks to the authors of Cudad (Luecx and Jay Honnold), extra thanks to Luecx for initiating me in the way of NNUE.
 * Current Alexandria's nets are trained with [Bullet](https://github.com/jw1912/bullet) the Official™️ SWE™️ Trainer™️, a big thanks to JW for being a Cuda god.
+
+* Alexandria uses neural networks trained on [data provided by the Leela Chess Zero
+project](https://storage.lczero.org/files/training_data), which is made available under the [Open Database License](https://opendatacommons.org/licenses/odbl/odbl-10.txt) (ODbL).

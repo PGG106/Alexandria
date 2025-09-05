@@ -52,7 +52,7 @@ static bool Is50MrDraw(Position* pos) {
         if (!pos->getCheckers())
             return true;
 
-        // if we are in check make sure it's not checkmate 
+        // if we are in check make sure it's not checkmate
         MoveList moveList;
         // generate moves
         GenerateMoves(&moveList, pos, MOVEGEN_ALL);
@@ -72,8 +72,19 @@ static bool Is50MrDraw(Position* pos) {
 bool IsDraw(Position* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
     return IsRepetition(pos)
-        || Is50MrDraw(pos)
-        || MaterialDraw(pos);
+        || Is50MrDraw(pos);
+}
+
+bool isMate(const int score) {
+    return (score > MATE_FOUND);
+}
+
+bool isMated(const int score) {
+    return (score < -MATE_FOUND);
+}
+
+bool isDecisive(const int score) {
+    return isMate(score) || isMated(score);
 }
 
 // ClearForSearch handles the cleaning of the post and the info parameters to start search from a clean state
@@ -85,7 +96,7 @@ void ClearForSearch(ThreadData* td) {
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
-    
+
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
         // Clean the Pv array
@@ -252,6 +263,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     ClearForSearch(td);
     UpdateTableAge();
     bool printFinalInfoString = false;
+    bool shortUCI = options->shortUci;
 
     std::memset(td->sd.rootHistory, 0, sizeof(td->sd.rootHistory));
 
@@ -259,9 +271,6 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
         score = AspirationWindowSearch(averageScore, currentDepth, td);
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
-
-        // If we stop (not at an exact depth) we print a final info string
-        printFinalInfoString = td->info.stopped;
 
         // Only the main thread handles time related tasks
         if (td->id == 0) {
@@ -294,6 +303,9 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
                 td->info.stopped = true;
         }
 
+        // If we stop (not at an exact depth) we print a final info string
+        printFinalInfoString = td->info.stopped;
+
         // Print a final info string if we have to
         if (td->id == 0 && printFinalInfoString)
             PrintUciOutput(prevScore, currentDepth - 1, td, options);
@@ -303,7 +315,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             break;
 
         // If it's the main thread print the uci output
-        if (td->id == 0)
+        if (td->id == 0 && (!shortUCI || currentDepth == finalDepth))
             PrintUciOutput(score, currentDepth, td, options);
 
         // Seldepth should only be related to the current ID loop
@@ -407,6 +419,13 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (ss->ply > info->seldepth)
         info->seldepth = ss->ply;
 
+    // check if more than Maxtime passed and we have to stop
+    if (mainT && TimeOver(&td->info)) {
+        StopHelperThreads();
+        td->info.stopped = true;
+        return 0;
+    }
+
     // Check for early return conditions
     if (!rootNode) {
         // If position is a draw return a draw score
@@ -429,13 +448,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // recursion escape condition
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
-
-    // check if more than Maxtime passed and we have to stop
-    if (mainT && TimeOver(&td->info)) {
-        StopHelperThreads();
-        td->info.stopped = true;
-        return 0;
-    }
 
     if (!rootNode) {
         // Mate distance pruning
@@ -532,7 +544,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // Reverse futility pruning
         if (   depth < 10
-            && abs(eval) < MATE_FOUND
+            && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, canIIR) >= beta)
             return eval - futilityMargin(depth, improving, canIIR);
@@ -562,7 +574,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
                 // Don't return unproven mates but still return beta
-                if (nmpScore > MATE_FOUND)
+                if (isMate(nmpScore))
                     nmpScore = beta;
 
                 // If we don't have to do a verification search just return the score
@@ -591,7 +603,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
     if (  !pvNode
         && depth > 4
-        && abs(beta) < MATE_FOUND
+        && !isDecisive(beta)
         && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
         && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
     {
@@ -668,7 +680,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
         if (   !rootNode
-            &&  bestScore > -MATE_FOUND) {
+            && !isMated(bestScore)) {
 
             const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
@@ -681,11 +693,16 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     skipQuiets = true;
                 }
 
+                const int futilityValue = ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth;
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
+                    && isQuiet
                     && lmrDepth < 11
-                    && ss->staticEval + futilityCoeff0() + futilityCoeff1() * lmrDepth <= alpha) {
+                    && futilityValue <= alpha) {
+                    if (bestScore <= futilityValue && !isDecisive(bestScore) && !isMate(futilityValue))
+                        bestScore = futilityValue;
                     skipQuiets = true;
+                    continue;
                 }
 
                 if(isQuiet && moveHistory < histPruningMargin() * depth) {
@@ -709,7 +726,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 &&  move == ttMove
                 && !excludedMove
                 && (ttBound & HFLOWER)
-                &&  abs(ttScore) < MATE_FOUND
+                && !isDecisive(ttScore)
                 &&  ttDepth >= depth - 3) {
                 const int singularBeta = ttScore - depth * 5 / 8;
                 const int singularDepth = (depth - 1) / 2;
@@ -749,11 +766,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Play the move
         MakeMove<true>(move, pos);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
-        // Add any played move to the matching list
-        if(isQuiet)
-            quietMoves.addMove(move);
-        else
-            noisyMoves.addMove(move);
 
         // increment nodes count
         info->nodes++;
@@ -818,7 +830,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
             if (score > alpha && newDepth > reducedDepth) {
-                // Based on the value returned by our reduced search see if we should search deeper or shallower, 
+                // Based on the value returned by our reduced search see if we should search deeper or shallower,
                 // this is an exact yoink of what SF does and frankly i don't care lmao
                 const bool doDeeperSearch = score > (bestScore + doDeeperBaseMargin() + 2 * newDepth);
                 const bool doShallowerSearch = score < (bestScore + newDepth);
@@ -885,6 +897,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 alpha = score;
             }
         }
+        // Add any searched move to the matching list
+        if (isQuiet)
+            quietMoves.addMove(move);
+        else
+            noisyMoves.addMove(move);
     }
 
     // We don't have any legal moves to make in the current postion. If we are in singular search, return -infinite.
@@ -930,10 +947,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         return 0;
     }
 
-    // If position is a draw return a draw score
-    if (MaterialDraw(pos))
-        return (info->nodes & 2) - 1;
-
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
         return inCheck ? 0 : EvalPosition(pos,&td->FTable);
@@ -945,6 +958,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         if (alpha >= beta)
             return alpha;
     }
+
+    if (info->stopped)
+        return 0;
 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
@@ -1000,7 +1016,10 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     int totalMoves = 0;
 
     // loop over moves within the movelist
-    while ((move = NextMove(&mp, bestScore > -MATE_FOUND)) != NOMOVE) {
+    while ((move = NextMove(&mp, !isMated(bestScore))) != NOMOVE) {
+
+        if (info->stopped)
+            return 0;
 
         if (!IsLegal(pos, move))
             continue;
@@ -1008,7 +1027,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
-        if (    bestScore > -MATE_FOUND
+        if (   !isMated(bestScore)
             && !inCheck) {
             const int futilityBase = ss->staticEval + qsBaseFutility();
             if (futilityBase <= alpha && !SEE(pos, move, 1)) {

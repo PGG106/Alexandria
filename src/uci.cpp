@@ -80,8 +80,9 @@ void ParsePosition(const std::string& command, Position* pos) {
     else {
         // if a "fen" command is available within command string
         if (command.find("fen") != std::string::npos) {
-            // init chess board with position from FEN string
-            ParseFen(command.substr(command.find("fen") + 4, std::string::npos), pos);
+            // Substring from after "fen" up to "moves"
+            std::string position = getPosition(command);
+            ParseFen(position, pos);
         }
         else {
             // init chess board with start position
@@ -269,6 +270,10 @@ void UciLoop(int argc, char** argv) {
                 uciOptions.Threads = std::stoi(tokens.at(4));
                 std::cout << "Set Threads to " << uciOptions.Threads << std::endl;;
             }
+            else if (tokens.at(2) == "Minimal") {
+                auto value = tokens.at(4) == "true";
+                uciOptions.shortUci = value;
+            }
 
 #ifdef TUNE
             else {
@@ -282,7 +287,6 @@ void UciLoop(int argc, char** argv) {
         // parse UCI "isready" command
         else if (input == "isready") {
             std::cout << "readyok"<< std::endl;
-            continue;
         }
 
         // parse UCI "ucinewgame" command
@@ -296,7 +300,9 @@ void UciLoop(int argc, char** argv) {
                 StopHelperThreads();
                 // stop main thread search
                 td->info.stopped = true;
-            } 
+                if (main_thread.joinable())
+                    main_thread.join();
+            }
             threads_state = Idle;
         }
 
@@ -306,6 +312,8 @@ void UciLoop(int argc, char** argv) {
             while (!td->info.stopped) {
                 ;
             }
+            if (main_thread.joinable())
+                main_thread.join();
         }
 
         // parse UCI "quit" command
@@ -316,10 +324,10 @@ void UciLoop(int argc, char** argv) {
                 // stop main thread search
                 td->info.stopped = true;
             }
-            threads_state = Idle;
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
+            threads_state = Idle;
             // free thread data
             delete td;
             // quit from the chess engine program execution
@@ -333,6 +341,7 @@ void UciLoop(int argc, char** argv) {
             std::cout << "id author Zuppa, CJ and Contributors\n";
             std::cout << "option name Hash type spin default 16 min 1 max 262144 \n";
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
+            std::cout << "option name Minimal type check default false \n";
 #ifdef TUNE
             // spsa info dump
             for (const auto &param: tunables()) {
