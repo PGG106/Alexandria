@@ -708,7 +708,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 }
             } else {
                 const int capturedPiece = GetPieceType(pos->PieceOn(To(move)));
-                const int noisyFutilityValue = ss->staticEval + SEEValue[capturedPiece] + 150 * lmrDepth + 70;
+                const int noisyFutilityValue = ss->staticEval + SEEValue[capturedPiece] + 150 * lmrDepth;
                 if (!inCheck
                     && lmrDepth < 6
                     && noisyFutilityValue <= alpha)
