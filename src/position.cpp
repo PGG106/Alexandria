@@ -194,7 +194,7 @@ void ParseFen(const std::string& command, Position* pos) {
         pos->state().hisPly = std::stoi(HisPly);
     }
     else {
-        pos->state().hisPly = 0;
+        pos->state().hisPly = 1;
     }
 
     for (int piece = WP; piece <= WK; piece++)
