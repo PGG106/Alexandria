@@ -80,8 +80,9 @@ void ParsePosition(const std::string& command, Position* pos) {
     else {
         // if a "fen" command is available within command string
         if (command.find("fen") != std::string::npos) {
-            // init chess board with position from FEN string
-            ParseFen(command.substr(command.find("fen") + 4, std::string::npos), pos);
+            // Substring from after "fen" up to "moves"
+            std::string position = getPosition(command);
+            ParseFen(position, pos);
         }
         else {
             // init chess board with start position
