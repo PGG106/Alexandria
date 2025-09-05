@@ -72,8 +72,7 @@ static bool Is50MrDraw(Position* pos) {
 bool IsDraw(Position* pos) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
     return IsRepetition(pos)
-        || Is50MrDraw(pos)
-        || MaterialDraw(pos);
+        || Is50MrDraw(pos);
 }
 
 bool isMate(const int score) {
@@ -947,10 +946,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         td->info.stopped = true;
         return 0;
     }
-
-    // If position is a draw return a draw score
-    if (MaterialDraw(pos))
-        return (info->nodes & 2) - 1;
 
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
