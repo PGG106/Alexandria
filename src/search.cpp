@@ -1074,6 +1074,10 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     if (totalMoves == 0 && inCheck) {
         return -MATE_SCORE + ss->ply;
     }
+
+    if (bestScore >= beta && !isDecisive(bestScore) && !isDecisive(beta))
+        bestScore = (bestScore + beta) / 2;
+
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
