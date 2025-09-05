@@ -27,6 +27,16 @@ inline long long int _count, _accumulator;
     return tokens;
 }
 
+inline std::string getPosition (std::string command) {
+    // parse only up to the "moves" token (if present) to handle partial fens without the 50mr counter and the fullmove counter
+    size_t start = command.find("fen") + 4;
+    size_t end = command.find("moves");
+    // avoid doing a subtraction with npos
+    if (end == std::string::npos)
+        return command.substr(start);
+    return command.substr(start, end - start);
+}
+
 // returns true if in a vector of string there's one that matches the key
 [[nodiscard]] inline bool Contains(const std::vector<std::string>& tokens, const std::string& key) {
     return std::find(tokens.begin(), tokens.end(), key) != tokens.end();
