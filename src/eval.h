@@ -3,11 +3,6 @@
 #include "position.h"
 #include <algorithm>
 
-// if we don't have enough material to mate consider the position a draw
-[[nodiscard]] inline bool MaterialDraw(const Position* pos) {
-    return false;
-}
-
 [[nodiscard]] static inline int getMaterialValue(const Position* pos) {
 
     int pawns = CountBits(GetPieceBB(pos, PAWN));
