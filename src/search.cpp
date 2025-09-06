@@ -947,6 +947,9 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         return 0;
     }
 
+    if (IsDraw(pos))
+        return 0;
+
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
         return inCheck ? 0 : EvalPosition(pos,&td->FTable);
