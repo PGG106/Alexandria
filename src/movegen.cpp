@@ -101,27 +101,25 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
         while (captBB1) {
             const int to = popLsb(captBB1);
             const int from = to - north + 1;
-            if (get_rank[to] != (color == WHITE ? 7 : 0))
-                AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
-            else {
+            if ((0xFF000000000000FFULL >> to) & 1) {
                 AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | Movetype::Capture)), list);
                 AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | Movetype::Capture)), list); 
                 AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | Movetype::Capture)), list);
                 AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | Movetype::Capture)), list);
             }
+            else AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
         }
 
         while (captBB2) {
             const int to = popLsb(captBB2);
             const int from = to - north - 1;
-            if (get_rank[to] != (color == WHITE ? 7 : 0))
-                AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
-            else {
+            if ((0xFF000000000000FFULL >> to) & 1) {
                 AddMove(encode_move(from, to, pawnType, (Movetype::queenPromo | Movetype::Capture)), list);
                 AddMove(encode_move(from, to, pawnType, (Movetype::rookPromo | Movetype::Capture)), list); 
                 AddMove(encode_move(from, to, pawnType, (Movetype::bishopPromo | Movetype::Capture)), list);
                 AddMove(encode_move(from, to, pawnType, (Movetype::knightPromo | Movetype::Capture)), list);
             }
+            else AddMove(encode_move(from, to, pawnType, Movetype::Capture), list);
         }
 
         const int epSq = pos->getEpSquare();
