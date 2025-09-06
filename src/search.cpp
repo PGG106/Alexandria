@@ -999,7 +999,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         }
 
         // Stand pat
-        if (bestScore >= beta) {
+        if (bestScore >= beta &&!isDecisive(beta) && !isDecisive(bestScore)) {
             return (bestScore + beta) / 2;
         }
 
