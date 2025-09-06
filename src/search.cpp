@@ -904,6 +904,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             noisyMoves.addMove(move);
     }
 
+    // Adjust best value for fail high cases
+    if (bestScore >= beta && !isDecisive(bestScore) && !isDecisive(beta))
+        bestScore = (bestScore * depth + beta) / (depth + 1);
+
     // We don't have any legal moves to make in the current postion. If we are in singular search, return -infinite.
     // Otherwise, if the king is in check, return a mate score, assuming closest distance to mating position.
     // If we are in neither of these 2 cases, it is stalemate.
