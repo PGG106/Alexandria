@@ -1014,8 +1014,6 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     Move bestmove = NOMOVE;
     Move move;
     int totalMoves = 0;
-    const Square previousSquare = To((ss-1)->move);
-
     // loop over moves within the movelist
     while ((move = NextMove(&mp, !isMated(bestScore))) != NOMOVE) {
 
@@ -1037,7 +1035,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
             }
         }
 
-        if (!isMated(bestScore) && totalMoves >=3 && To(move) != previousSquare) {
+        if (!isMated(bestScore) && inCheck &&isQuiet(move)) {
             break;
         }
 
