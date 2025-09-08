@@ -506,7 +506,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
-    if ((ss - 1)->staticEval != SCORE_NONE && isQuiet((ss - 1)->move))
+    if (!excludedMove && (ss - 1)->staticEval != SCORE_NONE && isQuiet((ss - 1)->move))
     {
         int bonus = std::clamp(-10 * int((ss - 1)->staticEval + ss->staticEval), -1830, 1427) + 624;
         Move move = (ss - 1)->move;
