@@ -473,7 +473,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
 
-    const bool canIIR = depth >= 4 && ttBound == HFNONE;
+    const bool badNode = depth >= 4 && ttBound == HFNONE;
 
     // clean killers and excluded move for the next ply
     (ss + 1)->excludedMove = NOMOVE;
@@ -546,8 +546,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
-            && eval - futilityMargin(depth, improving, canIIR) >= beta)
-            return eval - futilityMargin(depth, improving, canIIR);
+            && eval - futilityMargin(depth, improving, badNode) >= beta)
+            return eval - futilityMargin(depth, improving, badNode);
 
         // Null move pruning: If our position is so good that we can give the opponent a free move and still fail high,
         // return early. At higher depth we do a reduced search with null move pruning disabled (ie verification search)
@@ -567,7 +567,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             MakeNullMove(pos);
 
             // Search moves at a reduced depth to find beta cutoffs.
-            int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - canIIR, !cutNode, td, ss + 1);
+            int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - badNode, !cutNode, td, ss + 1);
 
             TakeNullMove(pos);
 
@@ -650,7 +650,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (canIIR)
+    if (!inCheck && badNode)
         depth -= 1;
 
     // old value of alpha
