@@ -995,13 +995,14 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         else {
             rawEval = EvalPosition(pos, &td->FTable);
             bestScore = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
-            StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, false, ttPv);
         }
 
         // Stand pat
         if (bestScore >= beta) {
             if (!isDecisive(beta) && !isDecisive(bestScore))
-                return (bestScore + beta) / 2;
+                bestScore = (bestScore + beta) / 2;
+            if (!ttHit)
+                StoreTTEntry(pos->getPoskey(), NOMOVE, ScoreToTT(bestScore, ss->ply), rawEval, HFLOWER, 0, pvNode, ttPv);
             return bestScore;
         }
 
