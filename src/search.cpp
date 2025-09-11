@@ -887,8 +887,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                         if (ss->ply >= 1)
                             sd->counterMoves[FromTo((ss - 1)->move)] = move;
                     }
+                    const auto historyDepth = depth + (!inCheck && eval <= alpha);
                     // Update the history heuristics based on the new best move
-                    UpdateHistories(pos, sd, ss, depth + (eval <= alpha), bestMove, &quietMoves, &noisyMoves, rootNode);
+                    UpdateHistories(pos, sd, ss, historyDepth, bestMove, &quietMoves, &noisyMoves, rootNode);
 
                     // node (move) fails high
                     break;
