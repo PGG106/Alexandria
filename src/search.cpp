@@ -999,8 +999,10 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         }
 
         // Stand pat
-        if (bestScore >= beta &&!isDecisive(beta) && !isDecisive(bestScore)) {
-            return (bestScore + beta) / 2;
+        if (bestScore >= beta) {
+            if (!isDecisive(beta) && !isDecisive(bestScore))
+                return (bestScore + beta) / 2;
+            return bestScore;
         }
 
         // Adjust alpha based on eval
