@@ -181,4 +181,7 @@ TUNE_PARAM(seeNoisyMargin, -26, -100, -1, 3, 0.002)
 TUNE_PARAM(futilityCoeff0, 250, 40, 300, 10, 0.002)
 TUNE_PARAM(futilityCoeff1, 120, 40, 200, 10, 0.002)
 TUNE_PARAM(histPruningMargin, -4000, -16384, 0, 256, 0.002)
+// Singular ext
+TUNE_PARAM(pvDoubleExtMargin, 300, 0, 500, 15, 0.002)
+TUNE_PARAM(pvtripleExtMargin, 350, 0, 500, 15, 0.002)
 
