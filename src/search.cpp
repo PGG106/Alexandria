@@ -849,8 +849,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
 
         // PV Search: Search the first move and every move that beat alpha with full depth and a full window
-        if (pvNode && (totalMoves == 1 || score > alpha))
+        if (pvNode && (totalMoves == 1 || score > alpha)) {
+            if (td->RootDepth >= 9 && newDepth <= 0 && move == ttMove && ttDepth >=3)
+                newDepth = 1;
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
+        }
 
         // take move back
         UnmakeMove(pos);
