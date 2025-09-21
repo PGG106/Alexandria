@@ -66,7 +66,7 @@ void MakeCastle(const Move move, Position* pos) {
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -108,7 +108,7 @@ void MakeEp(const Move move, Position* pos) {
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
@@ -132,7 +132,7 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
@@ -155,7 +155,7 @@ void MakeQuiet(const Move move, Position* pos) {
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
@@ -172,7 +172,7 @@ void MakeCapture(const Move move, Position* pos) {
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
 
     pos->state().fiftyMove = 0;
 
@@ -194,7 +194,7 @@ void MakeDP(const Move move, Position* pos)
     // parse move
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = pos->PieceOn(sourceSquare);
 
     MovePiece(piece,sourceSquare,targetSquare, pos);
 
