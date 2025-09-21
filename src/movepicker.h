@@ -28,7 +28,7 @@ struct Movepicker {
     SearchData* sd;
     SearchStack* ss;
     MoveList moveList;
-    MoveList badCaptureList;
+    int badmovesCount;
     Move ttMove;
     Move killer;
     Move counter;

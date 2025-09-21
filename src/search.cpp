@@ -763,7 +763,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
-        ss->contHistEntry = &sd->contHist[pieceTo(pos,move)];
+        ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // Play the move
         MakeMove<true>(move, pos);
