@@ -270,9 +270,6 @@ bool IsPseudoLegal(Position* pos, Move move) {
     if (movedPiece == EMPTY)
         return false;
 
-    if (pos->PieceOn(from) != movedPiece)
-        return false;
-
     if (Color[movedPiece] != pos->side)
         return false;
 
