@@ -335,12 +335,12 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[NOMOVE];
         (ss + i)->reduction = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[NOMOVE];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
     int delta = 12;
@@ -561,7 +561,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             ss->move = NOMOVE;
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
-            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+            ss->contHistEntry = &sd->contHist[NOMOVE];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
             MakeNullMove(pos);
@@ -622,7 +622,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            ss->contHistEntry = &sd->contHist[PieceTo(move)];
+            ss->contHistEntry = &sd->contHist[pieceTo(pos,move)];
 
             // increment nodes count
             info->nodes++;

@@ -11,6 +11,11 @@ UpdateHistories : this performs a general update of all the heuristics, giving t
 GetScore: this is simply a getter for a specific entry of the history table
 */
 
+int pieceTo(const Position* pos, const Move move) {
+    const int piece = pos->PieceOn(From(move));
+    return (piece << 6) | To(move);
+}
+
 int history_bonus(const int depth) {
     return std::min(historyBonusMul() * depth + historyBonusOffset(), historyBonusMax());
 }
@@ -86,7 +91,7 @@ void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, i
     // If we captured an empty piece this means the move is a promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
     // Update move score
-    sd->captHist[PieceTo(move)][capturedPiece] += scaledBonus;
+    sd->captHist[pieceTo(pos,move)][capturedPiece] += scaledBonus;
 }
 
 // Update all histories
@@ -153,7 +158,7 @@ int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move)
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY) capturedPiece = PAWN;
-    return sd->captHist[PieceTo(move)][capturedPiece];
+    return sd->captHist[pieceTo(pos,move)][capturedPiece];
 }
 
 void updateSingleCorrHistScore(int &entry, const int scaledDiff, const int newWeight) {
