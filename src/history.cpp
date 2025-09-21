@@ -11,7 +11,7 @@ UpdateHistories : this performs a general update of all the heuristics, giving t
 GetScore: this is simply a getter for a specific entry of the history table
 */
 
-int pieceTo(const Position* pos, const Move move) {
+unsigned int pieceTo(const Position* pos, const Move move) {
     const int piece = pos->PieceOn(From(move));
     return (piece << 6) | To(move);
 }
