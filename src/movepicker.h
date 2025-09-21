@@ -32,8 +32,8 @@ struct Movepicker {
     Move ttMove;
     Move killer;
     Move counter;
-    int idx;
-    int stage;
+    uint8_t idx;
+    uint8_t stage;
     int SEEThreshold;
     bool rootNode;
 };

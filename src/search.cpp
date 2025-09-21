@@ -17,6 +17,7 @@
 #include "time_manager.h"
 #include "io.h"
 #include "types.h"
+#include <bitset>
 
 // Returns true if the position is a 2-fold repetition, false otherwise
 static bool IsRepetition(const Position* pos) {
@@ -762,10 +763,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
+        ss->contHistEntry = &sd->contHist[pieceTo(pos,move)];
 
         // Play the move
         MakeMove<true>(move, pos);
-        ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // increment nodes count
         info->nodes++;

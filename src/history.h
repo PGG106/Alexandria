@@ -18,7 +18,7 @@ constexpr int CORRHIST_SIZE = 16384;
 constexpr int CORRHIST_MAX = 16384;
 
 
-[[nodiscard]] int pieceTo(const Position* pos, const Move move);
+[[nodiscard]] unsigned int pieceTo(const Position* pos, const Move move);
 // Functions used to update the history heuristics
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const StackMoveList* quietMoves, const StackMoveList* noisyMoves, const bool rootNode);
 // Fuction that returns the history bonus
