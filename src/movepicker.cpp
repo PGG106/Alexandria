@@ -50,6 +50,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->ss = ss;
     mp->ttMove = ttMove;
     mp->idx = 0;
+    mp->badcapturesCount = 0;
     mp->rootNode = rootNode;
     mp->stage = mp->ttMove ? PICK_TT : GEN_NOISY;
     mp->killer = killer != ttMove ? killer : NOMOVE;
@@ -114,7 +115,8 @@ Move NextMove(Movepicker* mp, const bool skip) {
                 continue;
 
             if (!SEE(mp->pos, move, SEEThreshold)) {
-                AddMove(move, score, &mp->badCaptureList);
+                // since these moves are already sorted we can ditch the score, it won't be checked again
+                mp->moveList.moves[mp->badcapturesCount++].move = move;
                 continue;
             }
 
@@ -166,8 +168,8 @@ Move NextMove(Movepicker* mp, const bool skip) {
         goto top;
 
     case PICK_BAD_NOISY:
-        while (mp->idx < mp->badCaptureList.count) {
-            const Move move = mp->badCaptureList.moves[mp->idx].move;
+        while (mp->idx < mp->badcapturesCount) {
+            const Move move = mp->moveList.moves[mp->idx].move;
             ++mp->idx;
             if (move == mp->ttMove)
                 continue;
