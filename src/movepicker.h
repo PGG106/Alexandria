@@ -28,12 +28,12 @@ struct Movepicker {
     SearchData* sd;
     SearchStack* ss;
     MoveList moveList;
-    int badcapturesCount;
     Move ttMove;
     Move killer;
     Move counter;
-    int idx;
-    int stage;
+    uint8_t idx;
+    uint8_t stage;
+    uint16_t badcapturesCount;
     int SEEThreshold;
     bool rootNode;
 };
