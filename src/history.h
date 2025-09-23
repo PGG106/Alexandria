@@ -9,6 +9,8 @@ struct SearchStack;
 struct MoveList;
 
 constexpr int HH_MAX = 8192;
+constexpr int PH_MAX = 8192;
+constexpr int PH_SIZE = 1024;
 constexpr int RH_MAX = 8192;
 constexpr int CH_MAX = 16384;
 constexpr int CAPTHIST_MAX = 16384;
@@ -24,6 +26,7 @@ int history_bonus(const int depth);
 int history_malus(const int depth);
 // Getters for the history heuristics
 [[nodiscard]] int GetHHScore(const Position* pos, const SearchData* sd, const Move move);
+[[nodiscard]] int GetPHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetRHScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetCHScore(const SearchStack* ss, const Move move);
 [[nodiscard]] int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset);
