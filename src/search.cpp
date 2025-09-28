@@ -343,7 +343,7 @@ int AspirationWindowSearch(int prev_eval, int avg_eval,  int depth, ThreadData* 
         (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
-    int delta = 12;
+    int delta = 12 + (avg_eval * avg_eval) / 15000;
     // define initial alpha beta bounds
     int alpha = -MAXSCORE;
     int beta = MAXSCORE;
