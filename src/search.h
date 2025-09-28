@@ -36,7 +36,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options);
 void SearchPosition(int start_depth, int final_depth, ThreadData* td, UciOptions* options);
 
 // Sets up aspiration windows and starts a Negamax search
-[[nodiscard]] int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td);
+[[nodiscard]] int AspirationWindowSearch(int prev_eval, int avg_eval,  int depth, ThreadData* td);
 
 // Negamax alpha beta search
 template <bool pvNode>

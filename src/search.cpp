@@ -269,7 +269,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
 
     // Call the Negamax function in an iterative deepening framework
     for (int currentDepth = startDepth; currentDepth <= finalDepth; currentDepth++) {
-        score = AspirationWindowSearch(averageScore, currentDepth, td);
+        score = AspirationWindowSearch(score, averageScore, currentDepth, td);
         averageScore = averageScore == SCORE_NONE ? score : (averageScore + score) / 2;
 
         // Only the main thread handles time related tasks
@@ -324,7 +324,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     }
 }
 
-int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
+int AspirationWindowSearch(int prev_eval, int avg_eval,  int depth, ThreadData* td) {
     int score;
     td->RootDepth = depth;
     SearchData* sd = &td->sd;
