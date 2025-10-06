@@ -455,12 +455,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
 
-    // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
+    // Probe the TT for useful previous search information, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
     const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     const uint8_t ttDepth = tte.depth;
+    const auto ttEval = tte.eval;
+    const auto ttAgeBoundPV = tte.ageBoundPV;
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
@@ -469,7 +471,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER)))
         return ttScore;
 
-    const bool ttPv = pvNode || (ttHit && FormerPV(tte.ageBoundPV));
+    const bool ttPv = pvNode || (ttHit && FormerPV(ttAgeBoundPV));
 
     const bool badNode = depth >= 4 && ttBound == HFNONE;
 
@@ -487,7 +489,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // get an evaluation of the position:
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
+        rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable);
         eval = ss->staticEval = adjustEvalWithCorrHist(pos, sd, ss, rawEval);
 
         // We can also use the tt score as a more accurate form of eval
@@ -603,7 +605,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && depth > 4
         && !isDecisive(beta)
         && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
-        && (ttScore == SCORE_NONE || tte.depth < depth - 3 || ttScore >= pcBeta))
+        && (ttScore == SCORE_NONE || ttDepth < depth - 3 || ttScore >= pcBeta))
     {
         Movepicker mp;
         Move move;
