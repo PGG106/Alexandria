@@ -472,7 +472,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (ttMove && ttScore >= beta){
         const Move previousMove =(ss-1)->move;
         if (previousMove != NOMOVE && isQuiet(previousMove))
-            updateCHScore(ss-1, previousMove, std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax()));
+            updateCHScore(ss-1, previousMove, -std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax()));
         }
         return ttScore;
     }
