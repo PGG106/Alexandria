@@ -32,7 +32,7 @@ int conthistory_bonus(const int depth) {
 }
 
 int conthistory_malus(const int depth) {
-    return std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax());
+    return std::min(conthistoryMalusMul() * depth + conthistoryMalusOffset(), conthistoryMalusMax());
 }
 
 int roothistory_bonus(const int depth) {
