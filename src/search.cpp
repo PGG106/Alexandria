@@ -468,8 +468,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         &&  ttScore != SCORE_NONE
         &&  ttDepth >= depth
         && pos->get50MrCounter() < 90
-        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER)))
+        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
+        if (ttMove && ttScore >= beta){
+        const Move previousMove =(ss-1)->move;
+        if (previousMove != NOMOVE && isQuiet(previousMove))
+            updateCHScore(ss-1, previousMove, std::min(roothistoryMalusMul() * depth + roothistoryMalusOffset(), roothistoryMalusMax()));
+        }
         return ttScore;
+    }
 
     const bool ttPv = pvNode || (ttHit && FormerPV(ttAgeBoundPV));
 
