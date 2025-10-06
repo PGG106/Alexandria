@@ -440,6 +440,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 return alpha;
         }
 
+        // Mate distance pruning
+        alpha = std::max(alpha, -MATE_SCORE + ss->ply);
+        beta = std::min(beta, MATE_SCORE - ss->ply - 1);
+        if (alpha >= beta)
+            return alpha;
+
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
             return inCheck ? 0 : EvalPosition(pos, &td->FTable);
@@ -448,14 +454,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // recursion escape condition
     if (depth <= 0)
         return Quiescence<pvNode>(alpha, beta, td, ss);
-
-    if (!rootNode) {
-        // Mate distance pruning
-        alpha = std::max(alpha, -MATE_SCORE + ss->ply);
-        beta = std::min(beta, MATE_SCORE - ss->ply - 1);
-        if (alpha >= beta)
-            return alpha;
-    }
 
     // Probe the TT for useful previous search informations, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
