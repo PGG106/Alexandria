@@ -404,6 +404,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Initialize the node
     const bool inCheck = pos->getCheckers();
     const bool rootNode = (ss->ply == 0);
+    ss->moveCount = 0;
     int eval;
     int rawEval;
     int score = -MAXSCORE;
@@ -468,9 +469,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         &&  ttScore != SCORE_NONE
         &&  ttDepth >= depth
         && pos->get50MrCounter() < 90
-        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER)))
+        && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
+        if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
+            updateCHScore((ss-1), ttMove, -100);
+        }
         return ttScore;
-
+    }
     const bool ttPv = pvNode || (ttHit && FormerPV(ttAgeBoundPV));
 
     const bool badNode = depth >= 4 && ttBound == HFNONE;
@@ -674,7 +678,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
-        totalMoves++;
+        ss->moveCount = ++totalMoves;
 
         const bool isQuiet = !isTactical(move);
 

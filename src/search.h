@@ -14,6 +14,7 @@ struct SearchStack {
     Move searchKiller;
     int (*contHistEntry)[12 * 64];
     int16_t reduction;
+    int moveCount;
 };
 
 
