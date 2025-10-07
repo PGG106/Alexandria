@@ -471,7 +471,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && pos->get50MrCounter() < 90
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
-            updateCHScore((ss-1), ttMove, -100);
+            if ((ss-1)->move != NOMOVE)
+            updateCHScore((ss-1), (ss-1)->move, -100);
         }
         return ttScore;
     }
