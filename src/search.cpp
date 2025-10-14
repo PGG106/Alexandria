@@ -1089,7 +1089,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreTTEntry(pos->getPoskey(), MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->getPoskey(), MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0 + inCheck, pvNode, ttPv);
 
     return bestScore;
 }
