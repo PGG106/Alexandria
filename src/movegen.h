@@ -24,6 +24,8 @@ void AddMove(const Move move, const int score, MoveList* list);
 // Check for move legality by generating the list of legal moves in a position and checking if that move is present
 [[nodiscard]] bool MoveExists(Position* pos, const Move move);
 
+void quietChecks(Position* pos, MoveList* movelist);
+
 // Check for move pseudo-legality
 [[nodiscard]] bool IsPseudoLegal(Position* pos, Move move);
 
