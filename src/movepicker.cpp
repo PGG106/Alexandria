@@ -142,7 +142,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case GEN_QUIET_CHECKS:
             // if we aren't in qsearch, aren't meant to play quiet checks or we are gonna play quiet moves regardless just go directly to gen quiets
-        if (mp->movepickerType != QSEARCH || !mp->genQuietChecks || !skip)
+        if (mp->movepickerType != QSEARCH || !mp->genQuietChecks)
             mp->stage = GEN_QUIETS;
         else {
             generateQuietChecks(mp->pos, &mp->moveList);
