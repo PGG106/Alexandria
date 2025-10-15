@@ -45,7 +45,7 @@ template <bool pvNode>
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-[[nodiscard]] int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss);
+[[nodiscard]] int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss);
 
 // Gets best move from PV table
 [[nodiscard]] Move GetBestMove();
