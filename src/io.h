@@ -7,7 +7,7 @@ struct MoveList;
 struct ThreadData;
 struct UciOptions;
 
-void PrintBitboard(const Bitboard bitboard);
+void printBitboard(const Bitboard bitboard);
 
 // print board
 void PrintBoard(const Position* pos);
