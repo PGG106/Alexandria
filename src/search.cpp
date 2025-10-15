@@ -114,8 +114,8 @@ static inline Bitboard AttacksTo(const Position* pos, const unsigned int to, Bit
     Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
     Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
 
-    return (pawn_attacks[WHITE][to] & pos->GetPieceColorBB(PAWN, BLACK))
-         | (pawn_attacks[BLACK][to] & pos->GetPieceColorBB(PAWN, WHITE))
+    return (pawn_attacks[WHITE][to] & pos->getPieceColorBB(PAWN, BLACK))
+         | (pawn_attacks[BLACK][to] & pos->getPieceColorBB(PAWN, WHITE))
          | (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
          | (king_attacks[to] & GetPieceBB(pos, KING))
          | (GetBishopAttacks(to, occ) & attackingBishops)
@@ -206,7 +206,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
             break;
         }
         // Remove the used piece from occupied
-        occupied ^= 1ULL << (GetLsbIndex(myAttackers & pos->GetPieceColorBB(pt, side ^ 1)));
+        occupied ^= 1ULL << (GetLsbIndex(myAttackers & pos->getPieceColorBB(pt, side ^ 1)));
 
         if (pt == PAWN || pt == BISHOP || pt == QUEEN)
             attackers |= GetBishopAttacks(to, occupied) & bishops;
