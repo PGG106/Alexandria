@@ -265,7 +265,6 @@ void quietChecks(Position* pos, MoveList* movelist) {
     const Bitboard pinned = pos->getPinnedMask(stm);
 
     //const Square kingSQ = KingSQ(pos, stm);
-    //Bitboard bishopSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard rookSquares = GetRookAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard queenSquares = bishopSquares | rookSquares;
 
@@ -302,6 +301,20 @@ void quietChecks(Position* pos, MoveList* movelist) {
             AddMove(encode_move(from, to, knightType, Movetype::Quiet), movelist);
         }
     }
+
+    Bitboard bishops = pos->getPieceColorBB(BISHOP, stm) & ~pinned;
+    Bitboard bishopCheckSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
+    const int bishopType = GetPiece(BISHOP, stm);
+    while (bishops) {
+        const int from = popLsb(bishops);
+        Bitboard possible_moves = GetBishopAttacks(from, occupied) & bishopCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, bishopType, Movetype::Quiet), movelist);
+        }
+    }
+
+
 }
 
 // Pseudo-legality test inspired by Koivisto
