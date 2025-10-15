@@ -255,7 +255,8 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
 }
 
 // generate moves
-void quietChecks(Position* pos, MoveList* movelist) {
+// TODO invert pos and movelist positions
+void generateQuietChecks(Position* pos, MoveList* movelist) {
     const int stm = pos->side;
     const int nstm = !stm;
     const Square oppKingSq = KingSQ(pos, nstm);

@@ -289,13 +289,6 @@ void UciLoop(int argc, char** argv) {
             std::cout << "readyok"<< std::endl;
         }
 
-        // parse UCI "isready" command
-        else if (input == "checks") {
-            MoveList list{};
-            quietChecks(&td->pos, &list);
-            PrintMoveList(&list);
-        }
-
         // parse UCI "ucinewgame" command
         else if (input == "ucinewgame") {
             InitNewGame(td);

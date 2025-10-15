@@ -140,6 +140,33 @@ Move NextMove(Movepicker* mp, const bool skip) {
             return mp->counter;
         goto top;
 
+    case GEN_QUIET_CHECKS:
+            // if we aren't in qsearch, aren't meant to play quiet checks or we are gonna play quiet moves regardless just go directly to gen quiets
+        if (mp->movepickerType != QSEARCH || !mp->genQuietChecks || !skip)
+            mp->stage = GEN_QUIETS;
+        else {
+            generateQuietChecks(mp->pos, &mp->moveList);
+            ScoreMoves(mp);
+            ++mp->stage;
+        }
+        goto top;
+
+    case PICK_QUIET_CHECKS:
+        while (mp->idx < mp->moveList.count) {
+            partialInsertionSort(&mp->moveList, mp->idx);
+            const Move move = mp->moveList.moves[mp->idx].move;
+            ++mp->idx;
+            if (   move == mp->ttMove
+                || move == mp->killer
+                || move == mp->counter)
+                continue;
+
+            assert(!isTactical(move));
+            return move;
+        }
+        ++mp->stage;
+        goto top;
+
     case GEN_QUIETS:
         GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
         ScoreMoves(mp);
