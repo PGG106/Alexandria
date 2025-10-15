@@ -111,13 +111,13 @@ void ClearForSearch(ThreadData* td) {
 
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const Position* pos, const unsigned int to, Bitboard occ) {
-    Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
-    Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
+    Bitboard attackingBishops = getPieceBB(pos, BISHOP) | getPieceBB(pos, QUEEN);
+    Bitboard attackingRooks = getPieceBB(pos, ROOK) | getPieceBB(pos, QUEEN);
 
     return (pawn_attacks[WHITE][to] & pos->getPieceColorBB(PAWN, BLACK))
          | (pawn_attacks[BLACK][to] & pos->getPieceColorBB(PAWN, WHITE))
-         | (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
-         | (king_attacks[to] & GetPieceBB(pos, KING))
+         | (knight_attacks[to] & getPieceBB(pos, KNIGHT))
+         | (king_attacks[to] & getPieceBB(pos, KING))
          | (GetBishopAttacks(to, occ) & attackingBishops)
          | (GetRookAttacks(to, occ) & attackingRooks);
 }
@@ -163,8 +163,8 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
 
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
-    Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
-    Bitboard rooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
+    Bitboard bishops = getPieceBB(pos, BISHOP) | getPieceBB(pos, QUEEN);
+    Bitboard rooks = getPieceBB(pos, ROOK) | getPieceBB(pos, QUEEN);
 
     int side = Color[attacker] ^ 1;
 
@@ -192,7 +192,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
         // Pick next least valuable piece to capture with
         int pt;
         for (pt = PAWN; pt < KING; ++pt)
-            if (myAttackers & GetPieceBB(pos, pt))
+            if (myAttackers & getPieceBB(pos, pt))
                 break;
 
         side ^= 1;

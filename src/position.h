@@ -166,7 +166,7 @@ void ParseFen(const std::string& command, Position* pos);
 void parse_moves(const std::string& moves, Position* pos);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-[[nodiscard]] Bitboard GetPieceBB(const Position* pos, const int piecetype);
+[[nodiscard]] Bitboard getPieceBB(const Position* pos, const int piecetype);
 
 // Returns the threats bitboard of the pieces of <side> color
 [[nodiscard]] Bitboard getThreats(const Position* pos, const int side);

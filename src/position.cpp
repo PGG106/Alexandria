@@ -297,7 +297,7 @@ void parse_moves(const std::string& moves, Position* pos) {
 }
 
 // Returns the bitboard of a piecetype
-Bitboard GetPieceBB(const Position* pos, const int piecetype) {
+Bitboard getPieceBB(const Position* pos, const int piecetype) {
     return pos->getPieceColorBB(piecetype, WHITE) | pos->getPieceColorBB(piecetype, BLACK);
 }
 

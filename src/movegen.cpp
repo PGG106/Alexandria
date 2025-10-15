@@ -265,7 +265,6 @@ void quietChecks(Position* pos, MoveList* movelist) {
     // const Bitboard pinned = pos->getPinnedMask(stm);
 
     //const Square kingSQ = KingSQ(pos, stm);
-    //Bitboard knightCheckSquares = knight_attacks[oppKingSq] & ~occupied;
     //Bitboard bishopSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard rookSquares = GetRookAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard queenSquares = bishopSquares | rookSquares;
@@ -274,7 +273,7 @@ void quietChecks(Position* pos, MoveList* movelist) {
     // For each piece type, precompute the squares from which that piece could give a
     // check to the opponent's king if it moved there — and the square is empty.
     Bitboard pawnCheckSquares = pawn_attacks[nstm][oppKingSq] & ~occupied;
-    printBitboard(pawnCheckSquares);
+    Bitboard knightCheckSquares = knight_attacks[oppKingSq] & ~occupied;
     if (stm == WHITE) {
         // pick any white pawn that can give check
         Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE);
@@ -293,6 +292,7 @@ void quietChecks(Position* pos, MoveList* movelist) {
             AddMove(encode_move(from, from + 8, BP, Movetype::Quiet), movelist);
         }
     }
+    Bitboard knights = getPieceBB(pos, KNIGHT);
 }
 
 // Pseudo-legality test inspired by Koivisto

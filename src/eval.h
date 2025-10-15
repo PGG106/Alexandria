@@ -5,11 +5,11 @@
 
 [[nodiscard]] static inline int getMaterialValue(const Position* pos) {
 
-    int pawns = CountBits(GetPieceBB(pos, PAWN));
-    int knights = CountBits(GetPieceBB(pos, KNIGHT));
-    int bishops = CountBits(GetPieceBB(pos, BISHOP));
-    int rooks = CountBits(GetPieceBB(pos, ROOK));
-    int queens = CountBits(GetPieceBB(pos, QUEEN));
+    int pawns = CountBits(getPieceBB(pos, PAWN));
+    int knights = CountBits(getPieceBB(pos, KNIGHT));
+    int bishops = CountBits(getPieceBB(pos, BISHOP));
+    int rooks = CountBits(getPieceBB(pos, ROOK));
+    int queens = CountBits(getPieceBB(pos, QUEEN));
 
     return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015) / 32;
 }
