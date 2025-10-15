@@ -1023,6 +1023,8 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
     Move move;
     int totalMoves = 0;
 
+    mp.genQuietChecks = (depth == 0);
+
     // loop over moves within the movelist
     while ((move = NextMove(&mp, !isMated(bestScore))) != NOMOVE) {
 
