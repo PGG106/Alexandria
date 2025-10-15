@@ -64,7 +64,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
     if (skip) {
         // In search, the skip variable is used to dictate whether we skip quiet moves
         if (   mp->movepickerType == SEARCH
-            && mp->stage > PICK_GOOD_NOISY
+            && mp->stage > PICK_QUIET_CHECKS
             && mp->stage < GEN_BAD_NOISY) {
             mp->stage = GEN_BAD_NOISY;
         }
