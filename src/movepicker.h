@@ -36,6 +36,7 @@ struct Movepicker {
     uint16_t badcapturesCount;
     int SEEThreshold;
     bool rootNode;
+    bool genQuietChecks;
 };
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const int SEEThreshold, const MovepickerType movepickerType, const bool rootNode);

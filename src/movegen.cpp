@@ -331,7 +331,6 @@ void quietChecks(Position* pos, MoveList* movelist) {
             AddMove(encode_move(from, to, queenType, Movetype::Quiet), movelist);
         }
     }
-
 }
 
 // Pseudo-legality test inspired by Koivisto

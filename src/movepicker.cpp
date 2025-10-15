@@ -56,6 +56,7 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->killer = killer != ttMove ? killer : NOMOVE;
     mp->counter = counter != ttMove && counter != killer ? counter : NOMOVE;
     mp->SEEThreshold = SEEThreshold;
+    mp->genQuietChecks = false;
 }
 
 Move NextMove(Movepicker* mp, const bool skip) {
