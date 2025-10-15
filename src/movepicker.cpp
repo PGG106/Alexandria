@@ -162,6 +162,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
                 continue;
 
             assert(!isTactical(move));
+            // TODO check pseudolegal?
             return move;
         }
         ++mp->stage;

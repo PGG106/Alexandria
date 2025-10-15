@@ -276,9 +276,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
         }
     }
     else {
-        // pick any white pawn that can give check
         Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK) & ~pinned;
-        // generate the moves for all the pawns we've got
         while (blackPawns) {
             const int from = popLsb(blackPawns);
             AddMove(encode_move(from, from + 8, BP, Movetype::Quiet), movelist);
