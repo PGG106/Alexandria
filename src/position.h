@@ -81,7 +81,7 @@ public:
     }
 
     // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
-    [[nodiscard]] inline Bitboard GetPieceColorBB(const int piecetype, const int color) const {
+    [[nodiscard]] inline Bitboard getPieceColorBB(const int piecetype, const int color) const {
         return state().bitboards[piecetype + color * 6];
     }
 
