@@ -150,7 +150,7 @@ void PrintMoveList(const MoveList* list) {
         int score = list->moves[index].score;
         std::cout << "Move " << index + 1 << " : " << FormatMove(move) << " score: " << score << std::endl;
     }
-    std::cout << "MoveList Total Moves:" << list->count << "\n\n";
+    std::cout << "Total Moves: " << list->count << "\n";
 }
 
 std::string Pick_color(int score) {

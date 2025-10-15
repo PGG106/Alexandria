@@ -262,21 +262,19 @@ void quietChecks(Position* pos, MoveList* movelist) {
     const Bitboard ourPieces = pos->Occupancy(stm);
     const Bitboard theirPieces = pos->Occupancy(nstm);
     const Bitboard occupied = ourPieces | theirPieces;
-    // const Bitboard pinned = pos->getPinnedMask(stm);
+    const Bitboard pinned = pos->getPinnedMask(stm);
 
     //const Square kingSQ = KingSQ(pos, stm);
     //Bitboard bishopSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard rookSquares = GetRookAttacks(oppKingSq, occupied) & ~occupied;
     //Bitboard queenSquares = bishopSquares | rookSquares;
 
-
     // For each piece type, precompute the squares from which that piece could give a
     // check to the opponent's king if it moved there — and the square is empty.
     Bitboard pawnCheckSquares = pawn_attacks[nstm][oppKingSq] & ~occupied;
-    Bitboard knightCheckSquares = knight_attacks[oppKingSq] & ~occupied;
     if (stm == WHITE) {
         // pick any white pawn that can give check
-        Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE);
+        Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE) & ~pinned;
         // generate the moves for all the pawns we've got
         while (whitePawns) {
             const int from = popLsb(whitePawns);
@@ -285,14 +283,25 @@ void quietChecks(Position* pos, MoveList* movelist) {
     }
     else {
         // pick any white pawn that can give check
-        Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK);
+        Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK) & ~pinned;
         // generate the moves for all the pawns we've got
         while (blackPawns) {
             const int from = popLsb(blackPawns);
             AddMove(encode_move(from, from + 8, BP, Movetype::Quiet), movelist);
         }
     }
-    Bitboard knights = getPieceBB(pos, KNIGHT);
+
+    Bitboard knights = pos->getPieceColorBB(KNIGHT, stm) & ~pinned;
+    Bitboard knightCheckSquares = knight_attacks[oppKingSq] & ~occupied;
+    const int knightType = GetPiece(KNIGHT, stm);
+    while (knights) {
+        const int from = popLsb(knights);
+        Bitboard possible_moves = knight_attacks[from] & knightCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, knightType, Movetype::Quiet), movelist);
+        }
+    }
 }
 
 // Pseudo-legality test inspired by Koivisto
