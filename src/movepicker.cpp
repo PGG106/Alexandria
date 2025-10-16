@@ -56,7 +56,6 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->killer = killer != ttMove ? killer : NOMOVE;
     mp->counter = counter != ttMove && counter != killer ? counter : NOMOVE;
     mp->SEEThreshold = SEEThreshold;
-    mp->genQuietChecks = false;
 }
 
 Move NextMove(Movepicker* mp, const bool skip) {
@@ -71,7 +70,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
         // In qsearch, the skip variable is used to dictate whether we skip quiet moves and bad captures
         if (   mp->movepickerType == QSEARCH
-            && mp->stage > PICK_QUIET_CHECKS) {
+            && mp->stage > PICK_GOOD_NOISY) {
             return NOMOVE;
         }
 
@@ -138,32 +137,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
         ++mp->stage;
         if (IsPseudoLegal(mp->pos, mp->counter))
             return mp->counter;
-        goto top;
-
-    case GEN_QUIET_CHECKS:
-        if (mp->movepickerType != QSEARCH || !mp->genQuietChecks)
-            mp->stage = GEN_QUIETS;
-        else {
-            generateQuietChecks(mp->pos, &mp->moveList);
-            ScoreMoves(mp);
-            ++mp->stage;
-        }
-        goto top;
-
-    case PICK_QUIET_CHECKS:
-        while (mp->idx < mp->moveList.count) {
-            partialInsertionSort(&mp->moveList, mp->idx);
-            const Move move = mp->moveList.moves[mp->idx].move;
-            ++mp->idx;
-            if (   move == mp->ttMove
-                || move == mp->killer
-                || move == mp->counter)
-                continue;
-
-            assert(!isTactical(move));
-            return move;
-        }
-        ++mp->stage;
         goto top;
 
     case GEN_QUIETS:
