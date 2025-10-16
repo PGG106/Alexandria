@@ -2,7 +2,7 @@
 #include "attack.h"
 #include "bitboard.h"
 #include "init.h"
-#include "magic.h"
+#include "io.h"
 #include "makemove.h"
 #include "position.h"
 #include "move.h"
@@ -12,19 +12,19 @@ bool IsSquareAttacked(const Position* pos, const int square, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
     const Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
-    if (pawn_attacks[side ^ 1][square] & pos->GetPieceColorBB(PAWN, side))
+    if (getPawnAttacks(square, side ^ 1) & pos->getPieceColorBB(PAWN, side))
         return true;
     // is the square attacked by knights
-    if (knight_attacks[square] & pos->GetPieceColorBB(KNIGHT, side))
+    if (getKnightAttacks(square) & pos->getPieceColorBB(KNIGHT, side))
         return true;
     // is the square attacked by kings
-    if (king_attacks[square] & pos->GetPieceColorBB(KING, side))
+    if (getKingAttacks(square) & pos->getPieceColorBB(KING, side))
         return true;
     // is the square attacked by bishops
-    if (GetBishopAttacks(square, occ) & (pos->GetPieceColorBB(BISHOP, side) | pos->GetPieceColorBB(QUEEN, side)))
+    if (getBishopAttacks(square, occ) & (pos->getPieceColorBB(BISHOP, side) | pos->getPieceColorBB(QUEEN, side)))
         return true;
     // is the square attacked by rooks
-    if (GetRookAttacks(square, occ) & (pos->GetPieceColorBB(ROOK, side) | pos->GetPieceColorBB(QUEEN, side)))
+    if (getRookAttacks(square, occ) & (pos->getPieceColorBB(ROOK, side) | pos->getPieceColorBB(QUEEN, side)))
         return true;
     // by default return false
     return false;
@@ -62,7 +62,7 @@ static inline Bitboard NORTH(const Bitboard in, const int color) {
 
 static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list, MovegenType type) {
     const Bitboard enemy = pos->Occupancy(color ^ 1);
-    const Bitboard ourPawns = pos->GetPieceColorBB(PAWN, color);
+    const Bitboard ourPawns = pos->getPieceColorBB(PAWN, color);
     const Bitboard rank4BB = color == WHITE ? 0x000000FF00000000ULL : 0x00000000FF000000ULL;
     const Bitboard freeSquares = ~pos->Occupancy(BOTH);
     const int pawnType = GetPiece(PAWN, pos->side);
@@ -127,7 +127,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
             return;
 
         // En passant
-        Bitboard epPieces = pawn_attacks[color ^ 1][epSq] & ourPawns;
+        Bitboard epPieces = getPawnAttacks(epSq, color ^ 1) & ourPawns;
         while (epPieces) {
             int from = popLsb(epPieces);
             AddMove(encode_move(from, epSq, pawnType, Movetype::enPassant), list);
@@ -136,7 +136,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
 }
 
 static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* list, MovegenType type) {
-    Bitboard knights = pos->GetPieceColorBB(KNIGHT, color);
+    Bitboard knights = pos->getPieceColorBB(KNIGHT, color);
     const int knightType = GetPiece(KNIGHT, color);
     const bool genNoisy = type & MOVEGEN_NOISY;
     const bool genQuiet = type & MOVEGEN_QUIET;
@@ -152,7 +152,7 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
 
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & moveMask;
+        Bitboard possible_moves = getKnightAttacks(from) & moveMask;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -176,7 +176,7 @@ static inline void PseudoLegalSlidersMoves(Position *pos, int color, MoveList *l
         moveMask |= ~pos->Occupancy(BOTH);
 
     for (int piecetype = BISHOP; piecetype <= QUEEN; piecetype++) {
-        Bitboard pieces = pos->GetPieceColorBB(piecetype, color);
+        Bitboard pieces = pos->getPieceColorBB(piecetype, color);
         const int coloredPieceValue = GetPiece(piecetype, color);
         while (pieces) {
             const int from = popLsb(pieces);
@@ -206,7 +206,7 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
     if (genQuiet)
         moveMask |= ~pos->Occupancy(BOTH);
 
-    Bitboard possible_moves = king_attacks[from] & moveMask;
+    Bitboard possible_moves = getKingAttacks(from) & moveMask;
     while (possible_moves) {
         const int to = popLsb(possible_moves);
         Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -251,6 +251,83 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
         PseudoLegalSlidersMoves(pos, pos->side, move_list, type);
     }
     PseudoLegalKingMoves(pos, pos->side, move_list, type);
+}
+
+// generate moves
+void generateQuietChecks(MoveList* movelist, Position* pos) {
+    const int stm = pos->side;
+    const int nstm = !stm;
+    const Square oppKingSq = KingSQ(pos, nstm);
+    const Bitboard occupied = pos->Occupancy(BOTH);
+    const Bitboard pinned = pos->getPinnedMask(stm);
+
+    // For each piece type, precompute the squares from which that piece could give a
+    // check to the opponent's king if it moved there — and the square is empty.
+    Bitboard pawnCheckSquares = getPawnAttacks(oppKingSq, nstm) & ~occupied;
+    if (stm == WHITE) {
+        // pick any white pawn that can give check
+        Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE);
+        // generate the moves for all the pawns we've got
+        while (whitePawns) {
+            const int from = popLsb(whitePawns);
+            AddMove(encode_move(from, from - 8, WP, Movetype::Quiet), movelist);
+        }
+    }
+    else {
+        Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK);
+        while (blackPawns) {
+            const int from = popLsb(blackPawns);
+            AddMove(encode_move(from, from + 8, BP, Movetype::Quiet), movelist);
+        }
+    }
+
+    Bitboard knights = pos->getPieceColorBB(KNIGHT, stm) & ~pinned;
+    Bitboard knightCheckSquares = getKnightAttacks(oppKingSq) & ~occupied;
+    const int knightType = GetPiece(KNIGHT, stm);
+    while (knights) {
+        const int from = popLsb(knights);
+        Bitboard possible_moves = getKnightAttacks(from) & knightCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, knightType, Movetype::Quiet), movelist);
+        }
+    }
+
+    Bitboard bishops = pos->getPieceColorBB(BISHOP, stm);
+    Bitboard bishopCheckSquares = getBishopAttacks(oppKingSq, occupied) & ~occupied;
+    const int bishopType = GetPiece(BISHOP, stm);
+    while (bishops) {
+        const int from = popLsb(bishops);
+        Bitboard possible_moves = getBishopAttacks(from, occupied) & bishopCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, bishopType, Movetype::Quiet), movelist);
+        }
+    }
+
+    Bitboard rooks = pos->getPieceColorBB(ROOK, stm);
+    Bitboard rookCheckSquares = getRookAttacks(oppKingSq, occupied) & ~occupied;
+    const int rookType = GetPiece(ROOK, stm);
+    while (rooks) {
+        const int from = popLsb(rooks);
+        Bitboard possible_moves = getRookAttacks(from, occupied) & rookCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, rookType, Movetype::Quiet), movelist);
+        }
+    }
+
+    Bitboard queens = pos->getPieceColorBB(QUEEN, stm);
+    Bitboard queenCheckSquares = bishopCheckSquares | rookCheckSquares;
+    const int queenType = GetPiece(QUEEN, stm);
+    while (queens) {
+        const int from = popLsb(queens);
+        Bitboard possible_moves = getQueenAttacks(from, occupied) & queenCheckSquares;
+        while (possible_moves) {
+            const int to = popLsb(possible_moves);
+            AddMove(encode_move(from, to, queenType, Movetype::Quiet), movelist);
+        }
+    }
 }
 
 // Pseudo-legality test inspired by Koivisto
@@ -319,10 +396,10 @@ bool IsPseudoLegal(Position* pos, Move move) {
                 if (to != pos->getEpSquare())
                     return false;
 
-                if (!((1ULL << (to - NORTH)) & pos->GetPieceColorBB(PAWN, pos->side ^ 1)))
+                if (!((1ULL << (to - NORTH)) & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
                     return false;
             }
-            if (isCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
+            if (isCapture(move) && !(getPawnAttacks(from, pos->side) & (1ULL << to)))
                 return false;
 
             if (isPromo(move)) {
@@ -342,7 +419,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
             break;
 
         case KNIGHT:
-            if (!(knight_attacks[from] & (1ULL << to)))
+            if (!(getKnightAttacks(from) & (1ULL << to)))
                 return false;
 
             break;
@@ -403,7 +480,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
 
                 return false;
             }
-            if (!(king_attacks[from] & (1ULL << to)))
+            if (!(getKingAttacks(from) & (1ULL << to)))
                 return false;
 
             break;

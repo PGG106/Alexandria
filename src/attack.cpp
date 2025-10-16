@@ -1,7 +1,6 @@
 #include <algorithm>
 #include "attack.h"
 #include "bitboard.h"
-#include "magic.h"
 
 // generate pawn attacks
 Bitboard MaskPawnAttacks(int side, int square) {
@@ -207,20 +206,20 @@ Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
     return attacks;
 }
 
-// retrieves attacks for a generic piece (except pawns and kings because that requires actual work)
+// retrieves attacks for a generic piece (except pawns)
 [[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ){
     assert(piecetype > PAWN && piecetype <= KING);
     switch (piecetype) {
         case KNIGHT:
-            return knight_attacks[pieceSquare];
+            return getKnightAttacks(pieceSquare);
         case BISHOP:
-            return GetBishopAttacks(pieceSquare, occ);
+            return getBishopAttacks(pieceSquare, occ);
         case ROOK:
-            return GetRookAttacks(pieceSquare, occ);
+            return getRookAttacks(pieceSquare, occ);
         case QUEEN:
-            return GetQueenAttacks(pieceSquare, occ);
+            return getQueenAttacks(pieceSquare, occ);
         case KING:
-            return king_attacks[pieceSquare];
+            return getKingAttacks(pieceSquare);
         default:
             __builtin_unreachable();
     }

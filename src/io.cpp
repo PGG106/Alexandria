@@ -13,7 +13,7 @@
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 
-void PrintBitboard(const Bitboard bitboard) {
+void printBitboard(const Bitboard bitboard) {
     // print offset
     std::cout << std::endl;
 
@@ -148,9 +148,9 @@ void PrintMoveList(const MoveList* list) {
     for (int index = 0; index < list->count; ++index) {
         Move move = list->moves[index].move;
         int score = list->moves[index].score;
-        std::cout << "Move: " << index + 1 << " >" << FormatMove(move) << " score: " << score << std::endl;
+        std::cout << "Move " << index + 1 << " : " << FormatMove(move) << " score: " << score << std::endl;
     }
-    std::cout << "MoveList Total  Moves:" << "list->count" << "\n\n";
+    std::cout << "Total Moves: " << list->count << "\n";
 }
 
 std::string Pick_color(int score) {

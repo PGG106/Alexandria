@@ -7,7 +7,6 @@
 #include "history.h"
 #include "attack.h"
 #include "eval.h"
-#include "magic.h"
 #include "makemove.h"
 #include "misc.h"
 #include "threads.h"
@@ -111,15 +110,15 @@ void ClearForSearch(ThreadData* td) {
 
 // returns a bitboard of all the attacks to a specific square
 static inline Bitboard AttacksTo(const Position* pos, const unsigned int to, Bitboard occ) {
-    Bitboard attackingBishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
-    Bitboard attackingRooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
+    Bitboard attackingBishops = getPieceBB(pos, BISHOP) | getPieceBB(pos, QUEEN);
+    Bitboard attackingRooks = getPieceBB(pos, ROOK) | getPieceBB(pos, QUEEN);
 
-    return (pawn_attacks[WHITE][to] & pos->GetPieceColorBB(PAWN, BLACK))
-         | (pawn_attacks[BLACK][to] & pos->GetPieceColorBB(PAWN, WHITE))
-         | (knight_attacks[to] & GetPieceBB(pos, KNIGHT))
-         | (king_attacks[to] & GetPieceBB(pos, KING))
-         | (GetBishopAttacks(to, occ) & attackingBishops)
-         | (GetRookAttacks(to, occ) & attackingRooks);
+    return (getPawnAttacks(to, WHITE) & pos->getPieceColorBB(PAWN, BLACK))
+         | (getPawnAttacks(to, BLACK) & pos->getPieceColorBB(PAWN, WHITE))
+         | (getKnightAttacks(to) & getPieceBB(pos, KNIGHT))
+         | (getKingAttacks(to) & getPieceBB(pos, KING))
+         | (getBishopAttacks(to, occ) & attackingBishops)
+         | (getRookAttacks(to, occ) & attackingRooks);
 }
 
 // inspired by the Weiss engine
@@ -163,8 +162,8 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
 
     Bitboard attackers = AttacksTo(pos, to, occupied);
 
-    Bitboard bishops = GetPieceBB(pos, BISHOP) | GetPieceBB(pos, QUEEN);
-    Bitboard rooks = GetPieceBB(pos, ROOK) | GetPieceBB(pos, QUEEN);
+    Bitboard bishops = getPieceBB(pos, BISHOP) | getPieceBB(pos, QUEEN);
+    Bitboard rooks = getPieceBB(pos, ROOK) | getPieceBB(pos, QUEEN);
 
     int side = Color[attacker] ^ 1;
 
@@ -192,7 +191,7 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
         // Pick next least valuable piece to capture with
         int pt;
         for (pt = PAWN; pt < KING; ++pt)
-            if (myAttackers & GetPieceBB(pos, pt))
+            if (myAttackers & getPieceBB(pos, pt))
                 break;
 
         side ^= 1;
@@ -206,12 +205,12 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
             break;
         }
         // Remove the used piece from occupied
-        occupied ^= 1ULL << (GetLsbIndex(myAttackers & pos->GetPieceColorBB(pt, side ^ 1)));
+        occupied ^= 1ULL << (GetLsbIndex(myAttackers & pos->getPieceColorBB(pt, side ^ 1)));
 
         if (pt == PAWN || pt == BISHOP || pt == QUEEN)
-            attackers |= GetBishopAttacks(to, occupied) & bishops;
+            attackers |= getBishopAttacks(to, occupied) & bishops;
         if (pt == ROOK || pt == QUEEN)
-            attackers |= GetRookAttacks(to, occupied) & rooks;
+            attackers |= getRookAttacks(to, occupied) & rooks;
     }
 
     return side != Color[attacker];
@@ -454,7 +453,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     // recursion escape condition
     if (depth <= 0)
-        return Quiescence<pvNode>(alpha, beta, td, ss);
+        return Quiescence<pvNode>(alpha, beta, 0, td, ss);
 
     // Probe the TT for useful previous search information, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
@@ -600,7 +599,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Razoring
         if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
         {
-            const int razorScore = Quiescence<false>(alpha, beta, td, ss);
+            const int razorScore = Quiescence<false>(alpha, beta, 0, td, ss);
             if (razorScore <= alpha)
                 return razorScore;
         }
@@ -636,7 +635,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // Play the move
             MakeMove<true>(move, pos);
 
-            int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, td, ss + 1);
+            int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
                 pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
                                           !cutNode, td, ss + 1);
@@ -936,7 +935,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
 // Quiescence search to avoid the horizon effect
 template <bool pvNode>
-int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
+int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) {
     Position* pos = &td->pos;
     SearchData* sd = &td->sd;
     SearchInfo* info = &td->info;
@@ -1051,7 +1050,7 @@ int Quiescence(int alpha, int beta, ThreadData* td, SearchStack* ss) {
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
-        const int score = -Quiescence<pvNode>(-beta, -alpha, td, ss + 1);
+        const int score = -Quiescence<pvNode>(-beta, -alpha, depth - 1, td, ss + 1);
 
         // take move back
         UnmakeMove(pos);
