@@ -203,7 +203,7 @@ void MakeDP(const Move move, Position* pos)
     // Add new ep square
     const int SOUTH = pos->side == WHITE ? 8 : -8;
     int epSquareCandidate = targetSquare + SOUTH;
-    if(!(pawn_attacks[pos->side][epSquareCandidate] & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
+    if(!(getPawnAttacks(epSquareCandidate, pos->side) & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
         epSquareCandidate = no_sq;
     pos->state().enPas = epSquareCandidate;
     if(pos->getEpSquare() != no_sq)

@@ -317,7 +317,7 @@ bool oppCanWinMaterial(const Position* pos, const int side) {
     Bitboard ourBishops = pos->getPieceColorBB(BISHOP, side);
     while (oppKnights) {
         const int source_square = popLsb(oppKnights);
-        if (knight_attacks[source_square] & (us ^ ourPawns ^ ourKnights ^ ourBishops))
+        if (getKnightAttacks(source_square) & (us ^ ourPawns ^ ourKnights ^ ourBishops))
             return true;
     }
 
@@ -354,7 +354,7 @@ Bitboard getThreats(const Position* pos, const int side) {
     Bitboard knights = pos->getPieceColorBB(KNIGHT, side);
     while (knights) {
         int source_square = popLsb(knights);
-        threats |= knight_attacks[source_square];
+        threats |= getKnightAttacks(source_square);
     }
 
     // Get Bishop attacks
@@ -379,7 +379,7 @@ Bitboard getThreats(const Position* pos, const int side) {
     Bitboard king = pos->getPieceColorBB(KING, side);
     while (king) {
         int source_square = popLsb(king);
-        threats |= king_attacks[source_square];
+        threats |= getKingAttacks(source_square);
     }
     return threats;
 }
@@ -429,7 +429,7 @@ void UpdatePinsAndCheckers(Position* pos) {
     const Bitboard them = pos->Occupancy(side ^ 1);
     const int kingSquare = KingSQ(pos, side);
     const Bitboard pawnCheckers = pos->getPieceColorBB(PAWN, side ^ 1) & pawn_attacks[side][kingSquare];
-    const Bitboard knightCheckers = pos->getPieceColorBB(KNIGHT, side ^ 1) & knight_attacks[kingSquare];
+    const Bitboard knightCheckers = pos->getPieceColorBB(KNIGHT, side ^ 1) & getKnightAttacks(kingSquare);
     const Bitboard bishopsQueens = pos->getPieceColorBB(BISHOP, side ^ 1) | pos->getPieceColorBB(QUEEN, side ^ 1);
     const Bitboard rooksQueens = pos->getPieceColorBB(ROOK, side ^ 1) | pos->getPieceColorBB(QUEEN, side ^ 1);
     Bitboard sliderAttacks = (bishopsQueens & getBishopAttacks(kingSquare, them)) | (rooksQueens & getRookAttacks(kingSquare, them));

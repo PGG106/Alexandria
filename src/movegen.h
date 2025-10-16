@@ -35,4 +35,4 @@ void quietChecks(Position* pos, MoveList* movelist);
 // generate moves
 void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type);
 
-void generateQuietChecks(Position* pos, MoveList* movelist);
+void generateQuietChecks( MoveList* movelist, Position* pos);

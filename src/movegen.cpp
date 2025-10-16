@@ -12,13 +12,13 @@ bool IsSquareAttacked(const Position* pos, const int square, const int side) {
     // Take the occupancies of both positions, encoding where all the pieces on the board reside
     const Bitboard occ = pos->Occupancy(BOTH);
     // is the square attacked by pawns
-    if (pawn_attacks[side ^ 1][square] & pos->getPieceColorBB(PAWN, side))
+    if (getPawnAttacks(square, side ^ 1) & pos->getPieceColorBB(PAWN, side))
         return true;
     // is the square attacked by knights
-    if (knight_attacks[square] & pos->getPieceColorBB(KNIGHT, side))
+    if (getKnightAttacks(square) & pos->getPieceColorBB(KNIGHT, side))
         return true;
     // is the square attacked by kings
-    if (king_attacks[square] & pos->getPieceColorBB(KING, side))
+    if (getKingAttacks(square) & pos->getPieceColorBB(KING, side))
         return true;
     // is the square attacked by bishops
     if (getBishopAttacks(square, occ) & (pos->getPieceColorBB(BISHOP, side) | pos->getPieceColorBB(QUEEN, side)))
@@ -127,7 +127,7 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
             return;
 
         // En passant
-        Bitboard epPieces = pawn_attacks[color ^ 1][epSq] & ourPawns;
+        Bitboard epPieces = getPawnAttacks(epSq, color ^ 1) & ourPawns;
         while (epPieces) {
             int from = popLsb(epPieces);
             AddMove(encode_move(from, epSq, pawnType, Movetype::enPassant), list);
@@ -152,7 +152,7 @@ static inline void PseudoLegalKnightMoves(Position* pos, int color, MoveList* li
 
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & moveMask;
+        Bitboard possible_moves = getKnightAttacks(from) & moveMask;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             const Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -206,7 +206,7 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
     if (genQuiet)
         moveMask |= ~pos->Occupancy(BOTH);
 
-    Bitboard possible_moves = king_attacks[from] & moveMask;
+    Bitboard possible_moves = getKingAttacks(from) & moveMask;
     while (possible_moves) {
         const int to = popLsb(possible_moves);
         Movetype movetype = pos->PieceOn(to) != EMPTY ? Movetype::Capture : Movetype::Quiet;
@@ -254,8 +254,7 @@ void GenerateMoves(MoveList* move_list, Position* pos, MovegenType type) {
 }
 
 // generate moves
-// TODO invert pos and movelist positions
-void generateQuietChecks(Position* pos, MoveList* movelist) {
+void generateQuietChecks(MoveList* movelist, Position* pos) {
     const int stm = pos->side;
     const int nstm = !stm;
     const Square oppKingSq = KingSQ(pos, nstm);
@@ -287,7 +286,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     const int knightType = GetPiece(KNIGHT, stm);
     while (knights) {
         const int from = popLsb(knights);
-        Bitboard possible_moves = knight_attacks[from] & knightCheckSquares;
+        Bitboard possible_moves = getKnightAttacks(from) & knightCheckSquares;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             AddMove(encode_move(from, to, knightType, Movetype::Quiet), movelist);
@@ -400,7 +399,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
                 if (!((1ULL << (to - NORTH)) & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
                     return false;
             }
-            if (isCapture(move) && !(pawn_attacks[pos->side][from] & (1ULL << to)))
+            if (isCapture(move) && !(getPawnAttacks(from, pos->side) & (1ULL << to)))
                 return false;
 
             if (isPromo(move)) {
@@ -420,7 +419,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
             break;
 
         case KNIGHT:
-            if (!(knight_attacks[from] & (1ULL << to)))
+            if (!(getKnightAttacks(from) & (1ULL << to)))
                 return false;
 
             break;
@@ -481,7 +480,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
 
                 return false;
             }
-            if (!(king_attacks[from] & (1ULL << to)))
+            if (!(getKingAttacks(from) & (1ULL << to)))
                 return false;
 
             break;
