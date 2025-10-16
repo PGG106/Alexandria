@@ -117,6 +117,45 @@ extern Bitboard bishop_attacks[64][512];
 // rook attacks rable [square][occupancies]
 extern Bitboard rook_attacks[64][4096];
 
+[[nodiscard]] inline Bitboard getPawnAttacks(const Square square, const int side) {
+    return pawn_attacks[side][square];
+}
+
+[[nodiscard]] inline Bitboard getKnightAttacks(const Square square) {
+    return knight_attacks[square];
+}
+
+// get bishop attacks
+[[nodiscard]] inline Bitboard getBishopAttacks(const Square square, Bitboard occupancy) {
+    // get bishop attacks assuming current board occupancy
+    occupancy &= bishop_masks[square];
+    occupancy *= bishop_magic_numbers[square];
+    occupancy >>= 64 - bishop_relevant_bits;
+
+    // return bishop attacks
+    return bishop_attacks[square][occupancy];
+}
+
+// get rook attacks
+[[nodiscard]] inline Bitboard getRookAttacks(const Square square, Bitboard occupancy) {
+    // get rook attacks assuming current board occupancy
+    occupancy &= rook_masks[square];
+    occupancy *= rook_magic_numbers[square];
+    occupancy >>= 64 - rook_relevant_bits;
+
+    // return rook attacks
+    return rook_attacks[square][occupancy];
+}
+
+// get queen attacks
+[[nodiscard]] inline Bitboard getQueenAttacks(const Square square, Bitboard occupancy) {
+    return getBishopAttacks(square, occupancy) | getRookAttacks(square, occupancy);
+}
+
+[[nodiscard]] inline Bitboard getKingAttacks(const Square square) {
+    return king_attacks[square];
+}
+
 [[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ);
 
 // set occupancies

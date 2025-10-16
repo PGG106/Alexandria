@@ -3,7 +3,6 @@
 #include "bitboard.h"
 #include "init.h"
 #include "io.h"
-#include "magic.h"
 #include "makemove.h"
 #include "position.h"
 #include "move.h"
@@ -22,10 +21,10 @@ bool IsSquareAttacked(const Position* pos, const int square, const int side) {
     if (king_attacks[square] & pos->getPieceColorBB(KING, side))
         return true;
     // is the square attacked by bishops
-    if (GetBishopAttacks(square, occ) & (pos->getPieceColorBB(BISHOP, side) | pos->getPieceColorBB(QUEEN, side)))
+    if (getBishopAttacks(square, occ) & (pos->getPieceColorBB(BISHOP, side) | pos->getPieceColorBB(QUEEN, side)))
         return true;
     // is the square attacked by rooks
-    if (GetRookAttacks(square, occ) & (pos->getPieceColorBB(ROOK, side) | pos->getPieceColorBB(QUEEN, side)))
+    if (getRookAttacks(square, occ) & (pos->getPieceColorBB(ROOK, side) | pos->getPieceColorBB(QUEEN, side)))
         return true;
     // by default return false
     return false;
@@ -265,7 +264,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
 
     // For each piece type, precompute the squares from which that piece could give a
     // check to the opponent's king if it moved there — and the square is empty.
-    Bitboard pawnCheckSquares = pawn_attacks[nstm][oppKingSq] & ~occupied;
+    Bitboard pawnCheckSquares = getPawnAttacks(oppKingSq, nstm) & ~occupied;
     if (stm == WHITE) {
         // pick any white pawn that can give check
         Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE);
@@ -284,7 +283,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     }
 
     Bitboard knights = pos->getPieceColorBB(KNIGHT, stm) & ~pinned;
-    Bitboard knightCheckSquares = knight_attacks[oppKingSq] & ~occupied;
+    Bitboard knightCheckSquares = getKnightAttacks(oppKingSq) & ~occupied;
     const int knightType = GetPiece(KNIGHT, stm);
     while (knights) {
         const int from = popLsb(knights);
@@ -296,11 +295,11 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     }
 
     Bitboard bishops = pos->getPieceColorBB(BISHOP, stm);
-    Bitboard bishopCheckSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
+    Bitboard bishopCheckSquares = getBishopAttacks(oppKingSq, occupied) & ~occupied;
     const int bishopType = GetPiece(BISHOP, stm);
     while (bishops) {
         const int from = popLsb(bishops);
-        Bitboard possible_moves = GetBishopAttacks(from, occupied) & bishopCheckSquares;
+        Bitboard possible_moves = getBishopAttacks(from, occupied) & bishopCheckSquares;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             AddMove(encode_move(from, to, bishopType, Movetype::Quiet), movelist);
@@ -308,11 +307,11 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     }
 
     Bitboard rooks = pos->getPieceColorBB(ROOK, stm);
-    Bitboard rookCheckSquares = GetRookAttacks(oppKingSq, occupied) & ~occupied;
+    Bitboard rookCheckSquares = getRookAttacks(oppKingSq, occupied) & ~occupied;
     const int rookType = GetPiece(ROOK, stm);
     while (rooks) {
         const int from = popLsb(rooks);
-        Bitboard possible_moves = GetRookAttacks(from, occupied) & rookCheckSquares;
+        Bitboard possible_moves = getRookAttacks(from, occupied) & rookCheckSquares;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             AddMove(encode_move(from, to, rookType, Movetype::Quiet), movelist);
@@ -324,7 +323,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     const int queenType = GetPiece(QUEEN, stm);
     while (queens) {
         const int from = popLsb(queens);
-        Bitboard possible_moves = GetQueenAttacks(from, occupied) & queenCheckSquares;
+        Bitboard possible_moves = getQueenAttacks(from, occupied) & queenCheckSquares;
         while (possible_moves) {
             const int to = popLsb(possible_moves);
             AddMove(encode_move(from, to, queenType, Movetype::Quiet), movelist);

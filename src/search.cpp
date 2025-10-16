@@ -7,7 +7,6 @@
 #include "history.h"
 #include "attack.h"
 #include "eval.h"
-#include "magic.h"
 #include "makemove.h"
 #include "misc.h"
 #include "threads.h"
@@ -118,8 +117,8 @@ static inline Bitboard AttacksTo(const Position* pos, const unsigned int to, Bit
          | (pawn_attacks[BLACK][to] & pos->getPieceColorBB(PAWN, WHITE))
          | (knight_attacks[to] & getPieceBB(pos, KNIGHT))
          | (king_attacks[to] & getPieceBB(pos, KING))
-         | (GetBishopAttacks(to, occ) & attackingBishops)
-         | (GetRookAttacks(to, occ) & attackingRooks);
+         | (getBishopAttacks(to, occ) & attackingBishops)
+         | (getRookAttacks(to, occ) & attackingRooks);
 }
 
 // inspired by the Weiss engine
@@ -209,9 +208,9 @@ bool SEE(const Position* pos, const Move move, const int threshold) {
         occupied ^= 1ULL << (GetLsbIndex(myAttackers & pos->getPieceColorBB(pt, side ^ 1)));
 
         if (pt == PAWN || pt == BISHOP || pt == QUEEN)
-            attackers |= GetBishopAttacks(to, occupied) & bishops;
+            attackers |= getBishopAttacks(to, occupied) & bishops;
         if (pt == ROOK || pt == QUEEN)
-            attackers |= GetRookAttacks(to, occupied) & rooks;
+            attackers |= getRookAttacks(to, occupied) & rooks;
     }
 
     return side != Color[attacker];
