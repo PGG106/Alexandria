@@ -64,7 +64,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
     if (skip) {
         // In search, the skip variable is used to dictate whether we skip quiet moves
         if (   mp->movepickerType == SEARCH
-            && mp->stage > PICK_QUIET_CHECKS
+            && mp->stage >= PICK_QUIET_CHECKS
             && mp->stage < GEN_BAD_NOISY) {
             mp->stage = GEN_BAD_NOISY;
         }
@@ -141,7 +141,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
         goto top;
 
     case GEN_QUIET_CHECKS:
-            // if we aren't in qsearch, aren't meant to play quiet checks or we are gonna play quiet moves regardless just go directly to gen quiets
         if (mp->movepickerType != QSEARCH || !mp->genQuietChecks)
             mp->stage = GEN_QUIETS;
         else {
@@ -162,7 +161,6 @@ Move NextMove(Movepicker* mp, const bool skip) {
                 continue;
 
             assert(!isTactical(move));
-            // TODO check pseudolegal?
             return move;
         }
         ++mp->stage;

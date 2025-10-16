@@ -268,7 +268,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
     Bitboard pawnCheckSquares = pawn_attacks[nstm][oppKingSq] & ~occupied;
     if (stm == WHITE) {
         // pick any white pawn that can give check
-        Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE) & ~pinned;
+        Bitboard whitePawns = (pawnCheckSquares << 8) & pos->getPieceColorBB(PAWN, WHITE);
         // generate the moves for all the pawns we've got
         while (whitePawns) {
             const int from = popLsb(whitePawns);
@@ -276,7 +276,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
         }
     }
     else {
-        Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK) & ~pinned;
+        Bitboard blackPawns = (pawnCheckSquares >> 8) & pos->getPieceColorBB(PAWN, BLACK);
         while (blackPawns) {
             const int from = popLsb(blackPawns);
             AddMove(encode_move(from, from + 8, BP, Movetype::Quiet), movelist);
@@ -295,7 +295,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
         }
     }
 
-    Bitboard bishops = pos->getPieceColorBB(BISHOP, stm) & ~pinned;
+    Bitboard bishops = pos->getPieceColorBB(BISHOP, stm);
     Bitboard bishopCheckSquares = GetBishopAttacks(oppKingSq, occupied) & ~occupied;
     const int bishopType = GetPiece(BISHOP, stm);
     while (bishops) {
@@ -307,7 +307,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
         }
     }
 
-    Bitboard rooks = pos->getPieceColorBB(ROOK, stm) & ~pinned;
+    Bitboard rooks = pos->getPieceColorBB(ROOK, stm);
     Bitboard rookCheckSquares = GetRookAttacks(oppKingSq, occupied) & ~occupied;
     const int rookType = GetPiece(ROOK, stm);
     while (rooks) {
@@ -319,7 +319,7 @@ void generateQuietChecks(Position* pos, MoveList* movelist) {
         }
     }
 
-    Bitboard queens = pos->getPieceColorBB(QUEEN, stm) & ~pinned;
+    Bitboard queens = pos->getPieceColorBB(QUEEN, stm);
     Bitboard queenCheckSquares = bishopCheckSquares | rookCheckSquares;
     const int queenType = GetPiece(QUEEN, stm);
     while (queens) {
