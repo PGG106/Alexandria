@@ -467,6 +467,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (   !pvNode
         &&  ttScore != SCORE_NONE
         &&  ttDepth >= depth
+        &&  cutNode == (ttScore >= beta)
         && pos->get50MrCounter() < 90
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
