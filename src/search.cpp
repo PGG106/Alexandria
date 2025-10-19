@@ -466,7 +466,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
-        &&  ttDepth >= depth - (ttScore <= beta)
+        &&  ttDepth >= depth + (ttScore >= beta)
         &&  cutNode == (ttScore >= beta)
         && pos->get50MrCounter() < 90
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
