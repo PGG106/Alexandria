@@ -11,7 +11,7 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 #include <sys/mman.h>
 #define USE_MADVISE
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__ANDROID__)
 #define USE_POSIX_MEMALIGN
 #else
 #include <stdlib.h>
