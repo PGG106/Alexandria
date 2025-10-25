@@ -563,8 +563,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
             && (ss - 1)->move != NOMOVE
             && ss->ply >= td->nmpPlies
-            && BoardHasNonPawns(pos, pos->side)
-            && !isMated(beta)) {
+            && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
