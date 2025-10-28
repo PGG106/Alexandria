@@ -426,6 +426,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return 0;
     }
 
+    if (info->stopped)
+        return 0;
+
     // Check for early return conditions
     if (!rootNode) {
         // If position is a draw return a draw score
