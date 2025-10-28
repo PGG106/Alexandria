@@ -552,7 +552,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
 
         // Reverse futility pruning
-        if (   depth < 10
+        if (   depth < 12
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, badNode) >= beta)
