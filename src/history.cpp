@@ -66,7 +66,7 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 
 void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
     // Update move score
-    const int scaledBonus = bonus - GetCHScore(ss, move) * std::abs(bonus) / CH_MAX;
+    const int scaledBonus = bonus - 2 * GetCHScore(ss, move) * std::abs(bonus) / CH_MAX;
     updateSingleCHScore(ss, move, scaledBonus, 1);
     updateSingleCHScore(ss, move, scaledBonus, 2);
     updateSingleCHScore(ss, move, scaledBonus, 4);
