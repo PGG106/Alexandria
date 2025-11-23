@@ -74,7 +74,9 @@ void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
 
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset) {
     if ((ss - offset)->move) {
-        (*((ss - offset)->contHistEntry))[PieceTo(move)] += bonus;
+        auto& entry =  (*((ss - offset)->contHistEntry))[PieceTo(move)];
+        entry += bonus;
+        entry = std::clamp(entry, -CH_MAX, CH_MAX);
     }
 }
 
