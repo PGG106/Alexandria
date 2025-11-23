@@ -66,16 +66,15 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 
 void updateCHScore(SearchStack* ss, const Move move, const int bonus) {
     // Update move score
-    updateSingleCHScore(ss, move, bonus, 1);
-    updateSingleCHScore(ss, move, bonus, 2);
-    updateSingleCHScore(ss, move, bonus, 4);
+    const int scaledBonus = bonus - GetCHScore(ss, move) * std::abs(bonus) / CH_MAX;
+    updateSingleCHScore(ss, move, scaledBonus, 1);
+    updateSingleCHScore(ss, move, scaledBonus, 2);
+    updateSingleCHScore(ss, move, scaledBonus, 4);
 }
 
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset) {
     if ((ss - offset)->move) {
-        // Scale bonus to fix it in a [-CH_MAX;CH_MAX] range
-        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / CH_MAX;
-        (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
+        (*((ss - offset)->contHistEntry))[PieceTo(move)] += bonus;
     }
 }
 
