@@ -539,7 +539,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             return ss->staticEval > (ss - 2)->staticEval;
         else if ((ss - 4)->staticEval != SCORE_NONE)
             return ss->staticEval > (ss - 4)->staticEval;
-        return true;
+        return false;
     }();
 
     if (!pvNode
