@@ -179,7 +179,7 @@ TUNE_PARAM(lmrNoisyBase, -41, -70, 100, 7, 0.002)
 TUNE_PARAM(lmrNoisytDivisor, 234, 150, 500, 15, 0.002)
 // Forward pruning
 TUNE_PARAM(lmrDepthDivisor, 8285, 1, 16383, 100, 0.002)
-TUNE_PARAM(seeQuietMargin, -95, -150, -20, 5, 0.002)
+TUNE_PARAM(seeQuietMargin, -25, -150, -20, 5, 0.002)
 TUNE_PARAM(seeNoisyMargin, -26, -100, -1, 3, 0.002)
 TUNE_PARAM(futilityCoeff0, 250, 40, 300, 10, 0.002)
 TUNE_PARAM(futilityCoeff1, 120, 40, 200, 10, 0.002)
