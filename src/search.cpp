@@ -719,7 +719,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     continue;
                 }
             }
-            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : std::min(seeNoisyMargin() * lmrDepth * lmrDepth - moveHistory / 48, 0);
+            int see_margin = isQuiet ? seeQuietMargin() * lmrDepth : std::min(seeNoisyMargin() * lmrDepth * lmrDepth - moveHistory / 96, 0);
             // See pruning: prune all the moves that have a SEE score that is lower than our threshold
             if (!SEE(pos, move, see_margin))
                 continue;
