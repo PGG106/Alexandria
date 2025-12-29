@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <cassert>
+#include <cmath>
 #include "simd.h"
 #include "types.h"
 
@@ -11,11 +12,18 @@
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
 constexpr int L1_SIZE = 1536;
+constexpr int L2_SIZE = 16;
+constexpr int L3_SIZE = 32;
 constexpr int OUTPUT_BUCKETS = 8;
 
-constexpr int FT_QUANT = 255;
-constexpr int L1_QUANT = 64;
+constexpr int FT_QUANT  = 362;
+constexpr int FT_SHIFT  = 10;
+constexpr int L1_QUANT  = 32;
 constexpr int NET_SCALE = 400;
+
+constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
+constexpr float WEIGHT_CLIPPING = 1.98f;
+static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
 
 constexpr int buckets[64] = {
          0,  1,  2,  3,  3,  2,  1, 0,
@@ -36,10 +44,14 @@ constexpr int buckets[64] = {
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
-    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases[L1_SIZE];
-    int16_t L1Weights[L1_SIZE * 2 * OUTPUT_BUCKETS];
-    int16_t L1Biases[OUTPUT_BUCKETS];
+    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE];
+    alignas(64) int16_t FTBiases [L1_SIZE];
+    alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
+    alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    alignas(64) float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * L3_SIZE];
+    alignas(64) float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float   L3Biases [OUTPUT_BUCKETS];
 };
 
 extern const Network *net;
