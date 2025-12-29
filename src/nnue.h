@@ -21,6 +21,8 @@ constexpr int FT_SHIFT  = 10;
 constexpr int L1_QUANT  = 32;
 constexpr int NET_SCALE = 400;
 
+constexpr bool MERGE_KING_PLANES = true;
+
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
 constexpr float WEIGHT_CLIPPING = 1.98f;
 static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
