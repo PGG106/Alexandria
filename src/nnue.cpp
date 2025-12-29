@@ -149,7 +149,6 @@ void NNUE::activateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  uint8_
 int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-    const int32_t bucketOffset = 2 * L1_SIZE * outputBucket;
     alignas (64) uint8_t  FTOutputs[L1_SIZE];
     alignas (64) float    L1Outputs[L2_SIZE];
     alignas (64) float    L2Outputs[L3_SIZE];
@@ -158,11 +157,11 @@ int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     // does FT activation for both accumulators
     activateAffine(pos, FinnyPointer, FTOutputs);
 
-    propagateL1(FTOutputs, net->L1Weights[bucketOffset], net->L1Biases[bucketOffset], L1Outputs);
+    propagateL1(FTOutputs, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 
-    propagateL2(L1Outputs,net->L2Weights[bucketOffset], net->L2Biases[bucketOffset], L2Outputs );
+    propagateL2(L1Outputs,net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs );
 
-    propagateL3(L2Outputs, net->L3Weights[bucketOffset], net->L3Biases[bucketOffset], L3Output);
+    propagateL3(L2Outputs, net->L3Weights[outputBucket], net->L3Biases[outputBucket], L3Output);
 
     return L3Output * NET_SCALE;
 }
