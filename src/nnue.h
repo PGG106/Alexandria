@@ -44,7 +44,7 @@ constexpr int buckets[64] = {
 using NNUEIndices = std::array<std::size_t, 2>;
 
 struct Network {
-    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE];
+    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE * INPUT_BUCKETS];
     alignas(64) int16_t FTBiases [L1_SIZE];
     alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
     alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
