@@ -157,6 +157,8 @@ int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     // does FT activation for both accumulators
     activateAffine(pos, FinnyPointer, FTOutputs);
 
+    for (auto partial : FTOutputs) {if (partial != 0)  std::cout << static_cast<int32_t>(partial) << " "; }
+
     propagateL1(FTOutputs, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 
     propagateL2(L1Outputs,net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs );
@@ -170,7 +172,7 @@ size_t NNUE::getIndex(const int piece, const int square, const int side, const i
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
-    const int pieceColor = Color[piece];
+    const int pieceColor = Color[piece] * (!MERGE_KING_PLANES || piecetype == KING);
     const int pieceColorPov = pieceColor ^ side;
 
     // Get the final indexes of the updates, accounting for hm
