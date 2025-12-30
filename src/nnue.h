@@ -16,10 +16,10 @@ constexpr int L2_SIZE = 16;
 constexpr int L3_SIZE = 32;
 constexpr int OUTPUT_BUCKETS = 8;
 
-constexpr int FT_QUANT  = 362;
+constexpr int FT_QUANT  = 255;
 constexpr int FT_SHIFT  = 10;
-constexpr int L1_QUANT  = 32;
-constexpr int NET_SCALE = 400;
+constexpr int L1_QUANT  = 64;
+constexpr int NET_SCALE = 362;
 
 constexpr bool MERGE_KING_PLANES = false;
 
