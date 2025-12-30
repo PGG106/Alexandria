@@ -34,9 +34,18 @@ void load_unquantize_andquant() {
 
     stream.read(reinterpret_cast<char *>(&unquantisedNet), sizeof(UnquantisedNetwork));
 
+    // start by summing the factoriser into the other buckets
+    for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i) {
+        auto fact_weight = unquantisedNet.Factoriser[i];
+        for (int bucket = 0; bucket < INPUT_BUCKETS; ++bucket) {
+            auto bucket_offset = bucket * (NUM_INPUTS * L1_SIZE);
+            quantisedNet.FTWeights[bucket_offset + i] = static_cast<int16_t>(std::round(fact_weight * FT_QUANT));
+        }
+    }
+
     // Quantise FT Weights
     for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
-        quantisedNet.FTWeights[i] = static_cast<int16_t>(std::round(unquantisedNet.FTWeights[i] * FT_QUANT));
+        quantisedNet.FTWeights[i] += static_cast<int16_t>(std::round(unquantisedNet.FTWeights[i] * FT_QUANT));
 
     // Quantise FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
@@ -50,12 +59,9 @@ void load_unquantize_andquant() {
             for (int j = 0; j < L2_SIZE; ++j)
                 quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
 
-        // Quantise L1 Biases and factoriser
+        // Quantise L1 Biases
         for (int i = 0; i < L2_SIZE; ++i) {
-            float bias = unquantisedNet.L1Biases[bucket][i];
-            for (int f = 0; f < L1_SIZE; ++f)
-                bias += unquantisedNet.Factoriser[f] * unquantisedNet.L1Weights[f][bucket][i];
-            quantisedNet.L1Biases[bucket][i] = bias;
+             quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
         }
 
         // Quantise L2 Weights
@@ -92,7 +98,6 @@ void NNUE::init() {
     // FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
         net.FTBiases[i] = quantisedNet.FTBiases[i];
-
 
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
