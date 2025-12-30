@@ -191,6 +191,30 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
 }
 
 void NNUE::propagateL2(const float *inputs, const float *weights, const float *biases, float *output) {
+
+    // For each input, multiply by all the L2 weights
+#if defined(USE_SIMD)
+    vps32 sumVecs[L3_SIZE / L3_CHUNK_SIZE];
+
+    for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i)
+        sumVecs[i] = vec_load_ps(&biases[i * L3_CHUNK_SIZE]);
+
+    for (int i = 0; i < L2_SIZE; ++i) {
+        const vps32 inputVec = vec_set1_ps(inputs[i]);
+        const vps32 *weight  = reinterpret_cast<const vps32*>(&weights[i * L3_SIZE]);
+        for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
+            sumVecs[j] = vec_mul_add_ps(inputVec, weight[j], sumVecs[j]);
+    }
+
+    // Activate L2
+    for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
+        const vps32 Zero    = vec_zero_ps();
+        const vps32 One     = vec_set1_ps(1.0f);
+        const vps32 clipped = vec_min_ps(vec_max_ps(sumVecs[i], Zero), One);
+        const vps32 squared = vec_mul_ps(clipped, clipped);
+        vec_store_ps(&output[i * L3_CHUNK_SIZE], squared);
+    }
+#else
     float sums[L3_SIZE];
 
     for (int i = 0; i < L3_SIZE; ++i)
@@ -210,6 +234,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
         const float squared = clipped * clipped;
         output[i] = squared;
     }
+#endif
 }
 
 void NNUE::propagateL3(const float *inputs, const float *weights, const float bias, float &output) {
