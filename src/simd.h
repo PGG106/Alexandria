@@ -15,6 +15,7 @@ using v128i  = __m128i;
 inline vepi16  vec_zero_epi16() { return _mm512_setzero_si512(); }
 inline vepi32  vec_zero_epi32() { return _mm512_setzero_si512(); }
 inline vepi16  vec_set1_epi16 (const int16_t n) { return _mm512_set1_epi16(n); }
+inline vepi32 vec_set1_epi32 (const int32_t n) { return _mm512_set1_epi32(n); }
 inline vepi16  vec_loadu_epi  (const vepi16 *src) { return _mm512_loadu_si512(src); }
 inline void    vec_storeu_epi (vepi16 *dst, const vepi16 vec) { _mm512_storeu_si512(dst, vec); }
 inline vepi16  vec_add_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_add_epi16(vec0, vec1); }
@@ -26,6 +27,29 @@ inline vepi32  vec_madd_epi16 (const vepi16 vec0, const vepi16 vec1) { return _m
 inline vepi32  vec_add_epi32  (const vepi32 vec0, const vepi32 vec1) { return _mm512_add_epi32(vec0, vec1); }
 inline int32_t vec_reduce_add_epi32(const vepi32 vec) { return _mm512_reduce_add_epi32(vec); }
 
+
+inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
+#if defined(USE_VNNI512)
+    return _mm512_dpbusd_epi32(_mm512_dpbusd_epi32(sum, vec0, vec1), vec2, vec3);
+#else
+    const vepi16 product16a = _mm512_maddubs_epi16(vec0, vec1);
+    const vepi16 product16b = _mm512_maddubs_epi16(vec2, vec3);
+    const vepi32 product32  = _mm512_madd_epi16(_mm512_add_epi16(product16a, product16b), _mm512_set1_epi16(1));
+    return _mm512_add_epi32(sum, product32);
+#endif
+}
+
+inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
+#if defined(USE_VNNI512)
+    return _mm512_dpbusd_epi32(sum, vec0, vec1);
+#else
+    const vepi16 product16 = _mm512_maddubs_epi16(vec0, vec1);
+    const vepi32 product32 = _mm512_madd_epi16(product16, _mm512_set1_epi16(1));
+    return _mm512_add_epi32(sum, product32);
+#endif
+}
+
+inline vps32 vec_cvtepi32_ps(const vepi32 vec) { return _mm512_cvtepi32_ps(vec); }
 
 inline vps32 vec_zero_ps () { return _mm512_setzero_ps(); }
 inline vps32 vec_set1_ps (const float n) { return _mm512_set1_ps(n); }
