@@ -39,13 +39,13 @@ void load_unquantize_andquant() {
         auto fact_weight = unquantisedNet.Factoriser[i];
         for (int bucket = 0; bucket < INPUT_BUCKETS; ++bucket) {
             auto bucket_offset = bucket * (NUM_INPUTS * L1_SIZE);
-            quantisedNet.FTWeights[bucket_offset + i] = static_cast<int16_t>(std::round(fact_weight * FT_QUANT));
+            quantisedNet.FTWeights[bucket_offset + i] = fact_weight;
         }
     }
 
     // Quantise FT Weights
     for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
-        quantisedNet.FTWeights[i] += static_cast<int16_t>(std::round(unquantisedNet.FTWeights[i] * FT_QUANT));
+        quantisedNet.FTWeights[i] = static_cast<int16_t>(std::round((unquantisedNet.FTWeights[i] + quantisedNet.FTWeights[i]) * FT_QUANT));
 
     // Quantise FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
