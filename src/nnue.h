@@ -27,6 +27,16 @@ constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_
 constexpr float WEIGHT_CLIPPING = 1.98f;
 static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
 
+#if defined(USE_SIMD)
+constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
+constexpr int L1_CHUNK_SIZE = sizeof(vepi8 ) / sizeof(int8_t);
+constexpr int L2_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
+constexpr int L3_CHUNK_SIZE = sizeof(vps32 ) / sizeof(float);
+constexpr int L1_CHUNK_PER_32 = sizeof(int32_t) / sizeof(int8_t);
+#else
+constexpr int L1_CHUNK_PER_32 = 1;
+#endif
+
 constexpr int buckets[64] = {
          0,  1,  2,  3,  3,  2,  1, 0,
          4,  5,  6,  7,  7,  6,  5, 4,

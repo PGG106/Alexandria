@@ -212,16 +212,19 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
     }
 }
 
-inline float reduce_add(float *sums, const int length) {
-    if (length == 2) return sums[0] + sums[1];
-    for (int i = 0; i < length / 2; ++i)
-        sums[i] += sums[i + length / 2];
-
-    return reduce_add(sums, length / 2);
-}
-
 void NNUE::propagateL3(const float *inputs, const float *weights, const float bias, float &output) {
     constexpr int avx512chunk = 512 / 32;
+    #if defined(USE_SIMD)
+    constexpr int numSums = avx512chunk / (sizeof(vps32) / sizeof(float));
+    vps32 sumVecs[numSums] = {};
+    // Affine transform for L3
+    for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
+        const vps32 weightVec = vec_load_ps(&weights[i * L3_CHUNK_SIZE]);
+        const vps32 inputsVec = vec_load_ps(&inputs[i * L3_CHUNK_SIZE]);
+        sumVecs[i % numSums] = vec_mul_add_ps(inputsVec, weightVec, sumVecs[i % numSums]);
+    }
+    output = vec_reduce_add_ps(sumVecs) + bias;
+#else
     constexpr int numSums = avx512chunk;
     float sums[numSums] = {};
 
@@ -230,6 +233,7 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
         sums[i % numSums] += inputs[i] * weights[i];
     }
     output = reduce_add(sums, numSums) + bias;
+#endif
 }
 
 void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, uint8_t *output) {
