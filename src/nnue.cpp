@@ -50,9 +50,13 @@ void load_unquantize_andquant() {
             for (int j = 0; j < L2_SIZE; ++j)
                 quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
 
-        // Quantise L1 Biases
-        for (int i = 0; i < L2_SIZE; ++i)
-            quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
+        // Quantise L1 Biases and factoriser
+        for (int i = 0; i < L2_SIZE; ++i) {
+            float bias = unquantisedNet.L1Biases[bucket][i];
+            for (int f = 0; f < L1_SIZE; ++f)
+                bias += unquantisedNet.Factoriser[f] * unquantisedNet.L1Weights[f][bucket][i];
+            quantisedNet.L1Biases[bucket][i] = bias;
+        }
 
         // Quantise L2 Weights
         for (int i = 0; i < L2_SIZE; ++i)

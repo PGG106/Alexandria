@@ -48,6 +48,7 @@ using NNUEIndices = std::array<std::size_t, 2>;
 struct UnquantisedNetwork {
     float FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
     float FTBiases[L1_SIZE];
+    float Factoriser[L1_SIZE];
     float L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
     float L1Biases[OUTPUT_BUCKETS][L2_SIZE];
     float L2Weights[L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
