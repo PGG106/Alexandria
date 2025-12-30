@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include "incbin/incbin.h"
+#include <fstream>
 #include "io.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
@@ -22,13 +23,95 @@ const unsigned char* const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-const Network *net;
+Network net;
 
-// Thanks to Disservin for having me look at his code and Luecx for the
-// invaluable help and the immense patience
+UnquantisedNetwork unquantisedNet;
+QuantisedNetwork quantisedNet;
+
+void load_unquantize_andquant() {
+    // open the nn file
+    std::ifstream stream{"nn.net", std::ios::binary};
+
+    stream.read(reinterpret_cast<char *>(&unquantisedNet), sizeof(UnquantisedNetwork));
+
+    // Quantise FT Weights
+    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
+        quantisedNet.FTWeights[i] = static_cast<int16_t>(std::round(unquantisedNet.FTWeights[i] * FT_QUANT));
+
+    // Quantise FT Biases
+    for (int i = 0; i < L1_SIZE; ++i)
+        quantisedNet.FTBiases[i] = static_cast<int16_t>(std::round(unquantisedNet.FTBiases[i] * FT_QUANT));
+
+    // Quantise L1, L2 and L3 weights and biases
+    for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
+
+        // Quantise L1 Weights
+        for (int i = 0; i < L1_SIZE; ++i)
+            for (int j = 0; j < L2_SIZE; ++j)
+                quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
+
+        // Quantise L1 Biases
+        for (int i = 0; i < L2_SIZE; ++i)
+            quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
+
+        // Quantise L2 Weights
+        for (int i = 0; i < L2_SIZE; ++i)
+            for (int j = 0; j < L3_SIZE; ++j)
+                quantisedNet.L2Weights[i][bucket][j] = unquantisedNet.L2Weights[i][bucket][j];
+
+        // Quantise L2 Biases
+        for (int i = 0; i < L3_SIZE; ++i)
+            quantisedNet.L2Biases[bucket][i] = unquantisedNet.L2Biases[bucket][i];
+
+        // Quantise L3 Weights
+        for (int i = 0; i < L3_SIZE; ++i)
+            quantisedNet.L3Weights[i][bucket] = unquantisedNet.L3Weights[i][bucket];
+
+        // Quantise L3 Biases
+        quantisedNet.L3Biases[bucket] = unquantisedNet.L3Biases[bucket];
+    }
+
+    std::ofstream out{"quantNet.nn", std::ios::binary};
+    out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
+}
 
 void NNUE::init() {
-    net = reinterpret_cast<const Network*>(gEVALData);
+
+    // load embedded prequanted net
+    quantisedNet = *reinterpret_cast<const QuantisedNetwork*>(gEVALData);
+
+    // Transform the quantised weights and biases into the form we want for optimal inference
+    // FT Weights
+    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
+        net.FTWeights[i] = quantisedNet.FTWeights[i];
+
+    // FT Biases
+    for (int i = 0; i < L1_SIZE; ++i)
+        net.FTBiases[i] = quantisedNet.FTBiases[i];
+
+
+    // Transpose L1, L2 and L3 weights and biases
+    for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
+        // Transpose L1 Biases
+        for (int i = 0; i < L2_SIZE; ++i)
+            net.L1Biases[bucket][i] = quantisedNet.L1Biases[bucket][i];
+
+        // Transpose L2 Weights
+        for (int i = 0; i < L2_SIZE; ++i)
+            for (int j = 0; j < L3_SIZE; ++j)
+                 net.L2Weights[bucket][i * L3_SIZE + j] = quantisedNet.L2Weights[i][bucket][j];
+
+        // Transpose L2 Biases
+        for (int i = 0; i < L3_SIZE; ++i)
+            net.L2Biases[bucket][i] = quantisedNet.L2Biases[bucket][i];
+
+        // Transpose L3 Weights
+        for (int i = 0; i < L3_SIZE; ++i)
+             net.L3Weights[bucket][i] = quantisedNet.L3Weights[i][bucket];
+
+        // Transpose L3 Biases
+         net.L3Biases[bucket] = quantisedNet.L3Biases[bucket];
+    }
 }
 
 // does FT activate for one pov at a time
@@ -65,14 +148,14 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  con
       for (size_t i = 0; i < addCnt; i++) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] += net->FTWeights[added + j];
+            accumCache[j] += net.FTWeights[added + j];
         }
     }
 
       for (size_t i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] -= net->FTWeights[removed + j];
+            accumCache[j] -= net.FTWeights[removed + j];
         }
     }
 
@@ -157,13 +240,11 @@ int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
     // does FT activation for both accumulators
     activateAffine(pos, FinnyPointer, FTOutputs);
 
-    for (auto partial : FTOutputs) {if (partial != 0)  std::cout << static_cast<int32_t>(partial) << " "; }
+    propagateL1(FTOutputs, net.L1Weights[outputBucket], net.L1Biases[outputBucket], L1Outputs);
 
-    propagateL1(FTOutputs, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
+    propagateL2(L1Outputs,net.L2Weights[outputBucket], net.L2Biases[outputBucket], L2Outputs );
 
-    propagateL2(L1Outputs,net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs );
-
-    propagateL3(L2Outputs, net->L3Weights[outputBucket], net->L3Biases[outputBucket], L3Output);
+    propagateL3(L2Outputs, net.L3Weights[outputBucket],  net.L3Biases[outputBucket], L3Output);
 
     return L3Output * NET_SCALE;
 }

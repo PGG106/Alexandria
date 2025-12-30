@@ -21,7 +21,7 @@ constexpr int FT_SHIFT  = 10;
 constexpr int L1_QUANT  = 32;
 constexpr int NET_SCALE = 400;
 
-constexpr bool MERGE_KING_PLANES = true;
+constexpr bool MERGE_KING_PLANES = false;
 
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
 constexpr float WEIGHT_CLIPPING = 1.98f;
@@ -45,8 +45,31 @@ constexpr int buckets[64] = {
 
 using NNUEIndices = std::array<std::size_t, 2>;
 
+struct UnquantisedNetwork {
+    float FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    float FTBiases[L1_SIZE];
+    float L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
+    float L1Biases[OUTPUT_BUCKETS][L2_SIZE];
+    float L2Weights[L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
+    float L2Biases[OUTPUT_BUCKETS][L3_SIZE];
+    float L3Weights[L3_SIZE][OUTPUT_BUCKETS];
+    float L3Biases[OUTPUT_BUCKETS];
+};
+
+struct QuantisedNetwork {
+    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t FTBiases [L1_SIZE];
+    int8_t  L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
+    float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    float   L2Weights[L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
+    float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    float   L3Weights[L3_SIZE][OUTPUT_BUCKETS];
+    float   L3Biases [OUTPUT_BUCKETS];
+};
+
+
 struct Network {
-    alignas(64) int16_t FTWeights[NUM_INPUTS * L1_SIZE * INPUT_BUCKETS];
+    alignas(64) int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
     alignas(64) int16_t FTBiases [L1_SIZE];
     alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
     alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
@@ -56,7 +79,7 @@ struct Network {
     alignas(64) float   L3Biases [OUTPUT_BUCKETS];
 };
 
-extern const Network *net;
+extern  Network net;
 struct Position;
 
 struct NNUE {
@@ -69,7 +92,7 @@ struct NNUE {
 
         FinnyTableEntry() {
             for (int i = 0; i < L1_SIZE; ++i)
-                accumCache[i] = net->FTBiases[i];
+                accumCache[i] = net.FTBiases[i];
         }
     };
 
