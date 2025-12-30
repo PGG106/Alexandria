@@ -34,18 +34,20 @@ void load_unquantize_andquant() {
 
     stream.read(reinterpret_cast<char *>(&unquantisedNet), sizeof(UnquantisedNetwork));
 
-    // start by summing the factoriser into the other buckets
-    for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i) {
-        auto fact_weight = unquantisedNet.Factoriser[i];
-        for (int bucket = 0; bucket < INPUT_BUCKETS; ++bucket) {
-            auto bucket_offset = bucket * (NUM_INPUTS * L1_SIZE);
-            quantisedNet.FTWeights[bucket_offset + i] = fact_weight;
+    // Merge factoriser  + quantise FT weights
+    for (int bucket = 0; bucket < INPUT_BUCKETS; ++bucket) {
+
+        int bucket_offset = bucket * (NUM_INPUTS * L1_SIZE);
+
+        for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i) {
+
+            float w = unquantisedNet.FTWeights[bucket_offset + i]
+                    + unquantisedNet.Factoriser[i];
+
+            quantisedNet.FTWeights[bucket_offset + i] =
+                static_cast<int16_t>(std::round(w * FT_QUANT));
         }
     }
-
-    // Quantise FT Weights
-    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
-        quantisedNet.FTWeights[i] = static_cast<int16_t>(std::round((unquantisedNet.FTWeights[i] + quantisedNet.FTWeights[i]) * FT_QUANT));
 
     // Quantise FT Biases
     for (int i = 0; i < L1_SIZE; ++i)
@@ -86,6 +88,7 @@ void load_unquantize_andquant() {
 }
 
 void NNUE::init() {
+
 
     // load embedded prequanted net
     quantisedNet = *reinterpret_cast<const QuantisedNetwork*>(gEVALData);
