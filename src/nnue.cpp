@@ -131,7 +131,6 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     const int kingBucket = getBucket(kingSq, side);
     FinnyTableEntry &cachedEntry = (*FinnyPointer)[side][kingBucket][flip];
 
-
     size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
     size_t addCnt = 0, removeCnt = 0;
 
