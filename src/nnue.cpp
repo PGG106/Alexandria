@@ -92,6 +92,11 @@ void NNUE::init() {
 
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
+
+        for (int i = 0; i < L1_SIZE; ++i)
+            for (int j = 0; j < L2_SIZE; ++j)
+                net.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[i][bucket][j];
+
         // Transpose L1 Biases
         for (int i = 0; i < L2_SIZE; ++i)
             net.L1Biases[bucket][i] = quantisedNet.L1Biases[bucket][i];
