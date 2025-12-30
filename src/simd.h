@@ -16,12 +16,17 @@ inline vepi16  vec_zero_epi16() { return _mm512_setzero_si512(); }
 inline vepi32  vec_zero_epi32() { return _mm512_setzero_si512(); }
 inline vepi16  vec_set1_epi16 (const int16_t n) { return _mm512_set1_epi16(n); }
 inline vepi32 vec_set1_epi32 (const int32_t n) { return _mm512_set1_epi32(n); }
+inline vepi16 vec_load_epi   (const vepi16 *src) { return _mm512_load_si512(src); }
+inline void   vec_store_epi  (vepi16 *dst, const vepi16 vec) { _mm512_store_si512(dst, vec); }
 inline vepi16  vec_loadu_epi  (const vepi16 *src) { return _mm512_loadu_si512(src); }
 inline void    vec_storeu_epi (vepi16 *dst, const vepi16 vec) { _mm512_storeu_si512(dst, vec); }
 inline vepi16  vec_add_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_add_epi16(vec0, vec1); }
 inline vepi16  vec_sub_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_sub_epi16(vec0, vec1); }
 inline vepi16  vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_max_epi16(vec0, vec1); }
 inline vepi16  vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_min_epi16(vec0, vec1); }
+inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mulhi_epi16(vec0, vec1); }
+inline vepi16 vec_slli_epi16 (const vepi16 vec, const int shift) { return _mm512_slli_epi16(vec, shift); }
+inline vepi8  vec_packus_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_packus_epi16(vec0, vec1); }
 inline vepi16  vec_mullo_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mullo_epi16(vec0, vec1); }
 inline vepi32  vec_madd_epi16 (const vepi16 vec0, const vepi16 vec1) { return _mm512_madd_epi16(vec0, vec1); }
 inline vepi32  vec_add_epi32  (const vepi32 vec0, const vepi32 vec1) { return _mm512_add_epi32(vec0, vec1); }
@@ -48,6 +53,12 @@ inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 v
     return _mm512_add_epi32(sum, product32);
 #endif
 }
+
+inline v128i vec128_zero_epi16() { return _mm_setzero_si128(); }
+inline v128i vec128_set1_epi16(const int16_t n) { return _mm_set1_epi16(n); }
+inline v128i vec128_add_epi16 (const v128i vec0, const v128i vec1) { return _mm_add_epi16(vec0, vec1); }
+inline v128i vec128_loadu_epi16 (const v128i *src) { return _mm_loadu_si128(src); }
+inline void  vec128_storeu_epi16(v128i *dst, const v128i vec) { _mm_storeu_si128(dst, vec); }
 
 inline vps32 vec_cvtepi32_ps(const vepi32 vec) { return _mm512_cvtepi32_ps(vec); }
 
