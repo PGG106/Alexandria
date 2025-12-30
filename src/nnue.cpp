@@ -19,7 +19,7 @@
 INCBIN(EVAL, EVALFILE);
 #else
 const unsigned char gEVALData[1] = {};
-const unsigned char* const gEVALEnd = &gEVALData[1];
+const unsigned char *const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
@@ -36,16 +36,12 @@ void load_unquantize_andquant() {
 
     // Merge factoriser  + quantise FT weights
     for (int bucket = 0; bucket < INPUT_BUCKETS; ++bucket) {
-
         int bucket_offset = bucket * (NUM_INPUTS * L1_SIZE);
 
         for (int i = 0; i < NUM_INPUTS * L1_SIZE; ++i) {
+            float w = unquantisedNet.FTWeights[bucket_offset + i] + unquantisedNet.Factoriser[i];
 
-            float w = unquantisedNet.FTWeights[bucket_offset + i]
-                    + unquantisedNet.Factoriser[i];
-
-            quantisedNet.FTWeights[bucket_offset + i] =
-                static_cast<int16_t>(std::round(w * FT_QUANT));
+            quantisedNet.FTWeights[bucket_offset + i] = static_cast<int16_t>(std::round(w * FT_QUANT));
         }
     }
 
@@ -55,15 +51,15 @@ void load_unquantize_andquant() {
 
     // Quantise L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
-
         // Quantise L1 Weights
         for (int i = 0; i < L1_SIZE; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
-                quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
+                quantisedNet.L1Weights[i][bucket][j] = static_cast<int8_t>(std::round(
+                    unquantisedNet.L1Weights[i][bucket][j] * L1_QUANT));
 
         // Quantise L1 Biases
         for (int i = 0; i < L2_SIZE; ++i) {
-             quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
+            quantisedNet.L1Biases[bucket][i] = unquantisedNet.L1Biases[bucket][i];
         }
 
         // Quantise L2 Weights
@@ -88,10 +84,8 @@ void load_unquantize_andquant() {
 }
 
 void NNUE::init() {
-
-
     // load embedded prequanted net
-    quantisedNet = *reinterpret_cast<const QuantisedNetwork*>(gEVALData);
+    quantisedNet = *reinterpret_cast<const QuantisedNetwork *>(gEVALData);
 
     // Transform the quantised weights and biases into the form we want for optimal inference
     // FT Weights
@@ -104,7 +98,6 @@ void NNUE::init() {
 
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
-
         for (int i = 0; i < L1_SIZE; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
                 net.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[i][bucket][j];
@@ -116,7 +109,7 @@ void NNUE::init() {
         // Transpose L2 Weights
         for (int i = 0; i < L2_SIZE; ++i)
             for (int j = 0; j < L3_SIZE; ++j)
-                 net.L2Weights[bucket][i * L3_SIZE + j] = quantisedNet.L2Weights[i][bucket][j];
+                net.L2Weights[bucket][i * L3_SIZE + j] = quantisedNet.L2Weights[i][bucket][j];
 
         // Transpose L2 Biases
         for (int i = 0; i < L3_SIZE; ++i)
@@ -124,16 +117,15 @@ void NNUE::init() {
 
         // Transpose L3 Weights
         for (int i = 0; i < L3_SIZE; ++i)
-             net.L3Weights[bucket][i] = quantisedNet.L3Weights[i][bucket];
+            net.L3Weights[bucket][i] = quantisedNet.L3Weights[i][bucket];
 
         // Transpose L3 Biases
-         net.L3Biases[bucket] = quantisedNet.L3Biases[bucket];
+        net.L3Biases[bucket] = quantisedNet.L3Biases[bucket];
     }
 }
 
 // does FT activate for one pov at a time
-void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  const int side, uint8_t *output) {
-
+void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint8_t *output) {
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
@@ -162,14 +154,14 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  con
 
     NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
 
-      for (size_t i = 0; i < addCnt; i++) {
+    for (size_t i = 0; i < addCnt; i++) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] += net.FTWeights[added + j];
         }
     }
 
-      for (size_t i = 0; i < removeCnt; i++) {
+    for (size_t i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] -= net.FTWeights[removed + j];
@@ -241,17 +233,17 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
     output = reduce_add(sums, numSums) + bias;
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable* FinnyPointer,  uint8_t *output) {
-    povActivateAffine(pos, FinnyPointer, pos->side,  output);
-    povActivateAffine(pos, FinnyPointer, pos->side ^ 1,  &output[L1_SIZE / 2]);
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, uint8_t *output) {
+    povActivateAffine(pos, FinnyPointer, pos->side, output);
+    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, &output[L1_SIZE / 2]);
 }
 
-int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
+int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
-    alignas (64) uint8_t  FTOutputs[L1_SIZE];
-    alignas (64) float    L1Outputs[L2_SIZE];
-    alignas (64) float    L2Outputs[L3_SIZE];
+    alignas (64) uint8_t FTOutputs[L1_SIZE];
+    alignas (64) float L1Outputs[L2_SIZE];
+    alignas (64) float L2Outputs[L3_SIZE];
     float L3Output;
 
     // does FT activation for both accumulators
@@ -259,9 +251,9 @@ int NNUE::output(Position *pos, NNUE::FinnyTable* FinnyPointer) {
 
     propagateL1(FTOutputs, net.L1Weights[outputBucket], net.L1Biases[outputBucket], L1Outputs);
 
-    propagateL2(L1Outputs,net.L2Weights[outputBucket], net.L2Biases[outputBucket], L2Outputs );
+    propagateL2(L1Outputs, net.L2Weights[outputBucket], net.L2Biases[outputBucket], L2Outputs);
 
-    propagateL3(L2Outputs, net.L3Weights[outputBucket],  net.L3Biases[outputBucket], L3Output);
+    propagateL3(L2Outputs, net.L3Weights[outputBucket], net.L3Biases[outputBucket], L3Output);
 
     return L3Output * NET_SCALE;
 }
