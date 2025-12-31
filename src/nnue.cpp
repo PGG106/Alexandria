@@ -81,6 +81,8 @@ void load_unquantize_andquant() {
 
     std::ofstream out{"quantNet.nn", std::ios::binary};
     out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
+    std::cout << "QuantisedNetwork size: " << sizeof(QuantisedNetwork) << std::endl;
+    exit(12);
 }
 
 void NNUE::init() {
@@ -166,12 +168,38 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             accumCache[j] -= net.FTWeights[removed + j];
         }
     }
+#if defined(USE_SIMD)
+    const vepi16 Zero = vec_zero_epi16();
+    const vepi16 One  = vec_set1_epi16(FT_QUANT);
+    for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
+        const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + 0]));
+        const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + 0]));
+        const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + L1_SIZE / 2]));
+        const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
 
+        const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
+        const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
+        const vepi16 clipped1a = vec_min_epi16(input1a, One);
+        const vepi16 clipped1b = vec_min_epi16(input1b, One);
+
+        const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+        const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+
+        const vepi8  product   = vec_packus_epi16(producta, productb);
+        vec_store_epi(reinterpret_cast<vepi8*>(&output[i]), product);
+    }
     for (int i = 0; i < L1_SIZE / 2; ++i) {
         int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
         int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
         output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
+#else
+    for (int i = 0; i < L1_SIZE / 2; ++i) {
+        int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
+        int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
+        output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
+    }
+#endif
 }
 
 void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output) {
