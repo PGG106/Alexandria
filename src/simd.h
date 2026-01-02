@@ -27,24 +27,17 @@ inline uint16_t vec_nnz_mask(const vepi32 vec) { return _mm512_cmpgt_epi32_mask(
 inline vepi8  vec_packus_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_packus_epi16(vec0, vec1); }
 
 inline vepi32 vec_dpbusdx2_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1, const vepi8 vec2, const vepi8 vec3) {
-    #if defined(USE_VNNI512)
-    return _mm512_dpbusd_epi32(_mm512_dpbusd_epi32(sum, vec0, vec1), vec2, vec3);
-    #else
     const vepi16 product16a = _mm512_maddubs_epi16(vec0, vec1);
     const vepi16 product16b = _mm512_maddubs_epi16(vec2, vec3);
     const vepi32 product32  = _mm512_madd_epi16(_mm512_add_epi16(product16a, product16b), _mm512_set1_epi16(1));
     return _mm512_add_epi32(sum, product32);
-    #endif
 }
 
 inline vepi32 vec_dpbusd_epi32(const vepi32 sum, const vepi8 vec0, const vepi8 vec1) {
-    #if defined(USE_VNNI512)
-    return _mm512_dpbusd_epi32(sum, vec0, vec1);
-    #else
+
     const vepi16 product16 = _mm512_maddubs_epi16(vec0, vec1);
     const vepi32 product32 = _mm512_madd_epi16(product16, _mm512_set1_epi16(1));
     return _mm512_add_epi32(sum, product32);
-    #endif
 }
 
 inline v128i vec128_zero_epi16() { return _mm_setzero_si128(); }

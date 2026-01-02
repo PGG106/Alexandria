@@ -9,7 +9,6 @@ NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mfma
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2 -mfma
 AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw -mfma
-VNNI512FLAGS = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw -mavx512vnni -mfma
 
 # engine name
 NAME        := Alexandria
@@ -66,10 +65,6 @@ ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
 	endif
 endif
 
-ifneq ($(findstring __AVX512VNNI__, $(PROPERTIES)),)
-	FLAGS_DETECTED = $(VNNI512FLAGS)
-endif
-
 # Remove native for builds
 ifdef build
 	NATIVE =
@@ -112,12 +107,6 @@ ifeq ($(build), x86-64-avx512)
 	NATIVE    = -march=x86-64-v4 -mtune=znver4
 	ARCH      = -x86-64-avx512
 	CXXFLAGS += $(AVX512FLAGS)
-endif
-
-ifeq ($(build), x86-64-vnni512)
-	NATIVE    = -march=x86-64-v4 -mtune=znver4
-	ARCH      = -x86-64-vnni512
-	CXXFLAGS += $(VNNI512FLAGS)
 endif
 
 ifeq ($(build), debug)
