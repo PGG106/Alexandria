@@ -90,7 +90,7 @@ struct Network {
     alignas(64) float   L3Biases [OUTPUT_BUCKETS];
 };
 
-extern  Network net;
+extern const Network * net;
 struct Position;
 
 struct NNUE {
@@ -103,7 +103,7 @@ struct NNUE {
 
         FinnyTableEntry() {
             for (int i = 0; i < L1_SIZE; ++i)
-                accumCache[i] = net.FTBiases[i];
+                accumCache[i] = net->FTBiases[i];
         }
     };
 
