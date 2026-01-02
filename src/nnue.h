@@ -15,7 +15,7 @@ constexpr int L1_SIZE = 1536;
 constexpr int L2_SIZE = 16;
 constexpr int L3_SIZE = 32;
 constexpr int OUTPUT_BUCKETS = 8;
-
+// oops
 constexpr int FT_QUANT  = 255;
 constexpr int L1_QUANT  = 64;
 constexpr int FT_SHIFT  = 10;
