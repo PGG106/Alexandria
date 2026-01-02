@@ -1,15 +1,15 @@
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
-EVALFILE     = quantNet.nn
+EVALFILE     = nn.net
 CXX         := g++
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
 CXXFLAGS    := -funroll-loops -O3 -flto -flto-partition=one -fno-exceptions -std=c++23 -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
-AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mfma
-BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2 -mfma
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw -mfma
-VNNI512FLAGS = -DUSE_VNNI512 -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw -mavx512vnni -mfma
+AVX2FLAGS    =   -mavx2 -mbmi -mfma
+BMI2FLAGS    =   -mavx2 -mbmi -mbmi2 -mfma
+AVX512FLAGS  =   -mavx512f -mavx512bw -mfma
+VNNI512FLAGS =   -mavx512f -mavx512bw -mavx512vnni -mfma
 
 # engine name
 NAME        := Alexandria
