@@ -26,8 +26,10 @@ const unsigned int gEVALSize = 1;
 const Network* net;
 
 UnquantisedNetwork unquantisedNet;
+NNZData nnzData;
 QuantisedNetwork quantisedNet;
 Network permutedNet;
+NNZTable nnzTable;
 
 void load_unquantize_andquant() {
     // open the nn file
