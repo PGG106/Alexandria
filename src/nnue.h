@@ -8,7 +8,7 @@
 #include "simd.h"
 #include "types.h"
 
-// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 -> 1xOUTPUT_BUCKETS
+// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
 constexpr int L1_SIZE = 1536;
