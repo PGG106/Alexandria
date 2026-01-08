@@ -89,6 +89,45 @@ void load_unquantize_andquant() {
     for (int i = 0; i < L1_SIZE; ++i)
         permutedNet.FTBiases[i] = quantisedNet.FTBiases[i];
 
+
+    // Transpose FT weights and biases so that packus transposes it back to the intended order
+#if defined(USE_SIMD)
+    __m128i *weight = reinterpret_cast<__m128i*>(permutedNet.FTWeights);
+    __m128i *biases = reinterpret_cast<__m128i*>(permutedNet.FTBiases);
+    constexpr int numChunks = sizeof(__m128i) / sizeof(int16_t);
+
+#if defined(USE_AVX512)
+    // 0, 1, 2, 3, 4, 5, 6, 7 -> 0, 2, 4, 6, 1, 3, 5, 7
+    constexpr int numRegi = 8;
+    constexpr int order[numRegi] = {0, 2, 4, 6, 1, 3, 5, 7};
+#elif defined(USE_AVX2)
+    // 0, 1, 2, 3 -> 0, 2, 1, 3
+    constexpr int numRegi = 4;
+    constexpr int order[numRegi] = {0, 2, 1, 3};
+#endif
+
+    __m128i regi[numRegi];
+
+    // Transpose weights
+    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE / numChunks; i += numRegi) {
+        for (int j = 0; j < numRegi; ++j)
+            regi[j] = weight[i + j];
+
+        for (int j = 0; j < numRegi; ++j)
+            weight[i + j] = regi[order[j]];
+    }
+
+    // Transpose biases
+    for (int i = 0; i < L1_SIZE / numChunks; i += numRegi) {
+        for (int j = 0; j < numRegi; ++j)
+            regi[j] = biases[i + j];
+
+        for (int j = 0; j < numRegi; ++j)
+            biases[i + j] = regi[order[j]];
+    }
+#endif
+
+
     // Transpose L1, L2 and L3 weights and biases
     for (int bucket = 0; bucket < OUTPUT_BUCKETS; ++bucket) {
         // Transpose L1 weights
@@ -202,11 +241,6 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
         const vepi8  product   = vec_packus_epi16(producta, productb);
         vec_store_epi(reinterpret_cast<vepi8*>(&output[i]), product);
-    }
-    for (int i = 0; i < L1_SIZE / 2; ++i) {
-        int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
-        int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
-        output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
 #else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
