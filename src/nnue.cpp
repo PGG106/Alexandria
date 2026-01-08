@@ -87,9 +87,7 @@ void load_unquantize_andquant() {
 
 void permute_transpose() {
 
-    std::ifstream stream{"nn.net", std::ios::binary};
-    // read already quantised network
-    stream.read(reinterpret_cast<char *>(&quantisedNet), sizeof(quantisedNet));
+    quantisedNet = *reinterpret_cast<const QuantisedNetwork *>(gEVALData);
 
         // Transform the quantised weights and biases into the form we want for optimal inference
     // FT Weights
