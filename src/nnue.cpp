@@ -23,7 +23,7 @@ const unsigned char *const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-const Network* net;
+Network net;
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -80,7 +80,18 @@ void load_unquantize_andquant() {
         quantisedNet.L3Biases[bucket] = unquantisedNet.L3Biases[bucket];
     }
 
-    // Transform the quantised weights and biases into the form we want for optimal inference
+    std::ofstream out{"nn.net", std::ios::binary};
+    out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
+    exit(12);
+}
+
+void permute_transpose() {
+
+    std::ifstream stream{"nn.net", std::ios::binary};
+    // read already quantised network
+    stream.read(reinterpret_cast<char *>(&quantisedNet), sizeof(quantisedNet));
+
+        // Transform the quantised weights and biases into the form we want for optimal inference
     // FT Weights
     for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
         permutedNet.FTWeights[i] = quantisedNet.FTWeights[i];
@@ -165,14 +176,11 @@ void load_unquantize_andquant() {
         permutedNet.L3Biases[bucket] = quantisedNet.L3Biases[bucket];
     }
 
-
-    std::ofstream out{"nn.net", std::ios::binary};
-    out.write(reinterpret_cast<const char *>(&permutedNet), sizeof(Network));
-    exit(12);
 }
 
 void NNUE::init() {
-    net = reinterpret_cast<const Network*>(gEVALData);
+    permute_transpose();
+    net  = permutedNet;
 }
 
 // does FT activate for one pov at a time
@@ -207,14 +215,14 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     for (size_t i = 0; i < addCnt; i++) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] += net->FTWeights[added + j];
+            accumCache[j] += net.FTWeights[added + j];
         }
     }
 
     for (size_t i = 0; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
-            accumCache[j] -= net->FTWeights[removed + j];
+            accumCache[j] -= net.FTWeights[removed + j];
         }
     }
 #if defined(USE_SIMD)
@@ -398,11 +406,11 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     // does FT activation for both accumulators
     activateAffine(pos, FinnyPointer, FTOutputs);
 
-    propagateL1(FTOutputs, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
+    propagateL1(FTOutputs, net.L1Weights[outputBucket], net.L1Biases[outputBucket], L1Outputs);
 
-    propagateL2(L1Outputs, net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs);
+    propagateL2(L1Outputs, net.L2Weights[outputBucket], net.L2Biases[outputBucket], L2Outputs);
 
-    propagateL3(L2Outputs, net->L3Weights[outputBucket], net->L3Biases[outputBucket], L3Output);
+    propagateL3(L2Outputs, net.L3Weights[outputBucket], net.L3Biases[outputBucket], L3Output);
 
     return L3Output * NET_SCALE;
 }
