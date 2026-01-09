@@ -140,8 +140,8 @@ EXE	    := $(NAME)$(SUFFIX)
 # Process the network file
 process-net:
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
-	$(MAKE) -C $(_ROOT)/tools -march=native CXXFLAGS="$(CXXFLAGS)"
-	./tools/preprocess$(SUFFIX)
+	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)"
+	$(_ROOT)/tools/preprocess$(SUFFIX)
 
 all: process-net $(TARGET)
 
