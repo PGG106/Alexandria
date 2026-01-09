@@ -141,7 +141,7 @@ EXE	    := $(NAME)$(SUFFIX)
 process-net:
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
 	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)"
-	$(_ROOT)/tools/preprocess$(SUFFIX)
+	./tools/preprocess$(SUFFIX) $(EVALFILE) $(EVALFILE_PROCESSED)
 
 all: process-net $(TARGET)
 
