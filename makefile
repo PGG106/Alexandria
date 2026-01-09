@@ -1,6 +1,7 @@
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
-EVALFILE     = nn.net
+EVALFILE     = quantnet.net
+EVALFILE_PROCESSED = nn.net
 CXX         := g++
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
@@ -124,32 +125,28 @@ ifeq ($(build), debug-avx2)
 	CXXFLAGS += $(AVX2FLAGS)
 endif
 
-# Get what pgo flags we should be using
-
-ifneq ($(findstring gcc, $(CCX)),)
-	PGOGEN   = -fprofile-generate
-	PGOUSE   = -fprofile-use
-endif
-
-ifneq ($(findstring clang, $(CCX)),)
-	PGOMERGE = llvm-profdata merge -output=alexandria.profdata *.profraw
-	PGOGEN   = -fprofile-instr-generate
-	PGOUSE   = -fprofile-instr-use=alexandria.profdata
-endif
 
 # Add network name and Evalfile
-CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE)\"
+CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE_PROCESSED)\"
 
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SOURCES))
 EXE	    := $(NAME)$(SUFFIX)
 
-all: $(TARGET)
-clean:
-	@rm -rf $(TMPDIR) *.o  $(DEPENDS) *.d
+.PHONY:	all
+.DEFAULT_GOAL := all
+
+# Process the network file
+process-net:
+	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
+	$(MAKE) -C tools build=$(build) CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)" FLAGS="$(FLAGS)"
+	./tools/preprocess$(SUFFIX)
+
+all: process-net $(TARGET)
 
 $(TARGET): $(OBJECTS)
+	$(info Linking $(EXE))
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
@@ -158,13 +155,8 @@ $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
 
+clean:
+	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d $(EVALFILE_PROCESSED)
+	$(MAKE) -C tools clean
+
 -include $(DEPENDS)
-
-
-# Usual disservin yoink for makefile related stuff
-pgo:
-	$(CXX) $(CXXFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	./$(EXE) bench
-	$(PGO_MERGE)
-	$(CXX) $(CXXFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d  profdata
