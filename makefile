@@ -140,13 +140,12 @@ EXE	    := $(NAME)$(SUFFIX)
 # Process the network file
 process-net:
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
-	$(MAKE) -C tools build=$(build) CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)" FLAGS="$(FLAGS)"
-	./tools/preprocess$(SUFFIX)
+	$(MAKE) -C $(_ROOT)/tools build=$(build) CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)" FLAGS="$(FLAGS)"
+	$(_ROOT)/tools/preprocess$(SUFFIX)
 
 all: process-net $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(info Linking $(EXE))
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
