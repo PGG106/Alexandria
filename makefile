@@ -138,12 +138,14 @@ EXE	    := $(NAME)$(SUFFIX)
 .DEFAULT_GOAL := all
 
 # Process the network file
-process-net:
+$(EVALFILE_PROCESSED): $(EVALFILE)
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
 	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)"
 	./tools/preprocess$(SUFFIX) $(EVALFILE) $(EVALFILE_PROCESSED)
 
-all: process-net $(TARGET)
+net: $(EVALFILE_PROCESSED)
+
+all: $(EVALFILE_PROCESSED) $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS)
