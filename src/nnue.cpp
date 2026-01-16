@@ -80,7 +80,7 @@ void load_unquantize_andquant() {
         quantisedNet.L3Biases[bucket] = unquantisedNet.L3Biases[bucket];
     }
 
-    std::ofstream out{"nn.net", std::ios::binary};
+    std::ofstream out{"quatnnet.net", std::ios::binary};
     out.write(reinterpret_cast<const char *>(&quantisedNet), sizeof(QuantisedNetwork));
     exit(12);
 }
