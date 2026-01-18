@@ -61,7 +61,7 @@ jobs:
 
       - name: make build windows
         if: runner.os == 'Windows'
-        run: make build=release EVALFILE=nn.net -j
+        run: make EVALFILE=nn.net -j
 
       - name: Bench
         run: |
