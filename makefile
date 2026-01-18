@@ -127,7 +127,7 @@ endif
 
 
 # Add network name and Evalfile
-CXXFLAGS += -DNETWORK_NAME=\"$(NETWORK_NAME)\" -DEVALFILE=\"$(EVALFILE_PROCESSED)\"
+CXXFLAGS += -DEVALFILE=\"$(EVALFILE_PROCESSED)\"
 
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
