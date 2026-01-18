@@ -924,13 +924,14 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Set the TT bound based on whether we failed high or raised alpha
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
+    if (    !inCheck
+        && (!bestMove || !isTactical(bestMove))
+        &&  !(bound == HFLOWER && bestScore <= ss->staticEval)
+        &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
+        updateCorrHistScore(pos, sd, ss, depth, bestScore - ss->staticEval);
+    }
+
     if (!excludedMove) {
-        if (    !inCheck
-            && (!bestMove || !isTactical(bestMove))
-            &&  !(bound == HFLOWER && bestScore <= ss->staticEval)
-            &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
-            updateCorrHistScore(pos, sd, ss, depth, bestScore - ss->staticEval);
-        }
         StoreTTEntry(pos->getPoskey(), MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
     }
 
