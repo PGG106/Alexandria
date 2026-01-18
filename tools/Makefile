@@ -1,7 +1,6 @@
 CXX := g++
 PARENT_DIR := ..
 CXXFLAGS += -funroll-loops -O3 -std=c++23 -I$(PARENT_DIR)
-NATIVE := -march=native
 FLAGS := 
 SUFFIX :=
 
