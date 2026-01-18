@@ -140,7 +140,7 @@ EXE	    := $(NAME)$(SUFFIX)
 # Process the network file
 $(EVALFILE_PROCESSED): $(EVALFILE)
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
-	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)"
+	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)" FLAGS_DETECTED="$(FLAGS_DETECTED)" build="$(build)"
 	./tools/preprocess$(SUFFIX) $(EVALFILE) $(EVALFILE_PROCESSED)
 
 .NOTPARALLEL: $(EVALFILE_PROCESSED)
