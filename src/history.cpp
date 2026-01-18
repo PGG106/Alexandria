@@ -181,7 +181,7 @@ int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const Sear
     adjustment += 35 * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
-        adjustment += 27 * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)]    ;
+        adjustment += 27 * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
 
     return std::clamp(rawEval + adjustment / 256, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
