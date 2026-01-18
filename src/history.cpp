@@ -176,14 +176,14 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack*
 int adjustEvalWithCorrHist(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval) {
     int adjustment = 0;
 
-    adjustment += 30 * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE] / 512;
-    adjustment += 35 * sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE] / 512;
-    adjustment += 35 * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE] / 512;
+    adjustment += 30 * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE];
+    adjustment += 35 * sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
+    adjustment += 35 * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
-        adjustment += 27 * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)] / 512;
+        adjustment += 27 * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)]    ;
 
-    return std::clamp(rawEval + adjustment, -MATE_FOUND + 1, MATE_FOUND - 1);
+    return std::clamp(rawEval + adjustment / 256, -MATE_FOUND + 1, MATE_FOUND - 1);
 }
 
 int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode) {
