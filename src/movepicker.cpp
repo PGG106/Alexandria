@@ -13,7 +13,7 @@ void ScoreMoves(Movepicker* mp) {
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
-        if (move == mp->ttMove){
+        if (move == mp->ttMove || move == mp->killer || move == mp->counter){
             moveList->moves[i].score = INT32_MIN;
             continue;
         }
