@@ -118,19 +118,30 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
     NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
 
-    for (size_t i = 0; i < addCnt; i++) {
+    const size_t minCnt = std::min(addCnt, removeCnt);
+
+    for (size_t i = 0; i < minCnt; i++) {
+        const auto added = add[i];
+        const auto removed = remove[i];
+        for (int j = 0; j < L1_SIZE; ++j) {
+            accumCache[j] += net->FTWeights[added + j] - net->FTWeights[removed + j];
+        }
+    }
+
+    for (size_t i = minCnt; i < addCnt; i++) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] += net->FTWeights[added + j];
         }
     }
 
-    for (size_t i = 0; i < removeCnt; i++) {
+    for (size_t i = minCnt; i < removeCnt; i++) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] -= net->FTWeights[removed + j];
         }
     }
+
 #if defined(USE_SIMD)
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
