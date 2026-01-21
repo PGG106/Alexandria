@@ -164,6 +164,10 @@ TUNE_PARAM(conthistoryMalusOffset, 62, -1024, 1024, 64, 0.002)
 TUNE_PARAM(conthistoryMalusMax, 891, 1, 4096, 256, 0.002)
 TUNE_PARAM(conthistoryTTMalusMul, 100, 1, 1500, 32, 0.002)
 TUNE_PARAM(conthistoryTTMalusMax, 400, 1, 2048, 64, 0.002)
+// Corrhist
+TUNE_PARAM(corrhistoryPawnWeight, 30, 1, 256, 4, 0.002)
+TUNE_PARAM(corrhistoryNonPawnWeight, 35, 1, 256, 4, 0.002)
+TUNE_PARAM(contCorrthistoryWeight, 27, 1, 256, 4, 0.002)
 
 // Roothist
 TUNE_PARAM(roothistoryBonusMul, 218, 1, 1500, 32, 0.002)
