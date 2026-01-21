@@ -806,8 +806,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-                if(complexity > 50)
+                if (complexity > 50)
                     depthReduction -= 1;
+
+                if (isTactical(ttMove))
+                    depthReduction += 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyQuietLmrDivisor();
@@ -824,6 +827,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Decrease the reduction for moves that give check
                 if (pos->getCheckers())
                     depthReduction -= 1;
+
+                if (isTactical(ttMove))
+                    depthReduction += 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
