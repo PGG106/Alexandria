@@ -4,31 +4,42 @@
 #include "history.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
-void ScoreMoves(Movepicker* mp) {
-    MoveList* moveList = &mp->moveList;
-    Position* pos = mp->pos;
-    SearchData* sd = mp->sd;
-    SearchStack* ss = mp->ss;
+void ScoreQuiets(Movepicker *mp) {
+    MoveList *moveList = &mp->moveList;
+    Position *pos = mp->pos;
+    SearchData *sd = mp->sd;
+    SearchStack *ss = mp->ss;
     bool rootNode = mp->rootNode;
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
-        if (move == mp->ttMove || move == mp->killer || move == mp->counter){
+        if (move == mp->ttMove || move == mp->killer || move == mp->counter) {
             moveList->moves[i].score = INT32_MIN;
             continue;
         }
-        if (isTactical(move)) {
-            // Score by most valuable victim and capthist
-            int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-            moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
-        }
-        else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
-        }
+        moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
     }
 }
 
-void partialInsertionSort(MoveList* moveList, const int moveNum) {
+// ScoreMoves takes a list of move as an argument and assigns a score to each move
+void ScoreNoisy(Movepicker *mp) {
+    MoveList *moveList = &mp->moveList;
+    Position *pos = mp->pos;
+    SearchData *sd = mp->sd;
+    // Loop through all the move in the movelist
+    for (int i = mp->idx; i < moveList->count; i++) {
+        const Move move = moveList->moves[i].move;
+        if (move == mp->ttMove) {
+            moveList->moves[i].score = INT32_MIN;
+            continue;
+        }
+        // Score by most valuable victim and capthist
+        int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+        moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
+    }
+}
+
+void partialInsertionSort(MoveList *moveList, const int moveNum) {
     int bestScore = moveList->moves[moveNum].score;
     int bestNum = moveNum;
     // starting at the number of the current move and stopping at the end of the list
@@ -43,8 +54,8 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
     std::swap(moveList->moves[moveNum], moveList->moves[bestNum]);
 }
 
-void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const int SEEThreshold, const MovepickerType movepickerType, const bool rootNode) {
-
+void InitMP(Movepicker *mp, Position *pos, SearchData *sd, SearchStack *ss, const Move ttMove, const int SEEThreshold,
+            const MovepickerType movepickerType, const bool rootNode) {
     const Move killer = ss->searchKiller;
     const Move counter = sd->counterMoves[FromTo((ss - 1)->move)];
 
@@ -62,130 +73,130 @@ void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, cons
     mp->SEEThreshold = SEEThreshold;
 }
 
-Move NextMove(Movepicker* mp, const bool skip) {
-    top:
+Move NextMove(Movepicker *mp, const bool skip) {
+top:
     if (skip) {
         // In search, the skip variable is used to dictate whether we skip quiet moves
-        if (   mp->movepickerType == SEARCH
+        if (mp->movepickerType == SEARCH
             && mp->stage > PICK_GOOD_NOISY
             && mp->stage < GEN_BAD_NOISY) {
             mp->stage = GEN_BAD_NOISY;
         }
 
         // In qsearch, the skip variable is used to dictate whether we skip quiet moves and bad captures
-        if (   mp->movepickerType == QSEARCH
+        if (mp->movepickerType == QSEARCH
             && mp->stage > PICK_GOOD_NOISY) {
             return NOMOVE;
         }
 
         // In probcut, we only search captures that pass the threshold
-        if (   mp->movepickerType == PROBCUT
-               && mp->stage > PICK_GOOD_NOISY) {
+        if (mp->movepickerType == PROBCUT
+            && mp->stage > PICK_GOOD_NOISY) {
             return NOMOVE;
         }
     }
     switch (mp->stage) {
-    case PICK_TT:
-        ++mp->stage;
+        case PICK_TT:
+            ++mp->stage;
             // If we are in qsearch and not in check, or we are in probcut, skip quiet TT moves
             if ((mp->movepickerType == PROBCUT || (mp->movepickerType == QSEARCH && skip))
                 && !isTactical(mp->ttMove))
                 goto top;
 
-        // If the TT move if not pseudo legal we skip it too
-        if (!IsPseudoLegal(mp->pos, mp->ttMove))
+            // If the TT move if not pseudo legal we skip it too
+            if (!IsPseudoLegal(mp->pos, mp->ttMove))
+                goto top;
+
+            // If we are in probcut and the TT move does not pass SEE, we skip it
+            if (mp->movepickerType == PROBCUT && !SEE(mp->pos, mp->ttMove, -1))
+                goto top;
+
+            return mp->ttMove;
+
+        case GEN_NOISY:
+            GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_NOISY);
+            ScoreNoisy(mp);
+            ++mp->stage;
             goto top;
 
-        // If we are in probcut and the TT move does not pass SEE, we skip it
-        if (mp->movepickerType == PROBCUT && !SEE(mp->pos, mp->ttMove, -1))
-            goto top;
+        case PICK_GOOD_NOISY:
+            while (mp->idx < mp->moveList.count) {
+                partialInsertionSort(&mp->moveList, mp->idx);
+                const Move move = mp->moveList.moves[mp->idx].move;
+                const int score = mp->moveList.moves[mp->idx].score;
+                const int SEEThreshold = mp->movepickerType == PROBCUT ? mp->SEEThreshold : -score / 32 + 236;
+                ++mp->idx;
+                if (move == mp->ttMove)
+                    continue;
 
-        return mp->ttMove;
+                if (!SEE(mp->pos, move, SEEThreshold)) {
+                    // since these moves are already sorted we can ditch the score, it won't be checked again
+                    mp->moveList.moves[mp->badcapturesCount++].move = move;
+                    continue;
+                }
 
-    case GEN_NOISY:
-        GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_NOISY);
-        ScoreMoves(mp);
-        ++mp->stage;
-        goto top;
+                assert(isTactical(move));
 
-    case PICK_GOOD_NOISY:
-        while (mp->idx < mp->moveList.count) {
-            partialInsertionSort(&mp->moveList, mp->idx);
-            const Move move = mp->moveList.moves[mp->idx].move;
-            const int score = mp->moveList.moves[mp->idx].score;
-            const int SEEThreshold =  mp->movepickerType == PROBCUT ? mp->SEEThreshold : -score / 32 + 236;
-            ++mp->idx;
-            if (move == mp->ttMove)
-                continue;
-
-            if (!SEE(mp->pos, move, SEEThreshold)) {
-                // since these moves are already sorted we can ditch the score, it won't be checked again
-                mp->moveList.moves[mp->badcapturesCount++].move = move;
-                continue;
+                return move;
             }
+            ++mp->stage;
+            goto top;
 
-            assert(isTactical(move));
+        case PICK_KILLER:
+            ++mp->stage;
+            if (IsPseudoLegal(mp->pos, mp->killer))
+                return mp->killer;
+            goto top;
 
-            return move;
-        }
-        ++mp->stage;
-        goto top;
+        case PICK_COUNTER:
+            ++mp->stage;
+            if (IsPseudoLegal(mp->pos, mp->counter))
+                return mp->counter;
+            goto top;
 
-    case PICK_KILLER:
-        ++mp->stage;
-        if (IsPseudoLegal(mp->pos, mp->killer))
-            return mp->killer;
-        goto top;
+        case GEN_QUIETS:
+            GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
+            ScoreQuiets(mp);
+            ++mp->stage;
+            goto top;
 
-    case PICK_COUNTER:
-        ++mp->stage;
-        if (IsPseudoLegal(mp->pos, mp->counter))
-            return mp->counter;
-        goto top;
+        case PICK_QUIETS:
+            while (mp->idx < mp->moveList.count) {
+                partialInsertionSort(&mp->moveList, mp->idx);
+                const Move move = mp->moveList.moves[mp->idx].move;
+                ++mp->idx;
+                if (move == mp->ttMove
+                    || move == mp->killer
+                    || move == mp->counter)
+                    continue;
 
-    case GEN_QUIETS:
-        GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
-        ScoreMoves(mp);
-        ++mp->stage;
-        goto top;
+                assert(!isTactical(move));
+                return move;
+            }
+            ++mp->stage;
+            goto top;
 
-    case PICK_QUIETS:
-        while (mp->idx < mp->moveList.count) {
-            partialInsertionSort(&mp->moveList, mp->idx);
-            const Move move = mp->moveList.moves[mp->idx].move;
-            ++mp->idx;
-            if (   move == mp->ttMove
-                || move == mp->killer
-                || move == mp->counter)
-                continue;
+        case GEN_BAD_NOISY:
+            // Nothing to generate lol, just reset mp->idx
+            mp->idx = 0;
+            ++mp->stage;
+            goto top;
 
-            assert(!isTactical(move));
-            return move;
-        }
-        ++mp->stage;
-        goto top;
+        case PICK_BAD_NOISY:
+            while (mp->idx < mp->badcapturesCount) {
+                const Move move = mp->moveList.moves[mp->idx].move;
+                ++mp->idx;
+                if (move == mp->ttMove)
+                    continue;
 
-    case GEN_BAD_NOISY:
-        // Nothing to generate lol, just reset mp->idx
-        mp->idx = 0;
-        ++mp->stage;
-        goto top;
+                assert(isTactical(move));
+                return move;
+            }
+            return NOMOVE;
 
-    case PICK_BAD_NOISY:
-        while (mp->idx < mp->badcapturesCount) {
-            const Move move = mp->moveList.moves[mp->idx].move;
-            ++mp->idx;
-            if (move == mp->ttMove)
-                continue;
-
-            assert(isTactical(move));
-            return move;
-        }
-        return NOMOVE;
-
-    default:
-        // we should never end up here because a movepicker stage should be always be valid and accounted for
-        assert(false);
-        __builtin_unreachable();
+        default:
+            // we should never end up here because a movepicker stage should be always be valid and accounted for
+            assert(false);
+            __builtin_unreachable();
     }
 }
