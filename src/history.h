@@ -40,5 +40,3 @@ void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, cons
 
 // Corrhist stuff
 void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff);
-int adjustEval(const Position *pos, const int correction, const int rawEval);
-

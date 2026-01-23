@@ -32,3 +32,15 @@
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;
 }
+
+[[nodiscard]] inline int adjustEval(const Position *pos, const int correction, const int rawEval) {
+    int adjustedEval = rawEval;
+
+    adjustedEval = adjustedEval * (200 - pos->get50MrCounter()) / 200;
+
+    adjustedEval = ScaleMaterial(pos, adjustedEval);
+
+    adjustedEval += correction;
+
+    return std::clamp(adjustedEval, -MATE_FOUND + 1, MATE_FOUND - 1);
+}
