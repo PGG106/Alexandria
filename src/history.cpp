@@ -179,14 +179,11 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
     int adjustment = 0;
 
     adjustment += corrhistoryPawnWeight() * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE];
-    adjustment += corrhistoryNonPawnWeight() * sd->whiteNonPawnCorrHist[pos->side][
-        pos->state().whiteNonPawnKey % CORRHIST_SIZE];
-    adjustment += corrhistoryNonPawnWeight() * sd->blackNonPawnCorrHist[pos->side][
-        pos->state().blackNonPawnKey % CORRHIST_SIZE];
+    adjustment += corrhistoryNonPawnWeight() * sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
+    adjustment += corrhistoryNonPawnWeight() * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
-        adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo(
-            (ss - 2)->move)];
+        adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
 
     return adjustment / CORRHIST_GRAIN;
 }
