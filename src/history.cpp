@@ -175,7 +175,7 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
                                   bonus);
 }
 
-int corrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
+int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
     int adjustment = 0;
 
     adjustment += corrhistoryPawnWeight() * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE];
@@ -191,16 +191,14 @@ int corrHistAdjustment(const Position *pos, const SearchData *sd, const SearchSt
     return adjustment / CORRHIST_GRAIN;
 }
 
-int adjustEval(const Position *pos, const SearchData *sd, const SearchStack *ss, const int rawEval) {
+int adjustEval(const Position *pos, const int correction, const int rawEval) {
     int adjustedEval = rawEval;
 
     adjustedEval = adjustedEval * (200 - pos->get50MrCounter()) / 200;
 
     adjustedEval = ScaleMaterial(pos, adjustedEval);
 
-    int corrCorrection = corrHistAdjustment(pos, sd, ss);
-
-    adjustedEval += corrCorrection;
+    adjustedEval += correction;
 
     return std::clamp(adjustedEval, -MATE_FOUND + 1, MATE_FOUND - 1);
 }

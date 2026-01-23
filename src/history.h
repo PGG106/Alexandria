@@ -28,6 +28,7 @@ int history_malus(const int depth);
 [[nodiscard]] int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset);
 [[nodiscard]] int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode);
+[[nodiscard]] int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss);
 // Clean all the history tables
 void CleanHistories(SearchData* sd);
 // Updates history heuristics for a single move
@@ -39,4 +40,5 @@ void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, cons
 
 // Corrhist stuff
 void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack* ss, const int depth, const int diff);
-int  adjustEval(const Position *pos, const SearchData *sd, const SearchStack* ss, const int rawEval);
+int adjustEval(const Position *pos, const int correction, const int rawEval);
+
