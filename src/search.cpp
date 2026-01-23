@@ -620,7 +620,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     {
         Movepicker mp;
         Move move;
-        InitMP(&mp, pos, sd, ss, NOMOVE, pcBeta - ss->staticEval, PROBCUT, rootNode);
+        int SEEThreshold = pcBeta - ss->staticEval;
+        InitMP(&mp, pos, sd, ss, ttMove, SEEThreshold, PROBCUT, rootNode);
         while ((move = NextMove(&mp, true)) != NOMOVE) {
 
             if (!IsLegal(pos, move))
@@ -643,7 +644,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
-                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 4,
                                           !cutNode, td, ss + 1);
 
             // Take move back
