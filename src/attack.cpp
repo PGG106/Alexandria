@@ -206,25 +206,6 @@ Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
     return attacks;
 }
 
-// retrieves attacks for a generic piece (except pawns)
-[[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ){
-    assert(piecetype > PAWN && piecetype <= KING);
-    switch (piecetype) {
-        case KNIGHT:
-            return getKnightAttacks(pieceSquare);
-        case BISHOP:
-            return getBishopAttacks(pieceSquare, occ);
-        case ROOK:
-            return getRookAttacks(pieceSquare, occ);
-        case QUEEN:
-            return getQueenAttacks(pieceSquare, occ);
-        case KING:
-            return getKingAttacks(pieceSquare);
-        default:
-            __builtin_unreachable();
-    }
-}
-
 // set occupancies
 Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     // occupancy map
@@ -240,4 +221,69 @@ Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     }
     // return occupancy map
     return occupancy;
+}
+
+// init attack tables for all the piece types, indexable by square
+void InitAttackTables() {
+    for (int square = 0; square < 64; square++) {
+        // init pawn attacks
+        pawn_attacks[WHITE][square] = MaskPawnAttacks(WHITE, square);
+        pawn_attacks[BLACK][square] = MaskPawnAttacks(BLACK, square);
+
+        // init knight attacks
+        knight_attacks[square] = MaskKnightAttacks(square);
+
+        // init king attacks
+        king_attacks[square] = MaskKingAttacks(square);
+
+        bishop_masks[square] = MaskBishopAttacks(square);
+
+        // init bishop mask
+        Bitboard bishop_mask = bishop_masks[square];
+
+        // get the relevant occupancy bit count
+        int relevant_bits_count = CountBits(bishop_mask);
+
+        // init occupancy indices
+        int occupancy_indices = 1 << relevant_bits_count;
+
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+            // init current occupancy variation
+            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
+#if defined (USE_PEXT)
+            // init magic index
+            const uint64_t attack_index = _pext_u64(occupancy, bishop_mask);
+#else
+           const uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
+#endif
+            // init bishop attacks
+            bishop_attacks[square][attack_index] = BishopAttacksOnTheFly(square, occupancy);
+        }
+
+        rook_masks[square] = MaskRookAttacks(square);
+
+        // init rook mask
+        Bitboard rook_mask = rook_masks[square];
+
+        // init relevant occupancy bit count
+        relevant_bits_count = CountBits(rook_mask);
+
+        // init occupancy indices
+        occupancy_indices = 1 << relevant_bits_count;
+
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+            // init current occupancy variation
+            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
+
+#if defined (USE_PEXT)
+            const uint64_t attack_index = _pext_u64(occupancy, rook_mask);
+#else
+            const uint64_t attack_index = (occupancy * rook_magic_numbers[square]) >> rook_shift;
+#endif
+            // init rook attacks
+            rook_attacks[square][attack_index] = RookAttacksOnTheFly(square, occupancy);
+        }
+    }
 }
