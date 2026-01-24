@@ -247,32 +247,19 @@ void InitAttackTables() {
         // init occupancy indices
         int occupancy_indices = 1 << relevant_bits_count;
 
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+            // init current occupancy variation
+            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
 #if defined (USE_PEXT)
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-            // init current occupancy variation
-            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
-
             // init magic index
-            int pext_index = _pext_u64(occupancy, bishop_mask);
-
-            // init bishop attacks
-            bishop_attacks[square][pext_index] = BishopAttacksOnTheFly(square, occupancy);
-        }
+            const uint64_t attack_index = _pext_u64(occupancy, bishop_mask);
 #else
-
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-            // init current occupancy variation
-            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
-
-            // init magic index
-            uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
-
-            // init bishop attacks
-            bishop_attacks[square][magic_index] = BishopAttacksOnTheFly(square, occupancy);
-        }
+           const uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
 #endif
+            // init bishop attacks
+            bishop_attacks[square][attack_index] = BishopAttacksOnTheFly(square, occupancy);
+        }
 
         rook_masks[square] = MaskRookAttacks(square);
 
@@ -284,30 +271,19 @@ void InitAttackTables() {
 
         // init occupancy indices
         occupancy_indices = 1 << relevant_bits_count;
+
+        // loop over occupancy indices
+        for (int index = 0; index < occupancy_indices; index++) {
+            // init current occupancy variation
+            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
+
 #if defined (USE_PEXT)
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-            // init current occupancy variation
-            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
-
-            int pext_index = _pext_u64(occupancy, rook_mask);
-
-            // init rook attacks
-            rook_attacks[square][pext_index] = RookAttacksOnTheFly(square, occupancy);
-        }
+            const uint64_t attack_index = _pext_u64(occupancy, rook_mask);
 #else
-
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-            // init current occupancy variation
-            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
-
-            // init magic index
-            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >> rook_shift;
-
-            // init rook attacks
-            rook_attacks[square][magic_index] = RookAttacksOnTheFly(square, occupancy);
-        }
+            const uint64_t attack_index = (occupancy * rook_magic_numbers[square]) >> rook_shift;
 #endif
+            // init rook attacks
+            rook_attacks[square][attack_index] = RookAttacksOnTheFly(square, occupancy);
+        }
     }
 }
