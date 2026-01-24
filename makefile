@@ -8,8 +8,8 @@ WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 
 CXXFLAGS    := -funroll-loops -O3 -flto -flto-partition=one -fno-exceptions -std=c++23 -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mfma
-BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2 -mfma
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw -mfma
+BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -DUSE_PEXT -mavx2 -mbmi -mbmi2 -mfma
+AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -DUSE_PEXT -mavx512f -mavx512bw -mfma
 
 # engine name
 NAME        := Alexandria

@@ -58,67 +58,6 @@ void initHashKeys() {
     SideKey = GetRandomU64Number();
 }
 
-// init attack tables for all the piece types, indexable by square
-void InitAttackTables() {
-    for (int square = 0; square < 64; square++) {
-        // init pawn attacks
-        pawn_attacks[WHITE][square] = MaskPawnAttacks(WHITE, square);
-        pawn_attacks[BLACK][square] = MaskPawnAttacks(BLACK, square);
-
-        // init knight attacks
-        knight_attacks[square] = MaskKnightAttacks(square);
-
-        // init king attacks
-        king_attacks[square] = MaskKingAttacks(square);
-
-        bishop_masks[square] = MaskBishopAttacks(square);
-
-        // init bishop mask
-        Bitboard bishop_mask = bishop_masks[square];
-
-        // get the relevant occupancy bit count
-        int relevant_bits_count = CountBits(bishop_mask);
-
-        // init occupancy indices
-        int occupancy_indices = 1 << relevant_bits_count;
-
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-                // init current occupancy variation
-                Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
-
-                // init magic index
-                uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
-
-                // init bishop attacks
-                bishop_attacks[square][magic_index] = BishopAttacksOnTheFly(square, occupancy);
-        }
-
-        rook_masks[square] = MaskRookAttacks(square);
-
-        // init rook mask
-        Bitboard rook_mask = rook_masks[square];
-
-        // init relevant occupancy bit count
-        relevant_bits_count = CountBits(rook_mask);
-
-        // init occupancy indices
-        occupancy_indices = 1 << relevant_bits_count;
-
-        // loop over occupancy indices
-        for (int index = 0; index < occupancy_indices; index++) {
-            // init current occupancy variation
-            Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
-
-            // init magic index
-            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >> rook_shift;
-
-            // init rook attacks
-            rook_attacks[square][magic_index] = RookAttacksOnTheFly(square, occupancy);
-        }
-    }
-}
-
 void initializeLookupTables() {
     // initialize squares between table
     Bitboard sqs;

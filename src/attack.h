@@ -132,7 +132,7 @@ extern Bitboard rook_attacks[64][4096];
     // get bishop attacks assuming current board occupancy
     auto mask = bishop_masks[square];
 #if defined (USE_PEXT)
-    auto index =  static_cast<uint32_t>(_pext_u64(occupancy, mask));
+    auto index = static_cast<uint32_t>(_pext_u64(occupancy, mask));
 #else
     auto index = (occupancy & mask) * bishop_magic_numbers[square] >> bishop_shift;
 #endif
@@ -145,7 +145,7 @@ extern Bitboard rook_attacks[64][4096];
     // get rook attacks assuming current board occupancy
     auto mask = rook_masks[square];
 #if defined (USE_PEXT)
-    auto index =  static_cast<uint32_t>(_pext_u64(occupancy, mask));
+    auto index = static_cast<uint32_t>(_pext_u64(occupancy, mask));
 #else
     auto index = (occupancy & mask) * rook_magic_numbers[square] >> rook_shift;
 #endif
