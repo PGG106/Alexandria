@@ -112,7 +112,7 @@ endif
 
 ifeq ($(build), debug)
 	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
-	NATIVE   = -msse -msse3 -mpopcnt
+	NATIVE   = -march=native
 	FLAGS    = -lpthread -lstdc++
 	CXXFLAGS += $(FLAGS_DETECTED)
 endif
