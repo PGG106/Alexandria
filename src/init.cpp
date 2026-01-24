@@ -88,7 +88,7 @@ void InitAttackTables() {
                 Bitboard occupancy = SetOccupancy(index, relevant_bits_count, bishop_mask);
 
                 // init magic index
-                uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> (64 - bishop_relevant_bits);
+                uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
 
                 // init bishop attacks
                 bishop_attacks[square][magic_index] = BishopAttacksOnTheFly(square, occupancy);
@@ -111,7 +111,7 @@ void InitAttackTables() {
             Bitboard occupancy = SetOccupancy(index, relevant_bits_count, rook_mask);
 
             // init magic index
-            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >> (64 - rook_relevant_bits);
+            uint64_t magic_index = (occupancy * rook_magic_numbers[square]) >> rook_shift;
 
             // init rook attacks
             rook_attacks[square][magic_index] = RookAttacksOnTheFly(square, occupancy);

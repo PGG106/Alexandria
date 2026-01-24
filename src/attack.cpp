@@ -206,25 +206,6 @@ Bitboard RookAttacksOnTheFly(int square, Bitboard block) {
     return attacks;
 }
 
-// retrieves attacks for a generic piece (except pawns)
-[[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ){
-    assert(piecetype > PAWN && piecetype <= KING);
-    switch (piecetype) {
-        case KNIGHT:
-            return getKnightAttacks(pieceSquare);
-        case BISHOP:
-            return getBishopAttacks(pieceSquare, occ);
-        case ROOK:
-            return getRookAttacks(pieceSquare, occ);
-        case QUEEN:
-            return getQueenAttacks(pieceSquare, occ);
-        case KING:
-            return getKingAttacks(pieceSquare);
-        default:
-            __builtin_unreachable();
-    }
-}
-
 // set occupancies
 Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask) {
     // occupancy map

@@ -20,10 +20,10 @@ constexpr Bitboard rank_2_mask = 65280ULL;
 constexpr Bitboard rank_7_mask = 71776119061217280ULL;
 
 // bishop relevant occupancy bit count for every square on board
-constexpr int bishop_relevant_bits = 9;
+constexpr int bishop_shift = 55;
 
 // rook relevant occupancy bit count for every square on board
-constexpr int rook_relevant_bits = 12;
+constexpr int rook_shift = 52;
 
 // rook magic numbers
 constexpr Bitboard rook_magic_numbers[64] = {
@@ -48,7 +48,8 @@ constexpr Bitboard rook_magic_numbers[64] = {
     0x98400600008028ULL, 0x111000040200cULL, 0x102402208108102ULL,
     0x440041482204101ULL, 0x4004402000040811ULL, 0x804a000810402002ULL,
     0x8000209020401ULL, 0x440341108009002ULL, 0x8825084204ULL,
-    0x2084002112428402ULL };
+    0x2084002112428402ULL
+};
 
 // bishop magic numbers
 constexpr Bitboard bishop_magic_numbers[64] = {
@@ -73,7 +74,8 @@ constexpr Bitboard bishop_magic_numbers[64] = {
     0x4002811049020ULL, 0x24a0410a10220ULL, 0x808090089013000ULL,
     0xc80800400805800ULL, 0x1020100061618ULL, 0x1202820040501008ULL,
     0x413010050c100405ULL, 0x4248204042020ULL, 0x44004408280110ULL,
-    0x6010220080600502ULL };
+    0x6010220080600502ULL
+};
 
 // generate pawn attacks
 [[nodiscard]] Bitboard MaskPawnAttacks(int side, int square);
@@ -128,23 +130,27 @@ extern Bitboard rook_attacks[64][4096];
 // get bishop attacks
 [[nodiscard]] inline Bitboard getBishopAttacks(const Square square, Bitboard occupancy) {
     // get bishop attacks assuming current board occupancy
-    occupancy &= bishop_masks[square];
-    occupancy *= bishop_magic_numbers[square];
-    occupancy >>= 64 - bishop_relevant_bits;
-
-    // return bishop attacks
-    return bishop_attacks[square][occupancy];
+    auto mask = bishop_masks[square];
+#if defined (USE_PEXT)
+    auto index =  static_cast<uint32_t>(_pext_u64(occupancy, mask));
+#else
+    auto index = (occupancy & mask) * bishop_magic_numbers[square] >> bishop_shift;
+#endif
+    // return rook attacks
+    return bishop_attacks[square][index];
 }
 
 // get rook attacks
 [[nodiscard]] inline Bitboard getRookAttacks(const Square square, Bitboard occupancy) {
     // get rook attacks assuming current board occupancy
-    occupancy &= rook_masks[square];
-    occupancy *= rook_magic_numbers[square];
-    occupancy >>= 64 - rook_relevant_bits;
-
+    auto mask = rook_masks[square];
+#if defined (USE_PEXT)
+    auto index =  static_cast<uint32_t>(_pext_u64(occupancy, mask));
+#else
+    auto index = (occupancy & mask) * rook_magic_numbers[square] >> rook_shift;
+#endif
     // return rook attacks
-    return rook_attacks[square][occupancy];
+    return rook_attacks[square][index];
 }
 
 // get queen attacks
@@ -156,7 +162,24 @@ extern Bitboard rook_attacks[64][4096];
     return king_attacks[square];
 }
 
-[[nodiscard]] Bitboard pieceAttacks(int piecetype,  int pieceSquare, Bitboard occ);
+// retrieves attacks for a generic piece (except pawns)
+[[nodiscard]] inline Bitboard pieceAttacks(int piecetype, int pieceSquare, Bitboard occ) {
+    assert(piecetype > PAWN && piecetype <= KING);
+    switch (piecetype) {
+        case KNIGHT:
+            return getKnightAttacks(pieceSquare);
+        case BISHOP:
+            return getBishopAttacks(pieceSquare, occ);
+        case ROOK:
+            return getRookAttacks(pieceSquare, occ);
+        case QUEEN:
+            return getQueenAttacks(pieceSquare, occ);
+        case KING:
+            return getKingAttacks(pieceSquare);
+        default:
+            __builtin_unreachable();
+    }
+}
 
 // set occupancies
 [[nodiscard]] Bitboard SetOccupancy(int index, int bits_in_mask, Bitboard attack_mask);
