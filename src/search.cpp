@@ -620,7 +620,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     {
         Movepicker mp;
         Move move;
-        InitMP(&mp, pos, sd, ss, NOMOVE, pcBeta - ss->staticEval, PROBCUT, rootNode);
+        InitMP(&mp, pos, sd, ss, ttMove, pcBeta - ss->staticEval, PROBCUT, rootNode);
         while ((move = NextMove(&mp, true)) != NOMOVE) {
 
             if (!IsLegal(pos, move))
