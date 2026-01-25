@@ -23,6 +23,8 @@ constexpr int NET_SCALE = 362;
 
 constexpr bool MERGE_KING_PLANES = false;
 
+constexpr int finnybucketCount = 3;
+
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
 constexpr float WEIGHT_CLIPPING = 1.98f;
 static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
@@ -107,8 +109,7 @@ struct NNUE {
         }
     };
 
-    using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
-
+    using FinnyTable = std::array<std::array<std::array<std::array<FinnyTableEntry, finnybucketCount>, 2>, INPUT_BUCKETS>, 2>;
     static void activateAffine(Position *pos, FinnyTable* FinnyPointer,  uint8_t *output);
     static void povActivateAffine(Position *pos, FinnyTable* FinnyPointer, const int side,  uint8_t *output);
 

@@ -6,7 +6,7 @@
 #include <cstring>
 #include "incbin/incbin.h"
 #include <fstream>
-#include "io.h"
+#include "misc.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
@@ -23,7 +23,7 @@ const unsigned char *const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-const Network* net;
+const Network *net;
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -86,22 +86,46 @@ void load_unquantize_andquant() {
 }
 
 void NNUE::init() {
-    net = reinterpret_cast<const Network*>(gEVALData);
+    net = reinterpret_cast<const Network *>(gEVALData);
 }
 
-// does FT activate for one pov at a time
 void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint8_t *output) {
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
-    FinnyTableEntry &cachedEntry = (*FinnyPointer)[side][kingBucket][flip];
+    auto &slots = (*FinnyPointer)[side][kingBucket][flip];
+    int bestSlot = 0;
+    int minChanges = INT_MAX;
 
-    size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
+    // Find the slot with fewest changes needed
+    for (int slot = 0; slot < finnybucketCount; ++slot) {
+        int changes = 0;
+
+        for (int piece = WP; piece <= BK; piece++) {
+            changes += CountBits(pos->state().bitboards[piece] ^ slots[slot].occupancies[piece]);
+        }
+
+        if (changes == 0) {
+            bestSlot = slot;
+            break;
+        }
+
+        if (changes < minChanges) {
+            minChanges = changes;
+            bestSlot = slot;
+        }
+    }
+
+    FinnyTableEntry *cachedEntry = &slots[bestSlot];
+
+    // Now do the actual update with adds/removes
+    size_t add[32], remove[32];
     size_t addCnt = 0, removeCnt = 0;
 
     for (int piece = WP; piece <= BK; piece++) {
-        Bitboard added = pos->state().bitboards[piece] & ~cachedEntry.occupancies[piece];
-        Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state().bitboards[piece];
+        Bitboard added = pos->state().bitboards[piece] & ~cachedEntry->occupancies[piece];
+        Bitboard removed = cachedEntry->occupancies[piece] & ~pos->state().bitboards[piece];
+
         while (added) {
             int square = popLsb(added);
             add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
@@ -112,11 +136,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
         }
 
-        cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
+        cachedEntry->occupancies[piece] = pos->state().bitboards[piece];
     }
 
-
-    NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
+    NNUE::PovAccumulator &accumCache = cachedEntry->accumCache;
 
     const size_t minCnt = std::min(addCnt, removeCnt);
 
@@ -144,12 +167,13 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
 #if defined(USE_SIMD)
     const vepi16 Zero = vec_zero_epi16();
-    const vepi16 One  = vec_set1_epi16(FT_QUANT);
+    const vepi16 One = vec_set1_epi16(FT_QUANT);
     for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
-        const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + 0]));
-        const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + 0]));
-        const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + L1_SIZE / 2]));
-        const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
+        const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
+        const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
+        const vepi16 input1a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + L1_SIZE / 2]));
+        const vepi16 input1b = vec_load_epi(
+            reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
 
         // Comments stolen from SF (since I was the original author of this anyways):
         // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
@@ -161,11 +185,11 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         const vepi16 clipped1a = vec_min_epi16(input1a, One);
         const vepi16 clipped1b = vec_min_epi16(input1b, One);
 
-        const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
-        const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+        const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+        const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
 
-        const vepi8  product   = vec_packus_epi16(producta, productb);
-        vec_store_epi(reinterpret_cast<vepi8*>(&output[i]), product);
+        const vepi8 product = vec_packus_epi16(producta, productb);
+        vec_store_epi(reinterpret_cast<vepi8 *>(&output[i]), product);
     }
 #else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
@@ -179,20 +203,20 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output) {
 #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
-    const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
+    const int32_t *inputs32 = reinterpret_cast<const int32_t *>(inputs);
 
     // We read in the inputs in chunks of 4 (as dpbusd horizontally sums by 4).
     // Then, each chunk of 4 is multiplied by the L1 weights. (The weights are pre-permuted to allow us to do this)
     // We also unroll by 2 to save a madd every 2 multiplications (in the non VNNI case).
     // Note that we sacrificed some quantisation accuracy to do this, as the additional accuracy had no elo gain.
     int i = 0;
-    for (; i + 1 < L1_SIZE / L1_CHUNK_PER_32; i += 2){
+    for (; i + 1 < L1_SIZE / L1_CHUNK_PER_32; i += 2) {
         const uint16_t indexa = i;
         const uint16_t indexb = i + 1;
         const vepi32 input32a = vec_set1_epi32(inputs32[indexa]);
         const vepi32 input32b = vec_set1_epi32(inputs32[indexb]);
-        const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
-        const vepi8 *weightb  = reinterpret_cast<const vepi8*>(&weights[indexb * L1_CHUNK_PER_32 * L2_SIZE]);
+        const vepi8 *weighta = reinterpret_cast<const vepi8 *>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
+        const vepi8 *weightb = reinterpret_cast<const vepi8 *>(&weights[indexb * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
             sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
     }
@@ -200,7 +224,7 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
     for (; i < L1_SIZE / L1_CHUNK_PER_32; ++i) {
         const uint16_t index = i;
         const vepi32 input32 = vec_set1_epi32(inputs32[index]);
-        const vepi8 *weight  = reinterpret_cast<const vepi8*>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
+        const vepi8 *weight = reinterpret_cast<const vepi8 *>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
             sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
     }
@@ -211,10 +235,10 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
     for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumMul  = vec_set1_ps(L1_MUL);
-        const vps32 sumPs   = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
-        const vps32 Zero    = vec_zero_ps();
-        const vps32 One     = vec_set1_ps(1.0f);
+        const vps32 sumMul = vec_set1_ps(L1_MUL);
+        const vps32 sumPs = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
+        const vps32 Zero = vec_zero_ps();
+        const vps32 One = vec_set1_ps(1.0f);
         const vps32 clipped = vec_min_ps(vec_max_ps(sumPs, Zero), One);
         const vps32 squared = vec_mul_ps(clipped, clipped);
         vec_store_ps(&output[i * L2_CHUNK_SIZE], squared);
@@ -237,7 +261,6 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
 }
 
 void NNUE::propagateL2(const float *inputs, const float *weights, const float *biases, float *output) {
-
     // For each input, multiply by all the L2 weights
 #if defined(USE_SIMD)
     vps32 sumVecs[L3_SIZE / L3_CHUNK_SIZE];
@@ -247,15 +270,15 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
 
     for (int i = 0; i < L2_SIZE; ++i) {
         const vps32 inputVec = vec_set1_ps(inputs[i]);
-        const vps32 *weight  = reinterpret_cast<const vps32*>(&weights[i * L3_SIZE]);
+        const vps32 *weight = reinterpret_cast<const vps32 *>(&weights[i * L3_SIZE]);
         for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
             sumVecs[j] = vec_mul_add_ps(inputVec, weight[j], sumVecs[j]);
     }
 
     // Activate L2
     for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
-        const vps32 Zero    = vec_zero_ps();
-        const vps32 One     = vec_set1_ps(1.0f);
+        const vps32 Zero = vec_zero_ps();
+        const vps32 One = vec_set1_ps(1.0f);
         const vps32 clipped = vec_min_ps(vec_max_ps(sumVecs[i], Zero), One);
         const vps32 squared = vec_mul_ps(clipped, clipped);
         vec_store_ps(&output[i * L3_CHUNK_SIZE], squared);
@@ -285,7 +308,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
 
 void NNUE::propagateL3(const float *inputs, const float *weights, const float bias, float &output) {
     constexpr int avx512chunk = 512 / 32;
-    #if defined(USE_SIMD)
+#if defined(USE_SIMD)
     constexpr int numSums = avx512chunk / (sizeof(vps32) / sizeof(float));
     vps32 sumVecs[numSums] = {};
     // Affine transform for L3
@@ -323,7 +346,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     // does FT activation for both accumulators
     activateAffine(pos, FinnyPointer, FTOutputs);
 
-    propagateL1(FTOutputs,net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
+    propagateL1(FTOutputs, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 
     propagateL2(L1Outputs, net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs);
 
