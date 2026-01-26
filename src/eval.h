@@ -2,6 +2,7 @@
 
 #include "position.h"
 #include <algorithm>
+#include "misc.h"
 
 [[nodiscard]] static inline int getMaterialValue(const Position* pos) {
 
@@ -11,14 +12,13 @@
     int rooks = CountBits(getPieceBB(pos, ROOK));
     int queens = CountBits(getPieceBB(pos, QUEEN));
 
-    return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015) / 32;
+    return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015);
 }
 
 [[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
 
-    const int scale = 700 + getMaterialValue(pos);
-
-    return (eval * scale) / 1024;
+    const int scale = 21000 + getMaterialValue(pos);
+    return (eval * scale) / 27000;
 }
 
 [[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer) {

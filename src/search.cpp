@@ -961,7 +961,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
 
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
-        return inCheck ? 0 : EvalPosition(pos,&td->FTable);
+        return inCheck ? 0 : EvalPosition(pos, &td->FTable);
 
     // Upcoming repetition detection
     if (alpha < 0 && hasGameCycle(pos,ss->ply))
