@@ -66,10 +66,10 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 }
 
 void updateCHScore(SearchStack *ss, const Move move, const int bonus) {
-    // Update move score
     updateSingleCHScore(ss, move, bonus, 1);
     updateSingleCHScore(ss, move, bonus, 2);
     updateSingleCHScore(ss, move, bonus, 4);
+    updateSingleCHScore(ss, move, bonus, 6);
 }
 
 void updateSingleCHScore(SearchStack *ss, const Move move, const int bonus, const int offset) {

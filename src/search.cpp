@@ -327,9 +327,9 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
     int score;
     td->RootDepth = depth;
     SearchData* sd = &td->sd;
-    SearchStack stack[MAXDEPTH + 4], *ss = stack + 4;
+    SearchStack stack[MAXDEPTH + 6], *ss = stack + 6;
     // Explicitly clean stack
-    for (int i = -4; i < MAXDEPTH; i++) {
+    for (int i = -6; i < MAXDEPTH; i++) {
         (ss + i)->move = NOMOVE;
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
