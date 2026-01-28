@@ -19,7 +19,7 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
         }
         else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode) + GetSingleCHScore(ss, move, 6);
+            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode) + 0.67 * GetSingleCHScore(ss, move, 6);
         }
     }
 }
