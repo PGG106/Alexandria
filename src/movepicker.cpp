@@ -93,7 +93,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
             goto top;
 
         // If we are in probcut and the TT move does not pass SEE, we skip it
-        if (mp->movepickerType == PROBCUT && !SEE(mp->pos, mp->ttMove, -1))
+        if (mp->movepickerType == PROBCUT && !SEE(mp->pos, mp->ttMove, mp->SEEThreshold))
             goto top;
 
         return mp->ttMove;
