@@ -533,7 +533,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
 
     // corrplex ext
-    bool extensionable = std::abs(rawEval - ss->staticEval) > 82;
+    bool extensionable = std::abs(rawEval - ss->staticEval) > 300;
     if (extensionable && ss->staticEval != eval && ttMove)
         depth++;
 
