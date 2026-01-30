@@ -531,6 +531,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             return 100 * std::abs(eval - rawEval) / std::abs(eval);
     }();
 
+
+    // corrplex ext
+    bool extensionable = std::abs(rawEval - ss->staticEval) > 82;
+    if (extensionable && ss->staticEval != eval && ttMove)
+        depth++;
+
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
     // static eval has improved, or that we were in check both 2 and 4 plies ago, we set improving to true.
