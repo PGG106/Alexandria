@@ -17,8 +17,8 @@ inline vepi16 vec_zero_epi16() { return _mm512_setzero_si512(); }
 inline vepi32 vec_zero_epi32() { return _mm512_setzero_si512(); }
 inline vepi16 vec_set1_epi16 (const int16_t n) { return _mm512_set1_epi16(n); }
 inline vepi32 vec_set1_epi32 (const int32_t n) { return _mm512_set1_epi32(n); }
-inline vepi16 vec_load_epi   (const vepi16 *src) { return _mm512_load_si512(src); }
-inline void   vec_store_epi  (vepi16 *dst, const vepi16 vec) { _mm512_store_si512(dst, vec); }
+inline vepi16 vec_load_epi   (const vepi16 *src) { return _mm512_loadu_si512(src); }
+inline void   vec_store_epi  (vepi16 *dst, const vepi16 vec) { _mm512_storeu_si512(dst, vec); }
 inline vepi16 vec_max_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_max_epi16(vec0, vec1); }
 inline vepi16 vec_min_epi16  (const vepi16 vec0, const vepi16 vec1) { return _mm512_min_epi16(vec0, vec1); }
 inline vepi16 vec_mulhi_epi16(const vepi16 vec0, const vepi16 vec1) { return _mm512_mulhi_epi16(vec0, vec1); }
