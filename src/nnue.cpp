@@ -146,7 +146,32 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One  = vec_set1_epi16(FT_QUANT);
     for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
-        const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + 0]));
+
+
+        // In povActivateAffine, right before the vec_max_epi16 call
+        fprintf(stderr, "About to call vec_max_epi16\n");
+        fprintf(stderr, "accumCache address: %p\n", (void*)&accumCache[0]);
+        fprintf(stderr, "i = %d\n", i);
+        fflush(stderr);
+
+        // Try creating fresh vectors instead of loaded ones
+        const vepi16 test_a = vec_set1_epi16(5);
+        const vepi16 test_b = vec_set1_epi16(10);
+        const vepi16 test_result = vec_max_epi16(test_a, test_b);  // Does THIS crash?
+
+        fprintf(stderr, "Test max succeeded\n");
+
+        // Now try with the actual loaded data
+        const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0]));
+        fprintf(stderr, "Load succeeded\n");
+
+        const vepi16 Zero = vec_zero_epi16();
+        fprintf(stderr, "About to max with loaded data\n");
+        fflush(stderr);
+
+        const vepi16 clipped0a = vec_max_epi16(input0a, Zero);  // Does THIS crash?
+
+
         const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + 0]));
         const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + L1_SIZE / 2]));
         const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
@@ -156,7 +181,7 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         // shift left by (16 - FT_SHIFT), and use mulhi, stripping the bottom 16 bits, effectively shifting right by 16, resulting in a net shift
         // of FT_SHIFT bits. We use mulhi because it maintains the sign of the multiplication (unlike mullo), allowing us to make use
         // of packus to clip 2 of the inputs, resulting in a save of 2 "vec_max_epi16" calls.
-        const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
+
         const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
         const vepi16 clipped1a = vec_min_epi16(input1a, One);
         const vepi16 clipped1b = vec_min_epi16(input1b, One);
