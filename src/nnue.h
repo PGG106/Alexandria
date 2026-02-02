@@ -97,9 +97,9 @@ struct NNUE {
 
     using PovAccumulator = std::array<int16_t, L1_SIZE>;
 
-    struct FinnyTableEntry {
-        Bitboard occupancies[12] = {};
+    struct alignas(64) FinnyTableEntry {
         NNUE::PovAccumulator accumCache;
+        Bitboard occupancies[12] = {};
 
         FinnyTableEntry() {
             for (int i = 0; i < L1_SIZE; ++i)
