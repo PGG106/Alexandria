@@ -105,7 +105,7 @@ ifeq ($(build), x86-64-bmi2)
 endif
 
 ifeq ($(build), x86-64-avx512)
-	NATIVE    = -march=x86-64-v4 -mtune=znver4
+	NATIVE    = -march=x86-64-v4
 	ARCH      = -x86-64-avx512
 	CXXFLAGS += $(AVX512FLAGS)
 endif
