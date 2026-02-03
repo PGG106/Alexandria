@@ -23,7 +23,8 @@ const unsigned char *const gEVALEnd = &gEVALData[1];
 const unsigned int gEVALSize = 1;
 #endif
 
-const Network* net;
+const Network *net;
+NNZTable nnzTable;
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -86,11 +87,12 @@ void load_unquantize_andquant() {
 }
 
 void NNUE::init() {
-    net = reinterpret_cast<const Network*>(gEVALData);
+    net = reinterpret_cast<const Network *>(gEVALData);
 }
 
 // does FT activate for one pov at a time
-void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint8_t *output) {
+void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, v128i& base,
+                             uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
@@ -144,12 +146,13 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
 #if defined(USE_SIMD)
     const vepi16 Zero = vec_zero_epi16();
-    const vepi16 One  = vec_set1_epi16(FT_QUANT);
+    const vepi16 One = vec_set1_epi16(FT_QUANT);
     for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
-        const vepi16 input0a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + 0]));
-        const vepi16 input0b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + 0]));
-        const vepi16 input1a   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + 0             + L1_SIZE / 2]));
-        const vepi16 input1b   = vec_load_epi(reinterpret_cast<const vepi16*>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
+        const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
+        const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
+        const vepi16 input1a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + L1_SIZE / 2]));
+        const vepi16 input1b = vec_load_epi(
+            reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
 
         // Comments stolen from SF (since I was the original author of this anyways):
         // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
@@ -161,11 +164,34 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         const vepi16 clipped1a = vec_min_epi16(input1a, One);
         const vepi16 clipped1b = vec_min_epi16(input1b, One);
 
-        const vepi16 producta  = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
-        const vepi16 productb  = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+        const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+        const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
 
-        const vepi8  product   = vec_packus_epi16(producta, productb);
-        vec_store_epi(reinterpret_cast<vepi8*>(&output[i]), product);
+        const vepi8 product = vec_packus_epi16(producta, productb);
+        vec_store_epi(reinterpret_cast<vepi8 *>(&output[i]), product);
+        const v128i LookupIncr = vec128_set1_epi16(8);
+        // store all non zero indices to transform L1 sparsely
+        // start ny creating a mask masking all the non 0 elements in our product vector (actually 4 8bit elements
+        // creating a 32 bit element at a time, which will be non 0 if at least 1 8 bit element is.
+        const uint16_t nnzMask = vec_nnz_mask(product);
+        // check number of elements inside the actual register / 8 since we are working on a per bit basis
+        for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
+            // 0-255 mask index for the table
+            uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
+            // look up from a precaculated table how many bits are set to 1 and what the indexes are
+            NNZEntry nnzEntry = nnzTable.table[maskSlice];
+            // get ready to store in in nnzIndices by getting the appropriate pointer to it
+            v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
+            // add entry indices to our non-zero indices list
+            const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
+            // add base address to indexes and store them
+            vec128_storeu_epi16(nnzStore, vec128_add_epi16(base, indices));
+
+            // increment count of total non 0 elements
+            nnzCount += nnzEntry.count;
+            // update base value for the next cycle iteration
+            base = vec128_add_epi16(base, LookupIncr);
+        }
     }
 #else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
@@ -176,19 +202,23 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 #endif
 }
 
-void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output) {
+void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int nnzCount, const int8_t *weights, const float *biases, float *output) {
 #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
-    const int32_t *inputs32 = reinterpret_cast<const int32_t*>(inputs);
+    const int32_t *inputs32 = reinterpret_cast<const int32_t *>(inputs);
 
     // We read in the inputs in chunks of 4 (as dpbusd horizontally sums by 4).
     // Then, each chunk of 4 is multiplied by the L1 weights. (The weights are pre-permuted to allow us to do this)
     // We also unroll by 2 to save a madd every 2 multiplications (in the non VNNI case).
     // Note that we sacrificed some quantisation accuracy to do this, as the additional accuracy had no elo gain.
     int i = 0;
-    for (; i + 1 < L1_SIZE / L1_CHUNK_PER_32; i += 2){
-        const uint16_t indexa = i;
-        const uint16_t indexb = i + 1;
+    for (; i < nnzCount - 1; i += 2) {
+        const uint16_t indexa = nnzIndices[i + 0];
+        const uint16_t indexb = nnzIndices[i + 1];
+        if (inputs32[indexa] == 0)
+            std::cout << indexa;
+        assert(inputs32[indexa] != 0);
+        assert(inputs32[indexb] != 0);
         const vepi32 input32a = vec_set1_epi32(inputs32[indexa]);
         const vepi32 input32b = vec_set1_epi32(inputs32[indexb]);
         const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
@@ -197,8 +227,8 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
             sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
     }
 
-    for (; i < L1_SIZE / L1_CHUNK_PER_32; ++i) {
-        const uint16_t index = i;
+    for (; i < nnzCount; ++i) {
+        const uint16_t index = nnzIndices[i];
         const vepi32 input32 = vec_set1_epi32(inputs32[index]);
         const vepi8 *weight  = reinterpret_cast<const vepi8*>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
         for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
@@ -211,10 +241,10 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
     for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
         // Convert into floats, and activate L1
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumMul  = vec_set1_ps(L1_MUL);
-        const vps32 sumPs   = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
-        const vps32 Zero    = vec_zero_ps();
-        const vps32 One     = vec_set1_ps(1.0f);
+        const vps32 sumMul = vec_set1_ps(L1_MUL);
+        const vps32 sumPs = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
+        const vps32 Zero = vec_zero_ps();
+        const vps32 One = vec_set1_ps(1.0f);
         const vps32 clipped = vec_min_ps(vec_max_ps(sumPs, Zero), One);
         const vps32 squared = vec_mul_ps(clipped, clipped);
         vec_store_ps(&output[i * L2_CHUNK_SIZE], squared);
@@ -237,7 +267,6 @@ void NNUE::propagateL1(const uint8_t *inputs, const int8_t *weights, const float
 }
 
 void NNUE::propagateL2(const float *inputs, const float *weights, const float *biases, float *output) {
-
     // For each input, multiply by all the L2 weights
 #if defined(USE_SIMD)
     vps32 sumVecs[L3_SIZE / L3_CHUNK_SIZE];
@@ -247,15 +276,15 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
 
     for (int i = 0; i < L2_SIZE; ++i) {
         const vps32 inputVec = vec_set1_ps(inputs[i]);
-        const vps32 *weight  = reinterpret_cast<const vps32*>(&weights[i * L3_SIZE]);
+        const vps32 *weight = reinterpret_cast<const vps32 *>(&weights[i * L3_SIZE]);
         for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
             sumVecs[j] = vec_mul_add_ps(inputVec, weight[j], sumVecs[j]);
     }
 
     // Activate L2
     for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i) {
-        const vps32 Zero    = vec_zero_ps();
-        const vps32 One     = vec_set1_ps(1.0f);
+        const vps32 Zero = vec_zero_ps();
+        const vps32 One = vec_set1_ps(1.0f);
         const vps32 clipped = vec_min_ps(vec_max_ps(sumVecs[i], Zero), One);
         const vps32 squared = vec_mul_ps(clipped, clipped);
         vec_store_ps(&output[i * L3_CHUNK_SIZE], squared);
@@ -285,7 +314,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
 
 void NNUE::propagateL3(const float *inputs, const float *weights, const float bias, float &output) {
     constexpr int avx512chunk = 512 / 32;
-    #if defined(USE_SIMD)
+#if defined(USE_SIMD)
     constexpr int numSums = avx512chunk / (sizeof(vps32) / sizeof(float));
     vps32 sumVecs[numSums] = {};
     // Affine transform for L3
@@ -307,12 +336,17 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
 #endif
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, uint8_t *output) {
-    povActivateAffine(pos, FinnyPointer, pos->side, output);
-    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, &output[L1_SIZE / 2]);
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, v128i base, [[maybe_unused]] uint16_t *nnzIndices,
+                          [[maybe_unused]] int &nnzCount, uint8_t *output) {
+    povActivateAffine(pos, FinnyPointer, pos->side, base, nnzIndices, nnzCount, output);
+    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
 }
 
 int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
+    int nnzCount = 0;
+    v128i base = vec128_zero_epi16();
+    alignas (64) uint16_t nnzIndices[L1_SIZE / L1_CHUNK_PER_32];
+
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     alignas (64) uint8_t FTOutputs[L1_SIZE];
@@ -321,9 +355,9 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     float L3Output;
 
     // does FT activation for both accumulators
-    activateAffine(pos, FinnyPointer, FTOutputs);
+    activateAffine(pos, FinnyPointer, base, nnzIndices, nnzCount, FTOutputs);
 
-    propagateL1(FTOutputs,net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
+    propagateL1(FTOutputs, nnzIndices, nnzCount, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 
     propagateL2(L1Outputs, net->L2Weights[outputBucket], net->L2Biases[outputBucket], L2Outputs);
 
