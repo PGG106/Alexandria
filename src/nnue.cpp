@@ -151,8 +151,7 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
         const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
         const vepi16 input1a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + L1_SIZE / 2]));
-        const vepi16 input1b = vec_load_epi(
-            reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
+        const vepi16 input1b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
 
         // Comments stolen from SF (since I was the original author of this anyways):
         // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
@@ -215,10 +214,6 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
     for (; i < nnzCount - 1; i += 2) {
         const uint16_t indexa = nnzIndices[i + 0];
         const uint16_t indexb = nnzIndices[i + 1];
-        if (inputs32[indexa] == 0)
-            std::cout << indexa;
-        assert(inputs32[indexa] != 0);
-        assert(inputs32[indexb] != 0);
         const vepi32 input32a = vec_set1_epi32(inputs32[indexa]);
         const vepi32 input32b = vec_set1_epi32(inputs32[indexb]);
         const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
