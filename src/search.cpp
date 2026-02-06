@@ -739,7 +739,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 && (ttBound & HFLOWER)
                 && !isDecisive(ttScore)
                 &&  ttDepth >= depth - 3) {
-                const int singularBeta = ttScore - depth * 5 / 8;
+                const int singularBeta = ttScore - depth * 5 / 8 - depth * (ttPv && !pvNode);
                 const int singularDepth = (depth - 1) / 2;
 
                 ss->excludedMove = ttMove;
