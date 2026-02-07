@@ -5,9 +5,12 @@
 #include <vector>
 #include <cassert>
 #include <cmath>
+
+#include "bitboard.h"
 #include "simd.h"
 #include "types.h"
 
+struct Position;
 // Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
@@ -91,7 +94,6 @@ struct Network {
 };
 
 extern const Network* net;
-struct Position;
 
 struct NNUE {
 
@@ -109,10 +111,10 @@ struct NNUE {
 
     using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
 
-    static void activateAffine(Position *pos, FinnyTable* FinnyPointer,  uint8_t *output);
-    static void povActivateAffine(Position *pos, FinnyTable* FinnyPointer, const int side,  uint8_t *output);
+    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, v128i base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, v128i& base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
 
-    static void propagateL1(const uint8_t *inputs, const int8_t *weights, const float *biases, float *output);
+    static void propagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
     static void propagateL2(const float *inputs, const float *weights, const float *biases, float *output);
     static void propagateL3(const float *inputs, const float *weights, const float bias, float &output);
 
@@ -120,3 +122,25 @@ struct NNUE {
     static void init();
     static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
 };
+
+// NNZTable stores all the possible 8-bit combinations, active indices and active indices count
+struct NNZEntry {
+    uint16_t indices[8];
+    int      count;
+};
+
+struct NNZTable {
+    NNZEntry table[256];
+
+    NNZTable() {
+        for (uint16_t i = 0; i <= 255; ++i) {
+            this->table[i].count = CountBits(i);
+            Bitboard j = i;
+            uint16_t k = 0;
+            while (j)
+                this->table[i].indices[k++] = popLsb(j);
+        }
+    };
+};
+
+extern NNZTable nnzTable;
