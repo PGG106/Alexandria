@@ -1051,6 +1051,8 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
             }
             if (totalMoves >= 2)
                 break;
+            if (!SEE(pos, move, -100))
+                continue;
         }
 
         totalMoves++;
