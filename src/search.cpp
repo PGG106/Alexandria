@@ -1040,17 +1040,21 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         if (!IsLegal(pos, move))
             continue;
 
+        // Futility pruning. If static eval is far below alpha, only search moves that win material.
+        if (!isMated(bestScore)) {
+            if (!inCheck){
+                const int futilityBase = ss->staticEval + qsBaseFutility();
+                if (futilityBase <= alpha && !SEE(pos, move, 1)) {
+                    bestScore = std::max(futilityBase, bestScore);
+                    continue;
+                }
+            }
+            if (totalMoves >= 2)
+                break;
+        }
+
         totalMoves++;
 
-        // Futility pruning. If static eval is far below alpha, only search moves that win material.
-        if (   !isMated(bestScore)
-            && !inCheck) {
-            const int futilityBase = ss->staticEval + qsBaseFutility();
-            if (futilityBase <= alpha && !SEE(pos, move, 1)) {
-                bestScore = std::max(futilityBase, bestScore);
-                continue;
-            }
-        }
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
