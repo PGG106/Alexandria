@@ -254,9 +254,12 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
 
     for (int i = 0; i < L2_SIZE; ++i) {
         // Convert into floats and activate L1
-        const float clipped = std::clamp(float(sums[i]) * L1_MUL + biases[i], 0.0f, 1.0f);
-        const float squared = clipped * clipped;
+        const float z = float(sums[i]) * L1_MUL + biases[i];
+        // Dual activation: produce 2 L1 outputs for each input by applying different activations
+        const float squared = std::clamp(z * z, 0.0f, 1.0f);
+        const float linear =  std::clamp(z, 0.0f, 1.0f);
         output[i] = squared;
+        output[i+ L2_SIZE] = linear;
     }
 #endif
 }
@@ -269,7 +272,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
     for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i)
         sumVecs[i] = vec_load_ps(&biases[i * L3_CHUNK_SIZE]);
 
-    for (int i = 0; i < L2_SIZE; ++i) {
+    for (int i = 0; i < L2_SIZE * 2; ++i) {
         const vps32 inputVec = vec_set1_ps(inputs[i]);
         const vps32 *weight = reinterpret_cast<const vps32 *>(&weights[i * L3_SIZE]);
         for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
@@ -345,7 +348,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     alignas (64) uint8_t FTOutputs[L1_SIZE];
-    alignas (64) float L1Outputs[L2_SIZE];
+    alignas (64) float L1Outputs[L2_SIZE * 2];
     alignas (64) float L2Outputs[L3_SIZE];
     float L3Output;
 
