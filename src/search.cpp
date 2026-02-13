@@ -1051,6 +1051,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                     continue;
                 }
             }
+            // if the TT move is a valid quiet check evasion skip killer and counter moves
             if (isQuiet(move))
                 continue;
         }
