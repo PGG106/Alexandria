@@ -691,7 +691,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const int moveHistory = GetHistoryScore(pos, sd, move, ss, false);
         if (   !rootNode
-            && !isMated(bestScore)) {
+            && !isMated(bestScore)
+            && BoardHasNonPawns(pos, pos->side)) {
 
             const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
