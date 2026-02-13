@@ -238,11 +238,17 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
         const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
         const vps32 sumMul = vec_set1_ps(L1_MUL);
         const vps32 sumPs = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
+
         const vps32 Zero = vec_zero_ps();
         const vps32 One = vec_set1_ps(1.0f);
+        // linear
         const vps32 clipped = vec_min_ps(vec_max_ps(sumPs, Zero), One);
-        const vps32 squared = vec_mul_ps(clipped, clipped);
-        vec_store_ps(&output[i * L2_CHUNK_SIZE], squared);
+        // squared
+        const vps32 squared = vec_mul_ps(sumPs, sumPs);
+        const vps32 squared_clipped = vec_min_ps(vec_max_ps(squared, Zero), One);
+        // it's storing time
+        vec_store_ps(&output[i * L2_CHUNK_SIZE], clipped);
+        vec_store_ps(&output[L2_SIZE + i * L2_CHUNK_SIZE], squared_clipped);
     }
 #else
     int sums[L2_SIZE] = {};
