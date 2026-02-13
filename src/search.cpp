@@ -1040,8 +1040,6 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         if (!IsLegal(pos, move))
             continue;
 
-        totalMoves++;
-
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
         if (   !isMated(bestScore)) {
             if (!inCheck && !isPromo(move)){
@@ -1051,7 +1049,12 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                     continue;
                 }
             }
+            if (totalMoves > 3)
+                break;
         }
+
+        totalMoves++;
+
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
