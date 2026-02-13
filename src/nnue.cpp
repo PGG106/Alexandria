@@ -65,7 +65,7 @@ void load_unquantize_andquant() {
         }
 
         // Quantise L2 Weights
-        for (int i = 0; i < L2_SIZE; ++i)
+        for (int i = 0; i < L2_SIZE * 2; ++i)
             for (int j = 0; j < L3_SIZE; ++j)
                 quantisedNet.L2Weights[i][bucket][j] = unquantisedNet.L2Weights[i][bucket][j];
 
