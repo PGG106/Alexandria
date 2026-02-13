@@ -202,49 +202,6 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 }
 
 void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int nnzCount, const int8_t *weights, const float *biases, float *output) {
-#if defined(USE_SIMD)
-    vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
-    const int32_t *inputs32 = reinterpret_cast<const int32_t *>(inputs);
-
-    // We read in the inputs in chunks of 4 (as dpbusd horizontally sums by 4).
-    // Then, each chunk of 4 is multiplied by the L1 weights. (The weights are pre-permuted to allow us to do this)
-    // We also unroll by 2 to save a madd every 2 multiplications (in the non VNNI case).
-    // Note that we sacrificed some quantisation accuracy to do this, as the additional accuracy had no elo gain.
-    int i = 0;
-    for (; i < nnzCount - 1; i += 2) {
-        const uint16_t indexa = nnzIndices[i + 0];
-        const uint16_t indexb = nnzIndices[i + 1];
-        const vepi32 input32a = vec_set1_epi32(inputs32[indexa]);
-        const vepi32 input32b = vec_set1_epi32(inputs32[indexb]);
-        const vepi8 *weighta  = reinterpret_cast<const vepi8*>(&weights[indexa * L1_CHUNK_PER_32 * L2_SIZE]);
-        const vepi8 *weightb  = reinterpret_cast<const vepi8*>(&weights[indexb * L1_CHUNK_PER_32 * L2_SIZE]);
-        for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
-            sums[j] = vec_dpbusdx2_epi32(sums[j], input32a, weighta[j], input32b, weightb[j]);
-    }
-
-    for (; i < nnzCount; ++i) {
-        const uint16_t index = nnzIndices[i];
-        const vepi32 input32 = vec_set1_epi32(inputs32[index]);
-        const vepi8 *weight  = reinterpret_cast<const vepi8*>(&weights[index * L1_CHUNK_PER_32 * L2_SIZE]);
-        for (int j = 0; j < L2_SIZE / L2_CHUNK_SIZE; ++j)
-            sums[j] = vec_dpbusd_epi32(sums[j], input32, weight[j]);
-    }
-
-    // We divide by the ONE value to proceed into the later layers, which is carried out in floats.
-    // A nice trick by ciekce: instead of dividing, and then adding the L1 bias, we multiply by its reciprocal,
-    // and then add the bias, which allows us to use FMA.
-    for (i = 0; i < L2_SIZE / L2_CHUNK_SIZE; ++i) {
-        // Convert into floats, and activate L1
-        const vps32 biasVec = vec_load_ps(&biases[i * L2_CHUNK_SIZE]);
-        const vps32 sumMul = vec_set1_ps(L1_MUL);
-        const vps32 sumPs = vec_mul_add_ps(vec_cvtepi32_ps(sums[i]), sumMul, biasVec);
-        const vps32 Zero = vec_zero_ps();
-        const vps32 One = vec_set1_ps(1.0f);
-        const vps32 clipped = vec_min_ps(vec_max_ps(sumPs, Zero), One);
-        const vps32 squared = vec_mul_ps(clipped, clipped);
-        vec_store_ps(&output[i * L2_CHUNK_SIZE], squared);
-    }
-#else
     int sums[L2_SIZE] = {};
     for (int i = 0; i < L1_SIZE; ++i) {
         for (int j = 0; j < L2_SIZE; ++j) {
@@ -261,7 +218,6 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
         output[i] = squared;
         output[i+ L2_SIZE] = linear;
     }
-#endif
 }
 
 void NNUE::propagateL2(const float *inputs, const float *weights, const float *biases, float *output) {
