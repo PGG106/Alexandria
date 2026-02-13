@@ -1049,7 +1049,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                     continue;
                 }
             }
-            if (totalMoves > 3)
+            if (totalMoves >= 3)
                 break;
         }
 
