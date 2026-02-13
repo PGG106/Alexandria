@@ -1051,7 +1051,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                     continue;
                 }
             }
-            if (!isCapture(move) && getPromotedPiecetype(move) != QUEEN) {
+            if (!SEE(pos,move,-1)) {
                 continue;
             }
         }
