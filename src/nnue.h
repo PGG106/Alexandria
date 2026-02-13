@@ -83,14 +83,14 @@ struct QuantisedNetwork {
 
 
 struct Network {
-    alignas(64) int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    alignas(64) int16_t FTBiases [L1_SIZE];
-    alignas(64) int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
-    alignas(64) float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
-    alignas(64) float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * 2 * L3_SIZE];
-    alignas(64) float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
-    alignas(64) float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
-    alignas(64) float   L3Biases [OUTPUT_BUCKETS];
+    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t FTBiases [L1_SIZE];
+    int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
+    float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
+    float   L2Weights[OUTPUT_BUCKETS][L2_SIZE * 2 * L3_SIZE];
+    float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
+    float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
+    float   L3Biases [OUTPUT_BUCKETS];
 };
 
 extern const Network* net;
