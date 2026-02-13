@@ -215,8 +215,8 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
         // Dual activation: produce 2 L1 outputs for each input by applying different activations
         const float squared = std::clamp(z * z, 0.0f, 1.0f);
         const float linear =  std::clamp(z, 0.0f, 1.0f);
-        output[i] = squared;
-        output[i + L2_SIZE] = linear;
+        output[i] = linear;
+        output[i + L2_SIZE] = squared;
     }
 }
 
