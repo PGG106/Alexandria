@@ -1051,7 +1051,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                     continue;
                 }
             }
-            if (!SEE(pos, move, -1))
+            if (isQuiet(move))
                 continue;
         }
         // Speculative prefetch of the TT entry
