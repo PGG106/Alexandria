@@ -65,7 +65,7 @@ void load_unquantize_andquant() {
         }
 
         // Quantise L2 Weights
-        for (int i = 0; i < L2_SIZE * 2; ++i)
+        for (int i = 0; i < EFFECTIVE_L2_SIZE; ++i)
             for (int j = 0; j < L3_SIZE; ++j)
                 quantisedNet.L2Weights[i][bucket][j] = unquantisedNet.L2Weights[i][bucket][j];
 
@@ -278,7 +278,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
     for (int i = 0; i < L3_SIZE / L3_CHUNK_SIZE; ++i)
         sumVecs[i] = vec_load_ps(&biases[i * L3_CHUNK_SIZE]);
 
-    for (int i = 0; i < L2_SIZE * 2; ++i) {
+    for (int i = 0; i < EFFECTIVE_L2_SIZE; ++i) {
         const vps32 inputVec = vec_set1_ps(inputs[i]);
         const vps32 *weight = reinterpret_cast<const vps32 *>(&weights[i * L3_SIZE]);
         for (int j = 0; j < L3_SIZE / L3_CHUNK_SIZE; ++j)
