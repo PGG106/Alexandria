@@ -354,7 +354,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     const int pieceCount = pos->PieceCount();
     const int outputBucket = std::min((63 - pieceCount) * (32 - pieceCount) / 225, 7);
     alignas (64) uint8_t FTOutputs[L1_SIZE];
-    alignas (64) float L1Outputs[L2_SIZE * 2];
+    alignas (64) float L1Outputs[EFFECTIVE_L2_SIZE];
     alignas (64) float L2Outputs[L3_SIZE];
     float L3Output;
 
