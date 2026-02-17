@@ -544,6 +544,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         return true;
     }();
 
+    // shit
     if (!pvNode
         && !inCheck) {
 
