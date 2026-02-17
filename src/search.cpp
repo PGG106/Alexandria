@@ -545,7 +545,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }();
 
     if (!pvNode
-        && !excludedMove
         && !inCheck) {
 
         // Hindsight reduction
@@ -565,6 +564,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // to prevent falling into zugzwangs.
         if (   eval >= ss->staticEval
             && eval >= beta
+            && !excludedMove
             && ss->staticEval >= beta - nmpDepthMargin() * depth + nmpOffset()
             && (ss - 1)->move != NOMOVE
             && ss->ply >= td->nmpPlies
