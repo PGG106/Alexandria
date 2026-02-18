@@ -364,7 +364,7 @@ void UciLoop(int argc, char** argv) {
             }
             std::cout << "Raw eval: " << EvalPositionRaw(&td->pos, &td->FTable) << std::endl;
 
-            std::cout << "Scaled eval: " << EvalPosition(&td->pos, &td->FTable) << std::endl;
+            std::cout << "Scaled eval: " << adjustEval(&td->pos, 0, EvalPosition(&td->pos, &td->FTable)) << std::endl;
         }
 
         else if (input == "bench") {
