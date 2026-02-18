@@ -557,6 +557,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   depth < 10
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
+            && !excludedMove
             && eval - futilityMargin(depth, improving, badNode) >= beta)
             return eval - futilityMargin(depth, improving, badNode);
 
