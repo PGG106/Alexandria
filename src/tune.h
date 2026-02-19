@@ -123,8 +123,8 @@ TUNE_TM_PARAM(evalScale4, 92, 60, 130, 4, 0.002)
 TUNE_TM_PARAM(evalScale5, 87, 40, 110, 4, 0.002)
 
 // Node Tm
-TUNE_TM_PARAM(nodeTmBase, 227, 100, 300, 10, 0.002)
-TUNE_TM_PARAM(nodeTmMultiplier, 120, 80, 250, 8, 0.002)
+TUNE_TM_PARAM(nodeTmBase, 143, 100, 300, 10, 0.002)
+TUNE_TM_PARAM(nodeTmMultiplier, 150, 80, 250, 8, 0.002)
 
 // Search
 TUNE_PARAM(rfpDepthMargin, 75, 40, 200, 10, 0.002)
