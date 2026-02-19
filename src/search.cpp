@@ -291,7 +291,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             }
 
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
-            if (   td->RootDepth > 7
+            if (   td->RootDepth >= 3
                 && td->info.timeset) {
                 ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor);
             }
