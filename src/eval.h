@@ -16,7 +16,7 @@
 
 [[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
 
-    const int scale = (19578 + getMaterialValue(pos)) / 32;
+    const int scale = (24333 + getMaterialValue(pos)) / 32;
 
     return (eval * scale) / 1024;
 }
