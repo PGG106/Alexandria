@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-
+#define TUNE
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -188,4 +188,12 @@ TUNE_PARAM(seeNoisyMargin, -27, -100, -1, 3, 0.002)
 TUNE_PARAM(futilityCoeff0, 232, 40, 300, 10, 0.002)
 TUNE_PARAM(futilityCoeff1, 118, 40, 200, 10, 0.002)
 TUNE_PARAM(histPruningMargin, -3753, -16384, 0, 256, 0.002)
+
+// Mat scaling
+TUNE_PARAM(PawnMatScaling, 100, 50, 150, 5, 0.002)
+TUNE_PARAM(KnightMatScaling, 422, 250, 500, 15, 0.002)
+TUNE_PARAM(BishopMatScaling, 422, 250, 500, 15, 0.002)
+TUNE_PARAM(RookMatScaling, 642, 250, 500, 15, 0.002)
+TUNE_PARAM(QueenMatScaling, 1015, 570, 1350, 25, 0.002)
+TUNE_PARAM(MatScaleFixed, 22400, 15000, 30000, 50, 0.002)
 

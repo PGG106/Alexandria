@@ -11,12 +11,13 @@
     int rooks = CountBits(getPieceBB(pos, ROOK));
     int queens = CountBits(getPieceBB(pos, QUEEN));
 
-    return (pawns * 100 + knights * 422 + bishops * 422 + rooks * 642 + queens * 1015);
+    return (pawns * PawnMatScaling() + knights * KnightMatScaling()
+        + bishops * BishopMatScaling() + rooks * RookMatScaling() + queens * QueenMatScaling());
 }
 
 [[nodiscard]] static inline int ScaleMaterial(const Position* pos, int eval) {
 
-    const int scale = (22400 + getMaterialValue(pos)) / 32;
+    const int scale = (MatScaleFixed() + getMaterialValue(pos)) / 32;
 
     return (eval * scale) / 1024;
 }
