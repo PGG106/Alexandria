@@ -111,17 +111,17 @@ ifeq ($(build), x86-64-avx512)
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
+	CXXFLAGS = -Og -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -march=native
-	FLAGS    = -lpthread -lstdc++
+	FLAGS    =
 	CXXFLAGS += $(FLAGS_DETECTED)
 endif
 
 # valgrind doesn't like avx512 code
 ifeq ($(build), debug-avx2)
-	CXXFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a -fsanitize=address -fsanitize=leak -fsanitize=undefined
+	CXXFLAGS = -Og -g3 -fno-omit-frame-pointer -std=gnu++2a -fsanitize=address -fsanitize=leak -fsanitize=undefined
 	NATIVE   = -msse -msse3 -mpopcnt
-	FLAGS    = -lpthread -lstdc++
+	FLAGS    =
 	CXXFLAGS += $(AVX2FLAGS)
 endif
 
