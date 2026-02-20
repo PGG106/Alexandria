@@ -193,7 +193,7 @@ TUNE_PARAM(histPruningMargin, -3753, -16384, 0, 256, 0.002)
 TUNE_PARAM(PawnMatScaling, 100, 50, 150, 5, 0.002)
 TUNE_PARAM(KnightMatScaling, 422, 250, 500, 15, 0.002)
 TUNE_PARAM(BishopMatScaling, 422, 250, 500, 15, 0.002)
-TUNE_PARAM(RookMatScaling, 642, 250, 500, 15, 0.002)
+TUNE_PARAM(RookMatScaling, 642, 350, 800, 15, 0.002)
 TUNE_PARAM(QueenMatScaling, 1015, 570, 1350, 25, 0.002)
 TUNE_PARAM(MatScaleFixed, 22400, 15000, 30000, 50, 0.002)
 
