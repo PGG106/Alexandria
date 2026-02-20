@@ -1,4 +1,4 @@
-CXX := g++
+CXX := clang++
 PARENT_DIR := ..
 CXXFLAGS += -funroll-loops -O3 -std=c++23 -I$(PARENT_DIR)
 FLAGS := 
