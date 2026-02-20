@@ -2,10 +2,10 @@ _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 EVALFILE     = nn.net
 EVALFILE_PROCESSED = processed.net
-CXX         := g++
+CXX         := clang++
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
-CXXFLAGS    := -funroll-loops -O3 -flto -flto-partition=one -fno-exceptions -std=c++23 -DNDEBUG $(WARNINGS)
+CXXFLAGS    := -funroll-loops -O0 -flto -flto-partition=one -fno-exceptions -std=c++23 -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mfma
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -DUSE_PEXT -mavx2 -mbmi -mbmi2 -mfma
