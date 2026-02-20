@@ -765,7 +765,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // If we are expecting a fail-high both based on search states from previous plies and based on TT bound
                 // but our TT move is not singular and our TT score is failing low, reduce the search depth
                 else if (cutNode)
-                    extension = -1;
+                    extension = -2;
             }
         }
         // we adjust the search depth based on potential extensions
