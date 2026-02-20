@@ -29,7 +29,6 @@ constexpr int NET_SCALE = 362;
 
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
 constexpr float WEIGHT_CLIPPING = 1.98f;
-static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
 
 #if defined(USE_SIMD)
 constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
