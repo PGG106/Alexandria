@@ -18,8 +18,8 @@ TMPDIR = .tmp
 
 #PGO
 PGODIR      = .pgo
-PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction -lgcov
-PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction -lgcov
+PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction
+PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
 CXXFLAGS    += $(PGO_EXTRA)
 
 # Detect Clang
@@ -29,12 +29,15 @@ endif
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
-	MKDIR   := mkdir
+    MKDIR := mkdir
+    RM_RF := rmdir /s /q
 else
 ifeq ($(COMP), MINGW)
-	MKDIR   := mkdir -p
+    MKDIR := mkdir
+    RM_RF := rmdir /s /q
 else
-	MKDIR   := mkdir -p
+    MKDIR := mkdir -p
+    RM_RF := rm -rf
 endif
 endif
 
@@ -156,7 +159,7 @@ net: $(EVALFILE_PROCESSED)
 all: $(EVALFILE_PROCESSED) $(TARGET)
 
 $(TARGET): $(EVALFILE_PROCESSED) $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(PGO_LIBS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
@@ -170,17 +173,15 @@ clean:
 
 pgo: $(EVALFILE_PROCESSED)
 	-$(MKDIR) "$(PGODIR)"
-	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_GENERATE)"
+	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_GENERATE)" PGO_LIBS="-lgcov"
 
 	./$(EXE) bench
 
 	-$(MAKE) clean_objects
-	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_USE)"
+	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_USE)" PGO_LIBS="-lgcov"
 
-# Only wipe object files, not the processed net
 clean_objects:
-	@rm -rf $(TMPDIR)
-
+	-$(RM_RF) "$(TMPDIR)"
 pgo-clean:
 	@rm -rf $(PGODIR)
 
