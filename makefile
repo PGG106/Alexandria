@@ -26,7 +26,7 @@ ifeq ($(OS), Windows_NT)
 	MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-	MKDIR   := mkdir
+	MKDIR   := mkdir -p
 else
 	MKDIR   := mkdir -p
 endif
@@ -164,7 +164,6 @@ clean:
 
 -include $(DEPENDS)
 
-# PGO directories and flags
 PGODIR      = .pgo
 PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction
 PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
@@ -172,18 +171,13 @@ PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
 .PHONY: pgo pgo-clean
 
 pgo: $(EVALFILE_PROCESSED)
-	@echo "--- PGO Step 1: Instrumented build ---"
-	$(MKDIR) "$(PGODIR)"
-	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_GENERATE)" EXE="$(NAME)-pgo-instr$(SUFFIX)"
+	-$(MKDIR) "$(PGODIR)"
+	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_GENERATE)" -o $(EXE)
 
-	@echo "--- PGO Step 2: Profiling run ---"
-	./$(NAME)-pgo-instr$(SUFFIX) bench
+	./$(EXE) bench
 
-	@echo "--- PGO Step 3: Optimized build ---"
-	$(MAKE) clean_objects
-	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_USE)" EXE="$(NAME)-pgo$(SUFFIX)"
-
-	@echo "--- PGO build complete: $(NAME)-pgo$(SUFFIX) ---"
+	-$(MAKE) clean_objects
+	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_USE)" EXE="$(NAME)$(SUFFIX)"
 
 # Only wipe object files, not the processed net
 clean_objects:
