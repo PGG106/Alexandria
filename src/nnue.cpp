@@ -91,7 +91,7 @@ void NNUE::init() {
 }
 
 // does FT activate for one pov at a time
-void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, v128i& base,
+void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint16_t *base,
                              uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
@@ -147,6 +147,7 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 #if defined(USE_SIMD)
     const vepi16 Zero = vec_zero_epi16();
     const vepi16 One = vec_set1_epi16(FT_QUANT);
+    v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
     for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
         const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
         const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
@@ -184,14 +185,15 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             // add entry indices to our non-zero indices list
             const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
             // add base address to indexes and store them
-            vec128_storeu_epi16(nnzStore, vec128_add_epi16(base, indices));
+            vec128_storeu_epi16(nnzStore, vec128_add_epi16(baseVec, indices));
 
             // increment count of total non 0 elements
             nnzCount += nnzEntry.count;
             // update base value for the next cycle iteration
-            base = vec128_add_epi16(base, LookupIncr);
+            baseVec = vec128_add_epi16(baseVec, LookupIncr);
         }
     }
+    vec128_storeu_epi16(reinterpret_cast<v128i*>(base), baseVec);
 #else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
         int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
@@ -264,8 +266,8 @@ void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndi
         // Dual activation: produce 2 L1 outputs for each input by applying different activations
         const float squared = std::clamp(z * z, 0.0f, 1.0f);
         const float linear =  std::clamp(z, 0.0f, 1.0f);
-        output[i] = squared;
-        output[i+ L2_SIZE] = linear;
+        output[i] = linear;
+        output[i+ L2_SIZE] = squared;
     }
 #endif
 }
@@ -300,7 +302,7 @@ void NNUE::propagateL2(const float *inputs, const float *weights, const float *b
         sums[i] = biases[i];
 
     // Affine transform for L2
-    for (int i = 0; i < L2_SIZE; ++i) {
+    for (int i = 0; i < EFFECTIVE_L2_SIZE; ++i) {
         const float *weight = &weights[i * L3_SIZE];
         for (int out = 0; out < L3_SIZE; ++out) {
             sums[out] += inputs[i] * weight[out];
@@ -340,7 +342,7 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
 #endif
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, v128i base, [[maybe_unused]] uint16_t *nnzIndices,
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
                           [[maybe_unused]] int &nnzCount, uint8_t *output) {
     povActivateAffine(pos, FinnyPointer, pos->side, base, nnzIndices, nnzCount, output);
     povActivateAffine(pos, FinnyPointer, pos->side ^ 1, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
@@ -348,7 +350,7 @@ void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, v128i b
 
 int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     int nnzCount = 0;
-    v128i base = vec128_zero_epi16();
+    uint16_t base[8] = {}; // replaces v128i base
     alignas (64) uint16_t nnzIndices[L1_SIZE / L1_CHUNK_PER_32];
 
     const int pieceCount = pos->PieceCount();

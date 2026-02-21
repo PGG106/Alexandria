@@ -255,7 +255,7 @@ void InitAttackTables() {
             // init magic index
             const uint64_t attack_index = _pext_u64(occupancy, bishop_mask);
 #else
-           const uint64_t magic_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
+           const uint64_t attack_index = (occupancy * bishop_magic_numbers[square]) >> bishop_shift;
 #endif
             // init bishop attacks
             bishop_attacks[square][attack_index] = BishopAttacksOnTheFly(square, occupancy);
