@@ -19,7 +19,7 @@ TMPDIR = .tmp
 #PGO
 PGODIR      = .pgo
 PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction -lgcov
-PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
+PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction -lgcov
 CXXFLAGS    += $(PGO_EXTRA)
 
 # Detect Clang
