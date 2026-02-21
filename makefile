@@ -18,7 +18,7 @@ TMPDIR = .tmp
 
 #PGO
 PGODIR      = .pgo
-PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction
+PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction -lgcov
 PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
 CXXFLAGS    += $(PGO_EXTRA)
 
