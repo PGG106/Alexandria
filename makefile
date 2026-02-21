@@ -16,6 +16,12 @@ NAME        := Alexandria
 
 TMPDIR = .tmp
 
+#PGO
+PGODIR      = .pgo
+PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction
+PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
+CXXFLAGS    += $(PGO_EXTRA)
+
 # Detect Clang
 ifeq ($(CXX), clang++)
 CXXFLAGS = -funroll-loops -O3 -flto -fuse-ld=lld -fno-exceptions -std=c++23 -DNDEBUG
@@ -162,26 +168,23 @@ clean:
 	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d $(EVALFILE_PROCESSED)
 	$(MAKE) -C tools clean
 
--include $(DEPENDS)
-
-PGODIR      = .pgo
-PGO_GENERATE = -fprofile-generate=$(PGODIR) -fprofile-correction
-PGO_USE      = -fprofile-use=$(PGODIR) -fprofile-correction
-
-.PHONY: pgo pgo-clean
-
 pgo: $(EVALFILE_PROCESSED)
 	-$(MKDIR) "$(PGODIR)"
-	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_GENERATE)" -o $(EXE)
+	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_GENERATE)"
 
 	./$(EXE) bench
 
 	-$(MAKE) clean_objects
-	$(MAKE) $(TARGET) CXXFLAGS="$(CXXFLAGS) $(PGO_USE)" EXE="$(NAME)$(SUFFIX)"
+	$(MAKE) $(TARGET) PGO_EXTRA="$(PGO_USE)"
 
 # Only wipe object files, not the processed net
 clean_objects:
 	@rm -rf $(TMPDIR)
 
 pgo-clean:
-	@rm -rf $(PGODIR) $(NAME)-pgo-instr$(SUFFIX) $(NAME)-pgo$(SUFFIX)
+	@rm -rf $(PGODIR)
+
+-include $(DEPENDS)
+
+.PHONY: pgo pgo-clean
+
