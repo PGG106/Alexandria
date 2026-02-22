@@ -200,21 +200,29 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
     }
     else {
         // Convert time in seconds if possible
-        std::string time_unit = "ms";
-        float parsed_time = time;
-        if (parsed_time >= 1000) {
-            parsed_time = parsed_time / 1000;
-            time_unit = 's';
-            if (parsed_time >= 60) {
-                parsed_time = parsed_time / 60;
-                time_unit = 'm';
+        std::string time_string;
+        if (time < 1000) {
+            // Display milliseconds
+            std::stringstream time_stream;
+            time_stream << std::setprecision(3) << time;
+            time_string = time_stream.str() + "ms";
+        } else {
+            float seconds = time / 1000.0f;
+            if (seconds < 60.0f) {
+                // Display seconds only
+                std::stringstream time_stream;
+                time_stream << std::fixed << std::setprecision(1) << seconds;
+                time_string = time_stream.str() + "s";
+            } else {
+                // Display minutes and seconds together (e.g., "1m23.4s")
+                int minutes = static_cast<int>(seconds) / 60;
+                float remaining_seconds = seconds - (minutes * 60.0f);
+                std::stringstream time_stream;
+                time_stream << minutes << "m";
+                time_stream << std::fixed << std::setprecision(0) << remaining_seconds << "s";
+                time_string = time_stream.str();
             }
         }
-
-        // convert time to string
-        std::stringstream time_stream;
-        time_stream << std::setprecision(3) << parsed_time;
-        std::string time_string = time_stream.str() + time_unit;
 
         // Convert score to a decimal format or to a mate string
         int score_precision = 0;
