@@ -199,7 +199,7 @@ void UciLoop(int argc, char** argv) {
     // print engine info
     std::cout << NAME << "\n";
 
-#ifdef TUNE
+#if defined(TUNE) || defined(TUNE_TM)
     // spsa info dump
     for (const auto &param: tunables()) {
         std::cout << param << std::endl;
