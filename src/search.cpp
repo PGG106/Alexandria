@@ -275,7 +275,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         if (td->id == 0) {
             // Keep track of how many times in a row the best move stayed the same
             if (GetBestMove() == previousBestMove) {
-                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 4);
+                bestMoveStabilityFactor = std::min(bestMoveStabilityFactor + 1, 7);
             }
             else {
                 bestMoveStabilityFactor = 0;
