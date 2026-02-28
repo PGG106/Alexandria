@@ -140,7 +140,8 @@ int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {
 
 // Returns the history score of a move
 int GetCHScore(const SearchStack *ss, const Move move) {
-    return GetSingleCHScore(ss, move, 1) + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4);
+    return GetSingleCHScore(ss, move, 1) + GetSingleCHScore(ss, move, 2)
+    + GetSingleCHScore(ss, move, 4) + GetSingleCHScore(ss, move, 6);
 }
 
 int GetSingleCHScore(const SearchStack *ss, const Move move, const int offset) {
@@ -195,6 +196,15 @@ int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, 
         return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
+}
+
+int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
+                          const bool rootNode) {
+    if (!isTactical(move))
+        return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, move, 1)
+               + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4)
+               + rootNode * 4 * GetRHScore(pos, sd, move);
+    return GetCapthistScore(pos, sd, move);
 }
 
 // Resets the history tables
