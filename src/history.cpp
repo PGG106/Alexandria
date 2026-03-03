@@ -198,12 +198,10 @@ int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, 
         return GetCapthistScore(pos, sd, move);
 }
 
-int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
-                          const bool rootNode) {
+int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss) {
     if (!isTactical(move))
         return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, move, 1)
-               + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4)
-               + rootNode * 4 * GetRHScore(pos, sd, move);
+               + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4);
     return GetCapthistScore(pos, sd, move);
 }
 

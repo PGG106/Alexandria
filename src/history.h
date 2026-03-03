@@ -28,7 +28,7 @@ int history_malus(const int depth);
 [[nodiscard]] int GetSingleCHScore(const SearchStack* ss, const Move move, const int offset);
 [[nodiscard]] int GetCapthistScore(const Position* pos, const SearchData* sd, const Move move);
 [[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode);
-[[nodiscard]] int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss, const bool rootNode);
+[[nodiscard]] int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss);
 [[nodiscard]] int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss);
 // Clean all the history tables
 void CleanHistories(SearchData* sd);
