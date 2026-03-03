@@ -689,7 +689,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         const bool isQuiet = !isTactical(move);
 
-        const int moveHistory = GetHistoryScoreSearch(pos, sd, move, ss, false);
+        const int moveHistory = GetHistoryScoreSearch(pos, sd, move, ss, rootNode);
         if (   !rootNode
             && !isMated(bestScore)) {
 
