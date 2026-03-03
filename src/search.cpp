@@ -927,7 +927,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
     if (    !inCheck
-        && (!bestMove || !isTactical(bestMove))
+        && (!bestMove || !isTactical(bestMove) || !SEE(pos,move,0))
         &&  !(bound == HFLOWER && bestScore <= ss->staticEval)
         &&  !(bound == HFUPPER && bestScore >= ss->staticEval)) {
         updateCorrHistScore(pos, sd, ss, depth, bestScore - ss->staticEval);
