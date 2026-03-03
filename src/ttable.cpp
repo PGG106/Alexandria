@@ -86,6 +86,11 @@ bool ProbeTTEntry(const ZobristKey posKey, TTEntry *tte) {
     return false;
 }
 
+[[nodiscard]] inline int entryQuality(const TTEntry* entry, uint8_t currentAge) {
+    int ageDelta = (MAX_AGE + currentAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK;
+    return entry->depth - ageDelta * 4;
+}
+
 void StoreTTEntry(const ZobristKey key, const PackedMove move, int score, int eval, const int bound, const int depth, const bool pv, const bool wasPV) {
     // Calculate index based on the position key and get the entry that already fills that index
     const uint64_t index = Index(key);
@@ -93,6 +98,7 @@ void StoreTTEntry(const ZobristKey key, const PackedMove move, int score, int ev
     const uint8_t TTAge = TT.age;
     TTBucket* bucket = &TT.pTable[index];
     TTEntry* tte = &bucket->entries[0];
+    // pick the worst entry among the buckets to be replaced
     for (int i = 0; i < ENTRIES_PER_BUCKET; i++) {
         TTEntry* entry = &bucket->entries[i];
 
@@ -101,8 +107,7 @@ void StoreTTEntry(const ZobristKey key, const PackedMove move, int score, int ev
             break;
         }
 
-        if (tte->depth - ((MAX_AGE + TTAge - AgeFromTT(tte->ageBoundPV)) & AGE_MASK) * 4
-            > entry->depth - ((MAX_AGE + TTAge - AgeFromTT(entry->ageBoundPV)) & AGE_MASK) * 4) {
+        if (entryQuality(tte, TTAge) > entryQuality(entry, TTAge)) {
             tte = entry;
         }
     }
