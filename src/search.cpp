@@ -792,6 +792,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (cutNode)
                     depthReduction += 2;
 
+                if (ttDepth >= depth)
+                    depthReduction -= 1;
+
                 // Reduce more if we are not improving
                 if (!improving)
                     depthReduction += 1;
@@ -822,6 +825,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Reduce more if we are not improving
                 if (!improving)
                     depthReduction += 1;
+
+                if (ttDepth >= depth)
+                    depthReduction -= 1;
 
                 // Decrease the reduction for moves that give check
                 if (pos->getCheckers())
