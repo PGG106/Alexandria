@@ -119,6 +119,11 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
             ;
         }
 
+        if (tokens.at(1) == "perft") {
+           std::cout << "perft support is currently broken, soz";
+            return false;
+        }
+
         if (tokens.at(i) == "binc" && pos->side == BLACK) {
             inc = std::stoi(tokens[i + 1]);
         }
