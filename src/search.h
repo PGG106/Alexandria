@@ -10,7 +10,7 @@ struct SearchStack {
     int16_t staticEval;
     Move excludedMove;
     Move move;
-    int piece;
+    uint16_t piece;
     uint16_t ply;
     Move searchKiller;
     int (*contHistEntry)[12 * 64];

@@ -84,12 +84,13 @@ void updateSingleCHScore(SearchStack *ss, const Move move, const int bonus, cons
 void updateCapthistScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-CAPTHIST_MAX;CAPTHIST_MAX] range
     const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / CAPTHIST_MAX;
+    int movedPiece = pos->PieceOn(From(move));
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
     // Update move score
-    sd->captHist[PieceTo(move)][capturedPiece] += scaledBonus;
+    sd->captHist[movedPiece * 64 + To(move)][capturedPiece] += scaledBonus;
 }
 
 // Update all histories
@@ -152,11 +153,12 @@ int GetSingleCHScore(const SearchStack *ss, const Move move, const int offset) {
 
 // Returns the history score of a move
 int GetCapthistScore(const Position *pos, const SearchData *sd, const Move move) {
+    int movedPiece = pos->PieceOn(From(move));
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
-    return sd->captHist[PieceTo(move)][capturedPiece];
+    return sd->captHist[movedPiece * 64 + To(move)][capturedPiece];
 }
 
 void updateSingleCorrHistScore(int &entry, const int bonus) {
