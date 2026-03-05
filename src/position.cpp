@@ -527,3 +527,8 @@ bool hasGameCycle(Position* pos, int ply) {
     }
     return false;
 }
+
+int piece_to(const Position* pos, const Move move) {
+    const int piece = pos->PieceOn(From(move));
+    return piece * 64 + To(move);
+}

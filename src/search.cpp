@@ -334,12 +334,12 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[NOMOVE];
         (ss + i)->reduction = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[NOMOVE];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
     int delta = 12;
@@ -475,7 +475,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
             if ((ss-1)->move != NOMOVE) {
-                updateCHScore((ss-1), (ss-1)->move, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
+                const int chIndex = PieceTo((ss-1)->move);
+                updateCHScore((ss-1), chIndex, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
             }
         }
         return ttScore;
@@ -633,7 +634,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            ss->contHistEntry = &sd->contHist[PieceTo(move)];
+            ss->contHistEntry = &sd->contHist[piece_to(pos, move)];
 
             // increment nodes count
             info->nodes++;
@@ -851,7 +852,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 int bonus = score > alpha ? history_bonus(depth)
                                           : -history_malus(depth);
-                updateCHScore(ss, move, bonus);
+                updateCHScore(ss, PieceTo(move), bonus);
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth

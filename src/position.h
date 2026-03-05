@@ -193,3 +193,5 @@ Bitboard RayBetween(unsigned int square1, unsigned int square2);
 ZobristKey keyAfter(const Position* pos, const Move move);
 
 bool hasGameCycle(Position* pos, int ply);
+
+int piece_to(const Position* pos, const Move move);
