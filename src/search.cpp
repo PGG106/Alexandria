@@ -573,7 +573,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             ss->move = NOMOVE;
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
-            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+            ss->contHistEntry = &sd->contHist[0];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
             MakeNullMove(pos);
@@ -774,10 +774,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
-
+        ss->contHistEntry = &sd->contHist[piece_to(pos, move)];
+        int movedPiece = pos->PieceOn(From(move));
         // Play the move
         MakeMove<true>(move, pos);
-        ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // increment nodes count
         info->nodes++;
@@ -852,7 +852,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 int bonus = score > alpha ? history_bonus(depth)
                                           : -history_malus(depth);
-                updateCHScore(ss, PieceTo(move), bonus);
+                auto chIndex = movedPiece * 64 + To(move);
+                updateCHScore(ss, chIndex , bonus);
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
