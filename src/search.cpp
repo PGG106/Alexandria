@@ -476,7 +476,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
             if ((ss-1)->move != NOMOVE) {
-                updateCHScore((ss-1), (ss-1)->move, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
+                updateCHScore(pos, (ss-1), (ss-1)->move, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
             }
         }
         return ttScore;
@@ -852,7 +852,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 int bonus = score > alpha ? history_bonus(depth)
                                           : -history_malus(depth);
-                updateCHScore(ss, move, bonus);
+                updateCHScore(pos, ss, move, bonus);
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth

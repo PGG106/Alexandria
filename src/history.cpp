@@ -5,6 +5,7 @@
 #include "move.h"
 #include "search.h"
 #include "eval.h"
+#include "io.h"
 
 /* History updating works in the same way for all histories, we have 3 methods:
 updateScore: this updates the score of a specific entry of <History-name> type
@@ -65,18 +66,18 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
     sd->rootHistory[pos->side][FromTo(move)] += scaledBonus;
 }
 
-void updateCHScore(SearchStack *ss, const Move move, const int bonus) {
+void updateCHScore(const Position *pos, SearchStack *ss, const Move move, const int bonus) {
     // Update move score
-    updateSingleCHScore(ss, move, bonus, 1);
-    updateSingleCHScore(ss, move, bonus, 2);
-    updateSingleCHScore(ss, move, bonus, 4);
-    updateSingleCHScore(ss, move, bonus, 6);
+    updateSingleCHScore(pos, ss, move, bonus, 1);
+    updateSingleCHScore(pos, ss, move, bonus, 2);
+    updateSingleCHScore(pos, ss, move, bonus, 4);
+    updateSingleCHScore(pos, ss, move, bonus, 6);
 }
 
-void updateSingleCHScore(SearchStack *ss, const Move move, const int bonus, const int offset) {
+void updateSingleCHScore(const Position *pos, SearchStack *ss, const Move move, const int bonus, const int offset) {
     if ((ss - offset)->move) {
         // Scale bonus to fix it in a [-CH_MAX;CH_MAX] range
-        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / CH_MAX;
+        const int scaledBonus = bonus - GetSingleCHScore(pos, ss, move, offset) * std::abs(bonus) / CH_MAX;
         (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
     }
 }
@@ -107,7 +108,7 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
     if (!isTactical(bestMove)) {
         // increase bestMove HH and CH score
         updateHHScore(pos, sd, bestMove, bonus);
-        updateCHScore(ss, bestMove, conthist_bonus);
+        updateCHScore(pos, ss, bestMove, conthist_bonus);
         if (rootNode)
             updateRHScore(pos, sd, bestMove, roothist_bonus);
         // Loop through all the quiet moves
@@ -115,7 +116,7 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i];
             updateHHScore(pos, sd, move, -malus);
-            updateCHScore(ss, move, -conthist_malus);
+            updateCHScore(pos, ss, move, -conthist_malus);
             if (rootNode)
                 updateRHScore(pos, sd, move, -roothist_malus);
         }
@@ -140,12 +141,25 @@ int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {
 }
 
 // Returns the history score of a move
-int GetCHScore(const SearchStack *ss, const Move move) {
-    return GetSingleCHScore(ss, move, 1) + GetSingleCHScore(ss, move, 2)
-    + GetSingleCHScore(ss, move, 4) + GetSingleCHScore(ss, move, 6);
+int GetCHScore(const Position *pos, const SearchStack *ss, const Move move) {
+    return GetSingleCHScore(pos, ss, move, 1) + GetSingleCHScore(pos, ss, move, 2)
+    + GetSingleCHScore(pos, ss, move, 4) + GetSingleCHScore(pos, ss, move, 6);
 }
 
-int GetSingleCHScore(const SearchStack *ss, const Move move, const int offset) {
+int GetSingleCHScore(const Position *pos, const SearchStack *ss, const Move move, const int offset) {
+    const int piece = pos->PieceOn(From(move));
+    const int to = To(move);
+    const int piece_to = piece * 64 +  to;
+    if (piece_to != PieceTo(move)) {
+        PrintBoard(pos);
+        std::cout << FormatMove(move) << std::endl;
+        std::cout << "Piece on board: " << piece << std::endl;
+        std::cout << "Piece from move " << Piece(move) << std::endl;
+        std::cout << to << std::endl;
+        std::cout << piece_to << std::endl;
+        std::cout << PieceTo(move) << std::endl;
+        exit(19);
+    }
     return (ss - offset)->move
                ? (*((ss - offset)->contHistEntry))[PieceTo(move)]
                : 0;
@@ -195,7 +209,7 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
 int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                     const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
+        return GetHHScore(pos, sd, move) + GetCHScore(pos, ss, move) + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
 }
@@ -203,8 +217,8 @@ int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, 
 int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                           const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, move, 1)
-               + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4)
+        return GetHHScore(pos, sd, move) + GetSingleCHScore(pos, ss, move, 1)
+               + GetSingleCHScore(pos, ss, move, 2) + GetSingleCHScore(pos, ss, move, 4)
                + rootNode * 4 * GetRHScore(pos, sd, move);
     return GetCapthistScore(pos, sd, move);
 }
