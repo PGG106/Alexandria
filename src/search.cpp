@@ -232,6 +232,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     for (size_t i = 0; i < threads_data.size(); i++) {
         threads_data[i].info = td->info;
         threads_data[i].pos = td->pos;
+        threads_data[i].keyHistory = td->keyHistory;
     }
 
     // Start Threads-1 helper search threads
