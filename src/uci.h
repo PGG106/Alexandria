@@ -21,7 +21,7 @@ inline bool tryhardmode = false;
 // Parse a move from algebraic notation to the engine's internal encoding
 [[nodiscard]] Move ParseMove(const std::string& move_string, Position* pos);
 // parse UCI "position" command
-void ParsePosition(const std::string& command, Position* pos);
+void ParsePosition(const std::string& command, Position* pos, std::vector<ZobristKey>& keyHistory);
 
 // parse UCI "go" command
 [[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos);

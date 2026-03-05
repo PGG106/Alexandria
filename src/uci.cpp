@@ -69,7 +69,7 @@ Move ParseMove(const std::string& moveString, Position* pos) {
 }
 
 // parse UCI "position" command
-void ParsePosition(const std::string& command, Position* pos) {
+void ParsePosition(const std::string& command, Position* pos, std::vector<ZobristKey>& keyHistory) {
     // parse UCI "startpos" command
     if (command.find("startpos") != std::string::npos) {
         // init chess board with start position
@@ -96,7 +96,7 @@ void ParsePosition(const std::string& command, Position* pos) {
         // Avoid looking for a moves that doesn't exist in the case of "position startpos moves <blank>" (Needed for Scid support)
         if (command.length() >= string_start) {
             std::string moves_substr = command.substr(string_start, std::string::npos);
-            parse_moves(moves_substr, pos);
+            parse_moves(moves_substr, pos, keyHistory);
         }
     }
 }
@@ -114,12 +114,6 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
     for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens.at(1) == "infinite") {
             ;
-        }
-
-        if (tokens.at(1) == "perft") {
-            int perft_depth = std::stoi(tokens[2]);
-            PerftTest(perft_depth, pos);
-            return false;
         }
 
         if (tokens.at(i) == "binc" && pos->side == BLACK) {
@@ -229,7 +223,7 @@ void UciLoop(int argc, char** argv) {
         // parse UCI "position" command
         if (tokens[0] == "position") {
             // call parse position function
-            ParsePosition(input, &td->pos);
+            ParsePosition(input, &td->pos, td->keyHistory);
             parsed_position = true;
         }
 
@@ -244,7 +238,7 @@ void UciLoop(int argc, char** argv) {
 #endif
 
             if (!parsed_position) { // call parse position function
-                ParsePosition("position startpos", &td->pos);
+                ParsePosition("position startpos", &td->pos, td->keyHistory);
             }
             // call parse go function
             bool search = ParseGo(input, &td->info, &td->pos);
@@ -360,7 +354,7 @@ void UciLoop(int argc, char** argv) {
 
         else if (input == "eval") {// call parse position function
             if (!parsed_position) {
-                ParsePosition("position startpos", &td->pos);
+                ParsePosition("position startpos", &td->pos, td->keyHistory);
             }
             std::cout << "Raw eval: " << EvalPositionRaw(&td->pos, &td->FTable) << std::endl;
 

@@ -184,5 +184,5 @@ void InitNewGame(ThreadData* td) {
     // delete played moves hashes
     pos->played_positions.clear();
     // call parse position function
-    ParsePosition("position startpos", pos);
+    ParsePosition("position startpos", pos, td->keyHistory);
 }
