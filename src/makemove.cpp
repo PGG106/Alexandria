@@ -216,8 +216,9 @@ template void MakeMove<false>(const Move move, Position* pos, std::vector<Zobris
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory) {
-    if constexpr (UPDATE)
+    if constexpr (UPDATE) {
         pos->history.push(pos->state());
+    }
 
     // Store position key in the array of searched position
     keyHistory.emplace_back(pos->getPoskey());

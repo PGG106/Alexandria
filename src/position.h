@@ -61,8 +61,6 @@ public:
     int side = -1; // what side has to move
     // stores the state of the board  rollback purposes
     historyStack history;
-    // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
-    std::vector<ZobristKey> played_positions = {};
 
     [[nodiscard]] inline BoardState& state()  {
        return history.boardStateHistory[history.head];

@@ -74,6 +74,7 @@ void ParsePosition(const std::string& command, Position* pos, std::vector<Zobris
     if (command.find("startpos") != std::string::npos) {
         // init chess board with start position
         ParseFen(start_position, pos);
+        keyHistory.clear();
     }
 
     // parse UCI "fen" command
@@ -83,10 +84,12 @@ void ParsePosition(const std::string& command, Position* pos, std::vector<Zobris
             // Substring from after "fen" up to "moves"
             std::string position = getPosition(command);
             ParseFen(position, pos);
+            keyHistory.clear();
         }
         else {
             // init chess board with start position
             ParseFen(start_position, pos);
+            keyHistory.clear();
         }
     }
 

@@ -10,3 +10,102 @@
 // leaf nodes (number of positions reached during the test of the move generator
 // at a given depth)
 uint64_t nodes;
+// perft driver
+void PerftDriver(int depth, Position* pos, std::vector<ZobristKey>& keyHistory) {
+    // create move list instance
+    MoveList moveList;
+
+    // Non bulk Counting
+    if (depth == 0) {
+        nodes += 1;
+        return;
+    }
+
+    // generate moves
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
+
+    if (depth == 1) {
+        // loop over generated moves
+        for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+            Move move = moveList.moves[moveCount].move;
+            if (!IsLegal(pos, move))
+                continue;
+
+            nodes += 1;
+        }
+        return;
+    }
+
+    // loop over generated moves
+    for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+        Move move = moveList.moves[moveCount].move;
+        if (!IsLegal(pos, move))
+            continue;
+
+        // make move
+        MakeMove<true>(move, pos, keyHistory);
+
+        // call perft driver recursively
+        PerftDriver(depth - 1, pos, keyHistory);
+
+        // take back
+        UnmakeMove(pos, keyHistory);
+    }
+}
+
+// perft test
+unsigned long long PerftTest(int depth, Position* pos, std::vector<ZobristKey>& keyHistory) {
+    nodes = 0;
+    std::cout << ("\n     Performance test\n\n");
+
+    // create move list instance
+    MoveList moveList;
+
+    // generate moves
+    GenerateMoves(&moveList, pos, MOVEGEN_ALL);
+
+    // init start time
+    long start = GetTimeMs();
+
+    // loop over generated moves
+    for (int moveCount = 0; moveCount < moveList.count; moveCount++) {
+        const Move move = moveList.moves[moveCount].move;
+
+        if (!IsLegal(pos, move))
+            continue;
+
+        // make move
+        MakeMove<true>(move, pos, keyHistory);
+
+        // cummulative nodes
+        long cummulative_nodes = nodes;
+
+        // call perft driver recursively
+        PerftDriver(depth - 1, pos, keyHistory);
+
+        // take back
+        UnmakeMove(pos, keyHistory);
+
+        // old nodes
+        long old_nodes = nodes - cummulative_nodes;
+
+        // print move
+        printf(" %s%s%c: %ld\n",
+            square_to_coordinates[From(move)],
+            square_to_coordinates[To(move)],
+            isPromo(move)
+            ? promoted_pieces[getPromotedPiecetype(move)]
+            : ' ',
+            old_nodes);
+    }
+
+    auto time = GetTimeMs() - start;
+    // print results
+    std::cout << "\n    Depth: " << depth << "\n";
+    std::cout << "    Nodes: " << nodes << "\n";
+    std::cout << "     Time: " << time << "\n";
+    unsigned long nodes_second = (nodes / (time + !time)) * 1000;
+    std::cout << " Nodes per second: " << nodes_second << "\n\n";
+
+    return nodes;
+}

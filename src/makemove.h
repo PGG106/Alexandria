@@ -12,6 +12,9 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
+// Reverts the previously played move
 void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory);
+// makes a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory);
+// Reverts the previously played null move
 void TakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory);
