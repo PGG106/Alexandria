@@ -476,7 +476,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
             if ((ss-1)->move != NOMOVE) {
-                const int chIndex = PieceTo((ss-1)->move);
+                const int chIndex = pos->PieceOn(To((ss-1)->move)) * 64 + To((ss-1)->move);
                 updateCHScore((ss-1), chIndex, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
             }
         }
