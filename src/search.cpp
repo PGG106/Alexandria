@@ -1052,6 +1052,11 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
                 continue;
             }
         }
+
+        if (!isMated(bestScore)) {
+            if (totalMoves >= 3)
+                break;
+        }
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
