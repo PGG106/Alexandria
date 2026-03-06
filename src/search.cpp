@@ -779,8 +779,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         int movedPiece = pos->PieceOn(From(move));
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
-        ss->contHistEntry = &sd->contHist[PieceTo(move)];
-
         // increment nodes count
         info->nodes++;
         const uint64_t nodesBeforeSearch = info->nodes;
