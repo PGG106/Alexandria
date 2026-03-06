@@ -210,18 +210,18 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
-template void MakeMove<true>(const Move move, Position* pos);
-template void MakeMove<false>(const Move move, Position* pos);
+template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
+template void MakeMove<false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
 
 // make move on chess board
 template <bool UPDATE>
-void MakeMove(const Move move, Position* pos) {
+void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory) {
     if constexpr (UPDATE) {
         pos->history.push(pos->state());
     }
 
     // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->getPoskey());
+    keyHistory.emplace_back(pos->getPoskey());
 
     // parse move flag
     const bool capture = isCapture(move);
@@ -264,17 +264,17 @@ void MakeMove(const Move move, Position* pos) {
     assert(pos->state().pawnKey == GeneratePawnKey(pos));
 }
 
-void UnmakeMove(Position* pos) {
+void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
     pos->history.pop();
     pos->ChangeSide();
-    pos->played_positions.pop_back();
+    keyHistory.pop_back();
 }
 
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
-void MakeNullMove(Position* pos) {
+void MakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
     pos->history.push(pos->state());
     // Store position key in the array of searched position
-    pos->played_positions.emplace_back(pos->getPoskey());
+    keyHistory.emplace_back(pos->getPoskey());
     resetEpSquare(pos);
     pos->ChangeSide();
     HashKey(pos->state().posKey, SideKey);
@@ -289,8 +289,8 @@ void MakeNullMove(Position* pos) {
 }
 
 // Take back a null move
-void TakeNullMove(Position* pos) {
+void TakeNullMove(Position* pos,  std::vector<ZobristKey>& keyHistory) {
     pos->history.pop();
     pos->ChangeSide();
-    pos->played_positions.pop_back();
+    keyHistory.pop_back();
 }

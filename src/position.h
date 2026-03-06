@@ -61,8 +61,6 @@ public:
     int side = -1; // what side has to move
     // stores the state of the board  rollback purposes
     historyStack history;
-    // Stores the zobrist keys of all the positions played in the game + the current search instance, used for 3-fold
-    std::vector<ZobristKey> played_positions = {};
 
     [[nodiscard]] inline BoardState& state()  {
        return history.boardStateHistory[history.head];
@@ -163,7 +161,7 @@ void ParseFen(const std::string& command, Position* pos);
 // Get fen string from board
 [[nodiscard]] std::string GetFen(const Position* pos);
 // Parse a string of moves in coordinate format and plays them
-void parse_moves(const std::string& moves, Position* pos);
+void parse_moves(const std::string& moves, Position* pos, std::vector<ZobristKey>& keyHistory);
 
 // Retrieve a generic piece (useful when we don't know what type of piece we are dealing with
 [[nodiscard]] Bitboard getPieceBB(const Position* pos, const int piecetype);
@@ -192,4 +190,4 @@ Bitboard RayBetween(unsigned int square1, unsigned int square2);
 
 ZobristKey keyAfter(const Position* pos, const Move move);
 
-bool hasGameCycle(Position* pos, int ply);
+bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply);

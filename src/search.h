@@ -54,4 +54,4 @@ template <bool pvNode>
 [[nodiscard]] bool SEE(const Position* pos, const Move move, const int threshold);
 
 // Checks if the current position is a draw
-[[nodiscard]] bool IsDraw(Position* pos);
+[[nodiscard]] bool IsDraw(Position* pos, const std::vector<ZobristKey>& keyHistory);

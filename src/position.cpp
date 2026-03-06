@@ -211,9 +211,6 @@ void ParseFen(const std::string& command, Position* pos) {
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
-
-    // Clear vector of played positions
-    pos->played_positions.clear();
 }
 
 std::string GetFen(const Position* pos) {
@@ -284,14 +281,14 @@ std::string GetFen(const Position* pos) {
 }
 
 // parses the moves part of a fen string and plays all the moves included
-void parse_moves(const std::string& moves, Position* pos) {
+void parse_moves(const std::string& moves, Position* pos, std::vector<ZobristKey>& keyHistory) {
     std::vector<std::string> move_tokens = split_command(moves);
     // loop over moves within a move string
     for (size_t i = 0; i < move_tokens.size(); i++) {
         // parse next move
         const Move move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
-        MakeMove<false>(move, pos);
+        MakeMove<false>(move, pos, keyHistory);
     }
 }
 
@@ -472,7 +469,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     return newKey;
 }
 
-bool hasGameCycle(Position* pos, int ply) {
+bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply) {
 
     int end = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
 
@@ -480,9 +477,9 @@ bool hasGameCycle(Position* pos, int ply) {
         return false;
 
     // lamba function to return the zobrist key of a position that appeared i plies ago
-    const auto OldKey = [pos](int i)
+    const auto OldKey = [&keyHistory](int i)
     {
-        return pos->played_positions[pos->played_positions.size() - i];
+        return keyHistory[keyHistory.size() - i];
     };
 
     const Bitboard occ = pos->Occupancy(BOTH);

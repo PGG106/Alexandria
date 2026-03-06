@@ -10,9 +10,8 @@
 // leaf nodes (number of positions reached during the test of the move generator
 // at a given depth)
 uint64_t nodes;
-
 // perft driver
-void PerftDriver(int depth, Position* pos) {
+void PerftDriver(int depth, Position* pos, std::vector<ZobristKey>& keyHistory) {
     // create move list instance
     MoveList moveList;
 
@@ -44,18 +43,18 @@ void PerftDriver(int depth, Position* pos) {
             continue;
 
         // make move
-        MakeMove<true>(move, pos);
+        MakeMove<true>(move, pos, keyHistory);
 
         // call perft driver recursively
-        PerftDriver(depth - 1, pos);
+        PerftDriver(depth - 1, pos, keyHistory);
 
         // take back
-        UnmakeMove(pos);
+        UnmakeMove(pos, keyHistory);
     }
 }
 
 // perft test
-unsigned long long PerftTest(int depth, Position* pos) {
+unsigned long long PerftTest(int depth, Position* pos, std::vector<ZobristKey>& keyHistory) {
     nodes = 0;
     std::cout << ("\n     Performance test\n\n");
 
@@ -76,16 +75,16 @@ unsigned long long PerftTest(int depth, Position* pos) {
             continue;
 
         // make move
-        MakeMove<true>(move, pos);
+        MakeMove<true>(move, pos, keyHistory);
 
         // cummulative nodes
         long cummulative_nodes = nodes;
 
         // call perft driver recursively
-        PerftDriver(depth - 1, pos);
+        PerftDriver(depth - 1, pos, keyHistory);
 
         // take back
-        UnmakeMove(pos);
+        UnmakeMove(pos, keyHistory);
 
         // old nodes
         long old_nodes = nodes - cummulative_nodes;

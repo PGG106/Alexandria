@@ -72,6 +72,7 @@ void StartBench(int depth) {
     auto start = std::chrono::steady_clock::now();
     for (int positions = 0; positions < 51; positions++) {
         ParseFen(benchmarkfens[positions], &td->pos);
+        td->keyHistory.clear();
         std::cout << "\nPosition: " << positions + 1 << " fen: " << benchmarkfens[positions] << std::endl;
         RootSearch(depth, td, &uciOptions);
         totalNodes += td->info.nodes;
