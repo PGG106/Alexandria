@@ -46,7 +46,6 @@ inline Square From(const Move move) { return move & 0x3F; }
 inline Square To(const Move move) { return ((move & 0xFC0) >> 6); }
 inline unsigned int FromTo(const Move move) { return move & 0xFFF; }
 inline unsigned int Piece(const Move move) { return ((move & 0xF0000) >> 16); }
-inline unsigned int PieceTo(const Move move) { return (Piece(move) << 6) | To(move); }
 inline unsigned int PieceTypeTo(const Move move) { return (PieceType[Piece(move)] << 6) | To(move); }
 inline unsigned int GetMovetype(const Move move) { return ((move & 0xF000) >> 12); }
 inline unsigned int getPromotedPiecetype(const Move move) { return (GetMovetype(move) & 3) + 1; }

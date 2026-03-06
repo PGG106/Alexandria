@@ -190,4 +190,6 @@ Bitboard RayBetween(unsigned int square1, unsigned int square2);
 
 ZobristKey keyAfter(const Position* pos, const Move move);
 
+int piece_to(const Position* pos, const Move move);
+
 bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply);
