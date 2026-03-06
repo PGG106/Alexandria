@@ -18,17 +18,17 @@
 #include "types.h"
 
 // Returns true if the position is a 2-fold repetition, false otherwise
-static bool IsRepetition(const Position* pos) {
+static bool IsRepetition(const Position* pos, const std::vector<ZobristKey>& keyHistory) {
     assert(pos->state().hisPly >= pos->get50MrCounter());
     int counter = 0;
     // How many moves back should we look at most, aka our distance to the last irreversible move
     int distance = std::min(pos->get50MrCounter(), pos->getPlyFromNull());
     // Get the point our search should start from
-    auto startingPoint = pos->played_positions.size();
+    auto startingPoint = keyHistory.size();
     // Scan backwards from the first position where a repetition is possible (4 half moves ago) for at most distance steps
     for (int index = 4; index <= distance; index += 2)
         // if we found the same position hashkey as the current position
-        if (pos->played_positions[startingPoint - index] == pos->getPoskey()) {
+        if (keyHistory[startingPoint - index] == pos->getPoskey()) {
 
             // we found a 2-fold repetition within the search tree
             if (index < pos->history.head)
@@ -68,9 +68,9 @@ static bool Is50MrDraw(Position* pos) {
 }
 
 // If we triggered any of the rules that forces a draw or we know the position is a draw return a draw score
-bool IsDraw(Position* pos) {
+bool IsDraw(Position* pos, const std::vector<ZobristKey>& keyHistory) {
     // if it's a 3-fold repetition, the fifty moves rule kicked in or there isn't enough material on the board to give checkmate then it's a draw
-    return IsRepetition(pos)
+    return IsRepetition(pos, keyHistory)
         || Is50MrDraw(pos);
 }
 
@@ -232,6 +232,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     for (size_t i = 0; i < threads_data.size(); i++) {
         threads_data[i].info = td->info;
         threads_data[i].pos = td->pos;
+        threads_data[i].keyHistory = td->keyHistory;
     }
 
     // Start Threads-1 helper search threads
@@ -432,11 +433,11 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Check for early return conditions
     if (!rootNode) {
         // If position is a draw return a draw score
-        if (IsDraw(pos))
+        if (IsDraw(pos, td->keyHistory))
             return (info->nodes & 2) - 1;
 
         // Upcoming repetition detection
-        if (alpha < 0 && hasGameCycle(pos,ss->ply))
+        if (alpha < 0 && hasGameCycle(pos, td->keyHistory, ss->ply))
         {
             alpha = 0;
             if (alpha >= beta)
@@ -576,12 +577,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             ss->contHistEntry = &sd->contHist[0];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
-            MakeNullMove(pos);
+            MakeNullMove(pos, td->keyHistory);
 
             // Search moves at a reduced depth to find beta cutoffs.
             int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - badNode, !cutNode, td, ss + 1);
 
-            TakeNullMove(pos);
+            TakeNullMove(pos, td->keyHistory);
 
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
@@ -640,7 +641,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             info->nodes++;
 
             // Play the move
-            MakeMove<true>(move, pos);
+            MakeMove<true>(move, pos, td->keyHistory);
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
@@ -648,7 +649,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                                           !cutNode, td, ss + 1);
 
             // Take move back
-            UnmakeMove(pos);
+            UnmakeMove(pos, td->keyHistory);
 
             if (pcScore >= pcBeta) {
                 StoreTTEntry(pos->getPoskey(), MoveToTT(move),
@@ -777,7 +778,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         ss->contHistEntry = &sd->contHist[piece_to(pos, move)];
         int movedPiece = pos->PieceOn(From(move));
         // Play the move
-        MakeMove<true>(move, pos);
+        MakeMove<true>(move, pos, td->keyHistory);
+        ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // increment nodes count
         info->nodes++;
@@ -866,7 +868,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos);
+        UnmakeMove(pos, td->keyHistory);
         if (mainT && rootNode)
             nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
@@ -966,7 +968,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         return inCheck ? 0 : EvalPosition(pos,&td->FTable);
 
     // Upcoming repetition detection
-    if (alpha < 0 && hasGameCycle(pos,ss->ply))
+    if (alpha < 0 && hasGameCycle(pos, td->keyHistory, ss->ply))
     {
         alpha = 0;
         if (alpha >= beta)
@@ -1057,14 +1059,14 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
-        MakeMove<true>(move, pos);
+        MakeMove<true>(move, pos, td->keyHistory);
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
         const int score = -Quiescence<pvNode>(-beta, -alpha, depth - 1, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos);
+        UnmakeMove(pos, td->keyHistory);
 
         if (info->stopped)
             return 0;

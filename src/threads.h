@@ -76,6 +76,7 @@ struct ThreadData {
     Position pos;
     SearchData sd;
     SearchInfo info;
+    std::vector<ZobristKey> keyHistory;
     int RootDepth;
     int nmpPlies;
 
