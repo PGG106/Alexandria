@@ -4,6 +4,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#define TUNE
+
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -141,6 +143,9 @@ TUNE_PARAM(historyNoisyLmrDivisor, 5922, 1, 16383, 100, 0.002)
 TUNE_PARAM(doDeeperBaseMargin, 77, 1, 200, 20, 0.002)
 TUNE_PARAM(qsBaseFutility, 268, -500, 500, 25, 0.002)
 TUNE_PARAM(hindsightEval, 155, 50, 300, 10, 0.002)
+//SE
+TUNE_PARAM(doubleExtMargin, 10, -10, 50, 1, 0.002)
+TUNE_PARAM(tripleExtMargin, 75, -10, 150, 12, 0.002)
 // HH
 TUNE_PARAM(historyBonusMul, 333, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyBonusOffset, 159, -1024, 1024, 64, 0.002)
