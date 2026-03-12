@@ -644,7 +644,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
-                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 4,
                                           !cutNode, td, ss + 1);
 
             // Take move back
@@ -662,7 +662,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // IIR by Ed Schroder (That i find out about in Berserk source code)
     // http://talkchess.com/forum3/viewtopic.php?f=7&t=74769&sid=64085e3396554f0fba414404445b3120
     // https://github.com/jhonnold/berserk/blob/dd1678c278412898561d40a31a7bd08d49565636/src/search.c#L379
-    if (!inCheck && badNode)
+    if (!inCheck && depth >= 4 && !ttMove)
         depth -= 1;
 
     // old value of alpha
