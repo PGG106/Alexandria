@@ -686,6 +686,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
+        // Speculative prefetch of the TT entry
+        TTPrefetch(keyAfter(pos, move));
         ss->moveCount = ++totalMoves;
 
         const bool isQuiet = !isTactical(move);
@@ -771,10 +773,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
-        // Speculative prefetch of the TT entry
-        TTPrefetch(keyAfter(pos, move));
-        ss->move = move;
 
+        ss->move = move;
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
