@@ -644,7 +644,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
-                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 4,
                                           !cutNode, td, ss + 1);
 
             // Take move back
