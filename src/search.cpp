@@ -644,7 +644,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
-                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 3 - 1,
+                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 4,
                                           !cutNode, td, ss + 1);
 
             // Take move back
@@ -686,6 +686,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
+        // Speculative prefetch of the TT entry
+        TTPrefetch(keyAfter(pos, move));
         ss->moveCount = ++totalMoves;
 
         const bool isQuiet = !isTactical(move);
@@ -709,7 +711,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Futility pruning: if the static eval is so low that even after adding a bonus we are still under alpha we can stop trying quiet moves
                 if (!inCheck
                     && isQuiet
-                    && lmrDepth < 11
+                    && lmrDepth < 13
                     && futilityValue <= alpha) {
                     if (bestScore <= futilityValue && !isDecisive(bestScore) && !isMate(futilityValue))
                         bestScore = futilityValue;
@@ -771,10 +773,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
         // we adjust the search depth based on potential extensions
         int newDepth = depth - 1 + extension;
-        // Speculative prefetch of the TT entry
-        TTPrefetch(keyAfter(pos, move));
-        ss->move = move;
 
+        ss->move = move;
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
