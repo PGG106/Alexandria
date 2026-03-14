@@ -803,8 +803,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-
-                depthReduction -= complexity / 192;
+                depthReduction -= complexity / 108;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyQuietLmrDivisor();
