@@ -821,6 +821,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (pos->getCheckers())
                     depthReduction -= 1;
 
+                depthReduction -= complexity > 108;
+
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();
             }
