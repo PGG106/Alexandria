@@ -550,7 +550,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
 
         // Reverse futility pruning
-        if (   depth < 10
+        if (   depth < 12
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, badNode) >= beta)
@@ -599,7 +599,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             }
         }
         // Razoring
-        if (depth <= 5 && eval + razoringCoeff() * depth < alpha)
+        if (eval + razoringCoeff() * depth + razoringFixed() < alpha)
         {
             const int razorScore = Quiescence<false>(alpha, beta, 0, td, ss);
             if (razorScore <= alpha)
@@ -803,7 +803,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-                depthReduction -= complexity > 108;
+                depthReduction -= complexity / complexityQuietDivisor();
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyQuietLmrDivisor();
@@ -821,7 +821,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (pos->getCheckers())
                     depthReduction -= 1;
 
-                depthReduction -= complexity > 108;
+                depthReduction -= complexity / complexityNoisyDivisor();
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory / historyNoisyLmrDivisor();

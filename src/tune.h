@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-
 /*
 How tuning works in alex, a brief summary:
 To add a variable for tuning we call the addTune function in initTunables, this will do 2 things
@@ -134,6 +133,7 @@ TUNE_PARAM(nmpReductionEvalDivisor, 221, 100, 400, 20, 0.002)
 TUNE_PARAM(nmpDepthMargin, 28, 20, 40, 2, 0.002)
 TUNE_PARAM(nmpOffset, 204, -300, 300, 20, 0.002)
 TUNE_PARAM(razoringCoeff, 258, 100, 400, 20, 0.002)
+TUNE_PARAM(razoringFixed, 1, 100, 400, 20, 0.002)
 TUNE_PARAM(probcutBaseMargin, 287, 100, 400, 20, 0.002)
 TUNE_PARAM(probcutImprovingOffset, 54, -150, 150, 10, 0.002)
 TUNE_PARAM(historyQuietLmrDivisor, 8049, 1, 16383, 100, 0.002)
@@ -181,6 +181,8 @@ TUNE_PARAM(lmrQuietBase, 107, 40, 150, 7, 0.002)
 TUNE_PARAM(lmrQuietDivisor, 227, 150, 500, 15, 0.002)
 TUNE_PARAM(lmrNoisyBase, -36, -70, 100, 7, 0.002)
 TUNE_PARAM(lmrNoisytDivisor, 247, 150, 500, 15, 0.002)
+TUNE_PARAM(complexityQuietDivisor, 108, 25, 200, 12, 0.002)
+TUNE_PARAM(complexityNoisyDivisor, 108, 25, 200, 12, 0.002)
 // Forward pruning
 TUNE_PARAM(lmrDepthDivisor, 8300, 1, 16383, 100, 0.002)
 TUNE_PARAM(seeQuietMargin, -98, -150, -20, 5, 0.002)
