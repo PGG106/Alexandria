@@ -38,6 +38,7 @@ struct BoardState {
     ZobristKey blackNonPawnKey = 0ULL;
     ZobristKey posKey = 0ULL;
     int hisPly = 0;
+    Bitboard checkZones[4] = {};
 };
 
 struct historyStack{
@@ -191,3 +192,7 @@ Bitboard RayBetween(unsigned int square1, unsigned int square2);
 ZobristKey keyAfter(const Position* pos, const Move move);
 
 bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply);
+
+void calcCheckZones(Position* pos);
+
+bool givesDirectCheck(Position* pos, Move move);

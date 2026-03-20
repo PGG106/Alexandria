@@ -712,6 +712,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (!inCheck
                     && isQuiet
                     && lmrDepth < 13
+                    && !givesDirectCheck(pos, move)
                     && futilityValue <= alpha) {
                     if (bestScore <= futilityValue && !isDecisive(bestScore) && !isMate(futilityValue))
                         bestScore = futilityValue;
