@@ -258,6 +258,7 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     HashKey(pos->state().posKey, SideKey);
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
+    calcCheckZones(pos);
 
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->getPoskey() == GeneratePosKey(pos));

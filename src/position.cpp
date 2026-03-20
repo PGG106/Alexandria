@@ -211,6 +211,7 @@ void ParseFen(const std::string& command, Position* pos) {
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
+    calcCheckZones(pos);
 }
 
 std::string GetFen(const Position* pos) {
