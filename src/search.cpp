@@ -467,8 +467,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const uint8_t ttDepth = tte.depth;
     const auto ttEval = tte.eval;
     const auto ttAgeBoundPV = tte.ageBoundPV;
-    const bool ttmovepsuedo = IsPseudoLegal(pos, ttMove);
-    const bool ttmoveLegal = ttmovepsuedo && IsLegal(pos, ttMove);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
@@ -490,7 +488,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // clean killers and excluded move for the next ply
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKiller = NOMOVE;
-
+    const bool ttmovepsuedo = IsPseudoLegal(pos, ttMove);
+    const bool ttmoveLegal = ttmovepsuedo && IsLegal(pos, ttMove);
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck) {
         eval = rawEval = ss->staticEval = SCORE_NONE;
