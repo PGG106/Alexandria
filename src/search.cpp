@@ -467,6 +467,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const uint8_t ttDepth = tte.depth;
     const auto ttEval = tte.eval;
     const auto ttAgeBoundPV = tte.ageBoundPV;
+    const bool ttmovepsuedo = IsPseudoLegal(pos, ttMove);
+    const bool ttmoveLegal = ttmovepsuedo && IsLegal(pos, ttMove);
     // If we found a value in the TT for this position, and the depth is equal or greater we can return it (pv nodes are excluded)
     if (   !pvNode
         &&  ttScore != SCORE_NONE
@@ -497,7 +499,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         eval = rawEval = ss->staticEval;
     }
     // get an evaluation of the position:
-    else if (ttHit) {
+    else if (ttHit && ttmoveLegal) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable);
         auto correction = GetCorrHistAdjustment(pos, sd, ss);
