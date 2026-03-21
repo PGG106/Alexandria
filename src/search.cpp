@@ -488,8 +488,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // clean killers and excluded move for the next ply
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKiller = NOMOVE;
-    const bool ttmovepsuedo = IsPseudoLegal(pos, ttMove);
-    const bool ttmoveLegal = ttmovepsuedo && IsLegal(pos, ttMove);
+    const bool ttmovepsuedo = !ttMove || IsPseudoLegal(pos, ttMove);
+    const bool ttmoveLegal = ttmovepsuedo && ( !ttMove || IsLegal(pos, ttMove));
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck) {
         eval = rawEval = ss->staticEval = SCORE_NONE;
