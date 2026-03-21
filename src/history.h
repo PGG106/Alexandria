@@ -9,7 +9,7 @@ struct SearchStack;
 struct MoveList;
 
 constexpr int HH_MAX = 8192;
-constexpr int PH_MAX = 16384;
+constexpr int PH_MAX = 8192;
 constexpr int PH_SIZE = 2048;
 constexpr int RH_MAX = 8192;
 constexpr int CH_MAX = 16384;
