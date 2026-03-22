@@ -8,7 +8,7 @@ struct SearchData;
 struct SearchStack;
 struct MoveList;
 
-constexpr int HH_MAX = 8192;
+constexpr int HH_MAX = 16384;
 constexpr int RH_MAX = 8192;
 constexpr int CH_MAX = 16384;
 constexpr int CAPTHIST_MAX = 16384;
