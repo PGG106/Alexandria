@@ -131,7 +131,7 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i];
             updateHHScore(pos, sd, move, -malus);
-            updatePHScore(pos, sd, bestMove, -pawnhist_malus);
+            updatePHScore(pos, sd, move, -pawnhist_malus);
             updateCHScore(ss, move, -conthist_malus);
             if (rootNode)
                 updateRHScore(pos, sd, move, -roothist_malus);
