@@ -211,7 +211,6 @@ void ParseFen(const std::string& command, Position* pos) {
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
-    calcCheckZones(pos);
 }
 
 std::string GetFen(const Position* pos) {
@@ -525,31 +524,3 @@ bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int 
     }
     return false;
 }
-
-void calcCheckZones(Position* pos) {
-    const auto oppKingSq = KingSQ(pos, !pos->side);
-    const auto occ = pos->Occupancy(BOTH);
-
-    pos->state().checkZones[PAWN] = getPawnAttacks(oppKingSq, !pos->side);
-    pos->state().checkZones[KNIGHT] = getKnightAttacks(oppKingSq);
-    pos->state().checkZones[BISHOP] = getBishopAttacks(oppKingSq, occ);
-    pos->state().checkZones[ROOK] = getRookAttacks(oppKingSq, occ);
-}
-
-[[nodiscard]] bool givesDirectCheck(Position* pos, Move move) {
-    auto movingPieceType = PieceType[Piece(move)];
-    if (isPromo(move)) movingPieceType = getPromotedPiecetype(move);
-    if (movingPieceType == KING)
-        return false;
-
-    const auto checkZone = [&] {
-        if (movingPieceType == QUEEN)
-            return pos->state().checkZones[BISHOP] | pos->state().checkZones[ROOK];
-        else
-            return pos->state().checkZones[movingPieceType];
-    }();
-
-    auto piece_landing_square_bb = (1ULL << To(move));
-    return piece_landing_square_bb & checkZone;
-}
-
