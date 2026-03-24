@@ -177,7 +177,7 @@ TUNE_PARAM(roothistoryMalusMul, 402, 1, 1500, 32, 0.002)
 TUNE_PARAM(roothistoryMalusOffset, 75, -1024, 1024, 64, 0.002)
 TUNE_PARAM(roothistoryMalusMax, 892, 1, 4096, 256, 0.002)
 // LMR
-TUNE_PARAM(lmrQuietBase, 107, 40, 150, 7, 0.002)
+TUNE_PARAM(lmrQuietBase, 50, 40, 150, 7, 0.002)
 TUNE_PARAM(lmrQuietDivisor, 227, 150, 500, 15, 0.002)
 TUNE_PARAM(lmrNoisyBase, -36, -70, 100, 7, 0.002)
 TUNE_PARAM(lmrNoisytDivisor, 247, 150, 500, 15, 0.002)
