@@ -16,7 +16,7 @@ void ScoreMoves(Movepicker* mp) {
         if (isTactical(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-            moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move) + 10000 * isPromo(move);
+            moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move) + 4096 * isPromo(move);
         }
         else {
             moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
