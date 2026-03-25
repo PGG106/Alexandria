@@ -8,6 +8,8 @@
 #include "attack.h"
 #include "init.h"
 #include "cuckoo.h"
+#include "io.h"
+#include "movegen.h"
 
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
@@ -553,3 +555,16 @@ void calcCheckZones(Position* pos) {
     return piece_landing_square_bb & checkZone;
 }
 
+void printDirectChecks(Position* pos) {
+    MoveList movelist;
+    GenerateMoves(&movelist, pos, MOVEGEN_ALL );
+
+    std::cout << "Moves that give direct check: " << std::endl;
+
+    for (int i = 0; i < movelist.count; i++) {
+        const Move move = movelist.moves[i].move;
+        if (givesDirectCheck(pos, move)) {
+            std::cout << FormatMove(move) << std::endl;
+        }
+    }
+}
