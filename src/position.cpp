@@ -513,13 +513,12 @@ bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int 
             if (ply > i)
                 return true;
 
-            auto piece = pos->PieceOn(from);
-            if (piece == EMPTY)
-                piece = pos->PieceOn(to);
-
-            assert(piece != EMPTY);
-
-            return Color[piece] == pos->side;
+            // otherwise, require a threefold
+            for (int j = i + 2; j <= end; ++j) {
+                if (currKey == OldKey(j)) {
+                    return true;
+                }
+            }
         }
     }
     return false;
