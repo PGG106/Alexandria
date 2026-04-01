@@ -952,6 +952,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
     TTEntry tte;
     int bestScore;
     int rawEval;
+    int futilityBase;
 
     // check if more than Maxtime passed and we have to stop
     if (td->id == 0 && TimeOver(&td->info)) {
@@ -990,7 +991,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
 
     if (inCheck) {
         rawEval = ss->staticEval = SCORE_NONE;
-        bestScore = -MAXSCORE;
+        bestScore = futilityBase = -MAXSCORE;
     }
     else{
         // If we have a ttHit with a valid eval use that
@@ -1022,6 +1023,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
 
         // Adjust alpha based on eval
         alpha = std::max(alpha, bestScore);
+        futilityBase = ss->staticEval + qsBaseFutility();
     }
 
     Movepicker mp;
@@ -1044,11 +1046,12 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         totalMoves++;
 
         // Futility pruning. If static eval is far below alpha, only search moves that win material.
-        if (   !isMated(bestScore)
-            && !inCheck) {
-            const int futilityBase = ss->staticEval + qsBaseFutility();
-            if (futilityBase <= alpha && !SEE(pos, move, 1)) {
+        if (!isMated(bestScore)) {
+            if (!inCheck && futilityBase <= alpha && !SEE(pos, move, 1)) {
                 bestScore = std::max(futilityBase, bestScore);
+                continue;
+            }
+            if (!SEE(pos, move, -50)) {
                 continue;
             }
         }
