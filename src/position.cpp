@@ -514,7 +514,7 @@ bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int 
                 return true;
 
             // otherwise, require a threefold
-            for (int j = i + 2; j <= end; ++j) {
+            for (int j = i + 2; j <= end; j += 2) {
                 if (currKey == OldKey(j)) {
                     return true;
                 }
