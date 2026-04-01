@@ -572,7 +572,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
-            const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
+            const int R = 5 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
