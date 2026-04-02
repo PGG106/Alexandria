@@ -62,6 +62,6 @@ bool NodesOver(const SearchInfo* info) {
 bool TimeOver(const SearchInfo* info) {
     // check if more than Maxtime passed and we have to stop
     return NodesOver(info) || ((info->timeset || info->movetimeset)
-                               && ((info->nodes & 1023) == 1023)
+                               && ((info->nodes & 4096) == 4096)
                                && GetTimeMs() > info->stoptimeMax);
 }
