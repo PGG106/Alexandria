@@ -841,7 +841,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             ss->reduction = 0;
 
             // if we failed high on a reduced node we'll search with a reduced window and full depth
-            if (score > alpha && newDepth > reducedDepth) {
+            if (score > alpha) {
                 // Based on the value returned by our reduced search see if we should search deeper or shallower,
                 // this is an exact yoink of what SF does and frankly i don't care lmao
                 const bool doDeeperSearch = score > (bestScore + doDeeperBaseMargin() + 2 * newDepth);
