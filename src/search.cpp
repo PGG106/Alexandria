@@ -998,7 +998,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
             // If the value in the TT is valid we use that, otherwise we call the static evaluation function
             rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
             auto correction = GetCorrHistAdjustment(pos, sd, ss);
-            bestScore = ss->staticEval = adjustEval(pos,correction,  rawEval);
+            bestScore = ss->staticEval = adjustEval(pos, correction, rawEval);
 
             // We can also use the TT score as a more accurate form of eval
             if (    ttScore != SCORE_NONE

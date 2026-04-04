@@ -83,8 +83,8 @@ Move NextMove(Movepicker* mp, const bool skip) {
     switch (mp->stage) {
     case PICK_TT:
         ++mp->stage;
-            // If we are in qsearch and not in check, or we are in probcut, skip quiet TT moves
-            if ((mp->movepickerType == PROBCUT || (mp->movepickerType == QSEARCH && skip))
+            // if we are in probcut, skip quiet TT moves
+            if ((mp->movepickerType == PROBCUT)
                 && !isTactical(mp->ttMove))
                 goto top;
 
