@@ -165,6 +165,13 @@ TUNE_PARAM(conthistoryMalusOffset, 114, -1024, 1024, 64, 0.002)
 TUNE_PARAM(conthistoryMalusMax, 806, 1, 4096, 256, 0.002)
 TUNE_PARAM(conthistoryTTMalusMul, 155, 1, 1500, 32, 0.002)
 TUNE_PARAM(conthistoryTTMalusMax, 385, 1, 2048, 64, 0.002)
+// Pawnhist
+TUNE_PARAM(pawnhistoryBonusMul, 159, 1, 1500, 32, 0.002)
+TUNE_PARAM(pawnhistoryBonusOffset, -50, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pawnhistoryBonusMax, 2538, 1, 4096, 256, 0.002)
+TUNE_PARAM(pawnhistoryMalusMul, 401, 1, 1500, 32, 0.002)
+TUNE_PARAM(pawnhistoryMalusOffset, 50, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pawnhistoryMalusMax, 806, 1, 4096, 256, 0.002)
 // Corrhist
 TUNE_PARAM(corrhistoryPawnWeight, 29, 1, 256, 4, 0.002)
 TUNE_PARAM(corrhistoryNonPawnWeight, 34, 1, 256, 4, 0.002)
