@@ -60,7 +60,7 @@ void ScoreMoves(Movepicker *mp) {
         0
     };
 
-    constexpr int dangerbonus[6] = {0, 3500, 3400, 5555, 7777, 0};
+    constexpr int escapeBonus[6] = {0, 3500, 3400, 5555, 7777, 0};
 
     // Loop through all the moves in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
@@ -76,10 +76,9 @@ void ScoreMoves(Movepicker *mp) {
             const int pt = GetPieceType(Piece(move));
             const Bitboard danger = dangerSquares[pt];
 
-
             // Bonus for moving OUT of a danger square (escaping)
             if (danger & (1ULL << From(move))) {
-                score += dangerbonus[pt];
+                score += escapeBonus[pt];
             }
 
             moveList->moves[i].score = score;
