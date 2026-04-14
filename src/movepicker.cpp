@@ -13,53 +13,6 @@ void ScoreMoves(Movepicker* mp) {
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
 
-    // Precompute danger squares for quiet move scoring (squares attacked by lower-value enemy pieces)
-    const int them = pos->side ^ 1;
-    const Bitboard occ = pos->Occupancy(BOTH);
-
-    // Compute per-attacker-type threat bitboards
-    Bitboard pawnThreats = 0;
-    Bitboard pawns = pos->getPieceColorBB(PAWN, them);
-    while (pawns) {
-        int sq = popLsb(pawns);
-        pawnThreats |= getPawnAttacks(sq, them);
-    }
-
-    Bitboard knightThreats = 0;
-    Bitboard knights = pos->getPieceColorBB(KNIGHT, them);
-    while (knights) {
-        int sq = popLsb(knights);
-        knightThreats |= getKnightAttacks(sq);
-    }
-
-    Bitboard bishopThreats = 0;
-    Bitboard bishops = pos->getPieceColorBB(BISHOP, them);
-    while (bishops) {
-        int sq = popLsb(bishops);
-        bishopThreats |= getBishopAttacks(sq, occ);
-    }
-
-    Bitboard rookThreats = 0;
-    Bitboard rooks = pos->getPieceColorBB(ROOK, them);
-    while (rooks) {
-        int sq = popLsb(rooks);
-        rookThreats |= getRookAttacks(sq, occ);
-    }
-
-    const Bitboard minorThreats = pawnThreats | knightThreats | bishopThreats;
-    const Bitboard majorThreats = minorThreats | rookThreats;
-
-    // dangerSquares[pieceType]: squares where that piece type is in danger from a lower-value attacker
-    // PAWN=0, KNIGHT=1, BISHOP=2, ROOK=3, QUEEN=4, KING=5
-    const Bitboard dangerSquares[6] = {
-        0,
-        pawnThreats,
-        pawnThreats,
-        minorThreats,
-        majorThreats,
-        0
-    };
-
     // Loop through all the moves in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
@@ -71,6 +24,53 @@ void ScoreMoves(Movepicker* mp) {
         else {
             int score = GetHistoryScore(pos, sd, move, ss, rootNode);
 
+            // Precompute danger squares for quiet move scoring (squares attacked by lower-value enemy pieces)
+            const int them = pos->side ^ 1;
+            const Bitboard occ = pos->Occupancy(BOTH);
+
+            // Compute per-attacker-type threat bitboards
+            Bitboard pawnThreats = 0;
+            Bitboard pawns = pos->getPieceColorBB(PAWN, them);
+            while (pawns) {
+                int sq = popLsb(pawns);
+                pawnThreats |= getPawnAttacks(sq, them);
+            }
+
+            Bitboard knightThreats = 0;
+            Bitboard knights = pos->getPieceColorBB(KNIGHT, them);
+            while (knights) {
+                int sq = popLsb(knights);
+                knightThreats |= getKnightAttacks(sq);
+            }
+
+            Bitboard bishopThreats = 0;
+            Bitboard bishops = pos->getPieceColorBB(BISHOP, them);
+            while (bishops) {
+                int sq = popLsb(bishops);
+                bishopThreats |= getBishopAttacks(sq, occ);
+            }
+
+            Bitboard rookThreats = 0;
+            Bitboard rooks = pos->getPieceColorBB(ROOK, them);
+            while (rooks) {
+                int sq = popLsb(rooks);
+                rookThreats |= getRookAttacks(sq, occ);
+            }
+
+            const Bitboard minorThreats = pawnThreats | knightThreats | bishopThreats;
+            const Bitboard majorThreats = minorThreats | rookThreats;
+
+            // dangerSquares[pieceType]: squares where that piece type is in danger from a lower-value attacker
+            // PAWN=0, KNIGHT=1, BISHOP=2, ROOK=3, QUEEN=4, KING=5
+            const Bitboard dangerSquares[6] = {
+                0,
+                pawnThreats,
+                pawnThreats,
+                minorThreats,
+                majorThreats,
+                0
+            };
+
             // Danger square bonus/penalty for quiet moves
             const int pt = GetPieceType(Piece(move));
             const Bitboard danger = dangerSquares[pt];
@@ -78,11 +78,6 @@ void ScoreMoves(Movepicker* mp) {
             // Bonus for moving OUT of a danger square (escaping)
             if (danger & (1ULL << From(move))) {
                 score += std::max(2, pt) * 2000;
-            }
-
-            // Penalty for moving INTO a danger square (entering danger)
-            if (danger & (1ULL << To(move))) {
-                score -= std::max(2, pt) * 1000;
             }
 
             moveList->moves[i].score = score;
