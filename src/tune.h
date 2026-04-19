@@ -127,6 +127,8 @@ TUNE_TM_PARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
 TUNE_TM_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
 // Search
+TUNE_PARAM(aspWinDelta, 8, 2, 15, 2, 0.002)
+TUNE_PARAM(aspWinPrevevalDiv, 18666, 12000, 25000, 512, 0.002)
 TUNE_PARAM(rfpDepthMargin, 75, 40, 200, 10, 0.002)
 TUNE_PARAM(rfpImprovingMargin, 61, 40, 200, 10, 0.002)
 TUNE_PARAM(rfpIIRMargin, 76, 40, 200, 10, 0.002)
