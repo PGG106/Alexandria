@@ -525,12 +525,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         updateOppHHScore(pos, sd, move, bonus);
     }
 
-    const int complexity = [&] {
-        if (eval == 0 || rawEval == 0)
-            return 0;
-        else
-            return 100 * std::abs(eval - rawEval) / std::abs(eval);
-    }();
+    const int complexity = std::abs(eval - rawEval);
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
@@ -809,7 +804,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (ttPv)
                     depthReduction -= 1 + cutNode;
 
-                if(complexity > 50)
+                if(complexity > 100)
                     depthReduction -= 1;
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
