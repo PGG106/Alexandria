@@ -458,8 +458,8 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     const ZobristKey mrKey = MRKeys[fiftyAfter];
 
     if(move == NOMOVE){
-        ZobristKey newKey = pos->getPoskey() ^ SideKey;
-        return newKey ^ mrKey;
+        ZobristKey newKey = pos->getPoskey() ^ SideKey  ^ mrKey;
+        return newKey;
     }
 
     const Square sourceSquare = From(move);
@@ -467,12 +467,12 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     const int piece = Piece(move);
     const int  captured = pos->PieceOn(targetSquare);
 
-    ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];
+    ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare]  ^ mrKey;
 
     if (captured != EMPTY)
         newKey ^= PieceKeys[captured][targetSquare];
 
-    return newKey ^ mrKey;
+    return newKey;
 }
 
 bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply) {
