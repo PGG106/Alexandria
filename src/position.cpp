@@ -451,9 +451,15 @@ Bitboard RayBetween(const unsigned int square1, const unsigned int square2) {
 // Calculates what the key for position pos will be after move <move>, it's a rough estimate and will fail for "special" moves such as promotions and castling
 ZobristKey keyAfter(const Position* pos, const Move move) {
 
+    int fiftyAfter = pos->get50MrCounter() + 1;
+    if (move != NOMOVE && (isCapture(move) || GetPieceType(Piece(move)) == PAWN))
+        fiftyAfter = 0;
+
+    const ZobristKey mrKey = MRKeys[fiftyAfter];
+
     if(move == NOMOVE){
         ZobristKey newKey = pos->getPoskey() ^ SideKey;
-        return newKey;
+        return newKey ^ mrKey;
     }
 
     const Square sourceSquare = From(move);
@@ -466,7 +472,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     if (captured != EMPTY)
         newKey ^= PieceKeys[captured][targetSquare];
 
-    return newKey;
+    return newKey ^ mrKey;
 }
 
 bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply) {

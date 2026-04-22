@@ -9,6 +9,7 @@ inline Bitboard PieceKeys[12][64];
 inline Bitboard enpassant_keys[64];
 inline Bitboard SideKey;
 inline Bitboard CastleKeys[16];
+inline Bitboard MRKeys[101];
 
 void InitNewGame(ThreadData* td);
 
