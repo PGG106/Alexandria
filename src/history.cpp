@@ -52,10 +52,6 @@ int pawnhistory_malus(const int depth) {
     return std::min(pawnhistoryMalusMul() * depth + pawnhistoryMalusOffset(), pawnhistoryMalusMax());
 }
 
-static inline int ChPieceToFromBoard(const Position* pos, const Move move) {
-    return (static_cast<int>(pos->PieceOn(From(move))) << 6) | To(move);
-}
-
 void updateHHScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
@@ -125,7 +121,7 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
     const int capthist_malus = capthistory_malus(depth);
     const int pawnhist_malus = pawnhistory_malus(depth);
     if (!isTactical(bestMove)) {
-        const int bestPieceTo = ChPieceToFromBoard(pos, bestMove);
+        const int bestPieceTo = PieceTo(pos, bestMove);
         // increase bestMove HH, CH, and PawnHist score
         updateHHScore(pos, sd, bestMove, bonus);
         updateCHScore(ss, bestPieceTo, conthist_bonus);
@@ -136,7 +132,7 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
         for (int i = 0; i < quietMoves->count; i++) {
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i];
-            const int pieceTo = ChPieceToFromBoard(pos, move);
+            const int pieceTo = PieceTo(pos, move);
             updateHHScore(pos, sd, move, -malus);
             updateCHScore(ss, pieceTo, -conthist_malus);
             updatePawnHistScore(pos, sd, move, -pawnhist_malus);
@@ -223,7 +219,7 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
 int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                     const bool rootNode) {
     if (!isTactical(move))
-    return GetHHScore(pos, sd, move) + GetCHScore(ss, ChPieceToFromBoard(pos, move)) + GetPawnHistScore(pos, sd, move)
+    return GetHHScore(pos, sd, move) + GetCHScore(ss, PieceTo(pos, move)) + GetPawnHistScore(pos, sd, move)
                + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
@@ -232,7 +228,7 @@ int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, 
 int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                           const bool rootNode) {
     if (!isTactical(move)) {
-        const int pieceTo = ChPieceToFromBoard(pos, move);
+        const int pieceTo = PieceTo(pos, move);
      return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, pieceTo, 1)
          + GetSingleCHScore(ss, pieceTo, 2) + GetSingleCHScore(ss, pieceTo, 4)
                + GetPawnHistScore(pos, sd, move)
