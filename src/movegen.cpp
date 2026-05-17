@@ -484,13 +484,6 @@ bool IsLegal(Position* pos, Move move) {
     const Square from = From(move);
     const Square to = To(move);
     const int movedPiece = pos->PieceOn(from);
-
-    if (movedPiece == EMPTY)
-        return false;
-
-    if (Color[movedPiece] != color)
-        return false;
-
     const int pieceType = GetPieceType(movedPiece);
 
     if (isEnpassant(move)) {
