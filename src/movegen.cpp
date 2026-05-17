@@ -338,16 +338,13 @@ bool IsPseudoLegal(Position* pos, Move move) {
 
     const Square from = From(move);
     const Square to = To(move);
-    const int movedPiece = Piece(move);
+    const int movedPiece = pos->PieceOn(from);
     const int pieceType = GetPieceType(movedPiece);
 
     if (from == to)
         return false;
 
     if (movedPiece == EMPTY)
-        return false;
-
-    if (pos->PieceOn(from) != movedPiece)
         return false;
 
     if (Color[movedPiece] != pos->side)
@@ -494,7 +491,14 @@ bool IsLegal(Position* pos, Move move) {
     const Square ksq = KingSQ(pos, color);
     const Square from = From(move);
     const Square to = To(move);
-    const int movedPiece = static_cast<int>((move & 0xF0000) >> 16);
+    const int movedPiece = pos->PieceOn(from);
+
+    if (movedPiece == EMPTY)
+        return false;
+
+    if (Color[movedPiece] != color)
+        return false;
+
     const int pieceType = GetPieceType(movedPiece);
 
     if (isEnpassant(move)) {

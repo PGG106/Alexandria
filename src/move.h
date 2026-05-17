@@ -39,15 +39,16 @@ inline Movetype operator | (Movetype first, Movetype second){
 }
 
 inline Move encode_move(const int source, const int target, const int piece, const Movetype movetype) {
-    return (source) | (target << 6) | (static_cast<int>(movetype) << 12) | (piece << 16);
+    (void)piece;
+    return static_cast<Move>((source) | (target << 6) | (static_cast<int>(movetype) << 12));
 }
 
 inline Square From(const Move move) { return move & 0x3F; }
 inline Square To(const Move move) { return ((move & 0xFC0) >> 6); }
 inline unsigned int FromTo(const Move move) { return move & 0xFFF; }
-inline unsigned int Piece(const Move move) { return ((move & 0xF0000) >> 16); }
-inline unsigned int PieceTo(const Move move) { return (Piece(move) << 6) | To(move); }
-inline unsigned int PieceTypeTo(const Move move) { return (PieceType[Piece(move)] << 6) | To(move); }
+unsigned int Piece(const Position* pos, Move move);
+unsigned int PieceTo(const Position* pos, Move move);
+unsigned int PieceTypeTo(const Position* pos, Move move);
 inline unsigned int GetMovetype(const Move move) { return ((move & 0xF000) >> 12); }
 inline unsigned int getPromotedPiecetype(const Move move) { return (GetMovetype(move) & 3) + 1; }
 inline bool isEnpassant(const Move move) { return GetMovetype(move) == static_cast<int>(Movetype::enPassant); }
@@ -60,12 +61,3 @@ inline bool isQuiet(const Move move) { return !isCapture(move); }
 inline bool isPromo(const Move move) { return GetMovetype(move) & 8; }
 // Shorthand for captures + any promotion no matter if quiet or not 
 inline bool isTactical(const Move move) { return isCapture(move) || isPromo(move); }
-
-unsigned int Piece(const Position* pos, Move16 move);
-unsigned int PieceTo(const Position* pos, Move16 move);
-unsigned int PieceTypeTo(const Position* pos, Move16 move);
-
-unsigned int PieceTo(const Position* pos, Move move);
-
-Move16 PackMove16(Move move);
-Move UnpackMove16(const Position* pos, Move16 move16);

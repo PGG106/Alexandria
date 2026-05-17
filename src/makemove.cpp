@@ -64,10 +64,9 @@ inline void resetEpSquare(Position* pos) {
 
 void MakeCastle(const Move move, Position* pos) {
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
@@ -107,10 +106,9 @@ void MakeEp(const Move move, Position* pos) {
     pos->state().fiftyMove = 0;
 
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
     const int SOUTH = pos->side == WHITE ? 8 : -8;
 
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
@@ -132,10 +130,9 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
     pos->state().fiftyMove = 0;
 
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // Remove the piece fom the square it moved from
     ClearPiece(piece, sourceSquare, pos);
@@ -156,10 +153,9 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
 
 void MakeQuiet(const Move move, Position* pos) {
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
 
     // if a pawn was moved or a capture was played reset the 50 move rule counter
     if (GetPieceType(piece) == PAWN)
@@ -174,10 +170,9 @@ void MakeQuiet(const Move move, Position* pos) {
 
 void MakeCapture(const Move move, Position* pos) {
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
 
     pos->state().fiftyMove = 0;
 
@@ -197,10 +192,9 @@ void MakeDP(const Move move, Position* pos)
 {   pos->state().fiftyMove = 0;
 
     // parse move
-    const Move16 move16 = PackMove16(move);
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(pos, move16);
+    const int piece = Piece(pos, move);
 
     MovePiece(piece,sourceSquare,targetSquare, pos);
 

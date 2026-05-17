@@ -41,7 +41,7 @@ void partialInsertionSort(MoveList* moveList, const int moveNum) {
 
 void InitMP(Movepicker* mp, Position* pos, SearchData* sd, SearchStack* ss, const Move ttMove, const int SEEThreshold, const MovepickerType movepickerType, const bool rootNode) {
 
-    const Move killer = UnpackMove16(pos, ss->searchKiller);
+    const Move killer = ss->searchKiller;
     const Move counter = sd->counterMoves[FromTo((ss - 1)->move)];
 
     mp->movepickerType = movepickerType;

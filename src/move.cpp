@@ -2,31 +2,19 @@
 
 #include "position.h"
 
-Move16 PackMove16(const Move move) {
-    return static_cast<Move16>(move & 0xFFFF);
-}
-
-unsigned int Piece(const Position* pos, const Move16 move) {
+unsigned int Piece(const Position* pos, const Move move) {
     if (move == NOMOVE)
         return 0;
-    return static_cast<unsigned int>(pos->PieceOn(From(move)));
-}
 
-unsigned int PieceTo(const Position* pos, const Move16 move) {
-    return (Piece(pos, move) << 6) | To(move);
-}
-
-unsigned int PieceTypeTo(const Position* pos, const Move16 move) {
-    return (PieceType[Piece(pos, move)] << 6) | To(move);
-}
-
-Move UnpackMove16(const Position* pos, const Move16 move16) {
-    if (move16 == NOMOVE)
-        return NOMOVE;
-    return static_cast<Move>(move16) | (static_cast<Move>(Piece(pos, move16)) << 16);
+    const int piece = pos->PieceOn(From(move));
+    // Keep piece-derived indices in range even for stale TT/killer/counter moves.
+    return static_cast<unsigned int>((piece >= WP && piece <= BK) ? piece : WP);
 }
 
 unsigned int PieceTo(const Position* pos, const Move move) {
-    const Move16 move16 = PackMove16(move);
-    return PieceTo(pos, move16);
+    return (Piece(pos, move) << 6) | To(move);
+}
+
+unsigned int PieceTypeTo(const Position* pos, const Move move) {
+    return (GetPieceType(Piece(pos, move)) << 6) | To(move);
 }

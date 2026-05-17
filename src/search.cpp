@@ -412,7 +412,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int score = -MAXSCORE;
     TTEntry tte;
 
-    const Move16 excludedMove = ss->excludedMove;
+    const Move excludedMove = ss->excludedMove;
 
     // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
     if (mainT)
@@ -631,16 +631,15 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (!IsLegal(pos, move))
                 continue;
 
-            if (PackMove16(move) == excludedMove)
+            if (move == excludedMove)
                 continue;
 
             // Speculative prefetch of the TT entry
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            const Move16 move16 = PackMove16(move);
-            ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
-            ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
+            ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move));
+            ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
             ss->contHistEntry = &sd->contHist[ss->pieceTo];
 
             // increment nodes count
@@ -690,7 +689,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
 
-        if (PackMove16(move) == excludedMove || !IsLegal(pos, move))
+        if (move == excludedMove || !IsLegal(pos, move))
             continue;
 
         // Speculative prefetch of the TT entry
@@ -752,7 +751,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 const int singularBeta = ttScore - depth * 5 / 8 - depth * (ttPv && !pvNode);
                 const int singularDepth = (depth - 1) / 2;
 
-                ss->excludedMove = PackMove16(ttMove);
+                ss->excludedMove = ttMove;
                 const int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutNode, td, ss);
                 ss->excludedMove = NOMOVE;
 
@@ -782,9 +781,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         int newDepth = depth - 1 + extension;
 
         ss->move = move;
-        const Move16 move16 = PackMove16(move);
-        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
-        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
+        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
         const int pieceTo = ss->pieceTo;
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
@@ -904,7 +902,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (score >= beta) {
                     // If the move that caused the beta cutoff is quiet we have a killer move
                     if (isQuiet) {
-                        ss->searchKiller = PackMove16(bestMove);
+                        ss->searchKiller = bestMove;
 
                         // Save counterMoves
                         if (ss->ply >= 1)
@@ -1069,9 +1067,8 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
-        const Move16 move16 = PackMove16(move);
-        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
-        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
+        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         // increment nodes count

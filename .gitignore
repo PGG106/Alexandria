@@ -445,4 +445,5 @@ perf.data.old
 .idea
 
 # Don't commit the net by accident
-nn.net
+*.net
+*.txt

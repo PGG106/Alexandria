@@ -4,7 +4,7 @@
 #include "types.h"
 
 inline std::array<uint64_t, 8192> keys{};
-inline std::array<Move16, 8192> cuckooMoves{};
+inline std::array<Move, 8192> cuckooMoves{};
 
 constexpr auto H1(uint64_t key)
 {
