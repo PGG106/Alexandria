@@ -6,9 +6,7 @@ unsigned int Piece(const Position* pos, const Move move) {
     if (move == NOMOVE)
         return 0;
 
-    const int piece = pos->PieceOn(From(move));
-    // Keep piece-derived indices in range even for stale TT/killer/counter moves.
-    return static_cast<unsigned int>((piece >= WP && piece <= BK) ? piece : WP);
+    return pos->PieceOn(From(move));
 }
 
 unsigned int PieceTo(const Position* pos, const Move move) {
