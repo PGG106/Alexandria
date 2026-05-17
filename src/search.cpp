@@ -334,13 +334,15 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->move = NOMOVE;
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
+        (ss + i)->pieceTo = 0;
+        (ss + i)->pieceTypeTo = 0;
         (ss + i)->staticEval = SCORE_NONE;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[0];
         (ss + i)->reduction = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[0];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
     int delta = aspWinDelta() + prev_eval * prev_eval / aspWinPrevevalDiv();
@@ -410,7 +412,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     int score = -MAXSCORE;
     TTEntry tte;
 
-    const Move excludedMove = ss->excludedMove;
+    const Move16 excludedMove = ss->excludedMove;
 
     // if we are in a singular search and reusing the same ss entry, we have to guard this statement otherwise the pv length will get reset
     if (mainT)
@@ -476,7 +478,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         && (ttBound & (ttScore >= beta ? HFLOWER : HFUPPER))) {
         if (ttMove && ttScore >= beta && (ss-1)->moveCount < 4 && isQuiet((ss-1)->move)) {
             if ((ss-1)->move != NOMOVE) {
-                updateCHScore((ss-1), (ss-1)->move, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
+                updateCHScore((ss-1), (ss-1)->pieceTo, -std::min(conthistoryTTMalusMul() * depth, conthistoryTTMalusMax()));
             }
         }
         return ttScore;
@@ -572,8 +574,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             && BoardHasNonPawns(pos, pos->side)) {
 
             ss->move = NOMOVE;
+            ss->pieceTo = 0;
+            ss->pieceTypeTo = 0;
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
-            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+            ss->contHistEntry = &sd->contHist[0];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
             MakeNullMove(pos, td->keyHistory);
@@ -627,14 +631,16 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (!IsLegal(pos, move))
                 continue;
 
-            if (move == excludedMove)
+            if (PackMove16(move) == excludedMove)
                 continue;
 
             // Speculative prefetch of the TT entry
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            ss->contHistEntry = &sd->contHist[PieceTo(move)];
+            ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
+            ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
+            ss->contHistEntry = &sd->contHist[PieceTo(pos, move)];
 
             // increment nodes count
             info->nodes++;
@@ -683,7 +689,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // loop over moves within a movelist
     while ((move = NextMove(&mp, skipQuiets)) != NOMOVE) {
 
-        if (move == excludedMove || !IsLegal(pos, move))
+        if (PackMove16(move) == excludedMove || !IsLegal(pos, move))
             continue;
 
         // Speculative prefetch of the TT entry
@@ -745,7 +751,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 const int singularBeta = ttScore - depth * 5 / 8 - depth * (ttPv && !pvNode);
                 const int singularDepth = (depth - 1) / 2;
 
-                ss->excludedMove = ttMove;
+                ss->excludedMove = PackMove16(ttMove);
                 const int singularScore = Negamax<false>(singularBeta - 1, singularBeta, singularDepth, cutNode, td, ss);
                 ss->excludedMove = NOMOVE;
 
@@ -775,9 +781,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         int newDepth = depth - 1 + extension;
 
         ss->move = move;
+        ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
+        const int pieceTo = PieceTo(pos, move);
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
-        ss->contHistEntry = &sd->contHist[PieceTo(move)];
+        ss->contHistEntry = &sd->contHist[pieceTo];
 
         // increment nodes count
         info->nodes++;
@@ -852,7 +861,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
                 int bonus = score > alpha ? history_bonus(depth)
                                           : -history_malus(depth);
-                updateCHScore(ss, move, bonus);
+                updateCHScore(ss, ss->pieceTo, bonus);
             }
         }
         // If we skipped LMR and this isn't the first move of the node we'll search with a reduced window and full depth
@@ -893,7 +902,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 if (score >= beta) {
                     // If the move that caused the beta cutoff is quiet we have a killer move
                     if (isQuiet) {
-                        ss->searchKiller = bestMove;
+                        ss->searchKiller = PackMove16(bestMove);
 
                         // Save counterMoves
                         if (ss->ply >= 1)
@@ -1058,6 +1067,8 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
+        ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         // increment nodes count

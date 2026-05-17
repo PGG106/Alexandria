@@ -8,10 +8,12 @@
 struct SearchStack {
     // don't init. search will init before entering the negamax method
     int16_t staticEval;
-    Move excludedMove;
+    Move16 excludedMove;
     Move move;
+    uint16_t pieceTo;
+    uint16_t pieceTypeTo;
     uint16_t ply;
-    Move searchKiller;
+    Move16 searchKiller;
     int (*contHistEntry)[12 * 64];
     int16_t reduction;
     int moveCount;
@@ -20,7 +22,7 @@ struct SearchStack {
 
 struct PvTable {
     int pvLength[MAXDEPTH + 1];
-    Move pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
+    Move16 pvArray[MAXDEPTH + 1][MAXDEPTH + 1];
 };
 
 // These 2 tables need to be cleaned after each search. We initialize (and subsequently clean them) elsewhere

@@ -458,7 +458,7 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
 
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
-    const int piece = Piece(move);
+    const int piece = Piece(pos, move);
     const int  captured = pos->PieceOn(targetSquare);
 
     ZobristKey newKey = pos->getPoskey() ^ SideKey ^ PieceKeys[piece][sourceSquare] ^ PieceKeys[piece][targetSquare];

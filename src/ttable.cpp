@@ -188,16 +188,11 @@ int ScoreFromTT(int score, int ply) {
 }
 
 PackedMove MoveToTT(Move move) {
-    return (move & 0xffff);
+    return PackMove16(move);
 }
 
 Move MoveFromTT(Position *pos, PackedMove packed_move) {
-    // It's important to preserve a move being null even it's being unpacked
-    if (packed_move == NOMOVE)
-        return NOMOVE;
-
-    const int piece = pos->PieceOn(From(packed_move));
-    return packed_move | (piece << 16);
+    return UnpackMove16(pos, packed_move);
 }
 
 uint8_t BoundFromTT(uint8_t ageBoundPV) {

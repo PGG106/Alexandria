@@ -52,6 +52,10 @@ int pawnhistory_malus(const int depth) {
     return std::min(pawnhistoryMalusMul() * depth + pawnhistoryMalusOffset(), pawnhistoryMalusMax());
 }
 
+static inline int ChPieceToFromBoard(const Position* pos, const Move move) {
+    return (static_cast<int>(pos->PieceOn(From(move))) << 6) | To(move);
+}
+
 void updateHHScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-HH_MAX;HH_MAX] range
     const int scaledBonus = bonus - GetHHScore(pos, sd, move) * std::abs(bonus) / HH_MAX;
@@ -75,24 +79,24 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 
 void updatePawnHistScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
     // Scale bonus to fix it in a [-PAWNHIST_MAX;PAWNHIST_MAX] range
-    int &entry = sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(move)];
+    int &entry = sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move)];
     const int scaledBonus = bonus - entry * std::abs(bonus) / PAWNHIST_MAX;
     entry += scaledBonus;
 }
 
-void updateCHScore(SearchStack *ss, const Move move, const int bonus) {
+void updateCHScore(SearchStack *ss, const int pieceTo, const int bonus) {
     // Update move score
-    updateSingleCHScore(ss, move, bonus, 1);
-    updateSingleCHScore(ss, move, bonus, 2);
-    updateSingleCHScore(ss, move, bonus, 4);
-    updateSingleCHScore(ss, move, bonus, 6);
+    updateSingleCHScore(ss, pieceTo, bonus, 1);
+    updateSingleCHScore(ss, pieceTo, bonus, 2);
+    updateSingleCHScore(ss, pieceTo, bonus, 4);
+    updateSingleCHScore(ss, pieceTo, bonus, 6);
 }
 
-void updateSingleCHScore(SearchStack *ss, const Move move, const int bonus, const int offset) {
+void updateSingleCHScore(SearchStack *ss, const int pieceTo, const int bonus, const int offset) {
     if ((ss - offset)->move) {
         // Scale bonus to fix it in a [-CH_MAX;CH_MAX] range
-        const int scaledBonus = bonus - GetSingleCHScore(ss, move, offset) * std::abs(bonus) / CH_MAX;
-        (*((ss - offset)->contHistEntry))[PieceTo(move)] += scaledBonus;
+        const int scaledBonus = bonus - GetSingleCHScore(ss, pieceTo, offset) * std::abs(bonus) / CH_MAX;
+        (*((ss - offset)->contHistEntry))[pieceTo] += scaledBonus;
     }
 }
 
@@ -104,7 +108,7 @@ void updateCapthistScore(const Position *pos, SearchData *sd, const Move move, i
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
     // Update move score
-    sd->captHist[PieceTo(move)][capturedPiece] += scaledBonus;
+    sd->captHist[PieceTo(pos, move)][capturedPiece] += scaledBonus;
 }
 
 // Update all histories
@@ -121,9 +125,10 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
     const int capthist_malus = capthistory_malus(depth);
     const int pawnhist_malus = pawnhistory_malus(depth);
     if (!isTactical(bestMove)) {
+        const int bestPieceTo = ChPieceToFromBoard(pos, bestMove);
         // increase bestMove HH, CH, and PawnHist score
         updateHHScore(pos, sd, bestMove, bonus);
-        updateCHScore(ss, bestMove, conthist_bonus);
+        updateCHScore(ss, bestPieceTo, conthist_bonus);
         updatePawnHistScore(pos, sd, bestMove, pawnhist_bonus);
         if (rootNode)
             updateRHScore(pos, sd, bestMove, roothist_bonus);
@@ -131,8 +136,9 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
         for (int i = 0; i < quietMoves->count; i++) {
             // For all the quiets moves that didn't cause a cut-off decrease the HH score
             const Move move = quietMoves->moves[i];
+            const int pieceTo = ChPieceToFromBoard(pos, move);
             updateHHScore(pos, sd, move, -malus);
-            updateCHScore(ss, move, -conthist_malus);
+            updateCHScore(ss, pieceTo, -conthist_malus);
             updatePawnHistScore(pos, sd, move, -pawnhist_malus);
             if (rootNode)
                 updateRHScore(pos, sd, move, -roothist_malus);
@@ -158,14 +164,14 @@ int GetRHScore(const Position *pos, const SearchData *sd, const Move move) {
 }
 
 // Returns the history score of a move
-int GetCHScore(const SearchStack *ss, const Move move) {
-    return GetSingleCHScore(ss, move, 1) + GetSingleCHScore(ss, move, 2)
-    + GetSingleCHScore(ss, move, 4) + GetSingleCHScore(ss, move, 6);
+int GetCHScore(const SearchStack *ss, const int pieceTo) {
+    return GetSingleCHScore(ss, pieceTo, 1) + GetSingleCHScore(ss, pieceTo, 2)
+    + GetSingleCHScore(ss, pieceTo, 4) + GetSingleCHScore(ss, pieceTo, 6);
 }
 
-int GetSingleCHScore(const SearchStack *ss, const Move move, const int offset) {
+int GetSingleCHScore(const SearchStack *ss, const int pieceTo, const int offset) {
     return (ss - offset)->move
-               ? (*((ss - offset)->contHistEntry))[PieceTo(move)]
+               ? (*((ss - offset)->contHistEntry))[pieceTo]
                : 0;
 }
 
@@ -175,12 +181,12 @@ int GetCapthistScore(const Position *pos, const SearchData *sd, const Move move)
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
-    return sd->captHist[PieceTo(move)][capturedPiece];
+    return sd->captHist[PieceTo(pos, move)][capturedPiece];
 }
 
 // Returns the pawn history score of a move
 int GetPawnHistScore(const Position *pos, const SearchData *sd, const Move move) {
-    return sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(move)];
+    return sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move)];
 }
 
 void updateSingleCorrHistScore(int &entry, const int bonus) {
@@ -197,7 +203,7 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], bonus);
 
     if ((ss - 1)->move && (ss - 2)->move)
-        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)],
+        updateSingleCorrHistScore(sd->contCorrHist[pos->side][(ss - 1)->pieceTypeTo][(ss - 2)->pieceTypeTo],
                                   bonus);
 }
 
@@ -209,7 +215,7 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
     adjustment += corrhistoryNonPawnWeight() * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
-        adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
+        adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][(ss - 1)->pieceTypeTo][(ss - 2)->pieceTypeTo];
 
     return adjustment / CORRHIST_GRAIN;
 }
@@ -217,7 +223,7 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
 int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                     const bool rootNode) {
     if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetCHScore(ss, move) + GetPawnHistScore(pos, sd, move)
+    return GetHHScore(pos, sd, move) + GetCHScore(ss, ChPieceToFromBoard(pos, move)) + GetPawnHistScore(pos, sd, move)
                + rootNode * 4 * GetRHScore(pos, sd, move);
     else
         return GetCapthistScore(pos, sd, move);
@@ -225,11 +231,13 @@ int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, 
 
 int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,
                           const bool rootNode) {
-    if (!isTactical(move))
-        return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, move, 1)
-               + GetSingleCHScore(ss, move, 2) + GetSingleCHScore(ss, move, 4)
+    if (!isTactical(move)) {
+        const int pieceTo = ChPieceToFromBoard(pos, move);
+     return GetHHScore(pos, sd, move) + GetSingleCHScore(ss, pieceTo, 1)
+         + GetSingleCHScore(ss, pieceTo, 2) + GetSingleCHScore(ss, pieceTo, 4)
                + GetPawnHistScore(pos, sd, move)
                + rootNode * 4 * GetRHScore(pos, sd, move);
+    }
     return GetCapthistScore(pos, sd, move);
 }
 
