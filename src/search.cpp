@@ -638,9 +638,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
-            ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
-            ss->contHistEntry = &sd->contHist[PieceTo(pos, move)];
+            const Move16 move16 = PackMove16(move);
+            ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
+            ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
+            ss->contHistEntry = &sd->contHist[ss->pieceTo];
 
             // increment nodes count
             info->nodes++;
@@ -781,9 +782,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         int newDepth = depth - 1 + extension;
 
         ss->move = move;
-        ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
-        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
-        const int pieceTo = PieceTo(pos, move);
+        const Move16 move16 = PackMove16(move);
+        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
+        const int pieceTo = ss->pieceTo;
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         ss->contHistEntry = &sd->contHist[pieceTo];
@@ -1067,8 +1069,9 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         // Speculative prefetch of the TT entry
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
-        ss->pieceTo = static_cast<uint16_t>((static_cast<unsigned int>(pos->PieceOn(From(move))) << 6) | To(move));
-        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move));
+        const Move16 move16 = PackMove16(move);
+        ss->pieceTo = static_cast<uint16_t>(PieceTo(pos, move16));
+        ss->pieceTypeTo = static_cast<uint16_t>(PieceTypeTo(pos, move16));
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
         // increment nodes count

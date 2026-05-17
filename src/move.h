@@ -65,9 +65,7 @@ unsigned int Piece(const Position* pos, Move16 move);
 unsigned int PieceTo(const Position* pos, Move16 move);
 unsigned int PieceTypeTo(const Position* pos, Move16 move);
 
-unsigned int Piece(const Position* pos, Move move);
 unsigned int PieceTo(const Position* pos, Move move);
-unsigned int PieceTypeTo(const Position* pos, Move move);
 
 Move16 PackMove16(Move move);
 Move UnpackMove16(const Position* pos, Move16 move16);

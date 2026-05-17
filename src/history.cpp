@@ -78,8 +78,9 @@ void updateRHScore(const Position *pos, SearchData *sd, const Move move, int bon
 }
 
 void updatePawnHistScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
+    const Move16 move16 = PackMove16(move);
     // Scale bonus to fix it in a [-PAWNHIST_MAX;PAWNHIST_MAX] range
-    int &entry = sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move)];
+    int &entry = sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move16)];
     const int scaledBonus = bonus - entry * std::abs(bonus) / PAWNHIST_MAX;
     entry += scaledBonus;
 }
@@ -101,6 +102,7 @@ void updateSingleCHScore(SearchStack *ss, const int pieceTo, const int bonus, co
 }
 
 void updateCapthistScore(const Position *pos, SearchData *sd, const Move move, int bonus) {
+    const Move16 move16 = PackMove16(move);
     // Scale bonus to fix it in a [-CAPTHIST_MAX;CAPTHIST_MAX] range
     const int scaledBonus = bonus - GetCapthistScore(pos, sd, move) * std::abs(bonus) / CAPTHIST_MAX;
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
@@ -108,7 +110,7 @@ void updateCapthistScore(const Position *pos, SearchData *sd, const Move move, i
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
     // Update move score
-    sd->captHist[PieceTo(pos, move)][capturedPiece] += scaledBonus;
+    sd->captHist[PieceTo(pos, move16)][capturedPiece] += scaledBonus;
 }
 
 // Update all histories
@@ -177,16 +179,18 @@ int GetSingleCHScore(const SearchStack *ss, const int pieceTo, const int offset)
 
 // Returns the history score of a move
 int GetCapthistScore(const Position *pos, const SearchData *sd, const Move move) {
+    const Move16 move16 = PackMove16(move);
     int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
     // If we captured an empty piece this means the move is a non capturing promotion, we can pretend we captured a pawn to use a slot of the table that would've otherwise went unused (you can't capture pawns on the 1st/8th rank)
     if (capturedPiece == EMPTY)
         capturedPiece = PAWN;
-    return sd->captHist[PieceTo(pos, move)][capturedPiece];
+    return sd->captHist[PieceTo(pos, move16)][capturedPiece];
 }
 
 // Returns the pawn history score of a move
 int GetPawnHistScore(const Position *pos, const SearchData *sd, const Move move) {
-    return sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move)];
+    const Move16 move16 = PackMove16(move);
+    return sd->pawnHist[pos->state().pawnKey % PAWNHIST_SIZE][PieceTo(pos, move16)];
 }
 
 void updateSingleCorrHistScore(int &entry, const int bonus) {

@@ -26,14 +26,7 @@ Move UnpackMove16(const Position* pos, const Move16 move16) {
     return static_cast<Move>(move16) | (static_cast<Move>(Piece(pos, move16)) << 16);
 }
 
-unsigned int Piece(const Position* pos, const Move move) {
-    return Piece(pos, PackMove16(move));
-}
-
 unsigned int PieceTo(const Position* pos, const Move move) {
-    return PieceTo(pos, PackMove16(move));
-}
-
-unsigned int PieceTypeTo(const Position* pos, const Move move) {
-    return PieceTypeTo(pos, PackMove16(move));
+    const Move16 move16 = PackMove16(move);
+    return PieceTo(pos, move16);
 }
