@@ -338,14 +338,14 @@ bool IsPseudoLegal(Position* pos, Move move) {
 
     const Square from = From(move);
     const Square to = To(move);
-    const int movedPiece = static_cast<int>((move & 0xF0000) >> 16);
+    const int movedPiece = Piece(move);
+    const int pieceType = GetPieceType(movedPiece);
 
     if (from == to)
         return false;
 
     if (movedPiece == EMPTY)
         return false;
-    const int pieceType = GetPieceType(movedPiece);
 
     if (pos->PieceOn(from) != movedPiece)
         return false;
