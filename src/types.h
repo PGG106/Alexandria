@@ -18,7 +18,6 @@ using TTKey = uint16_t;
 // define poskey data type
 using ZobristKey = uint64_t;
 using Move = uint16_t;
-using PackedMove = Move;
 using Square = uint8_t;
 
 constexpr Move NOMOVE = 0;

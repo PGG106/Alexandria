@@ -464,7 +464,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Probe the TT for useful previous search information, we avoid doing so if we are searching a singular extension
     const bool ttHit = !excludedMove && ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
-    const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const Move ttMove = ttHit ? tte.move : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     const uint8_t ttDepth = tte.depth;
     const auto ttEval = tte.eval;
@@ -657,7 +657,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             UnmakeMove(pos, td->keyHistory);
 
             if (pcScore >= pcBeta) {
-                StoreTTEntry(pos->getPoskey(), MoveToTT(move),
+                StoreTTEntry(pos->getPoskey(), move,
                              ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
                              depth - 3, pvNode, ttPv);
                 return pcScore;
@@ -944,7 +944,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
 
     if (!excludedMove) {
-        StoreTTEntry(pos->getPoskey(), MoveToTT(bestMove), ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
+        StoreTTEntry(pos->getPoskey(), bestMove, ScoreToTT(bestScore, ss->ply), rawEval, bound, depth, pvNode, ttPv);
     }
 
     return bestScore;
@@ -987,7 +987,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
     // ttHit is true if and only if we find something in the TT
     const bool ttHit = ProbeTTEntry(pos->getPoskey(), &tte);
     const int ttScore = ttHit ? ScoreFromTT(tte.score, ss->ply) : SCORE_NONE;
-    const Move ttMove = ttHit ? MoveFromTT(pos, tte.move) : NOMOVE;
+    const Move ttMove = ttHit ? tte.move : NOMOVE;
     const uint8_t ttBound = ttHit ? BoundFromTT(tte.ageBoundPV) : uint8_t(HFNONE);
     // If we found a value in the TT for this position, we can return it (pv nodes are excluded)
     if (   !pvNode
@@ -1112,7 +1112,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
     // Set the TT bound based on whether we failed high, for qsearch we never use the exact bound
     int bound = bestScore >= beta ? HFLOWER : HFUPPER;
 
-    StoreTTEntry(pos->getPoskey(), MoveToTT(bestmove), ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
+    StoreTTEntry(pos->getPoskey(), bestmove, ScoreToTT(bestScore, ss->ply), rawEval, bound, 0, pvNode, ttPv);
 
     return bestScore;
 }
