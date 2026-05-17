@@ -38,8 +38,7 @@ inline Movetype operator | (Movetype first, Movetype second){
     return static_cast<Movetype>((static_cast<int>(first) | static_cast<int>(second)));
 }
 
-inline Move encode_move(const int source, const int target, const int piece, const Movetype movetype) {
-    (void)piece;
+inline Move encode_move(const int source, const int target, const Movetype movetype) {
     return static_cast<Move>((source) | (target << 6) | (static_cast<int>(movetype) << 12));
 }
 
