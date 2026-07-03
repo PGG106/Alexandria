@@ -195,6 +195,8 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
     updateSingleCorrHistScore(sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE], bonus);
     updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], bonus);
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], bonus);
+    updateSingleCorrHistScore(sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE], bonus);
+    updateSingleCorrHistScore(sd->majorCorrHist[pos->side][pos->state().majorKey % CORRHIST_SIZE], bonus);
 
     if ((ss - 1)->move && (ss - 2)->move)
         updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)],
@@ -207,6 +209,8 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
     adjustment += corrhistoryPawnWeight() * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE];
     adjustment += corrhistoryNonPawnWeight() * sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
     adjustment += corrhistoryNonPawnWeight() * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
+    adjustment += corrhistoryMinorWeight() * sd->minorCorrHist[pos->side][pos->state().minorKey % CORRHIST_SIZE];
+    adjustment += corrhistoryMajorWeight() * sd->majorCorrHist[pos->side][pos->state().majorKey % CORRHIST_SIZE];
 
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
@@ -243,5 +247,7 @@ void CleanHistories(SearchData *sd) {
     std::memset(sd->pawnCorrHist, 0, sizeof(sd->pawnCorrHist));
     std::memset(sd->whiteNonPawnCorrHist, 0, sizeof(sd->whiteNonPawnCorrHist));
     std::memset(sd->blackNonPawnCorrHist, 0, sizeof(sd->blackNonPawnCorrHist));
+    std::memset(sd->minorCorrHist, 0, sizeof(sd->minorCorrHist));
+    std::memset(sd->majorCorrHist, 0, sizeof(sd->majorCorrHist));
     std::memset(sd->contCorrHist, 0, sizeof(sd->contCorrHist));
 }

@@ -17,12 +17,20 @@ void ClearPiece(const int piece, const int from, Position* pos) {
     pop_bit(pos->state().occupancies[color], from);
     pos->state().pieces[from] = EMPTY;
     HashKey(pos->state().posKey, PieceKeys[piece][from]);
-    if(GetPieceType(piece) == PAWN)
+    const int clearedType = GetPieceType(piece);
+    if(clearedType == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][from]);
-    else if(Color[piece] == WHITE)
-        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
-    else
-        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][from]);
+    else {
+        if(Color[piece] == WHITE)
+            HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][from]);
+        else
+            HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][from]);
+
+        if(clearedType == KNIGHT || clearedType == BISHOP || clearedType == KING)
+            HashKey(pos->state().minorKey, PieceKeys[piece][from]);
+        if(clearedType == ROOK || clearedType == QUEEN || clearedType == KING)
+            HashKey(pos->state().majorKey, PieceKeys[piece][from]);
+    }
 }
 
 void AddPiece(const int piece, const int to, Position* pos) {
@@ -32,12 +40,20 @@ void AddPiece(const int piece, const int to, Position* pos) {
     set_bit(pos->state().occupancies[color], to);
     pos->state().pieces[to] = piece;
     HashKey(pos->state().posKey, PieceKeys[piece][to]);
-    if(GetPieceType(piece) == PAWN)
+    const int addedType = GetPieceType(piece);
+    if(addedType == PAWN)
         HashKey(pos->state().pawnKey, PieceKeys[piece][to]);
-    else if(Color[piece] == WHITE)
-        HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
-    else
-        HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
+    else {
+        if(Color[piece] == WHITE)
+            HashKey(pos->state().whiteNonPawnKey, PieceKeys[piece][to]);
+        else
+            HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
+
+        if(addedType == KNIGHT || addedType == BISHOP || addedType == KING)
+            HashKey(pos->state().minorKey, PieceKeys[piece][to]);
+        if(addedType == ROOK || addedType == QUEEN || addedType == KING)
+            HashKey(pos->state().majorKey, PieceKeys[piece][to]);
+    }
 }
 
 void MovePiece(const int piece, const int from, const int to, Position* pos) {
@@ -262,6 +278,8 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->getPoskey() == GeneratePosKey(pos));
     assert(pos->state().pawnKey == GeneratePawnKey(pos));
+    assert(pos->state().minorKey == GenerateMinorKey(pos));
+    assert(pos->state().majorKey == GenerateMajorKey(pos));
 }
 
 void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory) {

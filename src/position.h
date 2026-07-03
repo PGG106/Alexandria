@@ -36,6 +36,8 @@ struct BoardState {
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
+    ZobristKey minorKey = 0ULL;
+    ZobristKey majorKey = 0ULL;
     ZobristKey posKey = 0ULL;
     int hisPly = 0;
 };
@@ -156,6 +158,8 @@ constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 [[nodiscard]] ZobristKey GeneratePosKey(const Position* pos);
 [[nodiscard]] ZobristKey GeneratePawnKey(const Position* pos);
+[[nodiscard]] ZobristKey GenerateMinorKey(const Position* pos);
+[[nodiscard]] ZobristKey GenerateMajorKey(const Position* pos);
 // parse FEN string
 void ParseFen(const std::string& command, Position* pos);
 // Get fen string from board

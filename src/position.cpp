@@ -79,6 +79,34 @@ ZobristKey GenerateNonPawnKey(const Position* pos, int side) {
     return nonPawnKey;
 }
 
+// Generates zobrist key (for minor pieces: knights, bishops and kings) from scratch
+ZobristKey GenerateMinorKey(const Position* pos) {
+    ZobristKey minorKey = 0;
+    for (int sq = 0; sq < 64; ++sq) {
+        const int piece = pos->PieceOn(sq);
+        if (piece == EMPTY)
+            continue;
+        const int pt = GetPieceType(piece);
+        if (pt == KNIGHT || pt == BISHOP || pt == KING)
+            minorKey ^= PieceKeys[piece][sq];
+    }
+    return minorKey;
+}
+
+// Generates zobrist key (for major pieces: rooks, queens and kings) from scratch
+ZobristKey GenerateMajorKey(const Position* pos) {
+    ZobristKey majorKey = 0;
+    for (int sq = 0; sq < 64; ++sq) {
+        const int piece = pos->PieceOn(sq);
+        if (piece == EMPTY)
+            continue;
+        const int pt = GetPieceType(piece);
+        if (pt == ROOK || pt == QUEEN || pt == KING)
+            majorKey ^= PieceKeys[piece][sq];
+    }
+    return majorKey;
+}
+
 // parse FEN string
 void ParseFen(const std::string& command, Position* pos) {
 
@@ -208,6 +236,8 @@ void ParseFen(const std::string& command, Position* pos) {
     pos->state().pawnKey = GeneratePawnKey(pos);
     pos->state().whiteNonPawnKey = GenerateNonPawnKey(pos, WHITE);
     pos->state().blackNonPawnKey = GenerateNonPawnKey(pos, BLACK);
+    pos->state().minorKey = GenerateMinorKey(pos);
+    pos->state().majorKey = GenerateMajorKey(pos);
 
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
