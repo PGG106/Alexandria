@@ -335,12 +335,12 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
         (ss + i)->excludedMove = NOMOVE;
         (ss + i)->searchKiller = NOMOVE;
         (ss + i)->staticEval = SCORE_NONE;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[0][PieceTo(NOMOVE)];
         (ss + i)->reduction = 0;
     }
     for (int i = 0; i < MAXDEPTH; i++) {
         (ss + i)->ply = i;
-        (ss + i)->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+        (ss + i)->contHistEntry = &sd->contHist[0][PieceTo(NOMOVE)];
     }
     // We set an expected window for the score at the next search depth, this window is not 100% accurate so we might need to try a bigger window and re-search the position
     int delta = aspWinDelta() + prev_eval * prev_eval / aspWinPrevevalDiv();
@@ -573,7 +573,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
             ss->move = NOMOVE;
             const int R = 4 + depth / 3 + std::min((eval - beta) / nmpReductionEvalDivisor(), 3);
-            ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
+            ss->contHistEntry = &sd->contHist[0][PieceTo(NOMOVE)];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
             MakeNullMove(pos, td->keyHistory);
@@ -634,7 +634,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             TTPrefetch(keyAfter(pos, move));
 
             ss->move = move;
-            ss->contHistEntry = &sd->contHist[PieceTo(move)];
+            ss->contHistEntry = &sd->contHist[pos->PieceOn(To(move)) != EMPTY][PieceTo(move)];
 
             // increment nodes count
             info->nodes++;
@@ -775,9 +775,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         int newDepth = depth - 1 + extension;
 
         ss->move = move;
+        const bool isCapture = pos->PieceOn(To(move)) != EMPTY;
         // Play the move
         MakeMove<true>(move, pos, td->keyHistory);
-        ss->contHistEntry = &sd->contHist[PieceTo(move)];
+        ss->contHistEntry = &sd->contHist[isCapture][PieceTo(move)];
 
         // increment nodes count
         info->nodes++;
