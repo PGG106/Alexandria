@@ -255,6 +255,8 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
     int score = 0;
     int prevScore = 0;
     int averageScore = SCORE_NONE;
+    int prevIdScore = SCORE_NONE;
+    bool completedDepth = false;
     int bestMoveStabilityFactor = 0;
     int evalStabilityFactor = 0;
     Move previousBestMove = NOMOVE;
@@ -294,7 +296,7 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
             // use the previous search to adjust some of the time management parameters, do not scale movetime time controls
             if (   td->RootDepth > 7
                 && td->info.timeset) {
-                ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor);
+                ScaleTm(td, bestMoveStabilityFactor, evalStabilityFactor, score, prevIdScore, td->lastSearchScore);
             }
 
             // check if we just cleared a depth and more than OptTime passed, or we used more than the give nodes
@@ -321,7 +323,13 @@ void SearchPosition(int startDepth, int finalDepth, ThreadData* td, UciOptions* 
         // Seldepth should only be related to the current ID loop
         td->info.seldepth = 0;
         prevScore = score;
+        prevIdScore = score;
+        completedDepth = true;
     }
+
+    // Keep last completed search score for score-loss TM scaling in the next move
+    if (td->id == 0 && completedDepth)
+        td->lastSearchScore = prevScore;
 }
 
 int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
