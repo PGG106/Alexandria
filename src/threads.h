@@ -80,6 +80,7 @@ struct ThreadData {
     std::vector<ZobristKey> keyHistory;
     int RootDepth;
     int nmpPlies;
+    int lastSearchScore = SCORE_NONE;
 
     NNUE::FinnyTable FTable{};
 

@@ -40,7 +40,8 @@ bool StopEarly(const SearchInfo* info) {
     return (info->timeset || info->movetimeset) && GetTimeMs() > info->stoptimeOpt;
 }
 
-void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalStabilityFactor) {
+void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalStabilityFactor,
+             const int currentScore, const int prevIdScore, const int prevSearchScore) {
     const double bestmoveScale[5] = {bmScale1() / 100.0, bmScale2() / 100.0, bmScale3() / 100.0, bmScale4() / 100.0, bmScale5() / 100.0};
     const double evalScale[5] = {evalScale1() / 100.0, evalScale2() / 100.0, evalScale3() / 100.0, evalScale4() / 100.0, evalScale5() / 100.0};
     const int bestmove = GetBestMove();
@@ -49,8 +50,15 @@ void ScaleTm(ThreadData* td, const int bestMoveStabilityFactor, const int evalSt
     const double nodeScalingFactor = (nodeTmBase() / 100.0 - bestMoveNodesFraction) * (nodeTmMultiplier() / 100.0);
     const double bestMoveScalingFactor = bestmoveScale[bestMoveStabilityFactor];
     const double evalScalingFactor = evalScale[evalStabilityFactor];
+    const int idScoreDrop = prevIdScore == SCORE_NONE ? 0 : (prevIdScore - currentScore);
+    const int searchScoreDrop = prevSearchScore == SCORE_NONE ? 0 : (prevSearchScore - currentScore);
+    const double scoreLoss = scoreTmBase() / 100.0
+        + scoreTmIDPrev() / 1000.0 * idScoreDrop
+        + scoreTmPrevSearch() / 1000.0 * searchScoreDrop;
+    const double scoreScalingFactor = std::clamp(scoreLoss, scoreTmClampMin() / 100.0, scoreTmClampMax() / 100.0);
     // Scale the search time based on how many nodes we spent and how the best move changed
-    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor * bestMoveScalingFactor * evalScalingFactor, td->info.stoptimeMax);
+    td->info.stoptimeOpt = std::min<uint64_t>(td->info.starttime + td->info.stoptimeBaseOpt * nodeScalingFactor
+        * bestMoveScalingFactor * evalScalingFactor * scoreScalingFactor, td->info.stoptimeMax);
 
 }
 

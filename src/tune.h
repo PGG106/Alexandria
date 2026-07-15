@@ -126,6 +126,13 @@ TUNE_TM_PARAM(evalScale5, 87, 40, 110, 4, 0.002)
 TUNE_TM_PARAM(nodeTmBase, 153, 100, 300, 10, 0.002)
 TUNE_TM_PARAM(nodeTmMultiplier, 174, 80, 250, 8, 0.002)
 
+// Score-loss TM scaling
+TUNE_TM_PARAM(scoreTmBase, 86, 0, 150, 8, 0.002)
+TUNE_TM_PARAM(scoreTmIDPrev, 10, 0, 20, 2, 0.002)
+TUNE_TM_PARAM(scoreTmPrevSearch, 25, 0, 50, 3, 0.002)
+TUNE_TM_PARAM(scoreTmClampMin, 81, 0, 150, 6, 0.002)
+TUNE_TM_PARAM(scoreTmClampMax, 150, 75, 225, 8, 0.002)
+
 // Search
 TUNE_PARAM(aspWinDelta, 8, 2, 15, 2, 0.002)
 TUNE_PARAM(aspWinPrevevalDiv, 18666, 12000, 25000, 512, 0.002)
