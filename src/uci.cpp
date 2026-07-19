@@ -109,7 +109,7 @@ void ParsePosition(const std::string& command, Position* pos, std::vector<Zobris
 }
 
 // parse UCI "go" command, returns true if we have to search afterwards and false otherwise
-bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
+bool ParseGo(const std::string& line, SearchInfo* info, Position* pos, std::vector<ZobristKey>& keyHistory) {
     info->Reset();
     int depth = -1, movetime = -1;
     int movestogo;
@@ -117,15 +117,15 @@ bool ParseGo(const std::string& line, SearchInfo* info, Position* pos) {
 
     std::vector<std::string> tokens = split_command(line);
 
+    if (tokens.size() == 3 && tokens[1] == "perft") {
+        PerftTest(std::stoi(tokens[2]), pos, keyHistory);
+        return false;
+    }
+
     // loop over all the tokens and parse the commands
     for (size_t i = 1; i < tokens.size(); i++) {
         if (tokens.at(1) == "infinite") {
             ;
-        }
-
-        if (tokens.at(1) == "perft") {
-           std::cout << "perft support is currently broken, soz";
-            return false;
         }
 
         if (tokens.at(i) == "binc" && pos->side == BLACK) {
@@ -253,7 +253,7 @@ void UciLoop(int argc, char** argv) {
                 ParsePosition("position startpos", &td->pos, td->keyHistory, uciOptions.chess960);
             }
             // call parse go function
-            bool search = ParseGo(input, &td->info, &td->pos);
+            bool search = ParseGo(input, &td->info, &td->pos, td->keyHistory);
             // Start search in a separate thread
             if (search) {
                 threads_state = Search;

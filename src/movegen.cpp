@@ -512,10 +512,9 @@ bool IsLegal(Position* pos, Move move) {
         return isLegal;
     }
     else if (isCastle(move)) {
-        bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
         const int castleType = color == WHITE ? isKSCastle ? WKCA : WQCA : isKSCastle ? BKCA : BQCA;
         const int rookFrom = pos->getCastlingRookSquare(castleType);
-        const int rookTo = color == WHITE ? isKSCastle ? f1 : d1 : isKSCastle ? f8 : d8;
         const int kingTo = To(move);
         const int king = GetPiece(KING, color);
         const int rook = GetPiece(ROOK, color);
@@ -526,11 +525,7 @@ bool IsLegal(Position* pos, Move move) {
         ClearPiece(rook, rookFrom, pos);
         bool isLegal = true;
         for (int square = firstKingSquare; square != kingTo + step && isLegal; square += step) {
-            AddPiece(king, square, pos);
-            AddPiece(rook, rookTo, pos);
             isLegal = !IsSquareAttacked(pos, square, color ^ 1);
-            ClearPiece(rook, rookTo, pos);
-            ClearPiece(king, square, pos);
         }
         AddPiece(king, from, pos);
         AddPiece(rook, rookFrom, pos);

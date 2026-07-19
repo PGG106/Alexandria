@@ -25,7 +25,7 @@ inline bool tryhardmode = false;
 void ParsePosition(const std::string& command, Position* pos, std::vector<ZobristKey>& keyHistory, bool chess960 = false);
 
 // parse UCI "go" command
-[[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos);
+[[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos, std::vector<ZobristKey>& keyHistory);
 
 // main UCI loop
 void UciLoop(int argc, char** argv);
