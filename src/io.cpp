@@ -201,16 +201,12 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
             std::cout << "info score cp " << int(score / 2.5) << " depth " << depth << " seldepth " << td->info.seldepth << " multipv " << options->MultiPV << " nodes " << nodes <<
             " nps " << nps << " hashfull "<< GetHashfull() << " time " << GetTimeMs() - td->info.starttime << " pv ";
 
-        // loop over the moves within a PV line
+        Position pvPosition = td->pos;
+        std::vector<ZobristKey> pvHistory;
         for (int count = 0; count < std::max(pvTable.pvLength[0], 1); count++) {
-            // print PV move
-            Position pvPosition = td->pos;
-            std::vector<ZobristKey> pvHistory;
-            for (int count = 0; count < std::max(pvTable.pvLength[0], 1); count++) {
-                PrintMove(pvTable.pvArray[0][count], &pvPosition);
-                MakeMove<false>(pvTable.pvArray[0][count], &pvPosition, pvHistory);
-                std::cout << " ";
-            }
+            PrintMove(pvTable.pvArray[0][count], &pvPosition);
+            MakeMove<false>(pvTable.pvArray[0][count], &pvPosition, pvHistory);
+            std::cout << " ";
         }
 
         // print new line
