@@ -28,9 +28,6 @@ struct BoardState {
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
     int castlePerm = 15;
-    // The designated rook for each right; needed because Chess960 rooks are not fixed to a/h files.
-    int castleRookSquares[4] = {h1, a1, h8, a8};
-    bool chess960 = false;
     int enPas = 0;
     int fiftyMove = 0;
     int plyFromNull = 0;
@@ -64,6 +61,11 @@ public:
     int side = -1; // what side has to move
     // stores the state of the board  rollback purposes
     historyStack history;
+    // Immutable for a parsed game, so do not copy it with every search ply.
+    int castleRookSquares[4] = {h1, a1, h8, a8};
+    bool chess960 = false;
+    uint8_t castlingRightsMask[64] = {};
+    Bitboard castlingPath[4] = {};
 
     [[nodiscard]] inline BoardState& state()  {
        return history.boardStateHistory[history.head];
@@ -109,16 +111,26 @@ public:
 
     [[nodiscard]] inline int getCastlingRookSquare(const int castleRight) const {
         switch (castleRight) {
-        case WKCA: return state().castleRookSquares[0];
-        case WQCA: return state().castleRookSquares[1];
-        case BKCA: return state().castleRookSquares[2];
-        case BQCA: return state().castleRookSquares[3];
+        case WKCA: return castleRookSquares[0];
+        case WQCA: return castleRookSquares[1];
+        case BKCA: return castleRookSquares[2];
+        case BQCA: return castleRookSquares[3];
         default: assert(false); return no_sq;
         }
     }
 
+    [[nodiscard]] inline Bitboard getCastlingPath(const int castleRight) const {
+        switch (castleRight) {
+        case WKCA: return castlingPath[0];
+        case WQCA: return castlingPath[1];
+        case BKCA: return castlingPath[2];
+        case BQCA: return castlingPath[3];
+        default: assert(false); return 0ULL;
+        }
+    }
+
     [[nodiscard]] inline bool isChess960() const {
-        return state().chess960;
+        return chess960;
     }
 
     [[nodiscard]] inline int getEpSquare() const {

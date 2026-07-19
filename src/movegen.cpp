@@ -213,36 +213,17 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
         AddMove(encode_move(from, to, kingType, movetype), list);
     }
 
-    // check if the castling path is clear
-    const auto canCastle = [&](const int castleRight, const bool kingSide) {
-        if (!(pos->getCastlingPerm() & castleRight))
-            return false;
-
-        const int rookFrom = pos->getCastlingRookSquare(castleRight);
-        const int kingTo = color == WHITE ? kingSide ? g1 : c1 : kingSide ? g8 : c8;
-        const int rookTo = color == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
-        const Bitboard movingPieces = (1ULL << from) | (1ULL << rookFrom);
-        const Bitboard kingPath = from == kingTo ? 0ULL : SQUARES_BETWEEN_BB[from][kingTo] | (1ULL << kingTo);
-        const Bitboard rookPath = rookFrom == rookTo ? 0ULL : SQUARES_BETWEEN_BB[rookFrom][rookTo] | (1ULL << rookTo);
-        const Bitboard requiredEmpty = (kingPath | rookPath)
-                                     & ~movingPieces;
-        return !(pos->Occupancy(BOTH) & requiredEmpty);
-    };
-
     // Only generate castling moves if we are generating quiets and the king is not in check.
     if (genQuiet && !pos->getCheckers()) {
-        if (color == WHITE) {
-            if (canCastle(WKCA, true))
-                AddMove(encode_move(from, g1, WK, Movetype::KSCastle), list);
-            if (canCastle(WQCA, false))
-                AddMove(encode_move(from, c1, WK, Movetype::QSCastle), list);
-        }
-        else {
-            if (canCastle(BKCA, true))
-                AddMove(encode_move(from, g8, BK, Movetype::KSCastle), list);
-            if (canCastle(BQCA, false))
-                AddMove(encode_move(from, c8, BK, Movetype::QSCastle), list);
-        }
+        const Bitboard occ = pos->Occupancy(BOTH);
+        const int kingSideRight = color == WHITE ? WKCA : BKCA;
+        const int queenSideRight = color == WHITE ? WQCA : BQCA;
+        const int kingTo = color == WHITE ? g1 : g8;
+        const int queenTo = color == WHITE ? c1 : c8;
+        if ((pos->getCastlingPerm() & kingSideRight) && !(occ & pos->getCastlingPath(kingSideRight)))
+            AddMove(encode_move(from, kingTo, kingType, Movetype::KSCastle), list);
+        if ((pos->getCastlingPerm() & queenSideRight) && !(occ & pos->getCastlingPath(queenSideRight)))
+            AddMove(encode_move(from, queenTo, kingType, Movetype::QSCastle), list);
     }
 }
 
@@ -473,14 +454,8 @@ bool IsPseudoLegal(Position* pos, Move move) {
                                                                  : WQCA
                                                     : isKSCastle ? BKCA
                                                                  : BQCA;
-                const int rookFrom = pos->getCastlingRookSquare(castleType);
-                const int rookTo = pos->side == WHITE ? isKSCastle ? f1 : d1 : isKSCastle ? f8 : d8;
-                const Bitboard movingPieces = (1ULL << from) | (1ULL << rookFrom);
-                const Bitboard kingPath = from == to ? 0ULL : SQUARES_BETWEEN_BB[from][to] | (1ULL << to);
-                const Bitboard rookPath = rookFrom == rookTo ? 0ULL : SQUARES_BETWEEN_BB[rookFrom][rookTo] | (1ULL << rookTo);
-                const Bitboard requiredEmpty = (kingPath | rookPath)
-                                             & ~movingPieces;
-                return (pos->getCastlingPerm() & castleType) && !(pos->Occupancy(BOTH) & requiredEmpty);
+                return (pos->getCastlingPerm() & castleType)
+                    && !(pos->Occupancy(BOTH) & pos->getCastlingPath(castleType));
             }
             if (!(getKingAttacks(from) & (1ULL << to)))
                 return false;

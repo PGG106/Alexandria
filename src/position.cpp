@@ -22,11 +22,11 @@ void ResetBoard(Position* pos) {
         pos->state().pieces[index] = EMPTY;
     }
     pos->state().castlePerm = 0;
-    pos->state().castleRookSquares[0] = h1;
-    pos->state().castleRookSquares[1] = a1;
-    pos->state().castleRookSquares[2] = h8;
-    pos->state().castleRookSquares[3] = a8;
-    pos->state().chess960 = false;
+    pos->castleRookSquares[0] = h1;
+    pos->castleRookSquares[1] = a1;
+    pos->castleRookSquares[2] = h8;
+    pos->castleRookSquares[3] = a8;
+    pos->chess960 = false;
     pos->state().plyFromNull = 0;
 }
 
@@ -152,7 +152,7 @@ void ParseFen(const std::string& command, Position* pos, const bool chess960) {
     // parse player turn
     pos->side = turn == "w" ? WHITE : BLACK;
 
-    pos->state().chess960 = chess960;
+    pos->chess960 = chess960;
 
     // Record both the right and the rook it belongs to, so later moves can revoke it correctly.
     auto setCastlingRight = [&](const int color, const int rookSquare) {
@@ -163,7 +163,7 @@ void ParseFen(const std::string& command, Position* pos, const bool chess960) {
 
         if (pos->PieceOn(rookSquare) == GetPiece(ROOK, color)) {
             pos->state().castlePerm |= castleRight;
-            pos->state().castleRookSquares[index] = rookSquare;
+            pos->castleRookSquares[index] = rookSquare;
         }
     };
 
@@ -203,16 +203,36 @@ void ParseFen(const std::string& command, Position* pos, const bool chess960) {
             break;
         default:
             if (c >= 'A' && c <= 'H') {
-                pos->state().chess960 = true;
+                pos->chess960 = true;
                 setCastlingRight(WHITE, 56 + c - 'A');
             }
             else if (c >= 'a' && c <= 'h') {
-                pos->state().chess960 = true;
+                pos->chess960 = true;
                 setCastlingRight(BLACK, c - 'a');
             }
             break;
         }
     }
+
+    std::fill(std::begin(pos->castlingRightsMask), std::end(pos->castlingRightsMask), 15);
+    const auto initCastlingData = [&](const int castleRight, const int color, const bool kingSide) {
+        const int index = castleRight == WKCA ? 0 : castleRight == WQCA ? 1 : castleRight == BKCA ? 2 : 3;
+        const int kingFrom = KingSQ(pos, color);
+        const int rookFrom = pos->getCastlingRookSquare(castleRight);
+        const int kingTo = color == WHITE ? kingSide ? g1 : c1 : kingSide ? g8 : c8;
+        const int rookTo = color == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
+        const Bitboard movingPieces = (1ULL << kingFrom) | (1ULL << rookFrom);
+
+        pos->castlingRightsMask[kingFrom] &= ~(color == WHITE ? WKCA | WQCA : BKCA | BQCA);
+        pos->castlingRightsMask[rookFrom] &= ~castleRight;
+        const Bitboard kingPath = kingFrom == kingTo ? 0ULL : SQUARES_BETWEEN_BB[kingFrom][kingTo] | (1ULL << kingTo);
+        const Bitboard rookPath = rookFrom == rookTo ? 0ULL : SQUARES_BETWEEN_BB[rookFrom][rookTo] | (1ULL << rookTo);
+        pos->castlingPath[index] = (kingPath | rookPath) & ~movingPieces;
+    };
+    initCastlingData(WKCA, WHITE, true);
+    initCastlingData(WQCA, WHITE, false);
+    initCastlingData(BKCA, BLACK, true);
+    initCastlingData(BQCA, BLACK, false);
 
     // parse enpassant square
     if (ep_square != "-" && ep_square.size() == 2) {
