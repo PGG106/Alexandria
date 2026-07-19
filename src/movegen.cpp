@@ -213,6 +213,7 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
         AddMove(encode_move(from, to, kingType, movetype), list);
     }
 
+    // check if the castling path is clear
     const auto canCastle = [&](const int castleRight, const bool kingSide) {
         if (!(pos->getCastlingPerm() & castleRight))
             return false;
@@ -467,8 +468,8 @@ bool IsPseudoLegal(Position* pos, Move move) {
                 if (pos->getCheckers())
                     return false;
 
-                bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
-                int castleType = pos->side == WHITE ? isKSCastle ? WKCA
+                const bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+                const int castleType = pos->side == WHITE ? isKSCastle ? WKCA
                                                                  : WQCA
                                                     : isKSCastle ? BKCA
                                                                  : BQCA;
@@ -521,6 +522,7 @@ bool IsLegal(Position* pos, Move move) {
         const int step = kingTo > from ? 1 : kingTo < from ? -1 : 0;
         const int firstKingSquare = step == 0 ? from : from + step;
 
+        // Evaluate king transit squares after vacating both castling origins.
         ClearPiece(king, from, pos);
         ClearPiece(rook, rookFrom, pos);
         bool isLegal = true;

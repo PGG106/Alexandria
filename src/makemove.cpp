@@ -48,6 +48,7 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
     HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
+    // A castling right is lost when its designated rook moves or is captured.
     const auto clearRightIfTouched = [&](const int castleRight) {
         if ((pos->getCastlingPerm() & castleRight)
             && (source_square == pos->getCastlingRookSquare(castleRight)

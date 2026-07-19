@@ -28,6 +28,7 @@ struct BoardState {
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
     int castlePerm = 15;
+    // The designated rook for each right; needed because Chess960 rooks are not fixed to a/h files.
     int castleRookSquares[4] = {h1, a1, h8, a8};
     bool chess960 = false;
     int enPas = 0;

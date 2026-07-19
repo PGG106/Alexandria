@@ -154,6 +154,7 @@ void ParseFen(const std::string& command, Position* pos, const bool chess960) {
 
     pos->state().chess960 = chess960;
 
+    // Record both the right and the rook it belongs to, so later moves can revoke it correctly.
     auto setCastlingRight = [&](const int color, const int rookSquare) {
         const int kingSquare = KingSQ(pos, color);
         const bool kingSide = get_file[rookSquare] > get_file[kingSquare];
@@ -179,7 +180,7 @@ void ParseFen(const std::string& command, Position* pos, const bool chess960) {
         return no_sq;
     };
 
-    // Parse both conventional KQkq and Chess960 file-letter castling rights.
+    // KQkq identifies a rook by side of the king; file letters identify it directly.
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
