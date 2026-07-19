@@ -245,7 +245,7 @@ void RootSearch(int depth, ThreadData* td, UciOptions* options) {
     StopHelperThreads();
     // Print final bestmove found
     std::cout << "bestmove ";
-    PrintMove(GetBestMove(), &td->pos);
+    PrintMove(GetBestMove());
     std::cout << std::endl;
 }
 
