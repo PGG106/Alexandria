@@ -52,19 +52,9 @@ ZobristKey GeneratePosKey(const Position* pos) {
         assert(pos->getEpSquare() >= 0 && pos->getEpSquare() < 64);
         finalkey ^= enpassant_keys[pos->getEpSquare()];
     }
-    finalkey ^= GenerateCastlingKey(pos);
-    return finalkey;
-}
-
-ZobristKey GenerateCastlingKey(const Position* pos) {
     assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
-    ZobristKey key = CastleKeys[pos->getCastlingPerm()];
-    constexpr int castleRights[4] = {WKCA, WQCA, BKCA, BQCA};
-    for (int index = 0; index < 4; index++) {
-        if (pos->getCastlingPerm() & castleRights[index])
-            key ^= CastleRookKeys[index][pos->getCastlingRookSquare(castleRights[index])];
-    }
-    return key;
+    finalkey ^= CastleKeys[pos->getCastlingPerm()];
+    return finalkey;
 }
 
 // Generates zobrist key (for only the pawns) from scratch

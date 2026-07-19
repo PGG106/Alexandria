@@ -171,7 +171,6 @@ const constexpr char* square_to_coordinates[] = {
 constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 [[nodiscard]] ZobristKey GeneratePosKey(const Position* pos);
-[[nodiscard]] ZobristKey GenerateCastlingKey(const Position* pos);
 [[nodiscard]] ZobristKey GeneratePawnKey(const Position* pos);
 // parse FEN string
 void ParseFen(const std::string& command, Position* pos, bool chess960 = false);

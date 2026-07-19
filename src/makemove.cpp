@@ -47,7 +47,7 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
-    HashKey(pos->state().posKey, GenerateCastlingKey(pos));
+    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
     const auto clearRightIfTouched = [&](const int castleRight) {
         if ((pos->getCastlingPerm() & castleRight)
             && (source_square == pos->getCastlingRookSquare(castleRight)
@@ -66,7 +66,7 @@ void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     clearRightIfTouched(BKCA);
     clearRightIfTouched(BQCA);
     // Xor the new one
-    HashKey(pos->state().posKey, GenerateCastlingKey(pos));
+    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
 }
 
 inline void resetEpSquare(Position* pos) {
