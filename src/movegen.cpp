@@ -213,28 +213,34 @@ static inline void PseudoLegalKingMoves(Position* pos, int color, MoveList* list
         AddMove(encode_move(from, to, kingType, movetype), list);
     }
 
-    // Only generate castling moves if we are generating quiets
-    // Castling is illegal in check
-    if (genQuiet && !pos->getCheckers()) {
-        const Bitboard occ = pos->Occupancy(BOTH);
-        const int castlePerms = pos->getCastlingPerm();
-        if (color == WHITE) {
-            // king side castling is available
-            if ((castlePerms & WKCA) && !(occ & 0x6000000000000000ULL))
-                AddMove(encode_move(e1, g1, WK, Movetype::KSCastle), list);
+    const auto canCastle = [&](const int castleRight, const bool kingSide) {
+        if (!(pos->getCastlingPerm() & castleRight))
+            return false;
 
-            // queen side castling is available
-            if ((castlePerms & WQCA) && !(occ & 0x0E00000000000000ULL))
-                AddMove(encode_move(e1, c1, WK, Movetype::QSCastle), list);
+        const int rookFrom = pos->getCastlingRookSquare(castleRight);
+        const int kingTo = color == WHITE ? kingSide ? g1 : c1 : kingSide ? g8 : c8;
+        const int rookTo = color == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
+        const Bitboard movingPieces = (1ULL << from) | (1ULL << rookFrom);
+        const Bitboard kingPath = from == kingTo ? 0ULL : SQUARES_BETWEEN_BB[from][kingTo] | (1ULL << kingTo);
+        const Bitboard rookPath = rookFrom == rookTo ? 0ULL : SQUARES_BETWEEN_BB[rookFrom][rookTo] | (1ULL << rookTo);
+        const Bitboard requiredEmpty = (kingPath | rookPath)
+                                     & ~movingPieces;
+        return !(pos->Occupancy(BOTH) & requiredEmpty);
+    };
+
+    // Only generate castling moves if we are generating quiets and the king is not in check.
+    if (genQuiet && !pos->getCheckers()) {
+        if (color == WHITE) {
+            if (canCastle(WKCA, true))
+                AddMove(encode_move(from, g1, WK, Movetype::KSCastle), list);
+            if (canCastle(WQCA, false))
+                AddMove(encode_move(from, c1, WK, Movetype::QSCastle), list);
         }
         else {
-            // king side castling is available
-            if ((castlePerms & BKCA) && !(occ & 0x0000000000000060ULL))
-                AddMove(encode_move(e8, g8, BK, Movetype::KSCastle), list);
-
-            // queen side castling is available
-            if ((castlePerms & BQCA) && !(occ & 0x000000000000000EULL))
-                AddMove(encode_move(e8, c8, BK, Movetype::QSCastle), list);
+            if (canCastle(BKCA, true))
+                AddMove(encode_move(from, g8, BK, Movetype::KSCastle), list);
+            if (canCastle(BQCA, false))
+                AddMove(encode_move(from, c8, BK, Movetype::QSCastle), list);
         }
     }
 }
@@ -341,7 +347,7 @@ bool IsPseudoLegal(Position* pos, Move move) {
     const int movedPiece = Piece(move);
     const int pieceType = GetPieceType(movedPiece);
 
-    if (from == to)
+    if (from == to && !isCastle(move))
         return false;
 
     if (movedPiece == EMPTY)
@@ -353,10 +359,10 @@ bool IsPseudoLegal(Position* pos, Move move) {
     if (Color[movedPiece] != pos->side)
         return false;
 
-    if ((1ULL << to) & pos->Occupancy(pos->side))
+    if (!isCastle(move) && ((1ULL << to) & pos->Occupancy(pos->side)))
         return false;
 
-    if ((!isCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
+    if (!isCastle(move) && (!isCapture(move) || isEnpassant(move)) && pos->PieceOn(to) != EMPTY)
         return false;
 
     if (isCapture(move) && !isEnpassant(move) && pos->PieceOn(to) == EMPTY)
@@ -461,24 +467,19 @@ bool IsPseudoLegal(Position* pos, Move move) {
                 if (pos->getCheckers())
                     return false;
 
-                if (std::abs(to - from) != 2)
-                    return false;
-
                 bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
-
-                Bitboard castleBlocked = pos->Occupancy(BOTH) & (pos->side == WHITE ? isKSCastle ? 0x6000000000000000ULL
-                                                                                                 : 0x0E00000000000000ULL
-                                                                                    : isKSCastle ? 0x0000000000000060ULL
-                                                                                                 : 0x000000000000000EULL);
                 int castleType = pos->side == WHITE ? isKSCastle ? WKCA
                                                                  : WQCA
                                                     : isKSCastle ? BKCA
                                                                  : BQCA;
-
-                if (!castleBlocked && (pos->getCastlingPerm() & castleType))
-                    return true;
-
-                return false;
+                const int rookFrom = pos->getCastlingRookSquare(castleType);
+                const int rookTo = pos->side == WHITE ? isKSCastle ? f1 : d1 : isKSCastle ? f8 : d8;
+                const Bitboard movingPieces = (1ULL << from) | (1ULL << rookFrom);
+                const Bitboard kingPath = from == to ? 0ULL : SQUARES_BETWEEN_BB[from][to] | (1ULL << to);
+                const Bitboard rookPath = rookFrom == rookTo ? 0ULL : SQUARES_BETWEEN_BB[rookFrom][rookTo] | (1ULL << rookTo);
+                const Bitboard requiredEmpty = (kingPath | rookPath)
+                                             & ~movingPieces;
+                return (pos->getCastlingPerm() & castleType) && !(pos->Occupancy(BOTH) & requiredEmpty);
             }
             if (!(getKingAttacks(from) & (1ULL << to)))
                 return false;
@@ -512,14 +513,28 @@ bool IsLegal(Position* pos, Move move) {
     }
     else if (isCastle(move)) {
         bool isKSCastle = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
-        if (isKSCastle) {
-            return    !IsSquareAttacked(pos, color == WHITE ? f1 : f8, color ^ 1)
-                   && !IsSquareAttacked(pos, color == WHITE ? g1 : g8, color ^ 1);
+        const int castleType = color == WHITE ? isKSCastle ? WKCA : WQCA : isKSCastle ? BKCA : BQCA;
+        const int rookFrom = pos->getCastlingRookSquare(castleType);
+        const int rookTo = color == WHITE ? isKSCastle ? f1 : d1 : isKSCastle ? f8 : d8;
+        const int kingTo = To(move);
+        const int king = GetPiece(KING, color);
+        const int rook = GetPiece(ROOK, color);
+        const int step = kingTo > from ? 1 : kingTo < from ? -1 : 0;
+        const int firstKingSquare = step == 0 ? from : from + step;
+
+        ClearPiece(king, from, pos);
+        ClearPiece(rook, rookFrom, pos);
+        bool isLegal = true;
+        for (int square = firstKingSquare; square != kingTo + step && isLegal; square += step) {
+            AddPiece(king, square, pos);
+            AddPiece(rook, rookTo, pos);
+            isLegal = !IsSquareAttacked(pos, square, color ^ 1);
+            ClearPiece(rook, rookTo, pos);
+            ClearPiece(king, square, pos);
         }
-        else {
-            return    !IsSquareAttacked(pos, color == WHITE ? d1 : d8, color ^ 1)
-                   && !IsSquareAttacked(pos, color == WHITE ? c1 : c8, color ^ 1);
-        }
+        AddPiece(king, from, pos);
+        AddPiece(rook, rookFrom, pos);
+        return isLegal;
     }
 
     if (pieceType == KING) {

@@ -28,6 +28,8 @@ struct BoardState {
     Bitboard bitboards[12] = {};
     Bitboard occupancies[2] = {};
     int castlePerm = 15;
+    int castleRookSquares[4] = {h1, a1, h8, a8};
+    bool chess960 = false;
     int enPas = 0;
     int fiftyMove = 0;
     int plyFromNull = 0;
@@ -104,6 +106,20 @@ public:
         return state().castlePerm;
     }
 
+    [[nodiscard]] inline int getCastlingRookSquare(const int castleRight) const {
+        switch (castleRight) {
+        case WKCA: return state().castleRookSquares[0];
+        case WQCA: return state().castleRookSquares[1];
+        case BKCA: return state().castleRookSquares[2];
+        case BQCA: return state().castleRookSquares[3];
+        default: assert(false); return no_sq;
+        }
+    }
+
+    [[nodiscard]] inline bool isChess960() const {
+        return state().chess960;
+    }
+
     [[nodiscard]] inline int getEpSquare() const {
         return state().enPas;
     }
@@ -155,9 +171,10 @@ const constexpr char* square_to_coordinates[] = {
 constexpr char ascii_pieces[13] = "PNBRQKpnbrqk";
 
 [[nodiscard]] ZobristKey GeneratePosKey(const Position* pos);
+[[nodiscard]] ZobristKey GenerateCastlingKey(const Position* pos);
 [[nodiscard]] ZobristKey GeneratePawnKey(const Position* pos);
 // parse FEN string
-void ParseFen(const std::string& command, Position* pos);
+void ParseFen(const std::string& command, Position* pos, bool chess960 = false);
 // Get fen string from board
 [[nodiscard]] std::string GetFen(const Position* pos);
 // Parse a string of moves in coordinate format and plays them

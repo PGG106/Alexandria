@@ -16,11 +16,11 @@ void PrintBoard(const Position* pos);
 void PrintAttackedSquares(const Position* pos, const int side);
 
 // print move (for UCI purposes)
-void PrintMove(const Move move);
+void PrintMove(const Move move, const Position* pos = nullptr);
 
 // print move list
 void PrintMoveList(const MoveList* list);
 
-[[nodiscard]] char* FormatMove(const Move move);
+[[nodiscard]] char* FormatMove(const Move move, const Position* pos = nullptr);
 
 void PrintUciOutput(const int score, const int depth, const ThreadData* td, const UciOptions* options);

@@ -12,6 +12,7 @@ struct UciOptions {
     static constexpr int MultiPV = 1;
     int Threads = 1;
     bool shortUci = false;
+    bool chess960 = false;
 };
 
 // Internal flag to decide if to pretty or ugly print search results
@@ -21,7 +22,7 @@ inline bool tryhardmode = false;
 // Parse a move from algebraic notation to the engine's internal encoding
 [[nodiscard]] Move ParseMove(const std::string& move_string, Position* pos);
 // parse UCI "position" command
-void ParsePosition(const std::string& command, Position* pos, std::vector<ZobristKey>& keyHistory);
+void ParsePosition(const std::string& command, Position* pos, std::vector<ZobristKey>& keyHistory, bool chess960 = false);
 
 // parse UCI "go" command
 [[nodiscard]] bool ParseGo(const std::string& line, SearchInfo* info, Position* pos);

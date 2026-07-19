@@ -22,6 +22,11 @@ void ResetBoard(Position* pos) {
         pos->state().pieces[index] = EMPTY;
     }
     pos->state().castlePerm = 0;
+    pos->state().castleRookSquares[0] = h1;
+    pos->state().castleRookSquares[1] = a1;
+    pos->state().castleRookSquares[2] = h8;
+    pos->state().castleRookSquares[3] = a8;
+    pos->state().chess960 = false;
     pos->state().plyFromNull = 0;
 }
 
@@ -47,10 +52,19 @@ ZobristKey GeneratePosKey(const Position* pos) {
         assert(pos->getEpSquare() >= 0 && pos->getEpSquare() < 64);
         finalkey ^= enpassant_keys[pos->getEpSquare()];
     }
-    assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
-    // add to the key the status of the castling permissions
-    finalkey ^= CastleKeys[pos->getCastlingPerm()];
+    finalkey ^= GenerateCastlingKey(pos);
     return finalkey;
+}
+
+ZobristKey GenerateCastlingKey(const Position* pos) {
+    assert(pos->getCastlingPerm() >= 0 && pos->getCastlingPerm() <= 15);
+    ZobristKey key = CastleKeys[pos->getCastlingPerm()];
+    constexpr int castleRights[4] = {WKCA, WQCA, BKCA, BQCA};
+    for (int index = 0; index < 4; index++) {
+        if (pos->getCastlingPerm() & castleRights[index])
+            key ^= CastleRookKeys[index][pos->getCastlingRookSquare(castleRights[index])];
+    }
+    return key;
 }
 
 // Generates zobrist key (for only the pawns) from scratch
@@ -80,7 +94,7 @@ ZobristKey GenerateNonPawnKey(const Position* pos, int side) {
 }
 
 // parse FEN string
-void ParseFen(const std::string& command, Position* pos) {
+void ParseFen(const std::string& command, Position* pos, const bool chess960) {
 
     ResetBoard(pos);
 
@@ -148,22 +162,63 @@ void ParseFen(const std::string& command, Position* pos) {
     // parse player turn
     pos->side = turn == "w" ? WHITE : BLACK;
 
-    // Parse castling rights
+    pos->state().chess960 = chess960;
+
+    auto setCastlingRight = [&](const int color, const int rookSquare) {
+        const int kingSquare = KingSQ(pos, color);
+        const bool kingSide = get_file[rookSquare] > get_file[kingSquare];
+        const int castleRight = color == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        const int index = castleRight == WKCA ? 0 : castleRight == WQCA ? 1 : castleRight == BKCA ? 2 : 3;
+
+        if (pos->PieceOn(rookSquare) == GetPiece(ROOK, color)) {
+            pos->state().castlePerm |= castleRight;
+            pos->state().castleRookSquares[index] = rookSquare;
+        }
+    };
+
+    auto findRook = [&](const int color, const bool kingSide) -> int {
+        const int kingSquare = KingSQ(pos, color);
+        const int rank = color == WHITE ? 7 : 0;
+        const int startFile = get_file[kingSquare];
+        const int step = kingSide ? 1 : -1;
+        for (int file = startFile + step; file >= 0 && file < 8; file += step) {
+            const int rookSquare = rank * 8 + file;
+            if (pos->PieceOn(rookSquare) == GetPiece(ROOK, color))
+                return rookSquare;
+        }
+        return no_sq;
+    };
+
+    // Parse both conventional KQkq and Chess960 file-letter castling rights.
     for (const char c : castle_perm) {
         switch (c) {
         case 'K':
-            (pos->state().castlePerm) |= WKCA;
+            if (const int rookSquare = findRook(WHITE, true); rookSquare != no_sq)
+                setCastlingRight(WHITE, rookSquare);
             break;
         case 'Q':
-            (pos->state().castlePerm) |= WQCA;
+            if (const int rookSquare = findRook(WHITE, false); rookSquare != no_sq)
+                setCastlingRight(WHITE, rookSquare);
             break;
         case 'k':
-            (pos->state().castlePerm) |= BKCA;
+            if (const int rookSquare = findRook(BLACK, true); rookSquare != no_sq)
+                setCastlingRight(BLACK, rookSquare);
             break;
         case 'q':
-            (pos->state().castlePerm) |= BQCA;
+            if (const int rookSquare = findRook(BLACK, false); rookSquare != no_sq)
+                setCastlingRight(BLACK, rookSquare);
             break;
         case '-':
+            break;
+        default:
+            if (c >= 'A' && c <= 'H') {
+                pos->state().chess960 = true;
+                setCastlingRight(WHITE, 56 + c - 'A');
+            }
+            else if (c >= 'a' && c <= 'h') {
+                pos->state().chess960 = true;
+                setCastlingRight(BLACK, c - 'a');
+            }
             break;
         }
     }
@@ -256,14 +311,22 @@ std::string GetFen(const Position* pos) {
     if (pos->getCastlingPerm() == 0)
         castle_perm = '-';
     else {
-        if (pos->getCastlingPerm() & WKCA)
-            castle_perm += "K";
-        if (pos->getCastlingPerm() & WQCA)
-            castle_perm += "Q";
-        if (pos->getCastlingPerm() & BKCA)
-            castle_perm += "k";
-        if (pos->getCastlingPerm() & BQCA)
-            castle_perm += "q";
+        const auto appendCastlingRight = [&](const int castleRight, const char orthodoxRight) {
+            if (!(pos->getCastlingPerm() & castleRight))
+                return;
+            if (pos->isChess960()) {
+                const int rookSquare = pos->getCastlingRookSquare(castleRight);
+                const char file = static_cast<char>('a' + get_file[rookSquare]);
+                castle_perm += castleRight & (WKCA | WQCA) ? static_cast<char>(std::toupper(file)) : file;
+            }
+            else {
+                castle_perm += orthodoxRight;
+            }
+        };
+        appendCastlingRight(WKCA, 'K');
+        appendCastlingRight(WQCA, 'Q');
+        appendCastlingRight(BKCA, 'k');
+        appendCastlingRight(BQCA, 'q');
     }
     // parse enpassant square
     if (pos->getEpSquare() != no_sq) {

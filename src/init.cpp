@@ -54,6 +54,10 @@ void initHashKeys() {
         // init castling keys
         CastleKeys[index] = GetRandomU64Number();
 
+    for (int index = 0; index < 4; index++)
+        for (int square = 0; square < 64; square++)
+            CastleRookKeys[index][square] = GetRandomU64Number();
+
     // init random side key
     SideKey = GetRandomU64Number();
 }

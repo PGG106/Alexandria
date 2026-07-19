@@ -47,12 +47,26 @@ void MovePiece(const int piece, const int from, const int to, Position* pos) {
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square) {
     // Xor the old castling key from the zobrist key
-    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
-    // update castling rights
-    pos->state().castlePerm &= castling_rights[source_square];
-    pos->state().castlePerm &= castling_rights[target_square];
+    HashKey(pos->state().posKey, GenerateCastlingKey(pos));
+    const auto clearRightIfTouched = [&](const int castleRight) {
+        if ((pos->getCastlingPerm() & castleRight)
+            && (source_square == pos->getCastlingRookSquare(castleRight)
+                || target_square == pos->getCastlingRookSquare(castleRight))) {
+            pos->state().castlePerm &= ~castleRight;
+        }
+    };
+
+    if (source_square == KingSQ(pos, WHITE) || target_square == KingSQ(pos, WHITE))
+        pos->state().castlePerm &= ~(WKCA | WQCA);
+    if (source_square == KingSQ(pos, BLACK) || target_square == KingSQ(pos, BLACK))
+        pos->state().castlePerm &= ~(BKCA | BQCA);
+
+    clearRightIfTouched(WKCA);
+    clearRightIfTouched(WQCA);
+    clearRightIfTouched(BKCA);
+    clearRightIfTouched(BQCA);
     // Xor the new one
-    HashKey(pos->state().posKey, CastleKeys[pos->getCastlingPerm()]);
+    HashKey(pos->state().posKey, GenerateCastlingKey(pos));
 }
 
 inline void resetEpSquare(Position* pos) {
@@ -67,38 +81,17 @@ void MakeCastle(const Move move, Position* pos) {
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
     const int piece = Piece(move);
-    // Remove the piece fom the square it moved from
+    const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+    const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+    const Square rookSourceSquare = pos->getCastlingRookSquare(castleRight);
+    const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
+
+    // Move both pieces after clearing their original squares, which handles overlapping Chess960 paths.
     ClearPiece(piece, sourceSquare, pos);
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+    ClearPiece(GetPiece(ROOK, pos->side), rookSourceSquare, pos);
     AddPiece(piece, targetSquare, pos);
+    AddPiece(GetPiece(ROOK, pos->side), rookTargetSquare, pos);
     resetEpSquare(pos);
-
-    // move the rook
-    switch (targetSquare) {
-        // white castles king side
-        case (g1):
-            // move H rook
-            MovePiece(WR, h1, f1, pos);
-            break;
-
-            // white castles queen side
-        case (c1):
-            // move A rook
-            MovePiece(WR, a1, d1, pos);
-            break;
-
-            // black castles king side
-        case (g8):
-            // move H rook
-            MovePiece(BR, h8, f8, pos);
-            break;
-
-            // black castles queen side
-        case (c8):
-            // move A rook
-            MovePiece(BR, a8, d8, pos);
-            break;
-    }
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
 

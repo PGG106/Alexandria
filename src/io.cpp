@@ -10,6 +10,7 @@
 #include "uci.h"
 #include "ttable.h"
 #include "search.h"
+#include "makemove.h"
 
 #define FR2SQ(rank, file) (64 - ((file << 3) | rank))
 
@@ -121,9 +122,15 @@ void PrintAttackedSquares(const Position* pos, const int side) {
 }
 
 // print move (for UCI purposes)
-void PrintMove(const Move move) {
+void PrintMove(const Move move, const Position* pos) {
     const char* from = square_to_coordinates[From(move)];
-    const char* to = square_to_coordinates[To(move)];
+    int targetSquare = To(move);
+    if (pos && pos->isChess960() && isCastle(move)) {
+        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        targetSquare = pos->getCastlingRookSquare(castleRight);
+    }
+    const char* to = square_to_coordinates[targetSquare];
 
     if (isPromo(move))
         std::cout << from << to << promoted_pieces[getPromotedPiecetype(move)];
@@ -131,10 +138,16 @@ void PrintMove(const Move move) {
         std::cout << from << to;
 }
 
-char* FormatMove(const Move move) {
+char* FormatMove(const Move move, const Position* pos) {
     static char moveString[6];
     const char* from = square_to_coordinates[From(move)];
-    const char* to = square_to_coordinates[To(move)];
+    int targetSquare = To(move);
+    if (pos && pos->isChess960() && isCastle(move)) {
+        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        targetSquare = pos->getCastlingRookSquare(castleRight);
+    }
+    const char* to = square_to_coordinates[targetSquare];
 
     if (isPromo(move))
         snprintf(moveString, sizeof(moveString), "%s%s%c", from, to, promoted_pieces[getPromotedPiecetype(move)]);
@@ -191,8 +204,13 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         // loop over the moves within a PV line
         for (int count = 0; count < std::max(pvTable.pvLength[0], 1); count++) {
             // print PV move
-            PrintMove(pvTable.pvArray[0][count]);
-            std::cout << " ";
+            Position pvPosition = td->pos;
+            std::vector<ZobristKey> pvHistory;
+            for (int count = 0; count < std::max(pvTable.pvLength[0], 1); count++) {
+                PrintMove(pvTable.pvArray[0][count], &pvPosition);
+                MakeMove<false>(pvTable.pvArray[0][count], &pvPosition, pvHistory);
+                std::cout << " ";
+            }
         }
 
         // print new line
@@ -279,9 +297,12 @@ void PrintUciOutput(const int score, const int depth, const ThreadData* td, cons
         std::cout << std::setw(7) << std::right << std::fixed << static_cast<int>(nps / 1000.0) << "Kn/s" << " ";
 
         // loop over the moves within a PV line
+        Position pvPosition = td->pos;
+        std::vector<ZobristKey> pvHistory;
         for (int count = 0; count < std::max(pvTable.pvLength[0], 1); count++) {
             // print PV move
-            PrintMove(pvTable.pvArray[0][count]);
+            PrintMove(pvTable.pvArray[0][count], &pvPosition);
+            MakeMove<false>(pvTable.pvArray[0][count], &pvPosition, pvHistory);
             std::cout << " ";
         }
 
