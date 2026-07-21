@@ -196,9 +196,11 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
     updateSingleCorrHistScore(sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE], bonus);
     updateSingleCorrHistScore(sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE], bonus);
 
-    if ((ss - 1)->move && (ss - 2)->move)
-        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)],
-                                  bonus);
+    const Move previousMove = (ss - 1)->move;
+    if (previousMove && (ss - 2)->move) {
+        const int previousPieceTo = (pos->PieceOn(To(previousMove)) << 6) | To(previousMove);
+        updateSingleCorrHistScore((*((ss - 2)->contCorrHistEntry))[previousPieceTo], bonus);
+    }
 }
 
 int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
@@ -208,8 +210,11 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
     adjustment += corrhistoryNonPawnWeight() * sd->whiteNonPawnCorrHist[pos->side][pos->state().whiteNonPawnKey % CORRHIST_SIZE];
     adjustment += corrhistoryNonPawnWeight() * sd->blackNonPawnCorrHist[pos->side][pos->state().blackNonPawnKey % CORRHIST_SIZE];
 
-    if ((ss - 1)->move && (ss - 2)->move)
-        adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
+    const Move previousMove = (ss - 1)->move;
+    if (previousMove && (ss - 2)->move) {
+        const int previousPieceTo = (pos->PieceOn(To(previousMove)) << 6) | To(previousMove);
+        adjustment += contCorrthistoryWeight() * (*((ss - 2)->contCorrHistEntry))[previousPieceTo];
+    }
 
     return adjustment / CORRHIST_GRAIN;
 }
