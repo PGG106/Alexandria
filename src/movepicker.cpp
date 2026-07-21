@@ -10,6 +10,8 @@ void ScoreMoves(Movepicker* mp) {
     SearchData* sd = mp->sd;
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
+    Threats threats{};
+    bool threatsCalculated = false;
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
@@ -19,7 +21,24 @@ void ScoreMoves(Movepicker* mp) {
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
         }
         else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
+            if (!threatsCalculated) {
+                threats = CalculateThreats(pos);
+                threatsCalculated = true;
+            }
+
+            const int pieceType = GetPieceType(pos->PieceOn(From(move)));
+            int threatScore = 0;
+            if (pieceType == QUEEN) {
+                threatScore += get_bit(threats.byRook, From(move)) * 32768;
+                threatScore -= get_bit(threats.byRook, To(move)) * 32768;
+            } else if (pieceType == ROOK) {
+                threatScore += get_bit(threats.byMinor, From(move)) * 16384;
+                threatScore -= get_bit(threats.byMinor, To(move)) * 16384;
+            } else if (pieceType == KNIGHT || pieceType == BISHOP) {
+                threatScore += get_bit(threats.byPawn, From(move)) * 16384;
+                threatScore -= get_bit(threats.byPawn, To(move)) * 16384;
+            }
+            moveList->moves[i].score = threatScore + GetHistoryScore(pos, sd, move, ss, rootNode);
         }
     }
 }

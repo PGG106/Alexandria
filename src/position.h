@@ -22,6 +22,12 @@
 #endif
 #define get_antidiagonal(sq) (get_rank[sq] + get_file[sq])
 
+struct Threats {
+    Bitboard byPawn;
+    Bitboard byMinor;
+    Bitboard byRook;
+};
+
 struct BoardState {
     int pieces[64];
     // Occupancies bitboards based on piece and side
@@ -185,6 +191,7 @@ void parse_moves(const std::string& moves, Position* pos, std::vector<ZobristKey
 
 // Returns the threats bitboard of the pieces of <side> color
 [[nodiscard]] Bitboard getThreats(const Position* pos, const int side);
+[[nodiscard]] Threats CalculateThreats(const Position* pos);
 
 // Returns whether the opponent of <side> has a guaranteed SEE > 0
 [[nodiscard]] bool oppCanWinMaterial(const Position* pos, const int side);

@@ -455,6 +455,33 @@ Bitboard getThreats(const Position* pos, const int side) {
     return threats;
 }
 
+Threats CalculateThreats(const Position* pos) {
+    const int opponent = pos->side ^ 1;
+    const Bitboard occupancy = pos->Occupancy(BOTH);
+    Threats threats{};
+
+    const Bitboard pawns = pos->getPieceColorBB(PAWN, opponent);
+    threats.byPawn = opponent == WHITE
+                    ? ((pawns >> 7) & not_a_file) | ((pawns >> 9) & not_h_file)
+                    : ((pawns << 7) & not_h_file) | ((pawns << 9) & not_a_file);
+
+    threats.byMinor = threats.byPawn;
+    Bitboard knights = pos->getPieceColorBB(KNIGHT, opponent);
+    while (knights)
+        threats.byMinor |= getKnightAttacks(popLsb(knights));
+
+    Bitboard bishops = pos->getPieceColorBB(BISHOP, opponent);
+    while (bishops)
+        threats.byMinor |= getBishopAttacks(popLsb(bishops), occupancy);
+
+    threats.byRook = threats.byMinor;
+    Bitboard rooks = pos->getPieceColorBB(ROOK, opponent);
+    while (rooks)
+        threats.byRook |= getRookAttacks(popLsb(rooks), occupancy);
+
+    return threats;
+}
+
 // Return a piece based on the piecetype and the color
 int GetPiece(const int piecetype, const int color) {
     return piecetype + 6 * color;
