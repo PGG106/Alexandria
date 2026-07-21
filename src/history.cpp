@@ -84,8 +84,8 @@ void updateCHScore(SearchStack *ss, const Move move, const int bonus) {
     // Update move score
     updateSingleCHScore(ss, move, bonus, 1);
     updateSingleCHScore(ss, move, bonus, 2);
-    updateSingleCHScore(ss, move, bonus, 4);
-    updateSingleCHScore(ss, move, bonus, 6);
+    updateSingleCHScore(ss, move, bonus / 2, 4);
+    updateSingleCHScore(ss, move, bonus / 2, 6);
 }
 
 void updateSingleCHScore(SearchStack *ss, const Move move, const int bonus, const int offset) {
