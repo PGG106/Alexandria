@@ -56,6 +56,13 @@ void initHashKeys() {
 
     // init random side key
     SideKey = GetRandomU64Number();
+
+    std::memset(FiftyMoveKeys, 0, sizeof(FiftyMoveKeys));
+    for (int counter = 14; counter <= 100; counter += 8) {
+        const ZobristKey key = GetRandomU64Number();
+        for (int offset = 0; offset < 8; ++offset)
+            FiftyMoveKeys[counter + offset] = key;
+    }
 }
 
 void initializeLookupTables() {

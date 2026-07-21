@@ -57,6 +57,10 @@ ZobristKey GeneratePosKey(const Position* pos) {
     return finalkey;
 }
 
+ZobristKey GetTTKey(const Position* pos) {
+    return pos->getPoskey() ^ FiftyMoveKeys[std::min(pos->get50MrCounter(), 108 - 1)];
+}
+
 // Generates zobrist key (for only the pawns) from scratch
 ZobristKey GeneratePawnKey(const Position* pos) {
     Bitboard pawnKey = 0;
@@ -526,7 +530,8 @@ Bitboard RayBetween(const unsigned int square1, const unsigned int square2) {
 ZobristKey keyAfter(const Position* pos, const Move move) {
 
     if(move == NOMOVE){
-        ZobristKey newKey = pos->getPoskey() ^ SideKey;
+        ZobristKey newKey = pos->getPoskey() ^ SideKey
+                          ^ FiftyMoveKeys[std::min(pos->get50MrCounter() + 1, FIFTY_MOVE_KEY_COUNT - 1)];
         return newKey;
     }
 
@@ -540,7 +545,10 @@ ZobristKey keyAfter(const Position* pos, const Move move) {
     if (captured != EMPTY)
         newKey ^= PieceKeys[captured][targetSquare];
 
-    return newKey;
+    const int nextFiftyMove = captured != EMPTY || PieceType[piece] == PAWN
+                            ? 0
+                            : std::min(pos->get50MrCounter() + 1, FIFTY_MOVE_KEY_COUNT - 1);
+    return newKey ^ FiftyMoveKeys[nextFiftyMove];
 }
 
 bool hasGameCycle(Position* pos, const std::vector<ZobristKey>& keyHistory, int ply) {
