@@ -82,6 +82,14 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
             const int to = popLsb(doublePush);
             AddMove(encode_move(to - north * 2, to, pawnType, Movetype::doublePush), list);
         }
+
+        Bitboard pushUnderpromo = NORTH(ourPawns, color) & freeSquares & 0xFF000000000000FFULL;
+        while (pushUnderpromo) {
+            const int to = popLsb(pushUnderpromo);
+            AddMove(encode_move(to - north, to, pawnType, Movetype::rookPromo | Movetype::Quiet), list);
+            AddMove(encode_move(to - north, to, pawnType, Movetype::bishopPromo | Movetype::Quiet), list);
+            AddMove(encode_move(to - north, to, pawnType, Movetype::knightPromo | Movetype::Quiet), list);
+        }
     }
 
     if (genNoisy) {
@@ -90,9 +98,6 @@ static inline void PseudoLegalPawnMoves(Position* pos, int color, MoveList* list
         while (pushPromo) {
             const int to = popLsb(pushPromo);
             AddMove(encode_move(to - north, to, pawnType, Movetype::queenPromo | Movetype::Quiet), list);
-            AddMove(encode_move(to - north, to, pawnType, Movetype::rookPromo | Movetype::Quiet), list);
-            AddMove(encode_move(to - north, to, pawnType, Movetype::bishopPromo | Movetype::Quiet), list);
-            AddMove(encode_move(to - north, to, pawnType, Movetype::knightPromo | Movetype::Quiet), list);
         }
 
         // Captures and capture-promotions

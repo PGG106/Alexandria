@@ -13,7 +13,7 @@ void ScoreMoves(Movepicker* mp) {
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
-        if (isTactical(move)) {
+        if (isNoisy(move)) {
             // Score by most valuable victim and capthist
             int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
             moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
@@ -85,7 +85,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
         ++mp->stage;
             // If we are in qsearch and not in check, or we are in probcut, skip quiet TT moves
             if ((mp->movepickerType == PROBCUT || (mp->movepickerType == QSEARCH && skip))
-                && !isTactical(mp->ttMove))
+                && !isNoisy(mp->ttMove))
                 goto top;
 
         // If the TT move if not pseudo legal we skip it too
@@ -120,7 +120,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
                 continue;
             }
 
-            assert(isTactical(move));
+            assert(isNoisy(move));
 
             return move;
         }
@@ -155,7 +155,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
                 || move == mp->counter)
                 continue;
 
-            assert(!isTactical(move));
+            assert(!isNoisy(move));
             return move;
         }
         ++mp->stage;
@@ -174,7 +174,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
             if (move == mp->ttMove)
                 continue;
 
-            assert(isTactical(move));
+            assert(isNoisy(move));
             return move;
         }
         return NOMOVE;
