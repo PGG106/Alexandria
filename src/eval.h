@@ -21,13 +21,15 @@
     return (eval * scale) / 1024;
 }
 
-[[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer) {
-    return NNUE::output(pos, FinnyPointer);
+[[nodiscard]] inline int EvalPositionRaw(Position* pos, NNUE::FinnyTable* FinnyPointer,
+                                         NNUE::AccumulatorStack* accumulatorStack) {
+    return NNUE::output(pos, FinnyPointer, accumulatorStack);
 }
 
 // position evaluation
-[[nodiscard]] inline int EvalPosition(Position* pos, NNUE::FinnyTable* FinnyPointer) {
-    int eval = EvalPositionRaw(pos, FinnyPointer);
+[[nodiscard]] inline int EvalPosition(Position* pos, NNUE::FinnyTable* FinnyPointer,
+                                      NNUE::AccumulatorStack* accumulatorStack) {
+    int eval = EvalPositionRaw(pos, FinnyPointer, accumulatorStack);
     // Clamp eval to avoid it somehow being a mate score
     eval = std::clamp(eval, -MATE_FOUND + 1, MATE_FOUND - 1);
     return eval;

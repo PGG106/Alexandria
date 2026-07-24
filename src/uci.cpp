@@ -372,9 +372,12 @@ void UciLoop(int argc, char** argv) {
             if (!parsed_position) {
                 ParsePosition("position startpos", &td->pos, td->keyHistory, uciOptions.chess960);
             }
-            std::cout << "Raw eval: " << EvalPositionRaw(&td->pos, &td->FTable) << std::endl;
+            td->accumulatorStack.reset(&td->pos);
+            std::cout << "Raw eval: " << EvalPositionRaw(&td->pos, &td->FTable, &td->accumulatorStack) << std::endl;
 
-            std::cout << "Scaled eval: " << adjustEval(&td->pos, 0, EvalPosition(&td->pos, &td->FTable)) << std::endl;
+            std::cout << "Scaled eval: "
+                      << adjustEval(&td->pos, 0, EvalPosition(&td->pos, &td->FTable, &td->accumulatorStack))
+                      << std::endl;
         }
 
         else if (input == "bench") {

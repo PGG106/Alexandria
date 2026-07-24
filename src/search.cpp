@@ -95,6 +95,7 @@ void ClearForSearch(ThreadData* td) {
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
+    td->accumulatorStack.reset(&td->pos);
 
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
@@ -106,6 +107,28 @@ void ClearForSearch(ThreadData* td) {
         for (auto& helper_thread : threads_data)
             helper_thread.info.stopped = false;
     }
+}
+
+static void PlayMove(const Move move, ThreadData* td) {
+    NNUE::Accumulator& accumulator = td->accumulatorStack.push();
+    MakeMove<true>(move, &td->pos, td->keyHistory, &accumulator.dirtyPieces);
+    accumulator.kings = {static_cast<Square>(KingSQ(&td->pos, WHITE)),
+                         static_cast<Square>(KingSQ(&td->pos, BLACK))};
+    assert(td->accumulatorStack.head <= td->pos.history.head);
+}
+
+static void TakeMove(ThreadData* td) {
+    UnmakeMove(&td->pos, td->keyHistory);
+    td->accumulatorStack.pop();
+    assert(td->accumulatorStack.head <= td->pos.history.head);
+}
+
+static void PlayNullMove(ThreadData* td) {
+    MakeNullMove(&td->pos, td->keyHistory);
+}
+
+static void TakeNull(ThreadData* td) {
+    TakeNullMove(&td->pos, td->keyHistory);
 }
 
 // returns a bitboard of all the attacks to a specific square
@@ -460,7 +483,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
-            return inCheck ? 0 : EvalPosition(pos, &td->FTable);
+            return inCheck ? 0 : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
     }
 
     // recursion escape condition
@@ -507,7 +530,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // get an evaluation of the position:
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable);
+        rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
         auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
 
@@ -518,7 +541,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
-        rawEval = EvalPosition(pos, &td->FTable);
+        rawEval = EvalPosition(pos, &td->FTable, &td->accumulatorStack);
         auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
         // Save the eval into the TT
@@ -584,12 +607,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
-            MakeNullMove(pos, td->keyHistory);
+            PlayNullMove(td);
 
             // Search moves at a reduced depth to find beta cutoffs.
             int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - badNode, !cutNode, td, ss + 1);
 
-            TakeNullMove(pos, td->keyHistory);
+            TakeNull(td);
 
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
@@ -648,7 +671,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             info->nodes++;
 
             // Play the move
-            MakeMove<true>(move, pos, td->keyHistory);
+            PlayMove(move, td);
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
@@ -656,7 +679,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                                           !cutNode, td, ss + 1);
 
             // Take move back
-            UnmakeMove(pos, td->keyHistory);
+            TakeMove(td);
 
             if (pcScore >= pcBeta) {
                 StoreTTEntry(pos->getPoskey(), MoveToTT(move),
@@ -784,7 +807,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         ss->move = move;
         // Play the move
-        MakeMove<true>(move, pos, td->keyHistory);
+        PlayMove(move, td);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // increment nodes count
@@ -873,7 +896,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos, td->keyHistory);
+        TakeMove(td);
         if (mainT && rootNode)
             nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
@@ -970,7 +993,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
 
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
-        return inCheck ? 0 : EvalPosition(pos,&td->FTable);
+        return inCheck ? 0 : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
 
     // Upcoming repetition detection
     if (alpha < 0 && hasGameCycle(pos, td->keyHistory, ss->ply))
@@ -1004,7 +1027,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         // If we have a ttHit with a valid eval use that
         if (ttHit) {
             // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-            rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
+            rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
             auto correction = GetCorrHistAdjustment(pos, sd, ss);
             bestScore = ss->staticEval = adjustEval(pos,correction,  rawEval);
 
@@ -1015,7 +1038,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         }
             // If we don't have any useful info in the TT just call Evalpos
         else {
-            rawEval = EvalPosition(pos, &td->FTable);
+            rawEval = EvalPosition(pos, &td->FTable, &td->accumulatorStack);
             auto correction = GetCorrHistAdjustment(pos, sd, ss);
             bestScore = ss->staticEval = adjustEval(pos,correction,  rawEval);
             StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, false, ttPv);
@@ -1067,14 +1090,14 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
-        MakeMove<true>(move, pos, td->keyHistory);
+        PlayMove(move, td);
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
         const int score = -Quiescence<pvNode>(-beta, -alpha, depth - 1, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos, td->keyHistory);
+        TakeMove(td);
 
         if (info->stopped)
             return 0;

@@ -188,12 +188,57 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
-template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
-template void MakeMove<false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
+static DirtyPieces GetDirtyPieces(const Move move, const Position* pos) {
+    DirtyPieces dirtyPieces;
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
+    const int piece = Piece(move);
+
+    if (isCastle(move)) {
+        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        const Square rookSourceSquare = pos->getCastlingRookSquare(castleRight);
+        const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
+        const int rook = GetPiece(ROOK, pos->side);
+
+        dirtyPieces.remove(sourceSquare, piece);
+        dirtyPieces.remove(rookSourceSquare, rook);
+        dirtyPieces.add(targetSquare, piece);
+        dirtyPieces.add(rookTargetSquare, rook);
+    }
+    else if (isEnpassant(move)) {
+        const Square capturedSquare = static_cast<Square>(targetSquare + (pos->side == WHITE ? 8 : -8));
+        dirtyPieces.remove(sourceSquare, piece);
+        dirtyPieces.remove(capturedSquare, GetPiece(PAWN, pos->side ^ 1));
+        dirtyPieces.add(targetSquare, piece);
+    }
+    else if (isPromo(move)) {
+        dirtyPieces.remove(sourceSquare, piece);
+        if (isCapture(move))
+            dirtyPieces.remove(targetSquare, pos->PieceOn(targetSquare));
+        dirtyPieces.add(targetSquare, GetPiece(getPromotedPiecetype(move), pos->side));
+    }
+    else {
+        dirtyPieces.remove(sourceSquare, piece);
+        if (isCapture(move))
+            dirtyPieces.remove(targetSquare, pos->PieceOn(targetSquare));
+        dirtyPieces.add(targetSquare, piece);
+    }
+
+    return dirtyPieces;
+}
+
+template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+                             DirtyPieces* dirtyPieces);
+template void MakeMove<false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+                              DirtyPieces* dirtyPieces);
 
 // make move on chess board
 template <bool UPDATE>
-void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory) {
+void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory, DirtyPieces* dirtyPieces) {
+    if (dirtyPieces)
+        *dirtyPieces = GetDirtyPieces(move, pos);
+
     if constexpr (UPDATE) {
         pos->history.push(pos->state());
     }
