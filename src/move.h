@@ -59,4 +59,4 @@ inline bool isCapture(const Move move) { return GetMovetype(move) & static_cast<
 inline bool isQuiet(const Move move) { return !isCapture(move); }
 inline bool isPromo(const Move move) { return GetMovetype(move) & 8; }
 // Shorthand for captures + any promotion no matter if quiet or not 
-inline bool isTactical(const Move move) { return isCapture(move) || isPromo(move); }
+inline bool isTactical(const Move move) { return isCapture(move) || (isPromo(move) && getPromotedPiecetype(move) == QUEEN);}
