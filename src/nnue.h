@@ -140,7 +140,6 @@ struct NNUE {
             assert(head < MAXPLY);
             Accumulator& accumulator = entries[++head];
             accumulator.updated = {false, false};
-            accumulator.dirtyPieces = {};
             return accumulator;
         }
 

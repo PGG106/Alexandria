@@ -95,19 +95,19 @@ void NNUE::AccumulatorStack::reset(Position* pos) {
     Accumulator& root = entries[0];
     root.updated = {false, false};
     root.kings = {static_cast<Square>(KingSQ(pos, WHITE)), static_cast<Square>(KingSQ(pos, BLACK))};
-    root.dirtyPieces = {};
 }
 
-static bool CompatibleKingView(const int side, const Square lhs, const Square rhs) {
-    return getBucket(lhs, side) == getBucket(rhs, side)
-        && (get_file[lhs] > 3) == (get_file[rhs] > 3);
+using KingView = uint8_t;
+
+static KingView GetKingView(const Square kingSquare, const int side) {
+    return static_cast<KingView>(getBucket(kingSquare, side) << 1 | (get_file[kingSquare] > 3));
 }
 
 template <uint8_t RemovedCount, uint8_t AddedCount>
-static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const Square kingSquare,
+static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const KingView kingView,
                              const NNUE::PovAccumulator& input, NNUE::PovAccumulator& output) {
-    const bool flip = get_file[kingSquare] > 3;
-    const int kingBucket = getBucket(kingSquare, side);
+    const int kingBucket = kingView >> 1;
+    const bool flip = kingView & 1;
     const int16_t* removedWeights[RemovedCount];
     const int16_t* addedWeights[AddedCount];
 
@@ -143,23 +143,22 @@ static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, con
 #endif
 }
 
-static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const Square kingSquare,
+static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const KingView kingView,
                              const NNUE::PovAccumulator& input, NNUE::PovAccumulator& output) {
     if (dirtyPieces.removedCount == 1 && dirtyPieces.addedCount == 1)
-        ApplyDirtyPieces<1, 1>(dirtyPieces, side, kingSquare, input, output);
+        ApplyDirtyPieces<1, 1>(dirtyPieces, side, kingView, input, output);
     else if (dirtyPieces.removedCount == 2 && dirtyPieces.addedCount == 1)
-        ApplyDirtyPieces<2, 1>(dirtyPieces, side, kingSquare, input, output);
+        ApplyDirtyPieces<2, 1>(dirtyPieces, side, kingView, input, output);
     else {
         assert(dirtyPieces.removedCount == 2 && dirtyPieces.addedCount == 2);
-        ApplyDirtyPieces<2, 2>(dirtyPieces, side, kingSquare, input, output);
+        ApplyDirtyPieces<2, 2>(dirtyPieces, side, kingView, input, output);
     }
 }
 
 static void RefreshAccumulator(Position* pos, NNUE::FinnyTable* finnyTable, NNUE::Accumulator& accumulator,
-                               const int side) {
-    const int kingSquare = KingSQ(pos, side);
-    const bool flip = get_file[kingSquare] > 3;
-    const int kingBucket = getBucket(kingSquare, side);
+                               const int side, const KingView kingView) {
+    const int kingBucket = kingView >> 1;
+    const bool flip = kingView & 1;
     NNUE::FinnyTableEntry& cachedEntry = (*finnyTable)[side][kingBucket][flip];
 
     size_t add[32], remove[32];
@@ -205,16 +204,17 @@ static void ResolveAccumulator(Position* pos, NNUE::FinnyTable* finnyTable,
     if (target->updated[side])
         return;
 
+    const KingView kingView = GetKingView(target->kings[side], side);
     NNUE::Accumulator* source = target;
     while (source > root) {
         NNUE::Accumulator* const parent = source - 1;
-        if (!CompatibleKingView(side, parent->kings[side], target->kings[side]))
+        if (GetKingView(parent->kings[side], side) != kingView)
             break;
         source = parent;
         if (source->updated[side]) {
             while (source < target) {
                 NNUE::Accumulator* const child = source + 1;
-                ApplyDirtyPieces(child->dirtyPieces, side, target->kings[side],
+                ApplyDirtyPieces(child->dirtyPieces, side, kingView,
                                  source->colors[side], child->colors[side]);
                 child->updated[side] = true;
                 source = child;
@@ -223,7 +223,7 @@ static void ResolveAccumulator(Position* pos, NNUE::FinnyTable* finnyTable,
         }
     }
 
-    RefreshAccumulator(pos, finnyTable, *target, side);
+    RefreshAccumulator(pos, finnyTable, *target, side, kingView);
 }
 
 // does FT activate for one pov at a time

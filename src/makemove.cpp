@@ -188,8 +188,9 @@ void MakeDP(const Move move, Position* pos)
     HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
 }
 
-static DirtyPieces GetDirtyPieces(const Move move, const Position* pos) {
-    DirtyPieces dirtyPieces;
+static void SetDirtyPieces(const Move move, const Position* pos, DirtyPieces& dirtyPieces) {
+    dirtyPieces.removedCount = 0;
+    dirtyPieces.addedCount = 0;
     const Square sourceSquare = From(move);
     const Square targetSquare = To(move);
     const int piece = Piece(move);
@@ -224,8 +225,6 @@ static DirtyPieces GetDirtyPieces(const Move move, const Position* pos) {
             dirtyPieces.remove(targetSquare, pos->PieceOn(targetSquare));
         dirtyPieces.add(targetSquare, piece);
     }
-
-    return dirtyPieces;
 }
 
 template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
@@ -237,7 +236,7 @@ template void MakeMove<false>(const Move move, Position* pos, std::vector<Zobris
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory, DirtyPieces* dirtyPieces) {
     if (dirtyPieces)
-        *dirtyPieces = GetDirtyPieces(move, pos);
+        SetDirtyPieces(move, pos, *dirtyPieces);
 
     if constexpr (UPDATE) {
         pos->history.push(pos->state());
