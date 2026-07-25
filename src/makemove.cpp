@@ -90,10 +90,23 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     const Square targetSquare = To(move);
     const int piece = Piece(move);
 
-    // increment fifty move rule counter
-    pos->state().fiftyMove++;
     pos->state().plyFromNull++;
     pos->state().hisPly++;
+
+    // Any capture or pawn move resets the fifty move rule counter
+    if (capture || GetPieceType(piece) == PAWN)
+        pos->state().fiftyMove = 0;
+    else
+        pos->state().fiftyMove++;
+
+    if constexpr (TRACK_DIRTY) {
+        dirtyPieces->removedCount = 0;
+        dirtyPieces->addedCount = 0;
+    }
+
+    // Every move type clears whatever en passant square was set by the previous move;
+    // moves that create a new one (double push) set it further down.
+    resetEpSquare(pos);
 
     if (castling) {
         const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
@@ -103,8 +116,6 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         const int rook = GetPiece(ROOK, pos->side);
 
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             dirtyPieces->remove(rookSourceSquare, rook);
             dirtyPieces->add(targetSquare, piece);
@@ -116,22 +127,15 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         ClearPiece(rook, rookSourceSquare, pos);
         AddPiece(piece, targetSquare, pos);
         AddPiece(rook, rookTargetSquare, pos);
-        resetEpSquare(pos);
         UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
     else if (doublePush) {
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             dirtyPieces->add(targetSquare, piece);
         }
 
-        pos->state().fiftyMove = 0;
-
         MovePiece(piece, sourceSquare, targetSquare, pos);
-
-        resetEpSquare(pos);
 
         // Add new ep square
         const int SOUTH = pos->side == WHITE ? 8 : -8;
@@ -143,15 +147,11 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
             HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
     }
     else if (enpass) {
-        pos->state().fiftyMove = 0;
-
         const int SOUTH = pos->side == WHITE ? 8 : -8;
         const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
         const Square capturedPieceLocation = static_cast<Square>(targetSquare + SOUTH);
 
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             dirtyPieces->remove(capturedPieceLocation, pieceCap);
             dirtyPieces->add(targetSquare, piece);
@@ -163,20 +163,11 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         ClearPiece(piece, sourceSquare, pos);
         // Set the piece to the destination square
         AddPiece(piece, targetSquare, pos);
-
-        // Reset EP square
-        assert(pos->getEpSquare() != no_sq);
-        HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
-        pos->state().enPas = no_sq;
     }
     else if (promotion) {
-        pos->state().fiftyMove = 0;
-
         const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
 
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             if (capture)
                 dirtyPieces->remove(targetSquare, pos->PieceOn(targetSquare));
@@ -195,38 +186,24 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
         AddPiece(promotedPiece, targetSquare, pos);
 
-        resetEpSquare(pos);
-
         UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
     else if (!capture) {
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             dirtyPieces->add(targetSquare, piece);
         }
 
-        // if a pawn was moved or a capture was played reset the 50 move rule counter
-        if (GetPieceType(piece) == PAWN)
-            pos->state().fiftyMove = 0;
-
         MovePiece(piece, sourceSquare, targetSquare, pos);
-
-        resetEpSquare(pos);
 
         UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
     else {
-        pos->state().fiftyMove = 0;
-
         const int pieceCap = pos->PieceOn(targetSquare);
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
 
         if constexpr (TRACK_DIRTY) {
-            dirtyPieces->removedCount = 0;
-            dirtyPieces->addedCount = 0;
             dirtyPieces->remove(sourceSquare, piece);
             dirtyPieces->remove(targetSquare, pieceCap);
             dirtyPieces->add(targetSquare, piece);
@@ -235,8 +212,6 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         ClearPiece(pieceCap, targetSquare, pos);
 
         MovePiece(piece, sourceSquare, targetSquare, pos);
-
-        resetEpSquare(pos);
 
         UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
