@@ -14,7 +14,7 @@ struct Position;
 
 struct SquarePiece {
     Square square = no_sq;
-    int piece = EMPTY;
+    uint8_t piece = EMPTY;
 };
 
 struct DirtyPieces {
@@ -25,12 +25,12 @@ struct DirtyPieces {
 
     void remove(const Square square, const int piece) {
         assert(removedCount < removed.size());
-        removed[removedCount++] = {square, piece};
+        removed[removedCount++] = {square, static_cast<uint8_t>(piece)};
     }
 
     void add(const Square square, const int piece) {
         assert(addedCount < added.size());
-        added[addedCount++] = {square, piece};
+        added[addedCount++] = {square, static_cast<uint8_t>(piece)};
     }
 };
 
