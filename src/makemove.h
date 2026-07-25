@@ -13,7 +13,7 @@ void AddPiece(const int piece, const int to, Position* pos);
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 
-template <bool UPDATE>
+template <bool UPDATE, bool TRACK_DIRTY>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
 			  DirtyPieces* dirtyPieces = nullptr);
 // Reverts the previously played move

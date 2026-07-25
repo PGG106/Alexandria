@@ -61,183 +61,16 @@ inline void resetEpSquare(Position* pos) {
     }
 }
 
-void MakeCastle(const Move move, Position* pos) {
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-    const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
-    const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
-    const Square rookSourceSquare = pos->getCastlingRookSquare(castleRight);
-    const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
-
-    // Move both pieces after clearing their original squares, which handles overlapping Chess960 paths.
-    ClearPiece(piece, sourceSquare, pos);
-    ClearPiece(GetPiece(ROOK, pos->side), rookSourceSquare, pos);
-    AddPiece(piece, targetSquare, pos);
-    AddPiece(GetPiece(ROOK, pos->side), rookTargetSquare, pos);
-    resetEpSquare(pos);
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-}
-
-void MakeEp(const Move move, Position* pos) {
-    pos->state().fiftyMove = 0;
-
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-    const int SOUTH = pos->side == WHITE ? 8 : -8;
-
-    const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
-    const int capturedPieceLocation = targetSquare + SOUTH;
-    ClearPiece(pieceCap, capturedPieceLocation, pos);
-
-    // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
-    // Set the piece to the destination square
-    AddPiece(piece, targetSquare, pos);
-
-    // Reset EP square
-    assert(pos->getEpSquare() != no_sq);
-    HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
-    pos->state().enPas = no_sq;
-}
-
-void MakePromo(const Move move, Position* pos, const bool capture) {
-    pos->state().fiftyMove = 0;
-
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-    const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
-    // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
-
-    if(capture){
-        const int pieceCap = pos->PieceOn(targetSquare);
-        assert(pieceCap != EMPTY);
-        assert(GetPieceType(pieceCap) != KING);
-        ClearPiece(pieceCap, targetSquare, pos);
-    }
-    // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotedPiece , targetSquare, pos);
-
-    resetEpSquare(pos);
-
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-}
-
-void MakeQuiet(const Move move, Position* pos) {
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-
-    // if a pawn was moved or a capture was played reset the 50 move rule counter
-    if (GetPieceType(piece) == PAWN)
-        pos->state().fiftyMove = 0;
-
-    MovePiece(piece,sourceSquare,targetSquare,pos);
-
-    resetEpSquare(pos);
-
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-}
-
-void MakeCapture(const Move move, Position* pos) {
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-
-    pos->state().fiftyMove = 0;
-
-    const int pieceCap = pos->PieceOn(targetSquare);
-    assert(pieceCap != EMPTY);
-    assert(GetPieceType(pieceCap) != KING);
-    ClearPiece(pieceCap, targetSquare, pos);
-
-    MovePiece(piece, sourceSquare, targetSquare, pos);
-
-    resetEpSquare(pos);
-
-    UpdateCastlingPerms(pos, sourceSquare, targetSquare);
-}
-
-void MakeDP(const Move move, Position* pos)
-{   pos->state().fiftyMove = 0;
-
-    // parse move
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-
-    MovePiece(piece,sourceSquare,targetSquare, pos);
-
-    resetEpSquare(pos);
-
-    // Add new ep square
-    const int SOUTH = pos->side == WHITE ? 8 : -8;
-    int epSquareCandidate = targetSquare + SOUTH;
-    if(!(getPawnAttacks(epSquareCandidate, pos->side) & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
-        epSquareCandidate = no_sq;
-    pos->state().enPas = epSquareCandidate;
-    if(pos->getEpSquare() != no_sq)
-    HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
-}
-
-static void SetDirtyPieces(const Move move, const Position* pos, DirtyPieces& dirtyPieces) {
-    dirtyPieces.removedCount = 0;
-    dirtyPieces.addedCount = 0;
-    const Square sourceSquare = From(move);
-    const Square targetSquare = To(move);
-    const int piece = Piece(move);
-
-    if (isCastle(move)) {
-        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
-        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
-        const Square rookSourceSquare = pos->getCastlingRookSquare(castleRight);
-        const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
-        const int rook = GetPiece(ROOK, pos->side);
-
-        dirtyPieces.remove(sourceSquare, piece);
-        dirtyPieces.remove(rookSourceSquare, rook);
-        dirtyPieces.add(targetSquare, piece);
-        dirtyPieces.add(rookTargetSquare, rook);
-    }
-    else if (isEnpassant(move)) {
-        const Square capturedSquare = static_cast<Square>(targetSquare + (pos->side == WHITE ? 8 : -8));
-        dirtyPieces.remove(sourceSquare, piece);
-        dirtyPieces.remove(capturedSquare, GetPiece(PAWN, pos->side ^ 1));
-        dirtyPieces.add(targetSquare, piece);
-    }
-    else if (isPromo(move)) {
-        dirtyPieces.remove(sourceSquare, piece);
-        if (isCapture(move))
-            dirtyPieces.remove(targetSquare, pos->PieceOn(targetSquare));
-        dirtyPieces.add(targetSquare, GetPiece(getPromotedPiecetype(move), pos->side));
-    }
-    else {
-        dirtyPieces.remove(sourceSquare, piece);
-        if (isCapture(move))
-            dirtyPieces.remove(targetSquare, pos->PieceOn(targetSquare));
-        dirtyPieces.add(targetSquare, piece);
-    }
-}
-
-template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+template void MakeMove<true, true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
                              DirtyPieces* dirtyPieces);
-template void MakeMove<false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+template void MakeMove<true, false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+                             DirtyPieces* dirtyPieces);
+template void MakeMove<false, false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
                               DirtyPieces* dirtyPieces);
 
 // make move on chess board
-template <bool UPDATE>
+template <bool UPDATE, bool TRACK_DIRTY>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory, DirtyPieces* dirtyPieces) {
-    if (dirtyPieces)
-        SetDirtyPieces(move, pos, *dirtyPieces);
-
     if constexpr (UPDATE) {
         pos->history.push(pos->state());
     }
@@ -251,28 +84,161 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
+
+    // parse move
+    const Square sourceSquare = From(move);
+    const Square targetSquare = To(move);
+    const int piece = Piece(move);
+
     // increment fifty move rule counter
     pos->state().fiftyMove++;
     pos->state().plyFromNull++;
     pos->state().hisPly++;
 
-    if(castling){
-        MakeCastle(move,pos);
+    if (castling) {
+        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        const Square rookSourceSquare = pos->getCastlingRookSquare(castleRight);
+        const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
+        const int rook = GetPiece(ROOK, pos->side);
+
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            dirtyPieces->remove(rookSourceSquare, rook);
+            dirtyPieces->add(targetSquare, piece);
+            dirtyPieces->add(rookTargetSquare, rook);
+        }
+
+        // Move both pieces after clearing their original squares, which handles overlapping Chess960 paths.
+        ClearPiece(piece, sourceSquare, pos);
+        ClearPiece(rook, rookSourceSquare, pos);
+        AddPiece(piece, targetSquare, pos);
+        AddPiece(rook, rookTargetSquare, pos);
+        resetEpSquare(pos);
+        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
-    else if(doublePush){
-        MakeDP(move,pos);
+    else if (doublePush) {
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            dirtyPieces->add(targetSquare, piece);
+        }
+
+        pos->state().fiftyMove = 0;
+
+        MovePiece(piece, sourceSquare, targetSquare, pos);
+
+        resetEpSquare(pos);
+
+        // Add new ep square
+        const int SOUTH = pos->side == WHITE ? 8 : -8;
+        int epSquareCandidate = targetSquare + SOUTH;
+        if (!(getPawnAttacks(epSquareCandidate, pos->side) & pos->getPieceColorBB(PAWN, pos->side ^ 1)))
+            epSquareCandidate = no_sq;
+        pos->state().enPas = epSquareCandidate;
+        if (pos->getEpSquare() != no_sq)
+            HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
     }
-    else if(enpass){
-        MakeEp(move,pos);
+    else if (enpass) {
+        pos->state().fiftyMove = 0;
+
+        const int SOUTH = pos->side == WHITE ? 8 : -8;
+        const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
+        const Square capturedPieceLocation = static_cast<Square>(targetSquare + SOUTH);
+
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            dirtyPieces->remove(capturedPieceLocation, pieceCap);
+            dirtyPieces->add(targetSquare, piece);
+        }
+
+        ClearPiece(pieceCap, capturedPieceLocation, pos);
+
+        // Remove the piece fom the square it moved from
+        ClearPiece(piece, sourceSquare, pos);
+        // Set the piece to the destination square
+        AddPiece(piece, targetSquare, pos);
+
+        // Reset EP square
+        assert(pos->getEpSquare() != no_sq);
+        HashKey(pos->state().posKey, enpassant_keys[pos->getEpSquare()]);
+        pos->state().enPas = no_sq;
     }
-    else if(promotion){
-        MakePromo(move,pos, capture);
+    else if (promotion) {
+        pos->state().fiftyMove = 0;
+
+        const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
+
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            if (capture)
+                dirtyPieces->remove(targetSquare, pos->PieceOn(targetSquare));
+            dirtyPieces->add(targetSquare, promotedPiece);
+        }
+
+        // Remove the piece fom the square it moved from
+        ClearPiece(piece, sourceSquare, pos);
+
+        if (capture) {
+            const int pieceCap = pos->PieceOn(targetSquare);
+            assert(pieceCap != EMPTY);
+            assert(GetPieceType(pieceCap) != KING);
+            ClearPiece(pieceCap, targetSquare, pos);
+        }
+        // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
+        AddPiece(promotedPiece, targetSquare, pos);
+
+        resetEpSquare(pos);
+
+        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
-    else if(!capture){
-        MakeQuiet(move,pos);
+    else if (!capture) {
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            dirtyPieces->add(targetSquare, piece);
+        }
+
+        // if a pawn was moved or a capture was played reset the 50 move rule counter
+        if (GetPieceType(piece) == PAWN)
+            pos->state().fiftyMove = 0;
+
+        MovePiece(piece, sourceSquare, targetSquare, pos);
+
+        resetEpSquare(pos);
+
+        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
     else {
-        MakeCapture(move, pos);
+        pos->state().fiftyMove = 0;
+
+        const int pieceCap = pos->PieceOn(targetSquare);
+        assert(pieceCap != EMPTY);
+        assert(GetPieceType(pieceCap) != KING);
+
+        if constexpr (TRACK_DIRTY) {
+            dirtyPieces->removedCount = 0;
+            dirtyPieces->addedCount = 0;
+            dirtyPieces->remove(sourceSquare, piece);
+            dirtyPieces->remove(targetSquare, pieceCap);
+            dirtyPieces->add(targetSquare, piece);
+        }
+
+        ClearPiece(pieceCap, targetSquare, pos);
+
+        MovePiece(piece, sourceSquare, targetSquare, pos);
+
+        resetEpSquare(pos);
+
+        UpdateCastlingPerms(pos, sourceSquare, targetSquare);
     }
 
     pos->ChangeSide();

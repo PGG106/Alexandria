@@ -111,7 +111,7 @@ void ClearForSearch(ThreadData* td) {
 
 static void PlayMove(const Move move, ThreadData* td) {
     NNUE::Accumulator& accumulator = td->accumulatorStack.push();
-    MakeMove<true>(move, &td->pos, td->keyHistory, &accumulator.dirtyPieces);
+    MakeMove<true, true>(move, &td->pos, td->keyHistory, &accumulator.dirtyPieces);
     accumulator.kings = {static_cast<Square>(KingSQ(&td->pos, WHITE)),
                          static_cast<Square>(KingSQ(&td->pos, BLACK))};
     assert(td->accumulatorStack.head <= td->pos.history.head);
