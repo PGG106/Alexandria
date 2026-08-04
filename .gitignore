@@ -1,5 +1,7 @@
 # Prerequisites
 *.d
+/processed*.net
+/tools/preprocess*
 
 # Compiled Object files
 *.slo
