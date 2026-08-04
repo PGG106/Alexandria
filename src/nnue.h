@@ -11,25 +11,38 @@
 #include "types.h"
 
 struct Position;
+
+struct SquarePiece {
+    Square square = no_sq;
+    int piece = EMPTY;
+};
+
+struct DirtyPieces {
+    enum Type : uint8_t {
+        NONE,
+        NORMAL,
+        CAPTURE,
+        CASTLING
+    } type = NONE;
+
+    SquarePiece sub0, add0, sub1, add1;
+};
+
 // Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
-constexpr bool MERGE_KING_PLANES = false;
-constexpr bool DUAL_ACTIVATION = true;
 constexpr int NUM_INPUTS = 768;
-constexpr int INPUT_BUCKETS = 16;
+constexpr int INPUT_BUCKETS = 13;
 constexpr int L1_SIZE = 1536;
 constexpr int L2_SIZE = 16;
-constexpr int EFFECTIVE_L2_SIZE = 16 * (1 + DUAL_ACTIVATION);
+constexpr int EFFECTIVE_L2_SIZE = 32;
 constexpr int L3_SIZE = 32;
 constexpr int OUTPUT_BUCKETS = 8;
 
 constexpr int FT_QUANT  = 255;
-constexpr int L1_QUANT  = 64;
-constexpr int FT_SHIFT  = 10;
-constexpr int NET_SCALE = 362;
+constexpr int L1_QUANT  = 128;
+constexpr int FT_SHIFT  = 9;
+constexpr int NET_SCALE = 400;
 
-constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
-constexpr float WEIGHT_CLIPPING = 1.98f;
-static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
+constexpr float L1_MUL = 1.0f / float(FT_QUANT * FT_QUANT * L1_QUANT >> FT_SHIFT);
 
 #if defined(USE_SIMD)
 constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
@@ -44,12 +57,12 @@ constexpr int L1_CHUNK_PER_32 = 1;
 constexpr int buckets[64] = {
          0,  1,  2,  3,  3,  2,  1, 0,
          4,  5,  6,  7,  7,  6,  5, 4,
-         8,  9, 10, 11, 11, 10,  9, 8,
-         8,  9, 10, 11, 11, 10,  9, 8,
-        12, 12, 13, 13, 13, 13, 12, 12,
-        12, 12, 13, 13, 13, 13, 12, 12,
-        14, 14, 15, 15, 15, 15, 14, 14,
-        14, 14, 15, 15, 15, 15, 14, 14
+     8,  8,  9,  9,  9,  9,  8, 8,
+    10, 10, 10, 10, 10, 10, 10, 10,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11,
+    12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12
 };
 
 [[nodiscard]] inline int getBucket(int kingSquare, int side) {
@@ -59,40 +72,21 @@ constexpr int buckets[64] = {
 
 using NNUEIndices = std::array<std::size_t, 2>;
 
-struct UnquantisedNetwork {
-    float Factoriser[NUM_INPUTS * L1_SIZE];
-    float FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    float FTBiases[L1_SIZE];
-    float L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
-    float L1Biases[OUTPUT_BUCKETS][L2_SIZE];
-    float L2Weights[EFFECTIVE_L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
-    float L2Biases[OUTPUT_BUCKETS][L3_SIZE];
-    float L3Weights[L3_SIZE][OUTPUT_BUCKETS];
-    float L3Biases[OUTPUT_BUCKETS];
-};
-
-struct QuantisedNetwork {
-    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases [L1_SIZE];
-    int8_t  L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
-    float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
-    float   L2Weights[EFFECTIVE_L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
-    float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
-    float   L3Weights[L3_SIZE][OUTPUT_BUCKETS];
-    float   L3Biases [OUTPUT_BUCKETS];
-};
-
-
 struct Network {
-    int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    int16_t FTBiases [L1_SIZE];
-    int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
-    float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
-    float   L2Weights[OUTPUT_BUCKETS][EFFECTIVE_L2_SIZE * L3_SIZE];
-    float   L2Biases [OUTPUT_BUCKETS][L3_SIZE];
-    float   L3Weights[OUTPUT_BUCKETS][L3_SIZE];
-    float   L3Biases [OUTPUT_BUCKETS];
+    alignas(64) int16_t FTWeights[INPUT_BUCKETS][2][6][64][L1_SIZE];
+    alignas(64) int16_t FTBiases[L1_SIZE];
+    union {
+        alignas(64) int8_t L1Weights[OUTPUT_BUCKETS][L1_SIZE][L2_SIZE];
+        alignas(64) int8_t L1WeightsAlt[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
+    };
+    alignas(64) float L1Biases[OUTPUT_BUCKETS][L2_SIZE];
+    alignas(64) float L2Weights[OUTPUT_BUCKETS][EFFECTIVE_L2_SIZE][L3_SIZE];
+    alignas(64) float L2Biases[OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float L3Weights[OUTPUT_BUCKETS][L3_SIZE];
+    alignas(64) float L3Biases[OUTPUT_BUCKETS];
 };
+
+static_assert(sizeof(Network) == 30905920);
 
 extern const Network* net;
 
@@ -100,20 +94,43 @@ struct NNUE {
 
     using PovAccumulator = std::array<int16_t, L1_SIZE>;
 
-    struct alignas(64) FinnyTableEntry {
-        NNUE::PovAccumulator accumCache;
-        Bitboard occupancies[12] = {};
+    struct alignas(64) Accumulator {
+        PovAccumulator colors[2];
+        bool updated[2] = {};
+        Square kings[2] = {no_sq, no_sq};
+        DirtyPieces dirtyPieces;
+        ZobristKey key = 0;
 
-        FinnyTableEntry() {
-            for (int i = 0; i < L1_SIZE; ++i)
-                accumCache[i] = net->FTBiases[i];
-        }
+        void addPiece(Square kingSquare, int side, int piece, Square square);
+        void movePiece(Square kingSquare, int side, int piece, Square from, Square to);
+        void removePiece(Square kingSquare, int side, int piece, Square square);
+        void doUpdates(Square kingSquare, int side, const Accumulator& input);
+        void reset(int side);
+        void refresh(Position* pos, int side);
     };
 
-    using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
+    struct alignas(64) FinnyEntry {
+        Bitboard occupancies[2][12] = {};
+        Accumulator accumulator;
 
-    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
-    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+        void reset();
+    };
+
+    struct FinnyTable {
+        Accumulator accumulatorStack[MAXPLY + 1];
+        FinnyEntry entries[2][INPUT_BUCKETS];
+        ZobristKey rootKey = 0;
+        bool initialized = false;
+
+        void reset();
+        Accumulator& prepare(Position* pos);
+        void refresh(Position* pos, Accumulator& accumulator, int side);
+        void update(Position* pos, Accumulator& accumulator, int head);
+    };
+
+    static bool needRefresh(int side, Square oldKing, Square newKing);
+    static void activateAffine(const Accumulator& accumulator, int sideToMove, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void povActivateAffine(const Accumulator& accumulator, int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
 
     static void propagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
     static void propagateL2(const float *inputs, const float *weights, const float *biases, float *output);

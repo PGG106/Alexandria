@@ -38,6 +38,7 @@ struct BoardState {
     ZobristKey blackNonPawnKey = 0ULL;
     ZobristKey posKey = 0ULL;
     int hisPly = 0;
+    DirtyPieces dirtyPieces;
 };
 
 struct historyStack{

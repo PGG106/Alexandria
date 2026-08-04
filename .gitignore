@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+/net89perm.bin
 
 # Compiled Object files
 *.slo

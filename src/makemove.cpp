@@ -191,6 +191,47 @@ void MakeDP(const Move move, Position* pos)
 template void MakeMove<true>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
 template void MakeMove<false>(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
 
+DirtyPieces GetDirtyPieces(const Move move, const Position* pos) {
+    DirtyPieces dirty;
+    const Square from = From(move);
+    const Square to = To(move);
+    const int piece = Piece(move);
+
+    if (isCastle(move)) {
+        const bool kingSide = GetMovetype(move) == static_cast<int>(Movetype::KSCastle);
+        const int castleRight = pos->side == WHITE ? kingSide ? WKCA : WQCA : kingSide ? BKCA : BQCA;
+        dirty.type = DirtyPieces::CASTLING;
+        dirty.sub0 = {from, piece};
+        dirty.add0 = {to, piece};
+        dirty.sub1 = {static_cast<Square>(pos->getCastlingRookSquare(castleRight)), GetPiece(ROOK, pos->side)};
+        dirty.add1 = {static_cast<Square>(pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8),
+                      GetPiece(ROOK, pos->side)};
+    }
+    else if (isEnpassant(move)) {
+        const Square capturedSquare = static_cast<Square>(to + (pos->side == WHITE ? 8 : -8));
+        dirty.type = DirtyPieces::CAPTURE;
+        dirty.sub0 = {from, piece};
+        dirty.add0 = {to, piece};
+        dirty.sub1 = {capturedSquare, GetPiece(PAWN, pos->side ^ 1)};
+    }
+    else if (isPromo(move)) {
+        dirty.type = isCapture(move) ? DirtyPieces::CAPTURE : DirtyPieces::NORMAL;
+        dirty.sub0 = {from, piece};
+        dirty.add0 = {to, GetPiece(getPromotedPiecetype(move), pos->side)};
+        if (isCapture(move))
+            dirty.sub1 = {to, pos->PieceOn(to)};
+    }
+    else {
+        dirty.type = isCapture(move) ? DirtyPieces::CAPTURE : DirtyPieces::NORMAL;
+        dirty.sub0 = {from, piece};
+        dirty.add0 = {to, piece};
+        if (isCapture(move))
+            dirty.sub1 = {to, pos->PieceOn(to)};
+    }
+
+    return dirty;
+}
+
 // make move on chess board
 template <bool UPDATE>
 void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory) {
@@ -207,6 +248,7 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     const bool enpass = isEnpassant(move);
     const bool castling = isCastle(move);
     const bool promotion = isPromo(move);
+    pos->state().dirtyPieces = GetDirtyPieces(move, pos);
     // increment fifty move rule counter
     pos->state().fiftyMove++;
     pos->state().plyFromNull++;
@@ -251,6 +293,7 @@ void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
     pos->history.push(pos->state());
+    pos->state().dirtyPieces = {};
     // Store position key in the array of searched position
     keyHistory.emplace_back(pos->getPoskey());
     resetEpSquare(pos);

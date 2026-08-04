@@ -4,7 +4,7 @@
 $ git clone https://github.com/PGG106/Alexandria
 $ cd alexandria
 ```
-Download the latest neural network for Alexandria from this [repository](https://github.com/PGG106/Alexandria-networks/releases) and save it in the source root as `nn.net`.
+The build downloads the pinned `net89perm.bin` Obsidian network and verifies it against `net-hash.txt`.
 ```bash
 $ make 
 $ ./Alexandria

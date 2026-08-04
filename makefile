@@ -1,7 +1,7 @@
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
-EVALFILE     = nn.net
-EVALFILE_PROCESSED = processed.net
+EVALFILE     = net89perm.bin
+EVALFILE_URL = https://github.com/gab8192/Obsidian-nets/releases/download/nets/$(EVALFILE)
 CXX         := g++
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
@@ -127,7 +127,7 @@ endif
 
 
 # Add network name and Evalfile
-CXXFLAGS += -DEVALFILE=\"$(EVALFILE_PROCESSED)\"
+CXXFLAGS += -DEVALFILE=\"$(EVALFILE)\"
 
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
@@ -137,20 +137,22 @@ EXE	    := $(NAME)$(SUFFIX)
 .PHONY:	all
 .DEFAULT_GOAL := all
 
-# Process the network file
-$(EVALFILE_PROCESSED): $(EVALFILE)
-	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
-	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)"
-	./tools/preprocess$(SUFFIX) $(EVALFILE) $(EVALFILE_PROCESSED)
+$(EVALFILE):
+	curl -fL -o $@ $(EVALFILE_URL)
 
-.NOTPARALLEL: $(EVALFILE_PROCESSED)
+.PHONY: net
+net: $(TMPDIR)/net-verified
 
-net: $(EVALFILE_PROCESSED)
+$(TMPDIR)/net-verified: $(EVALFILE) net-hash.txt | $(TMPDIR)
+	@printf '%s  %s\n' "$$(cat net-hash.txt)" "$(EVALFILE)" | sha256sum --check
+	@touch $@
 
-all: $(EVALFILE_PROCESSED) $(TARGET)
+all: net $(TARGET)
 
-$(TARGET): $(EVALFILE_PROCESSED) $(OBJECTS)
+$(TARGET): $(TMPDIR)/net-verified $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS)
+
+$(TMPDIR)/src/nnue.o: $(TMPDIR)/net-verified
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
@@ -159,7 +161,7 @@ $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
 
 clean:
-	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d $(EVALFILE_PROCESSED)
+	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d
 	$(MAKE) -C tools clean
 
 -include $(DEPENDS)

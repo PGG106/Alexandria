@@ -85,7 +85,7 @@ struct ThreadData {
     NNUE::FinnyTable FTable{};
 
     inline void resetFinnyTable() {
-        FTable = NNUE::FinnyTable{};
+        FTable.reset();
     }
 };
 
