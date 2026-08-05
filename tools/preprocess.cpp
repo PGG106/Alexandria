@@ -1,5 +1,9 @@
 #include "../src/nnue.h"
 #include "../src/simd.h"
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
@@ -7,15 +11,57 @@
 QuantisedNetwork quantisedNet;
 Network permutedNet;
 
-void permute_transpose() {
-    // Transform the quantised weights and biases into the form we want for optimal inference
-    // FT Weights
-    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
-        permutedNet.FTWeights[i] = quantisedNet.FTWeights[i];
+using NnzPermutation = std::array<int, L1_SIZE / 2>;
 
-    // FT Biases
-    for (int i = 0; i < L1_SIZE; ++i)
-        permutedNet.FTBiases[i] = quantisedNet.FTBiases[i];
+NnzPermutation loadNnzPermutation(const char* permutationPath) {
+    std::ifstream permutationFile{permutationPath};
+    uint64_t sampleCount;
+
+    if (!(permutationFile >> sampleCount) || sampleCount == 0) {
+        std::cerr << "Error: Could not read NNZ permutation sample count from "
+                  << permutationPath << std::endl;
+        std::exit(1);
+    }
+
+    NnzPermutation permutation;
+    std::array<bool, L1_SIZE / 2> seen = {};
+    for (int& lane : permutation) {
+        if (!(permutationFile >> lane) || lane < 0 || lane >= L1_SIZE / 2 || seen[lane]) {
+            std::cerr << "Error: NNZ permutation must contain each of the " << L1_SIZE / 2
+                      << " lane indices exactly once" << std::endl;
+            std::exit(1);
+        }
+        seen[lane] = true;
+    }
+
+    permutationFile >> std::ws;
+    if (!permutationFile.eof()) {
+        std::cerr << "Error: NNZ permutation contains trailing data" << std::endl;
+        std::exit(1);
+    }
+
+    std::cout << "Loaded NNZ permutation optimized from " << sampleCount << " samples" << std::endl;
+    return permutation;
+}
+
+void permute_transpose(const NnzPermutation& nnzPermutation) {
+    // Transform the quantised weights and biases into the form we want for optimal inference
+    // Keep pairwise FT lanes together while grouping frequently active outputs.
+    for (int feature = 0; feature < INPUT_BUCKETS * NUM_INPUTS; ++feature)
+        for (int output = 0; output < L1_SIZE / 2; ++output) {
+            const int source = nnzPermutation[output];
+            permutedNet.FTWeights[feature * L1_SIZE + output]
+                = quantisedNet.FTWeights[feature * L1_SIZE + source];
+            permutedNet.FTWeights[feature * L1_SIZE + output + L1_SIZE / 2]
+                = quantisedNet.FTWeights[feature * L1_SIZE + source + L1_SIZE / 2];
+        }
+
+    for (int output = 0; output < L1_SIZE / 2; ++output) {
+        const int source = nnzPermutation[output];
+        permutedNet.FTBiases[output] = quantisedNet.FTBiases[source];
+        permutedNet.FTBiases[output + L1_SIZE / 2]
+            = quantisedNet.FTBiases[source + L1_SIZE / 2];
+    }
 
     // Transpose FT weights and biases so that packus transposes it back to the intended order
 #if defined(USE_SIMD)
@@ -60,14 +106,21 @@ void permute_transpose() {
 #if defined(USE_SIMD)
         for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
-                for (int k = 0; k < L1_CHUNK_PER_32; ++k)
+                for (int k = 0; k < L1_CHUNK_PER_32; ++k) {
+                    const int output = i * L1_CHUNK_PER_32 + k;
+                    const int source = nnzPermutation[output % (L1_SIZE / 2)]
+                                     + output / (L1_SIZE / 2) * (L1_SIZE / 2);
                     permutedNet.L1Weights[bucket][  i * L1_CHUNK_PER_32 * L2_SIZE
                                           + j * L1_CHUNK_PER_32
-                                          + k] = quantisedNet.L1Weights[i * L1_CHUNK_PER_32 + k][bucket][j];
+                                          + k] = quantisedNet.L1Weights[source][bucket][j];
+                }
 #else
-        for (int i = 0; i < L1_SIZE; ++i)
+        for (int i = 0; i < L1_SIZE; ++i) {
+            const int source = nnzPermutation[i % (L1_SIZE / 2)]
+                             + i / (L1_SIZE / 2) * (L1_SIZE / 2);
             for (int j = 0; j < L2_SIZE; ++j)
-                permutedNet.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[i][bucket][j];
+                permutedNet.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[source][bucket][j];
+        }
 #endif
 
         // Transpose L1 Biases
@@ -94,8 +147,8 @@ void permute_transpose() {
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <infile> <outfile>\n";
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <infile> <outfile> <nnz-permutation>\n";
         return -1;
     }
 
@@ -127,7 +180,7 @@ int main(int argc, char* argv[]) {
 
     // Perform the permutation and transposition
     std::cout << "Performing permutation and transposition..." << std::endl;
-    permute_transpose();
+    permute_transpose(loadNnzPermutation(argv[3]));
     std::cout << "Permutation complete" << std::endl;
 
     // Write the permuted network to output file

@@ -1,7 +1,7 @@
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 EVALFILE     = nn.net
-EVALFILE_PROCESSED = processed.net
+NNZ_PERMUTATION = nnz-permutation.txt
 CXX         := g++
 TARGET      := Alexandria
 WARNINGS     = -Wall -Wcast-qual -Wextra -Wshadow -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wlogical-op -Wold-style-cast -Wundef -pedantic
@@ -125,6 +125,16 @@ ifeq ($(build), debug-avx2)
 	CXXFLAGS += $(AVX2FLAGS)
 endif
 
+# Keep preprocessed network layouts separate across SIMD architectures.
+PREPROCESS_ARCH = scalar
+ifneq ($(findstring -DUSE_AVX2,$(CXXFLAGS)),)
+	PREPROCESS_ARCH = avx2
+endif
+ifneq ($(findstring -DUSE_AVX512,$(CXXFLAGS)),)
+	PREPROCESS_ARCH = avx512
+endif
+EVALFILE_PROCESSED = processed-$(PREPROCESS_ARCH).net
+PREPROCESSOR = tools/preprocess-$(PREPROCESS_ARCH)$(SUFFIX)
 
 # Add network name and Evalfile
 CXXFLAGS += -DEVALFILE=\"$(EVALFILE_PROCESSED)\"
@@ -138,10 +148,10 @@ EXE	    := $(NAME)$(SUFFIX)
 .DEFAULT_GOAL := all
 
 # Process the network file
-$(EVALFILE_PROCESSED): $(EVALFILE)
+$(EVALFILE_PROCESSED): $(EVALFILE) $(NNZ_PERMUTATION) tools/preprocess.cpp src/nnue.h src/simd.h
 	$(info Processing network $(EVALFILE) -> $(EVALFILE_PROCESSED))
-	$(MAKE) -C $(_ROOT)/tools CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)"
-	./tools/preprocess$(SUFFIX) $(EVALFILE) $(EVALFILE_PROCESSED)
+	$(MAKE) -C $(_ROOT)/tools PREPROCESS_ARCH="$(PREPROCESS_ARCH)" CXXFLAGS="$(CXXFLAGS)" NATIVE="$(NATIVE)"
+	./$(PREPROCESSOR) $(EVALFILE) $(EVALFILE_PROCESSED) $(NNZ_PERMUTATION)
 
 .NOTPARALLEL: $(EVALFILE_PROCESSED)
 
@@ -152,6 +162,8 @@ all: $(EVALFILE_PROCESSED) $(TARGET)
 $(TARGET): $(EVALFILE_PROCESSED) $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS)
 
+$(TMPDIR)/src/nnue.o: $(EVALFILE_PROCESSED)
+
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
@@ -159,7 +171,7 @@ $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src"
 
 clean:
-	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d $(EVALFILE_PROCESSED)
+	@rm -rf $(TMPDIR) *.o $(DEPENDS) *.d processed-*.net
 	$(MAKE) -C tools clean
 
 -include $(DEPENDS)

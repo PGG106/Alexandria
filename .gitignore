@@ -1,5 +1,8 @@
 # Prerequisites
 *.d
+/processed*.net
+/tools/preprocess*
+/nnz-masks.bin
 
 # Compiled Object files
 *.slo

@@ -4,6 +4,10 @@
 #include "position.h"
 #include <cstdint>
 #include <cstring>
+#ifdef NNZ_PROFILE
+#include <bitset>
+#include <mutex>
+#endif
 #include "incbin/incbin.h"
 #include <fstream>
 #include "io.h"
@@ -25,6 +29,36 @@ const unsigned int gEVALSize = 1;
 
 const Network *net;
 NNZTable nnzTable;
+
+#ifdef NNZ_PROFILE
+namespace {
+#ifndef NNZ_PROFILE_SAMPLES
+#define NNZ_PROFILE_SAMPLES 100000
+#endif
+constexpr uint64_t NnzProfileSamples = NNZ_PROFILE_SAMPLES;
+std::ofstream nnzProfile{"nnz-masks.bin", std::ios::binary};
+std::mutex nnzProfileMutex;
+uint64_t nnzProfileSamples = 0;
+
+void recordNnzProfile(const uint8_t* output) {
+    std::lock_guard lock{nnzProfileMutex};
+    if (nnzProfileSamples >= NnzProfileSamples)
+        return;
+
+    std::bitset<L1_SIZE / 2> active;
+    for (int lane = 0; lane < L1_SIZE / 2; ++lane)
+        active[lane] = output[lane] != 0;
+
+    for (int byte = 0; byte < L1_SIZE / 16; ++byte) {
+        uint8_t packed = 0;
+        for (int bit = 0; bit < 8; ++bit)
+            packed |= static_cast<uint8_t>(active[byte * 8 + bit]) << bit;
+        nnzProfile.put(static_cast<char>(packed));
+    }
+    ++nnzProfileSamples;
+}
+}
+#endif
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -200,6 +234,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
         output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
+#endif
+
+#ifdef NNZ_PROFILE
+    recordNnzProfile(output);
 #endif
 }
 
