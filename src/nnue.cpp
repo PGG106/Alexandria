@@ -117,12 +117,131 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
     }
 
-
     NNUE::PovAccumulator &accumCache = cachedEntry.accumCache;
+
+#if defined(USE_SIMD)
+
+    // Tile width in vector registers per accumulator half. 8 measured fastest on AVX2;
+    // both smaller (more block overhead) and larger (spills) tiles lose.
+#ifndef FT_NUM_REGI
+    #if defined(USE_AVX512)
+        #define FT_NUM_REGI 4
+    #else
+        #define FT_NUM_REGI 8
+    #endif
+#endif
+    constexpr int NUM_REGI = FT_NUM_REGI;
+    static_assert(NUM_REGI % 2 == 0 && (L1_SIZE / 2) % (NUM_REGI * FT_CHUNK_SIZE) == 0);
+
+    const vepi16 Zero = vec_zero_epi16();
+    const vepi16 One = vec_set1_epi16(FT_QUANT);
+    const v128i LookupIncr = vec128_set1_epi16(8);
 
     const size_t minCnt = std::min(addCnt, removeCnt);
 
-    for (size_t i = 0; i < minCnt; i++) {
+    v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
+    for (int b = 0; b < L1_SIZE / 2; b += NUM_REGI * FT_CHUNK_SIZE) {
+
+        vepi16 *accPtr0 = reinterpret_cast<vepi16 *>(&accumCache[b]);
+        vepi16 *accPtr1 = reinterpret_cast<vepi16 *>(&accumCache[b + L1_SIZE / 2]);
+
+        // Hold the tile in locals: through pointers the compiler must assume
+        // FTWeights may alias accumCache, forcing a reload/store per feature.
+        vepi16 acc0[NUM_REGI], acc1[NUM_REGI];
+        for (int j = 0; j < NUM_REGI; ++j) {
+            acc0[j] = accPtr0[j];
+            acc1[j] = accPtr1[j];
+        }
+
+        // Pair one add with one remove: a normal move is 1 add / 1 remove.
+        for (size_t i = 0; i < minCnt; ++i) {
+            const vepi16 *add0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b]);
+            const vepi16 *add1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b + L1_SIZE / 2]);
+            const vepi16 *rem0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b]);
+            const vepi16 *rem1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b + L1_SIZE / 2]);
+
+            for (int j = 0; j < NUM_REGI; ++j) {
+                acc0[j] = vec_add_epi16(acc0[j], vec_sub_epi16(add0[j], rem0[j]));
+                acc1[j] = vec_add_epi16(acc1[j], vec_sub_epi16(add1[j], rem1[j]));
+            }
+        }
+
+        for (size_t i = minCnt; i < addCnt; ++i) {
+            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b]);
+            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b + L1_SIZE / 2]);
+
+            for (int j = 0; j < NUM_REGI; ++j) {
+                acc0[j] = vec_add_epi16(acc0[j], wgt0[j]);
+                acc1[j] = vec_add_epi16(acc1[j], wgt1[j]);
+            }
+        }
+
+        for (size_t i = minCnt; i < removeCnt; ++i) {
+            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b]);
+            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b + L1_SIZE / 2]);
+
+            for (int j = 0; j < NUM_REGI; ++j) {
+                acc0[j] = vec_sub_epi16(acc0[j], wgt0[j]);
+                acc1[j] = vec_sub_epi16(acc1[j], wgt1[j]);
+            }
+        }
+
+        for (int j = 0; j < NUM_REGI; ++j) {
+            accPtr0[j] = acc0[j];
+            accPtr1[j] = acc1[j];
+        }
+
+        for (int i = 0; i < NUM_REGI; i += 2) {
+            vepi16 input0a = acc0[i + 0];
+            vepi16 input0b = acc0[i + 1];
+            vepi16 input1a = acc1[i + 0];
+            vepi16 input1b = acc1[i + 1];
+
+            // Comments stolen from SF (since I was the original author of this anyways):
+            // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
+            // shift left by (16 - FT_SHIFT), and use mulhi, stripping the bottom 16 bits, effectively shifting right by 16, resulting in a net shift
+            // of FT_SHIFT bits. We use mulhi because it maintains the sign of the multiplication (unlike mullo), allowing us to make use
+            // of packus to clip 2 of the inputs, resulting in a save of 2 "vec_max_epi16" calls.
+            const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
+            const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
+            const vepi16 clipped1a = vec_min_epi16(input1a, One);
+            const vepi16 clipped1b = vec_min_epi16(input1b, One);
+
+            const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+            const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+
+            const vepi8 product = vec_packus_epi16(producta, productb);
+            vec_store_epi(reinterpret_cast<vepi8 *>(&output[b + i * FT_CHUNK_SIZE]), product);
+            // store all non zero indices to transform L1 sparsely
+            // start ny creating a mask masking all the non 0 elements in our product vector (actually 4 8bit elements
+            // creating a 32 bit element at a time, which will be non 0 if at least 1 8 bit element is.
+            const uint16_t nnzMask = vec_nnz_mask(product);
+            // check number of elements inside the actual register / 8 since we are working on a per bit basis
+            for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
+                // 0-255 mask index for the table
+                uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
+                // look up from a precaculated table how many bits are set to 1 and what the indexes are
+                NNZEntry nnzEntry = nnzTable.table[maskSlice];
+                // get ready to store in in nnzIndices by getting the appropriate pointer to it
+                v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
+                // add entry indices to our non-zero indices list
+                const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
+                // add base address to indexes and store them
+                vec128_storeu_epi16(nnzStore, vec128_add_epi16(baseVec, indices));
+
+                // increment count of total non 0 elements
+                nnzCount += nnzEntry.count;
+                // update base value for the next cycle iteration
+                baseVec = vec128_add_epi16(baseVec, LookupIncr);
+            }
+        }
+    }
+    vec128_storeu_epi16(reinterpret_cast<v128i*>(base), baseVec);
+
+#else
+    const size_t minCnt = std::min(addCnt, removeCnt);
+
+    for (size_t i = 0; i < minCnt; ++i) {
         const auto added = add[i];
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
@@ -130,71 +249,20 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         }
     }
 
-    for (size_t i = minCnt; i < addCnt; i++) {
+    for (size_t i = minCnt; i < addCnt; ++i) {
         const auto added = add[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] += net->FTWeights[added + j];
         }
     }
 
-    for (size_t i = minCnt; i < removeCnt; i++) {
+    for (size_t i = minCnt; i < removeCnt; ++i) {
         const auto removed = remove[i];
         for (int j = 0; j < L1_SIZE; ++j) {
             accumCache[j] -= net->FTWeights[removed + j];
         }
     }
 
-#if defined(USE_SIMD)
-    const vepi16 Zero = vec_zero_epi16();
-    const vepi16 One = vec_set1_epi16(FT_QUANT);
-    v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
-    for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
-        const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
-        const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
-        const vepi16 input1a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + L1_SIZE / 2]));
-        const vepi16 input1b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
-
-        // Comments stolen from SF (since I was the original author of this anyways):
-        // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
-        // shift left by (16 - FT_SHIFT), and use mulhi, stripping the bottom 16 bits, effectively shifting right by 16, resulting in a net shift
-        // of FT_SHIFT bits. We use mulhi because it maintains the sign of the multiplication (unlike mullo), allowing us to make use
-        // of packus to clip 2 of the inputs, resulting in a save of 2 "vec_max_epi16" calls.
-        const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
-        const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
-        const vepi16 clipped1a = vec_min_epi16(input1a, One);
-        const vepi16 clipped1b = vec_min_epi16(input1b, One);
-
-        const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
-        const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
-
-        const vepi8 product = vec_packus_epi16(producta, productb);
-        vec_store_epi(reinterpret_cast<vepi8 *>(&output[i]), product);
-        const v128i LookupIncr = vec128_set1_epi16(8);
-        // store all non zero indices to transform L1 sparsely
-        // start ny creating a mask masking all the non 0 elements in our product vector (actually 4 8bit elements
-        // creating a 32 bit element at a time, which will be non 0 if at least 1 8 bit element is.
-        const uint16_t nnzMask = vec_nnz_mask(product);
-        // check number of elements inside the actual register / 8 since we are working on a per bit basis
-        for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
-            // 0-255 mask index for the table
-            uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
-            // look up from a precaculated table how many bits are set to 1 and what the indexes are
-            NNZEntry nnzEntry = nnzTable.table[maskSlice];
-            // get ready to store in in nnzIndices by getting the appropriate pointer to it
-            v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
-            // add entry indices to our non-zero indices list
-            const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
-            // add base address to indexes and store them
-            vec128_storeu_epi16(nnzStore, vec128_add_epi16(baseVec, indices));
-
-            // increment count of total non 0 elements
-            nnzCount += nnzEntry.count;
-            // update base value for the next cycle iteration
-            baseVec = vec128_add_epi16(baseVec, LookupIncr);
-        }
-    }
-    vec128_storeu_epi16(reinterpret_cast<v128i*>(base), baseVec);
-#else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
         int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
         int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
