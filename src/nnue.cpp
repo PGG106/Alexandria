@@ -124,11 +124,7 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     // Tile width in vector registers per accumulator half. 8 measured fastest on AVX2;
     // both smaller (more block overhead) and larger (spills) tiles lose.
 #ifndef FT_NUM_REGI
-    #if defined(USE_AVX512)
-        #define FT_NUM_REGI 4
-    #else
-        #define FT_NUM_REGI 8
-    #endif
+    #define FT_NUM_REGI 8
 #endif
     constexpr int NUM_REGI = FT_NUM_REGI;
     static_assert(NUM_REGI % 2 == 0 && (L1_SIZE / 2) % (NUM_REGI * FT_CHUNK_SIZE) == 0);
