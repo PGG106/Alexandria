@@ -169,10 +169,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         }
 
         for (int i = 0; i < NUM_REGI; i += 2) {
-            vepi16 input0a = acc0[i + 0];
-            vepi16 input0b = acc0[i + 1];
-            vepi16 input1a = acc1[i + 0];
-            vepi16 input1b = acc1[i + 1];
+            const vepi16 input0a = acc0[i + 0];
+            const vepi16 input0b = acc0[i + 1];
+            const vepi16 input1a = acc1[i + 0];
+            const vepi16 input1b = acc1[i + 1];
 
             // Comments stolen from SF (since I was the original author of this anyways):
             // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
