@@ -129,8 +129,6 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     const vepi16 One = vec_set1_epi16(FT_QUANT);
     const v128i LookupIncr = vec128_set1_epi16(8);
 
-    const size_t minCnt = std::min(addCnt, removeCnt);
-
     v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
     for (int b = 0; b < L1_SIZE / 2; b += NUM_REGI * FT_CHUNK_SIZE) {
 
@@ -143,21 +141,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             acc1[j] = accPtr1[j];
         }
 
-        for (size_t i = 0; i < minCnt; ++i) {
-            const vepi16 *add0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b]);
-            const vepi16 *add1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b + L1_SIZE / 2]);
-            const vepi16 *rem0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b]);
-            const vepi16 *rem1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b + L1_SIZE / 2]);
-
-            for (int j = 0; j < NUM_REGI; ++j) {
-                acc0[j] = vec_add_epi16(acc0[j], vec_sub_epi16(add0[j], rem0[j]));
-                acc1[j] = vec_add_epi16(acc1[j], vec_sub_epi16(add1[j], rem1[j]));
-            }
-        }
-
-        for (size_t i = minCnt; i < addCnt; ++i) {
-            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b]);
-            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b + L1_SIZE / 2]);
+        for (size_t i = 0; i < addCnt; ++i) {
+            const auto added = add[i];
+            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[added + b]);
+            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[added + b + L1_SIZE / 2]);
 
             for (int j = 0; j < NUM_REGI; ++j) {
                 acc0[j] = vec_add_epi16(acc0[j], wgt0[j]);
@@ -165,9 +152,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             }
         }
 
-        for (size_t i = minCnt; i < removeCnt; ++i) {
-            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b]);
-            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[remove[i] + b + L1_SIZE / 2]);
+        for (size_t i = 0; i < removeCnt; ++i) {
+            const auto removed = remove[i];
+            const vepi16 *wgt0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[removed + b]);
+            const vepi16 *wgt1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[removed + b + L1_SIZE / 2]);
 
             for (int j = 0; j < NUM_REGI; ++j) {
                 acc0[j] = vec_sub_epi16(acc0[j], wgt0[j]);
