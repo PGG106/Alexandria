@@ -121,12 +121,8 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
 #if defined(USE_SIMD)
 
-    // Tile width in vector registers per accumulator half. 8 measured fastest on AVX2;
-    // both smaller (more block overhead) and larger (spills) tiles lose.
-#ifndef FT_NUM_REGI
-    #define FT_NUM_REGI 8
-#endif
-    constexpr int NUM_REGI = FT_NUM_REGI;
+    // 8 measured to be optimal on both avx512 and avx2
+    constexpr int NUM_REGI = 8;
     static_assert(NUM_REGI % 2 == 0 && (L1_SIZE / 2) % (NUM_REGI * FT_CHUNK_SIZE) == 0);
 
     const vepi16 Zero = vec_zero_epi16();
@@ -141,15 +137,12 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         vepi16 *accPtr0 = reinterpret_cast<vepi16 *>(&accumCache[b]);
         vepi16 *accPtr1 = reinterpret_cast<vepi16 *>(&accumCache[b + L1_SIZE / 2]);
 
-        // Hold the tile in locals: through pointers the compiler must assume
-        // FTWeights may alias accumCache, forcing a reload/store per feature.
         vepi16 acc0[NUM_REGI], acc1[NUM_REGI];
         for (int j = 0; j < NUM_REGI; ++j) {
             acc0[j] = accPtr0[j];
             acc1[j] = accPtr1[j];
         }
 
-        // Pair one add with one remove: a normal move is 1 add / 1 remove.
         for (size_t i = 0; i < minCnt; ++i) {
             const vepi16 *add0 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b]);
             const vepi16 *add1 = reinterpret_cast<const vepi16 *>(&net->FTWeights[add[i] + b + L1_SIZE / 2]);
