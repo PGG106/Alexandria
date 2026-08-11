@@ -1,5 +1,7 @@
 #include "../src/nnue.h"
 #include "../src/simd.h"
+#include <array>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
@@ -7,15 +9,49 @@
 QuantisedNetwork quantisedNet;
 Network permutedNet;
 
-void permute_transpose() {
-    // Transform the quantised weights and biases into the form we want for optimal inference
-    // FT Weights
-    for (int i = 0; i < INPUT_BUCKETS * NUM_INPUTS * L1_SIZE; ++i)
-        permutedNet.FTWeights[i] = quantisedNet.FTWeights[i];
+using NnzPermutation = std::array<int, L1_SIZE / 2>;
 
-    // FT Biases
-    for (int i = 0; i < L1_SIZE; ++i)
-        permutedNet.FTBiases[i] = quantisedNet.FTBiases[i];
+NnzPermutation loadNnzPermutation(const char* path) {
+    std::ifstream input{path};
+    NnzPermutation permutation;
+    std::array<bool, L1_SIZE / 2> seen = {};
+
+    for (int& lane : permutation) {
+        if (!(input >> lane) || lane < 0 || lane >= L1_SIZE / 2 || seen[lane]) {
+            std::cerr << "Error: NNZ permutation must contain each of the " << L1_SIZE / 2
+                      << " lane indices exactly once\n";
+            std::exit(EXIT_FAILURE);
+        }
+        seen[lane] = true;
+    }
+
+    input >> std::ws;
+    if (!input.eof()) {
+        std::cerr << "Error: NNZ permutation contains trailing data\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    return permutation;
+}
+
+void permute_transpose(const NnzPermutation& permutation) {
+    // Transform the quantised weights and biases into the form we want for optimal inference
+    // Keep paired feature-transformer lanes together in the optimized order.
+    for (int feature = 0; feature < INPUT_BUCKETS * NUM_INPUTS; ++feature)
+        for (int output = 0; output < L1_SIZE / 2; ++output) {
+            const int source = permutation[output];
+            permutedNet.FTWeights[feature * L1_SIZE + output]
+                = quantisedNet.FTWeights[feature * L1_SIZE + source];
+            permutedNet.FTWeights[feature * L1_SIZE + output + L1_SIZE / 2]
+                = quantisedNet.FTWeights[feature * L1_SIZE + source + L1_SIZE / 2];
+        }
+
+    for (int output = 0; output < L1_SIZE / 2; ++output) {
+        const int source = permutation[output];
+        permutedNet.FTBiases[output] = quantisedNet.FTBiases[source];
+        permutedNet.FTBiases[output + L1_SIZE / 2]
+            = quantisedNet.FTBiases[source + L1_SIZE / 2];
+    }
 
     // Transpose FT weights and biases so that packus transposes it back to the intended order
 #if defined(USE_SIMD)
@@ -60,14 +96,22 @@ void permute_transpose() {
 #if defined(USE_SIMD)
         for (int i = 0; i < L1_SIZE / L1_CHUNK_PER_32; ++i)
             for (int j = 0; j < L2_SIZE; ++j)
-                for (int k = 0; k < L1_CHUNK_PER_32; ++k)
+                for (int k = 0; k < L1_CHUNK_PER_32; ++k) {
+                    const int output = i * L1_CHUNK_PER_32 + k;
+                    const int source = permutation[output % (L1_SIZE / 2)]
+                                     + output / (L1_SIZE / 2) * (L1_SIZE / 2);
                     permutedNet.L1Weights[bucket][  i * L1_CHUNK_PER_32 * L2_SIZE
                                           + j * L1_CHUNK_PER_32
-                                          + k] = quantisedNet.L1Weights[i * L1_CHUNK_PER_32 + k][bucket][j];
+                                          + k] = quantisedNet.L1Weights[source][bucket][j];
+                }
 #else
-        for (int i = 0; i < L1_SIZE; ++i)
+        for (int i = 0; i < L1_SIZE; ++i) {
+            const int source = permutation[i % (L1_SIZE / 2)]
+                             + i / (L1_SIZE / 2) * (L1_SIZE / 2);
             for (int j = 0; j < L2_SIZE; ++j)
-                permutedNet.L1Weights[bucket][j * L1_SIZE + i] = quantisedNet.L1Weights[i][bucket][j];
+                permutedNet.L1Weights[bucket][j * L1_SIZE + i]
+                    = quantisedNet.L1Weights[source][bucket][j];
+        }
 #endif
 
         // Transpose L1 Biases
@@ -94,9 +138,9 @@ void permute_transpose() {
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <infile> <outfile>\n";
-        return -1;
+    if (argc != 3 && argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <infile> <outfile> [nnz-permutation]\n";
+        return EXIT_FAILURE;
     }
 
     std::string input_path = argv[1];
@@ -127,7 +171,7 @@ int main(int argc, char* argv[]) {
 
     // Perform the permutation and transposition
     std::cout << "Performing permutation and transposition..." << std::endl;
-    permute_transpose();
+    permute_transpose(loadNnzPermutation(argc == 4 ? argv[3] : "nnz-permutation.txt"));
     std::cout << "Permutation complete" << std::endl;
 
     // Write the permuted network to output file

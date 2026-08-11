@@ -4,6 +4,12 @@
 #include "position.h"
 #include <cstdint>
 #include <cstring>
+#ifdef NNZ_PROFILE
+#include <array>
+#include <cstdlib>
+#include <iostream>
+#include <mutex>
+#endif
 #include "incbin/incbin.h"
 #include <fstream>
 #include "io.h"
@@ -25,6 +31,44 @@ const unsigned int gEVALSize = 1;
 
 const Network *net;
 NNZTable nnzTable;
+
+#ifdef NNZ_PROFILE
+namespace {
+#ifndef NNZ_PROFILE_SAMPLES
+#define NNZ_PROFILE_SAMPLES 100000
+#endif
+
+constexpr uint64_t NnzProfileSamples = NNZ_PROFILE_SAMPLES;
+constexpr std::size_t NnzProfileMaskBytes = (L1_SIZE / 2) / 8;
+static_assert((L1_SIZE / 2) % 8 == 0);
+
+const char* nnzProfilePath() {
+    const char* path = std::getenv("NNZ_PROFILE_OUTPUT");
+    return path != nullptr ? path : "nnz-masks.bin";
+}
+
+std::ofstream nnzProfile{nnzProfilePath(), std::ios::binary};
+std::mutex nnzProfileMutex;
+uint64_t nnzProfileSamples = 0;
+
+void recordNnzProfile(const uint8_t* output) {
+    std::lock_guard lock{nnzProfileMutex};
+    if (nnzProfileSamples >= NnzProfileSamples)
+        return;
+    if (!nnzProfile) {
+        std::cerr << "Error: Could not write NNZ profile to " << nnzProfilePath() << '\n';
+        std::abort();
+    }
+
+    std::array<uint8_t, NnzProfileMaskBytes> mask = {};
+    for (int lane = 0; lane < L1_SIZE / 2; ++lane)
+        mask[lane / 8] |= static_cast<uint8_t>((output[lane] != 0) << (lane % 8));
+
+    nnzProfile.write(reinterpret_cast<const char*>(mask.data()), mask.size());
+    ++nnzProfileSamples;
+}
+}
+#endif
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -245,6 +289,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
         output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
+#endif
+
+#ifdef NNZ_PROFILE
+    recordNnzProfile(output);
 #endif
 }
 
