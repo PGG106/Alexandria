@@ -83,6 +83,7 @@ struct ThreadData {
     int lastSearchScore = SCORE_NONE;
 
     NNUE::FinnyTable FTable{};
+    NNUE::AccumulatorStack accumulatorStack{};
 
     inline void resetFinnyTable() {
         FTable = NNUE::FinnyTable{};

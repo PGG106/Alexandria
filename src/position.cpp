@@ -362,7 +362,7 @@ void parse_moves(const std::string& moves, Position* pos, std::vector<ZobristKey
         // parse next move
         const Move move = ParseMove(move_tokens[i], pos);
         // make move on the chess board
-        MakeMove<false>(move, pos, keyHistory);
+        MakeMove<false, false>(move, pos, keyHistory);
     }
 }
 

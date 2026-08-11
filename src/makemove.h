@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+
+#include "nnue.h"
 #include "types.h"
 
 struct Position;
@@ -10,8 +13,9 @@ void AddPiece(const int piece, const int to, Position* pos);
 
 void UpdateCastlingPerms(Position* pos, int source_square, int target_square);
 
-template <bool UPDATE>
-void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory);
+template <bool UPDATE, bool TRACK_DIRTY>
+void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistory,
+			  DirtyPieces* dirtyPieces = nullptr);
 // Reverts the previously played move
 void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory);
 // makes a null move (a move that doesn't move any piece)

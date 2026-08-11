@@ -43,7 +43,7 @@ void PerftDriver(int depth, Position* pos, std::vector<ZobristKey>& keyHistory) 
             continue;
 
         // make move
-        MakeMove<true>(move, pos, keyHistory);
+        MakeMove<true, false>(move, pos, keyHistory);
 
         // call perft driver recursively
         PerftDriver(depth - 1, pos, keyHistory);
@@ -75,7 +75,7 @@ unsigned long long PerftTest(int depth, Position* pos, std::vector<ZobristKey>& 
             continue;
 
         // make move
-        MakeMove<true>(move, pos, keyHistory);
+        MakeMove<true, false>(move, pos, keyHistory);
 
         // cummulative nodes
         long cummulative_nodes = nodes;
