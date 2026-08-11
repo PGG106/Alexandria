@@ -4,6 +4,12 @@
 #include "position.h"
 #include <cstdint>
 #include <cstring>
+#ifdef NNZ_PROFILE
+#include <array>
+#include <cstdlib>
+#include <iostream>
+#include <mutex>
+#endif
 #include "incbin/incbin.h"
 #include <fstream>
 #include "io.h"
@@ -25,6 +31,44 @@ const unsigned int gEVALSize = 1;
 
 const Network *net;
 NNZTable nnzTable;
+
+#ifdef NNZ_PROFILE
+namespace {
+#ifndef NNZ_PROFILE_SAMPLES
+#define NNZ_PROFILE_SAMPLES 100000
+#endif
+
+constexpr uint64_t NnzProfileSamples = NNZ_PROFILE_SAMPLES;
+constexpr std::size_t NnzProfileMaskBytes = (L1_SIZE / 2) / 8;
+static_assert((L1_SIZE / 2) % 8 == 0);
+
+const char* nnzProfilePath() {
+    const char* path = std::getenv("NNZ_PROFILE_OUTPUT");
+    return path != nullptr ? path : "nnz-masks.bin";
+}
+
+std::ofstream nnzProfile{nnzProfilePath(), std::ios::binary};
+std::mutex nnzProfileMutex;
+uint64_t nnzProfileSamples = 0;
+
+void recordNnzProfile(const uint8_t* output) {
+    std::lock_guard lock{nnzProfileMutex};
+    if (nnzProfileSamples >= NnzProfileSamples)
+        return;
+    if (!nnzProfile) {
+        std::cerr << "Error: Could not write NNZ profile to " << nnzProfilePath() << '\n';
+        std::abort();
+    }
+
+    std::array<uint8_t, NnzProfileMaskBytes> mask = {};
+    for (int lane = 0; lane < L1_SIZE / 2; ++lane)
+        mask[lane / 8] |= static_cast<uint8_t>((output[lane] != 0) << (lane % 8));
+
+    nnzProfile.write(reinterpret_cast<const char*>(mask.data()), mask.size());
+    ++nnzProfileSamples;
+}
+}
+#endif
 
 UnquantisedNetwork unquantisedNet;
 QuantisedNetwork quantisedNet;
@@ -233,62 +277,15 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer,
     ResolveAccumulator(pos, FinnyPointer, accumulatorStack, side);
     NNUE::PovAccumulator &accumCache = accumulatorStack->current().colors[side];
 
-#if defined(USE_SIMD)
-    const vepi16 Zero = vec_zero_epi16();
-    const vepi16 One = vec_set1_epi16(FT_QUANT);
-    v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
-    for (int i = 0; i < L1_SIZE / 2; i += 2 * FT_CHUNK_SIZE) {
-        const vepi16 input0a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + 0]));
-        const vepi16 input0b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + 0]));
-        const vepi16 input1a = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + 0 + L1_SIZE / 2]));
-        const vepi16 input1b = vec_load_epi(reinterpret_cast<const vepi16 *>(&accumCache[i + FT_CHUNK_SIZE + L1_SIZE / 2]));
-
-        // Comments stolen from SF (since I was the original author of this anyways):
-        // What we want to do is multiply inputs in a pairwise manner (after clipping), and then shift right by FT_SHIFT. Instead, we
-        // shift left by (16 - FT_SHIFT), and use mulhi, stripping the bottom 16 bits, effectively shifting right by 16, resulting in a net shift
-        // of FT_SHIFT bits. We use mulhi because it maintains the sign of the multiplication (unlike mullo), allowing us to make use
-        // of packus to clip 2 of the inputs, resulting in a save of 2 "vec_max_epi16" calls.
-        const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(input0a, Zero), One);
-        const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(input0b, Zero), One);
-        const vepi16 clipped1a = vec_min_epi16(input1a, One);
-        const vepi16 clipped1b = vec_min_epi16(input1b, One);
-
-        const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
-        const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
-
-        const vepi8 product = vec_packus_epi16(producta, productb);
-        vec_store_epi(reinterpret_cast<vepi8 *>(&output[i]), product);
-        const v128i LookupIncr = vec128_set1_epi16(8);
-        // store all non zero indices to transform L1 sparsely
-        // start ny creating a mask masking all the non 0 elements in our product vector (actually 4 8bit elements
-        // creating a 32 bit element at a time, which will be non 0 if at least 1 8 bit element is.
-        const uint16_t nnzMask = vec_nnz_mask(product);
-        // check number of elements inside the actual register / 8 since we are working on a per bit basis
-        for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
-            // 0-255 mask index for the table
-            uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
-            // look up from a precaculated table how many bits are set to 1 and what the indexes are
-            NNZEntry nnzEntry = nnzTable.table[maskSlice];
-            // get ready to store in in nnzIndices by getting the appropriate pointer to it
-            v128i* nnzStore   = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
-            // add entry indices to our non-zero indices list
-            const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
-            // add base address to indexes and store them
-            vec128_storeu_epi16(nnzStore, vec128_add_epi16(baseVec, indices));
-
-            // increment count of total non 0 elements
-            nnzCount += nnzEntry.count;
-            // update base value for the next cycle iteration
-            baseVec = vec128_add_epi16(baseVec, LookupIncr);
-        }
-    }
-    vec128_storeu_epi16(reinterpret_cast<v128i*>(base), baseVec);
-#else
     for (int i = 0; i < L1_SIZE / 2; ++i) {
         int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
         int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
         output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
+#endif
+
+#ifdef NNZ_PROFILE
+    recordNnzProfile(output);
 #endif
 }
 
