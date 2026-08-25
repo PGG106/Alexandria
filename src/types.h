@@ -1,11 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#define TUNE
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
 #define NAME "Alexandria-9.0.13"
-#define TUNE
+
 
 inline int reductions[2][64][64];
 inline int lmp_margin[64][2];
