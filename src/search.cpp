@@ -397,7 +397,8 @@ int AspirationWindowSearch(int prev_eval, int depth, ThreadData* td) {
 }
 
 int futilityMargin(const int depth, const bool improving, const bool canIIR){
-    return rfpDepthMargin() * depth - rfpImprovingMargin() * improving - rfpIIRMargin() * canIIR;
+    return std::max(rfpDepthMargin() * depth - rfpImprovingMargin() * improving - rfpIIRMargin() * canIIR,
+                    rfpMinMargin());
 }
 
 // Negamax alpha beta search
@@ -528,7 +529,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Use static evaluation difference to improve quiet move ordering (~6 Elo)
     if (!inCheck && (ss - 1)->staticEval != SCORE_NONE && isQuiet((ss - 1)->move))
     {
-        int bonus = std::clamp(-10 * int((ss - 1)->staticEval + ss->staticEval), -1830, 1427) + 624;
+        int bonus = std::clamp(evalHistSlope() * int((ss - 1)->staticEval + ss->staticEval),
+                       evalHistMin(), evalHistMax()) + evalHistOffset();
         Move move = (ss - 1)->move;
         updateOppHHScore(pos, sd, move, bonus);
     }
@@ -563,7 +565,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
 
         // Reverse futility pruning
-        if (   depth < 10
+        if (   depth <= rfpMaxDepth()
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, badNode) >= beta)
@@ -750,7 +752,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 && (ttBound & HFLOWER)
                 && !isDecisive(ttScore)
                 &&  ttDepth >= depth - 3) {
-                const int singularBeta = ttScore - depth * 5 / 8 - depth * (ttPv && !pvNode);
+                const int singularBeta = ttScore - depth * singularBetaNumerator() / singularBetaDenominator()
+                                         - depth * singularBetaPvPenalty() * (ttPv && !pvNode);
                 const int singularDepth = (depth - 1) / 2;
 
                 ss->excludedMove = ttMove;
@@ -761,8 +764,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                     extension = 1;
 
                     if (   !pvNode
-                        &&  singularScore < singularBeta - 10) {
-                        extension = 2 + (singularScore < singularBeta - 75);
+                        &&  singularScore < singularBeta - singularDoubleExtensionMargin()) {
+                        extension = 2 + (singularScore < singularBeta - singularTripleExtensionMargin());
                         depth += depth < 10;
                     }
                 }
@@ -853,7 +856,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Based on the value returned by our reduced search see if we should search deeper or shallower,
                 // this is an exact yoink of what SF does and frankly i don't care lmao
                 const bool doDeeperSearch = score > (bestScore + doDeeperBaseMargin() + 2 * newDepth);
-                const bool doShallowerSearch = score < (bestScore + newDepth);
+                const bool doShallowerSearch = score < (bestScore + newDepth + doShallowerBaseMargin());
                 newDepth += doDeeperSearch - doShallowerSearch;
                 if (newDepth > reducedDepth)
                     score = -Negamax<false>(-alpha - 1, -alpha, newDepth, !cutNode, td, ss + 1);
