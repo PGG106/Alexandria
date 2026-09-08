@@ -565,7 +565,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
 
         // Reverse futility pruning
-        if (   depth <= rfpMaxDepth()
+        if (   depth <= 9
             && !isDecisive(eval)
             && (ttMove == NOMOVE || isTactical(ttMove))
             && eval - futilityMargin(depth, improving, badNode) >= beta)
@@ -752,7 +752,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 && (ttBound & HFLOWER)
                 && !isDecisive(ttScore)
                 &&  ttDepth >= depth - 3) {
-                const int singularBeta = ttScore - depth * singularBetaNumerator() / singularBetaDenominator()
+                const int singularBeta = ttScore - depth * 5 / 8
                                          - depth * (ttPv && !pvNode);
                 const int singularDepth = (depth - 1) / 2;
 
