@@ -155,8 +155,6 @@ TUNE_PARAM(historyNoisyLmrDivisor, 5924, 1, 16383, 100, 0.002)
 TUNE_PARAM(doDeeperBaseMargin, 70, 1, 200, 20, 0.002)
 TUNE_PARAM(doShallowerBaseMargin, -1, -100, 100, 8, 0.002)
 TUNE_PARAM(hindsightEval, 150, 50, 300, 10, 0.002)
-TUNE_PARAM(singularDoubleExtensionMargin, 8, 0, 100, 4, 0.002)
-TUNE_PARAM(singularTripleExtensionMargin, 76, 0, 200, 8, 0.002)
 TUNE_PARAM(qsBaseFutility, 273, -500, 500, 25, 0.002)
 TUNE_PARAM(qsSEEmargin, -46, -150, 1, 10, 0.002)
 // HH
