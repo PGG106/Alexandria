@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <string>
 // include the tune stuff here to give it global visibility
-#define TUNE
 #include "tune.h"
 
 #define NAME "Alexandria-9.0.14"
