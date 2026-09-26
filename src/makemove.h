@@ -4,6 +4,8 @@
 
 struct Position;
 
+struct DirtyPieces;
+
 void ClearPiece(const int piece, const int from, Position* pos);
 
 void AddPiece(const int piece, const int to, Position* pos);
