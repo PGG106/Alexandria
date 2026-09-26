@@ -134,6 +134,14 @@ void NNUE::init() {
     net = reinterpret_cast<const Network *>(gEVALData);
 }
 
+void NNUE::AccumulatorStack::reset(Position* pos) {
+    head = 0;
+    Accumulator& root = entries[0];
+    root.updated = {false, false};
+    root.kings = {KingSQ(pos, WHITE), KingSQ(pos, BLACK)};
+}
+
+
 // does FT activate for one pov at a time
 void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint16_t *base,
                              uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {

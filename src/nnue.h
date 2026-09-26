@@ -11,6 +11,29 @@
 #include "types.h"
 
 struct Position;
+
+struct SquarePiece {
+    Square square = no_sq;
+    uint8_t piece = EMPTY;
+};
+
+struct DirtyPieces {
+    std::array<SquarePiece, 2> removed{};
+    std::array<SquarePiece, 2> added{};
+    uint8_t removedCount = 0;
+    uint8_t addedCount = 0;
+
+    void remove(const Square square, const int piece) {
+        assert(removedCount < removed.size());
+        removed[removedCount++] = {square, static_cast<uint8_t>(piece)};
+    }
+
+    void add(const Square square, const int piece) {
+        assert(addedCount < added.size());
+        added[addedCount++] = {square, static_cast<uint8_t>(piece)};
+    }
+};
+
 // Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr bool MERGE_KING_PLANES = false;
 constexpr bool DUAL_ACTIVATION = true;
@@ -99,6 +122,36 @@ extern const Network* net;
 struct NNUE {
 
     using PovAccumulator = std::array<int16_t, L1_SIZE>;
+
+    struct alignas(64) Accumulator {
+        std::array<PovAccumulator, 2> colors;
+        std::array<bool, 2> updated{};
+        std::array<Square, 2> kings{no_sq, no_sq};
+        DirtyPieces dirtyPieces{};
+    };
+
+    struct AccumulatorStack {
+        std::array<Accumulator, MAXPLY + 1> entries;
+        int head = 0;
+
+        void reset(Position* pos);
+
+        Accumulator& push() {
+            assert(head < MAXPLY);
+            Accumulator& accumulator = entries[++head];
+            accumulator.updated = {false, false};
+            return accumulator;
+        }
+
+        void pop() {
+            assert(head > 0);
+            --head;
+        }
+
+        Accumulator& current() {
+            return entries[head];
+        }
+    };
 
     struct alignas(64) FinnyTableEntry {
         NNUE::PovAccumulator accumCache;
