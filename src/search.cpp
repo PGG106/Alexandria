@@ -95,6 +95,7 @@ void ClearForSearch(ThreadData* td) {
     info->starttime = GetTimeMs();
     info->nodes = 0;
     info->seldepth = 0;
+    td->accumulatorStack.reset(&td->pos);
 
     // Main thread clears pvTable, nodeSpentTable, and unpauses any eventual search thread
     if (td->id == 0) {
@@ -106,6 +107,26 @@ void ClearForSearch(ThreadData* td) {
         for (auto& helper_thread : threads_data)
             helper_thread.info.stopped = false;
     }
+}
+
+static void PlayMove(const Move move, ThreadData* td) {
+    NNUE::Accumulator& accumulator = td->accumulatorStack.push();
+    MakeMove<true>(move, &td->pos, td->keyHistory, &accumulator.dirtyPieces);
+    accumulator.kings = {KingSQ(&td->pos, WHITE), KingSQ(&td->pos, BLACK)};
+}
+
+static void TakeMove(ThreadData* td) {
+    UnmakeMove(&td->pos, td->keyHistory);
+    td->accumulatorStack.pop();
+}
+
+// Pieces don't move, so the current accumulator stays valid for the child.
+static void PlayNull(ThreadData* td) {
+    MakeNullMove(&td->pos, td->keyHistory);
+}
+
+static void TakeNull(ThreadData* td) {
+    TakeNullMove(&td->pos, td->keyHistory);
 }
 
 // returns a bitboard of all the attacks to a specific square
@@ -586,12 +607,12 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             ss->contHistEntry = &sd->contHist[PieceTo(NOMOVE)];
 
             TTPrefetch(keyAfter(pos, NOMOVE));
-            MakeNullMove(pos, td->keyHistory);
+            PlayNull(td);
 
             // Search moves at a reduced depth to find beta cutoffs.
             int nmpScore = -Negamax<false>(-beta, -beta + 1, depth - R - badNode, !cutNode, td, ss + 1);
 
-            TakeNullMove(pos, td->keyHistory);
+            TakeNull(td);
 
             // fail-soft beta cutoff
             if (nmpScore >= beta) {
@@ -650,7 +671,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             info->nodes++;
 
             // Play the move
-            MakeMove<true>(move, pos, td->keyHistory);
+            PlayMove(move, td);
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
             if (pcScore >= pcBeta)
@@ -658,7 +679,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                                           !cutNode, td, ss + 1);
 
             // Take move back
-            UnmakeMove(pos, td->keyHistory);
+            TakeMove(td);
 
             if (pcScore >= pcBeta) {
                 StoreTTEntry(pos->getPoskey(), MoveToTT(move),
@@ -787,7 +808,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         ss->move = move;
         // Play the move
-        MakeMove<true>(move, pos, td->keyHistory);
+        PlayMove(move, td);
         ss->contHistEntry = &sd->contHist[PieceTo(move)];
 
         // increment nodes count
@@ -876,7 +897,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             score = -Negamax<true>(-beta, -alpha, newDepth, false, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos, td->keyHistory);
+        TakeMove(td);
         if (mainT && rootNode)
             nodeSpentTable[FromTo(move)] += info->nodes - nodesBeforeSearch;
 
@@ -1070,14 +1091,14 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         TTPrefetch(keyAfter(pos, move));
         ss->move = move;
         // Play the move
-        MakeMove<true>(move, pos, td->keyHistory);
+        PlayMove(move, td);
         // increment nodes count
         info->nodes++;
         // Call Quiescence search recursively
         const int score = -Quiescence<pvNode>(-beta, -alpha, depth - 1, td, ss + 1);
 
         // take move back
-        UnmakeMove(pos, td->keyHistory);
+        TakeMove(td);
 
         if (info->stopped)
             return 0;
