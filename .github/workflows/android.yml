@@ -3,8 +3,10 @@ name: Android build
 on:
   workflow_dispatch:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+  release:
+    types: [published]
 
 permissions:
   contents: write
@@ -81,16 +83,29 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: alexandria-${{ env.VERSION }}-android-binaries
+          retention-days: 30
           path: |
             Alexandria-${{ env.VERSION }}-android-arm64-v8a
             Alexandria-${{ env.VERSION }}-android-arm64-dotprod
 
-      - name: Create prerelease
+      - name: Publish prerelease (master push)
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}-android
           name: Alexandria ${{ env.VERSION }} (Android)
           prerelease: true
+          files: |
+            Alexandria-${{ env.VERSION }}-android-arm64-v8a
+            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach binaries to manual release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
           files: |
             Alexandria-${{ env.VERSION }}-android-arm64-v8a
             Alexandria-${{ env.VERSION }}-android-arm64-dotprod
