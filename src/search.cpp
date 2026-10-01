@@ -482,7 +482,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
         // If we reached maxdepth we return a static evaluation of the position
         if (ss->ply >= MAXDEPTH - 1)
-            return inCheck ? 0 : EvalPosition(pos, &td->FTable);
+            return inCheck ? 0 : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
     }
 
     // recursion escape condition
@@ -529,7 +529,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // get an evaluation of the position:
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-        rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable);
+        rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
         auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
 
@@ -540,7 +540,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     }
     else {
         // If we don't have anything in the TT we have to call evalposition
-        rawEval = EvalPosition(pos, &td->FTable);
+        rawEval = EvalPosition(pos, &td->FTable, &td->accumulatorStack);
         auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
         // Save the eval into the TT
@@ -994,7 +994,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
 
     // If we reached maxdepth we return a static evaluation of the position
     if (ss->ply >= MAXDEPTH - 1)
-        return inCheck ? 0 : EvalPosition(pos,&td->FTable);
+        return inCheck ? 0 : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
 
     // Upcoming repetition detection
     if (alpha < 0 && hasGameCycle(pos, td->keyHistory, ss->ply))
@@ -1028,7 +1028,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         // If we have a ttHit with a valid eval use that
         if (ttHit) {
             // If the value in the TT is valid we use that, otherwise we call the static evaluation function
-            rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable);
+            rawEval = tte.eval != SCORE_NONE ? tte.eval : EvalPosition(pos, &td->FTable, &td->accumulatorStack);
             auto correction = GetCorrHistAdjustment(pos, sd, ss);
             bestScore = ss->staticEval = adjustEval(pos,correction,  rawEval);
 
@@ -1039,7 +1039,7 @@ int Quiescence(int alpha, int beta, int depth, ThreadData* td, SearchStack* ss) 
         }
             // If we don't have any useful info in the TT just call Evalpos
         else {
-            rawEval = EvalPosition(pos, &td->FTable);
+            rawEval = EvalPosition(pos, &td->FTable, &td->accumulatorStack);
             auto correction = GetCorrHistAdjustment(pos, sd, ss);
             bestScore = ss->staticEval = adjustEval(pos,correction,  rawEval);
             StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, false, ttPv);

@@ -141,14 +141,130 @@ void NNUE::AccumulatorStack::reset(Position* pos) {
     root.kings = {KingSQ(pos, WHITE), KingSQ(pos, BLACK)};
 }
 
+using KingView = uint8_t;
+
+static KingView GetKingView(const Square kingSquare, const int side) {
+    return static_cast<KingView>(getBucket(kingSquare, side) << 1 | (get_file[kingSquare] > 3));
+}
+
+template <uint8_t RemovedCount, uint8_t AddedCount>
+static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const KingView kingView,
+                             const NNUE::PovAccumulator& input, NNUE::PovAccumulator& output) {
+    const int kingBucket = kingView >> 1;
+    const bool flip = kingView & 1;
+    const int16_t* removedWeights[RemovedCount];
+    const int16_t* addedWeights[AddedCount];
+
+    for (uint8_t index = 0; index < RemovedCount; ++index) {
+        const SquarePiece& removed = dirtyPieces.removed[index];
+        removedWeights[index] = &net->FTWeights[NNUE::getIndex(removed.piece, removed.square, side, kingBucket, flip)];
+    }
+    for (uint8_t index = 0; index < AddedCount; ++index) {
+        const SquarePiece& added = dirtyPieces.added[index];
+        addedWeights[index] = &net->FTWeights[NNUE::getIndex(added.piece, added.square, side, kingBucket, flip)];
+    }
+
+#if defined(USE_SIMD)
+    for (int lane = 0; lane < L1_SIZE; lane += FT_CHUNK_SIZE) {
+        vepi16 result = vec_load_epi(reinterpret_cast<const vepi16*>(&input[lane]));
+        for (uint8_t index = 0; index < RemovedCount; ++index)
+            result = vec_sub_epi16(result, vec_load_epi(reinterpret_cast<const vepi16*>(&removedWeights[index][lane])));
+        for (uint8_t index = 0; index < AddedCount; ++index)
+            result = vec_add_epi16(result, vec_load_epi(reinterpret_cast<const vepi16*>(&addedWeights[index][lane])));
+        vec_store_epi(reinterpret_cast<vepi16*>(&output[lane]), result);
+    }
+#else
+    for (int lane = 0; lane < L1_SIZE; ++lane) {
+        int16_t result = input[lane];
+        for (uint8_t index = 0; index < RemovedCount; ++index)
+            result -= removedWeights[index][lane];
+        for (uint8_t index = 0; index < AddedCount; ++index)
+            result += addedWeights[index][lane];
+        output[lane] = result;
+    }
+#endif
+}
+
+static void ApplyDirtyPieces(const DirtyPieces& dirtyPieces, const int side, const KingView kingView,
+                             const NNUE::PovAccumulator& input, NNUE::PovAccumulator& output) {
+    if (dirtyPieces.removedCount == 1 && dirtyPieces.addedCount == 1)
+        ApplyDirtyPieces<1, 1>(dirtyPieces, side, kingView, input, output);
+    else if (dirtyPieces.removedCount == 2 && dirtyPieces.addedCount == 1)
+        ApplyDirtyPieces<2, 1>(dirtyPieces, side, kingView, input, output);
+    else {
+        assert(dirtyPieces.removedCount == 2 && dirtyPieces.addedCount == 2);
+        ApplyDirtyPieces<2, 2>(dirtyPieces, side, kingView, input, output);
+    }
+}
+
+static void RefreshAccumulator(Position* pos, NNUE::FinnyTable* finnyTable, NNUE::Accumulator& accumulator,
+                               const int side, const KingView kingView) {
+    const int kingBucket = kingView >> 1;
+    const bool flip = kingView & 1;
+    NNUE::FinnyTableEntry& cachedEntry = (*finnyTable)[side][kingBucket][flip];
+    size_t add[32], remove[32];
+    size_t addCount = 0, removeCount = 0;
+
+    for (int piece = WP; piece <= BK; ++piece) {
+        Bitboard added = pos->state().bitboards[piece] & ~cachedEntry.occupancies[piece];
+        Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state().bitboards[piece];
+        while (added)
+            add[addCount++] = NNUE::getIndex(piece, popLsb(added), side, kingBucket, flip);
+        while (removed)
+            remove[removeCount++] = NNUE::getIndex(piece, popLsb(removed), side, kingBucket, flip);
+        cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
+    }
+
+    const size_t pairedCount = std::min(addCount, removeCount);
+    for (size_t index = 0; index < pairedCount; ++index)
+        for (int lane = 0; lane < L1_SIZE; ++lane)
+            cachedEntry.accumCache[lane] += net->FTWeights[add[index] + lane] - net->FTWeights[remove[index] + lane];
+    for (size_t index = pairedCount; index < addCount; ++index)
+        for (int lane = 0; lane < L1_SIZE; ++lane)
+            cachedEntry.accumCache[lane] += net->FTWeights[add[index] + lane];
+    for (size_t index = pairedCount; index < removeCount; ++index)
+        for (int lane = 0; lane < L1_SIZE; ++lane)
+            cachedEntry.accumCache[lane] -= net->FTWeights[remove[index] + lane];
+
+    accumulator.colors[side] = cachedEntry.accumCache;
+    accumulator.updated[side] = true;
+}
+
+static void ResolveAccumulator(Position* pos, NNUE::FinnyTable* finnyTable,
+                               NNUE::AccumulatorStack* accumulatorStack, const int side) {
+    NNUE::Accumulator* const root = accumulatorStack->entries.data();
+    NNUE::Accumulator* const target = &accumulatorStack->current();
+    if (target->updated[side])
+        return;
+
+    const KingView kingView = GetKingView(target->kings[side], side);
+    NNUE::Accumulator* source = target;
+    while (source > root) {
+        NNUE::Accumulator* const parent = source - 1;
+        if (GetKingView(parent->kings[side], side) != kingView)
+            break;
+        source = parent;
+        if (source->updated[side]) {
+            while (source < target) {
+                NNUE::Accumulator* const child = source + 1;
+                ApplyDirtyPieces(child->dirtyPieces, side, kingView, source->colors[side], child->colors[side]);
+                child->updated[side] = true;
+                source = child;
+            }
+            return;
+        }
+    }
+    RefreshAccumulator(pos, finnyTable, *target, side, kingView);
+}
+
 
 // does FT activate for one pov at a time
-void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint16_t *base,
+[[maybe_unused]] static void LegacyPovActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint16_t *base,
                              uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
     const int kingSq = KingSQ(pos, side);
     const bool flip = get_file[kingSq] > 3;
     const int kingBucket = getBucket(kingSq, side);
-    FinnyTableEntry &cachedEntry = (*FinnyPointer)[side][kingBucket][flip];
+    NNUE::FinnyTableEntry &cachedEntry = (*FinnyPointer)[side][kingBucket][flip];
 
     size_t add[32], remove[32]; // Max add or remove is 32 unless illegal position
     size_t addCnt = 0, removeCnt = 0;
@@ -158,12 +274,12 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state().bitboards[piece];
         while (added) {
             int square = popLsb(added);
-            add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
+            add[addCnt++] = NNUE::getIndex(piece, square, side, kingBucket, flip);
         }
 
         while (removed) {
             int square = popLsb(removed);
-            remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
+            remove[removeCnt++] = NNUE::getIndex(piece, square, side, kingBucket, flip);
         }
 
         cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
@@ -316,6 +432,21 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 #endif
 }
 
+void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, NNUE::AccumulatorStack* accumulatorStack,
+                             const int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
+    ResolveAccumulator(pos, FinnyPointer, accumulatorStack, side);
+    const Square kingSquare = accumulatorStack->current().kings[side];
+    const int kingBucket = getBucket(kingSquare, side);
+    const bool flip = get_file[kingSquare] > 3;
+    NNUE::FinnyTableEntry& cache = (*FinnyPointer)[side][kingBucket][flip];
+    cache.accumCache = accumulatorStack->current().colors[side];
+    for (int piece = WP; piece <= BK; ++piece)
+        cache.occupancies[piece] = pos->state().bitboards[piece];
+
+    LegacyPovActivateAffine(pos, FinnyPointer, side, base, nnzIndices, nnzCount, output);
+    return;
+}
+
 void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int nnzCount, const int8_t *weights, const float *biases, float *output) {
 #if defined(USE_SIMD)
     vepi32 sums[L2_SIZE / L2_CHUNK_SIZE] = {};
@@ -455,13 +586,15 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
 #endif
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, NNUE::AccumulatorStack* accumulatorStack,
+                          [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
                           [[maybe_unused]] int &nnzCount, uint8_t *output) {
-    povActivateAffine(pos, FinnyPointer, pos->side, base, nnzIndices, nnzCount, output);
-    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
+    povActivateAffine(pos, FinnyPointer, accumulatorStack, pos->side, base, nnzIndices, nnzCount, output);
+    povActivateAffine(pos, FinnyPointer, accumulatorStack, pos->side ^ 1, base, nnzIndices, nnzCount,
+                      &output[L1_SIZE / 2]);
 }
 
-int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
+int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer, NNUE::AccumulatorStack* accumulatorStack) {
     int nnzCount = 0;
     uint16_t base[8] = {}; // replaces v128i base
     alignas (64) uint16_t nnzIndices[L1_SIZE / L1_CHUNK_PER_32];
@@ -474,7 +607,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     float L3Output;
 
     // does FT activation for both accumulators
-    activateAffine(pos, FinnyPointer, base, nnzIndices, nnzCount, FTOutputs);
+    activateAffine(pos, FinnyPointer, accumulatorStack, base, nnzIndices, nnzCount, FTOutputs);
 
     propagateL1(FTOutputs, nnzIndices, nnzCount, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 
