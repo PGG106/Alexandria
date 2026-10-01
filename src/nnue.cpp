@@ -432,19 +432,66 @@ static void ResolveAccumulator(Position* pos, NNUE::FinnyTable* finnyTable,
 #endif
 }
 
+static void ActivateAccumulator(const NNUE::PovAccumulator& accumCache, uint16_t *base,
+                                uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
+#if defined(USE_SIMD)
+    constexpr int NUM_REGI = 8;
+    static_assert(NUM_REGI % 2 == 0 && (L1_SIZE / 2) % (NUM_REGI * FT_CHUNK_SIZE) == 0);
+
+    const vepi16 Zero = vec_zero_epi16();
+    const vepi16 One = vec_set1_epi16(FT_QUANT);
+    const v128i LookupIncr = vec128_set1_epi16(8);
+    v128i baseVec = vec128_loadu_epi16(reinterpret_cast<const v128i*>(base));
+
+    for (int b = 0; b < L1_SIZE / 2; b += NUM_REGI * FT_CHUNK_SIZE) {
+        const vepi16 *accPtr0 = reinterpret_cast<const vepi16 *>(&accumCache[b]);
+        const vepi16 *accPtr1 = reinterpret_cast<const vepi16 *>(&accumCache[b + L1_SIZE / 2]);
+        vepi16 acc0[NUM_REGI], acc1[NUM_REGI];
+        for (int j = 0; j < NUM_REGI; ++j) {
+            acc0[j] = accPtr0[j];
+            acc1[j] = accPtr1[j];
+        }
+
+        for (int i = 0; i < NUM_REGI; i += 2) {
+            const vepi16 clipped0a = vec_min_epi16(vec_max_epi16(acc0[i], Zero), One);
+            const vepi16 clipped0b = vec_min_epi16(vec_max_epi16(acc0[i + 1], Zero), One);
+            const vepi16 clipped1a = vec_min_epi16(acc1[i], One);
+            const vepi16 clipped1b = vec_min_epi16(acc1[i + 1], One);
+            const vepi16 producta = vec_mulhi_epi16(vec_slli_epi16(clipped0a, 16 - FT_SHIFT), clipped1a);
+            const vepi16 productb = vec_mulhi_epi16(vec_slli_epi16(clipped0b, 16 - FT_SHIFT), clipped1b);
+            const vepi8 product = vec_packus_epi16(producta, productb);
+            vec_store_epi(reinterpret_cast<vepi8 *>(&output[b + i * FT_CHUNK_SIZE]), product);
+
+            const uint16_t nnzMask = vec_nnz_mask(product);
+            for (int lookup = 0; lookup < int(sizeof(vepi32) / sizeof(uint32_t)) / 8; ++lookup) {
+                const uint8_t maskSlice = (nnzMask >> (8 * lookup)) & 0xFF;
+                const NNZEntry nnzEntry = nnzTable.table[maskSlice];
+                v128i* nnzStore = reinterpret_cast<v128i*>(&nnzIndices[nnzCount]);
+                const v128i indices = vec128_loadu_epi16(reinterpret_cast<const v128i*>(nnzEntry.indices));
+                vec128_storeu_epi16(nnzStore, vec128_add_epi16(baseVec, indices));
+                nnzCount += nnzEntry.count;
+                baseVec = vec128_add_epi16(baseVec, LookupIncr);
+            }
+        }
+    }
+    vec128_storeu_epi16(reinterpret_cast<v128i*>(base), baseVec);
+#else
+    for (int i = 0; i < L1_SIZE / 2; ++i) {
+        const int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
+        const int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
+        output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
+    }
+#endif
+
+#ifdef NNZ_PROFILE
+    recordNnzProfile(output);
+#endif
+}
+
 void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, NNUE::AccumulatorStack* accumulatorStack,
                              const int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output) {
     ResolveAccumulator(pos, FinnyPointer, accumulatorStack, side);
-    const Square kingSquare = accumulatorStack->current().kings[side];
-    const int kingBucket = getBucket(kingSquare, side);
-    const bool flip = get_file[kingSquare] > 3;
-    NNUE::FinnyTableEntry& cache = (*FinnyPointer)[side][kingBucket][flip];
-    cache.accumCache = accumulatorStack->current().colors[side];
-    for (int piece = WP; piece <= BK; ++piece)
-        cache.occupancies[piece] = pos->state().bitboards[piece];
-
-    LegacyPovActivateAffine(pos, FinnyPointer, side, base, nnzIndices, nnzCount, output);
-    return;
+    ActivateAccumulator(accumulatorStack->current().colors[side], base, nnzIndices, nnzCount, output);
 }
 
 void NNUE::propagateL1(const uint8_t *inputs, [[maybe_unused]] uint16_t *nnzIndices, [[maybe_unused]] int nnzCount, const int8_t *weights, const float *biases, float *output) {
