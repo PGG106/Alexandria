@@ -28,8 +28,6 @@ constexpr int FT_SHIFT  = 10;
 constexpr int NET_SCALE = 362;
 
 constexpr float L1_MUL  = float(1 << FT_SHIFT) / float(FT_QUANT * FT_QUANT * L1_QUANT);
-constexpr float WEIGHT_CLIPPING = 1.98f;
-static_assert(std::round(L1_QUANT * WEIGHT_CLIPPING) * (FT_QUANT * FT_QUANT >> FT_SHIFT) * 4 <= 32767);
 
 #if defined(USE_SIMD)
 constexpr int FT_CHUNK_SIZE = sizeof(vepi16) / sizeof(int16_t);
@@ -59,18 +57,6 @@ constexpr int buckets[64] = {
 
 using NNUEIndices = std::array<std::size_t, 2>;
 
-struct UnquantisedNetwork {
-    float Factoriser[NUM_INPUTS * L1_SIZE];
-    float FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
-    float FTBiases[L1_SIZE];
-    float L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
-    float L1Biases[OUTPUT_BUCKETS][L2_SIZE];
-    float L2Weights[EFFECTIVE_L2_SIZE][OUTPUT_BUCKETS][L3_SIZE];
-    float L2Biases[OUTPUT_BUCKETS][L3_SIZE];
-    float L3Weights[L3_SIZE][OUTPUT_BUCKETS];
-    float L3Biases[OUTPUT_BUCKETS];
-};
-
 struct QuantisedNetwork {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
     int16_t FTBiases [L1_SIZE];
@@ -81,7 +67,6 @@ struct QuantisedNetwork {
     float   L3Weights[L3_SIZE][OUTPUT_BUCKETS];
     float   L3Biases [OUTPUT_BUCKETS];
 };
-
 
 struct Network {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
