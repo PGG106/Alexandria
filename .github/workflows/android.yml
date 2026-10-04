@@ -1,0 +1,113 @@
+name: Android build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract engine version
+        run: |
+          VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-${GITHUB_SHA::7}")
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Building Alexandria version: ${VERSION}"
+
+      - name: Install Android NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "ANDROID_NDK_HOME=$PWD/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Download network
+        run: |
+          curl -fsSL https://github.com/PGG106/Alexandria-networks/releases/latest/download/nn.net -o nn.net
+
+      - name: Patch Makefile for cross-compile
+        run: |
+          sed -i 's/-march=native -E -dM -/-E -dM -/' makefile
+          git diff --stat makefile
+
+      - name: Patch nnue.h for constexpr round
+        run: |
+          sed -i '/#pragma once/a constexpr double constexpr_round(double x) { return x >= 0.0 ? (double)(long long)(x + 0.5) : (double)(long long)(x - 0.5); }' src/nnue.h
+          sed -i 's/std::round(/constexpr_round(/g' src/nnue.h
+          grep -n constexpr_round src/nnue.h
+
+      - name: Build host preprocess tool
+        run: |
+          cd tools
+          g++ -funroll-loops -O3 -fno-exceptions -std=c++2b -DNDEBUG -o preprocess preprocess.cpp -pthread
+          cd ..
+
+      - name: Preprocess network
+        run: |
+          ./tools/preprocess nn.net processed.net
+
+      - name: Build Alexandria (ARM64 v8-A)
+        run: |
+          make build=arm64 \
+               CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang++ \
+               NATIVE="-march=armv8-a" \
+               CXXFLAGS="-funroll-loops -O3 -fno-exceptions -std=c++2b -DNDEBUG -DEVALFILE=\\\"processed.net\\\" --target=aarch64-linux-android28 -static-libstdc++" \
+               Alexandria
+          mv Alexandria Alexandria-${{ env.VERSION }}-android-arm64-v8a
+
+      - name: Build Alexandria (ARM64 DotProd - Cortex A76+)
+        run: |
+          rm -rf .tmp Alexandria
+          make build=arm64 \
+               CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android28-clang++ \
+               NATIVE="-march=armv8.2-a+dotprod" \
+               CXXFLAGS="-funroll-loops -O3 -fno-exceptions -std=c++2b -DNDEBUG -DEVALFILE=\\\"processed.net\\\" --target=aarch64-linux-android28 -static-libstdc++" \
+               Alexandria
+          mv Alexandria Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+
+      - name: List build output
+        run: |
+          ls -lh Alexandria-${{ env.VERSION }}-android-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alexandria-${{ env.VERSION }}-android-binaries
+          retention-days: 30
+          path: |
+            Alexandria-${{ env.VERSION }}-android-arm64-v8a
+            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+
+      - name: Publish prerelease (master push)
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}-android
+          name: Alexandria ${{ env.VERSION }} (Android)
+          prerelease: true
+          files: |
+            Alexandria-${{ env.VERSION }}-android-arm64-v8a
+            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach binaries to manual release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: |
+            Alexandria-${{ env.VERSION }}-android-arm64-v8a
+            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
