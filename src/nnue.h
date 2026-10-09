@@ -11,12 +11,18 @@
 #include "types.h"
 
 struct Position;
-// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
+// Net arch: (768xINPUT_BUCKETS + THREAT_INPUTS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr bool MERGE_KING_PLANES = false;
 constexpr bool DUAL_ACTIVATION = true;
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
-constexpr int L1_SIZE = 1536;
+// Threat inputs: (attacker, attacker square, attacked square, attacked piece) tuples, split in two halves
+// depending on whether the attacker belongs to the perspective's owner or to the opponent.
+constexpr int THREAT_INPUTS_PER_SIDE = 30072;
+constexpr int THREAT_INPUTS = 2 * THREAT_INPUTS_PER_SIDE;
+// Upper bound on the active threat features per perspective (16 pieces each seeing at most 8 pieces)
+constexpr int MAX_THREAT_FEATURES = 128;
+constexpr int L1_SIZE = 512;
 constexpr int L2_SIZE = 16;
 constexpr int EFFECTIVE_L2_SIZE = 16 * (1 + DUAL_ACTIVATION);
 constexpr int L3_SIZE = 32;
@@ -59,6 +65,7 @@ using NNUEIndices = std::array<std::size_t, 2>;
 
 struct QuantisedNetwork {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t ThreatWeights[THREAT_INPUTS * L1_SIZE];
     int16_t FTBiases [L1_SIZE];
     int8_t  L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
     float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
@@ -70,6 +77,7 @@ struct QuantisedNetwork {
 
 struct Network {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t ThreatWeights[THREAT_INPUTS * L1_SIZE];
     int16_t FTBiases [L1_SIZE];
     int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
     float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
