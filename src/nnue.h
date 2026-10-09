@@ -20,7 +20,7 @@ constexpr int INPUT_BUCKETS = 16;
 // depending on whether the attacker belongs to the perspective's owner or to the opponent.
 constexpr int THREAT_INPUTS_PER_SIDE = 30072;
 constexpr int THREAT_INPUTS = 2 * THREAT_INPUTS_PER_SIDE;
-// Upper bound on the active threat features per perspective (16 pieces each seeing at most 8 pieces)
+// Upper bound on the active threat features per perspective (asspulled)
 constexpr int MAX_THREAT_FEATURES = 128;
 constexpr int L1_SIZE = 512;
 constexpr int L2_SIZE = 16;
