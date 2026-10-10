@@ -379,9 +379,91 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
     }
 }
 
+void NNUE::updateThreatAccumulators(Position *pos)
+{
+    const int head = pos->history.head;
+
+    for (int side = WHITE; side <= BLACK; ++side)
+    {
+        if (pos->threatAccumulators[head].computed[side])
+            continue;
+
+        int ply = head;
+
+        // look for the most recent ply where the threat accumulator for this side was either computed or needs a refresh
+        while (ply > 0
+               && !pos->threatAccumulators[ply].computed[side]
+               && !pos->threatAccumulators[ply].needsRefresh[side])
+            --ply;
+
+        // if we can't work from a previously computed threat accumulator, we need to recompute from scratch
+        if (!pos->threatAccumulators[ply].computed[side])
+        {
+            ThreatAccumulator &accumulator = pos->threatAccumulators[head];
+            const ThreatFeatures threats = getThreatFeatures(pos);
+
+            if (threats.count[side] == 0)
+            {
+                accumulator.values[side].fill(0);
+            }
+            else
+            {
+                size_t offset = size_t(threats.indices[side][0]) * L1_SIZE;
+                for (int j = 0; j < L1_SIZE; ++j)
+                    accumulator.values[side][j] = net->ThreatWeights[offset + j];
+
+                for (int i = 1; i < threats.count[side]; ++i)
+                {
+                    offset = size_t(threats.indices[side][i]) * L1_SIZE;
+                    for (int j = 0; j < L1_SIZE; ++j)
+                        accumulator.values[side][j] += net->ThreatWeights[offset + j];
+                }
+            }
+
+            accumulator.computed[side] = true;
+            continue;
+        }
+
+        const bool flip = get_file[KingSQ(pos, side)] > 3;
+        // apply incremental updates to the threat accumulator for this side
+        for (++ply; ply <= head; ++ply)
+        {
+            const ThreatAccumulator &parent = pos->threatAccumulators[ply - 1];
+            ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
+            accumulator.values[side] = parent.values[side];
+
+            for (int i = 0; i < accumulator.addedCount; ++i)
+            {
+                const ThreatDelta &delta = accumulator.added[i];
+                const int index = getThreatIndex(delta.attacker, delta.victim, delta.from, delta.to, side, flip);
+                if (index >= 0)
+                {
+                    const size_t offset = size_t(index) * L1_SIZE;
+                    for (int j = 0; j < L1_SIZE; ++j)
+                        accumulator.values[side][j] += net->ThreatWeights[offset + j];
+                }
+            }
+
+            for (int i = 0; i < accumulator.removedCount; ++i)
+            {
+                const ThreatDelta &delta = accumulator.removed[i];
+                const int index = getThreatIndex(delta.attacker, delta.victim, delta.from, delta.to, side, flip);
+                if (index >= 0)
+                {
+                    const size_t offset = size_t(index) * L1_SIZE;
+                    for (int j = 0; j < L1_SIZE; ++j)
+                        accumulator.values[side][j] -= net->ThreatWeights[offset + j];
+                }
+            }
+
+            accumulator.computed[side] = true;
+        }
+    }
+}
+
 // does FT activate for one pov at a time
 void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side,
-                             [[maybe_unused]] const ThreatFeatures &threats, uint16_t *base,
+                             const PovAccumulator &threatValues, uint16_t *base,
                              uint16_t *nnzIndices, int &nnzCount, uint8_t *output)
 {
     const int kingSq = KingSQ(pos, side);
@@ -483,17 +565,12 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             accPtr1[j] = acc1[j];
         }
 
-        // Add threat weights only to the temporary accumulator registers, not the Finny PSQT cache.
-        for (int feature = 0; feature < threats.count[side]; ++feature)
+        const vepi16 *threat0 = reinterpret_cast<const vepi16 *>(&threatValues[b]);
+        const vepi16 *threat1 = reinterpret_cast<const vepi16 *>(&threatValues[b + L1_SIZE / 2]);
+        for (int j = 0; j < NUM_REGI; ++j)
         {
-            const size_t offset = size_t(threats.indices[side][feature]) * L1_SIZE;
-            const vepi16 *weight0 = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[offset + b]);
-            const vepi16 *weight1 = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[offset + b + L1_SIZE / 2]);
-            for (int j = 0; j < NUM_REGI; ++j)
-            {
-                acc0[j] = vec_add_epi16(acc0[j], weight0[j]);
-                acc1[j] = vec_add_epi16(acc1[j], weight1[j]);
-            }
+            acc0[j] = vec_add_epi16(acc0[j], threat0[j]);
+            acc1[j] = vec_add_epi16(acc1[j], threat1[j]);
         }
 
         for (int i = 0; i < NUM_REGI; i += 2)
@@ -576,17 +653,10 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         }
     }
 
-    // add the threat features contribution to the accumulator
     for (int i = 0; i < L1_SIZE / 2; ++i)
     {
-        int32_t value0 = accumCache[i];
-        int32_t value1 = accumCache[i + L1_SIZE / 2];
-        for (int feature = 0; feature < threats.count[side]; ++feature)
-        {
-            const size_t offset = size_t(threats.indices[side][feature]) * L1_SIZE;
-            value0 += net->ThreatWeights[offset + i];
-            value1 += net->ThreatWeights[offset + i + L1_SIZE / 2];
-        }
+        const int32_t value0 = accumCache[i] + threatValues[i];
+        const int32_t value1 = accumCache[i + L1_SIZE / 2] + threatValues[i + L1_SIZE / 2];
 
         const int16_t clipped0 = static_cast<int16_t>(std::clamp<int32_t>(value0, 0, FT_QUANT));
         const int16_t clipped1 = static_cast<int16_t>(std::clamp<int32_t>(value1, 0, FT_QUANT));
@@ -754,12 +824,15 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
 #endif
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const ThreatFeatures &threats,
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer,
+                          const ThreatAccumulator &threatAccumulator,
                           [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
                           [[maybe_unused]] int &nnzCount, uint8_t *output)
 {
-    povActivateAffine(pos, FinnyPointer, pos->side, threats, base, nnzIndices, nnzCount, output);
-    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, threats, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
+    povActivateAffine(pos, FinnyPointer, pos->side, threatAccumulator.values[pos->side],
+                      base, nnzIndices, nnzCount, output);
+    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, threatAccumulator.values[pos->side ^ 1],
+                      base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
 }
 
 int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer)
@@ -775,10 +848,10 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer)
     alignas(64) float L2Outputs[L3_SIZE];
     float L3Output;
 
-    const auto threats = getThreatFeatures(pos);
+    updateThreatAccumulators(pos);
 
     // does FT activation for both accumulators
-    activateAffine(pos, FinnyPointer, threats, base, nnzIndices, nnzCount, FTOutputs);
+    activateAffine(pos, FinnyPointer, pos->threatAccumulator(), base, nnzIndices, nnzCount, FTOutputs);
 
     propagateL1(FTOutputs, nnzIndices, nnzCount, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 

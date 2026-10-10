@@ -126,9 +126,9 @@ struct NNUE {
 
     using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
 
-    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, const ThreatFeatures &threats,
+    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, const ThreatAccumulator &threatAccumulator,
                                uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
-    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, const ThreatFeatures &threats,
+    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, const PovAccumulator &threatValues,
                                   uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
 
     static void propagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
@@ -143,6 +143,7 @@ struct NNUE {
 
     static void recordPieceAddedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
     static void recordPieceRemovedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
+    static void updateThreatAccumulators(Position *pos);
 };
 
 // NNZTable stores all the possible 8-bit combinations, active indices and active indices count
