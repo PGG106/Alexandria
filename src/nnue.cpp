@@ -529,7 +529,7 @@ size_t NNUE::getPsqtIndex(const int piece, const int square, const int side, con
     return idx * L1_SIZE;
 }
 
-size_t NNUE::getThreatIndex(int attacker, int victim, Square from,
+int NNUE::getThreatIndex(int attacker, int victim, Square from,
                         Square to, int perspective, bool flip)
 {
     const int attackerType = PieceType[attacker];

@@ -116,7 +116,7 @@ struct NNUE {
     static int output(Position *pos, FinnyTable* FinnyPointer);
     static void init();
     static size_t getPsqtIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
-    static size_t getThreatIndex(int attacker, int victim, Square from, Square to, int perspective, bool flip);
+    static int getThreatIndex(int attacker, int victim, Square from, Square to, int perspective, bool flip);
     static ThreatFeatures getThreatFeatures(const Position *pos);
 };
 
