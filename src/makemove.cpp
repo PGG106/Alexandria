@@ -213,6 +213,10 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
         pos->history.push(pos->state());
     }
 
+    NNUE::ThreatAccumulator &threatAccumulator = pos->threatAccumulator();
+    threatAccumulator.addedCount = threatAccumulator.removedCount = 0;
+    threatAccumulator.computed[WHITE] = threatAccumulator.computed[BLACK] = false;
+
     // Store position key in the array of searched position
     keyHistory.emplace_back(pos->getPoskey());
 
