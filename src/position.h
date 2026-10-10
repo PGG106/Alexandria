@@ -66,6 +66,7 @@ public:
     bool chess960 = false;
     uint8_t castlingRightsMask[64] = {};
     Bitboard castlingPath[4] = {};
+    NNUE::ThreatAccumulator threatAccumulators[MAXPLY + 1];
 
     [[nodiscard]] inline BoardState& state()  {
        return history.boardStateHistory[history.head];
@@ -152,6 +153,11 @@ public:
     inline void ChangeSide() {
         side ^= 1;
     }
+
+    [[nodiscard]] inline NNUE::ThreatAccumulator& threatAccumulator() {
+        return threatAccumulators[history.head];
+    }
+
 };
 
 extern Bitboard SQUARES_BETWEEN_BB[64][64];
