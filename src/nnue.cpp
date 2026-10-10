@@ -437,11 +437,14 @@ void NNUE::updateThreatAccumulators(Position *pos)
                && !pos->threatAccumulators[ply].needsRefresh[side])
             --ply;
 
-        // if we can't work from a previously computed threat accumulator, we need to recompute from scratch
+        // if we can't work from a previously computed threat accumulator, refresh it from scratch at the ply that
+        // needs it, so every later position in this subtree can update from it instead of refreshing again
         if (!pos->threatAccumulators[ply].computed[side])
         {
-            ThreatAccumulator &accumulator = pos->threatAccumulators[head];
+            ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
+            pos->history.head = ply;
             const ThreatFeatures threats = getThreatFeatures(pos);
+            pos->history.head = head;
 
             if (threats.count[side] == 0)
             {
@@ -462,7 +465,6 @@ void NNUE::updateThreatAccumulators(Position *pos)
             }
 
             accumulator.computed[side] = true;
-            continue;
         }
 
         const bool flip = get_file[KingSQ(pos, side)] > 3;
