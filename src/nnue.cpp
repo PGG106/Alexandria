@@ -123,6 +123,8 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
                 for (int perspective = WHITE; perspective <= BLACK; ++perspective)
                 {
                     const int index = getThreatIndex(piece, victim, from, to, perspective, flip[perspective]);
+                    if (index < 0)
+                        continue;
                     result.indices[perspective][result.count[perspective]++] = index;
                 }
             }
