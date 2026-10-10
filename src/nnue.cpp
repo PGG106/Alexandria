@@ -142,12 +142,12 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         Bitboard removed = cachedEntry.occupancies[piece] & ~pos->state().bitboards[piece];
         while (added) {
             int square = popLsb(added);
-            add[addCnt++] = getIndex(piece, square, side, kingBucket, flip);
+            add[addCnt++] = getPsqtIndex(piece, square, side, kingBucket, flip);
         }
 
         while (removed) {
             int square = popLsb(removed);
-            remove[removeCnt++] = getIndex(piece, square, side, kingBucket, flip);
+            remove[removeCnt++] = getPsqtIndex(piece, square, side, kingBucket, flip);
         }
 
         cachedEntry.occupancies[piece] = pos->state().bitboards[piece];
@@ -469,7 +469,7 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer) {
     return L3Output * NET_SCALE;
 }
 
-size_t NNUE::getIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {
+size_t NNUE::getPsqtIndex(const int piece, const int square, const int side, const int bucket, const bool flip) {
     constexpr std::size_t COLOR_STRIDE = 64 * 6;
     constexpr std::size_t PIECE_STRIDE = 64;
     const int piecetype = GetPieceType(piece);
