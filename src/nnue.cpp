@@ -238,6 +238,19 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
             accPtr1[j] = acc1[j];
         }
 
+        // Add threat weights only to the temporary accumulator registers, not the Finny PSQT cache.
+        for (int feature = 0; feature < threats.count[side]; ++feature)
+        {
+            const size_t offset = size_t(threats.indices[side][feature]) * L1_SIZE;
+            const vepi16 *weight0 = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[offset + b]);
+            const vepi16 *weight1 = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[offset + b + L1_SIZE / 2]);
+            for (int j = 0; j < NUM_REGI; ++j)
+            {
+                acc0[j] = vec_add_epi16(acc0[j], weight0[j]);
+                acc1[j] = vec_add_epi16(acc1[j], weight1[j]);
+            }
+        }
+
         for (int i = 0; i < NUM_REGI; i += 2)
         {
             vepi16 input0a = acc0[i + 0];
