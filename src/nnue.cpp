@@ -135,7 +135,8 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
 }
 
 // does FT activate for one pov at a time
-void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side, uint16_t *base,
+void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side,
+                             [[maybe_unused]] const ThreatFeatures &threats, uint16_t *base,
                              uint16_t *nnzIndices, int &nnzCount, uint8_t *output)
 {
     const int kingSq = KingSQ(pos, side);
@@ -485,11 +486,12 @@ void NNUE::propagateL3(const float *inputs, const float *weights, const float bi
 #endif
 }
 
-void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
+void NNUE::activateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const ThreatFeatures &threats,
+                          [[maybe_unused]] uint16_t *base, [[maybe_unused]] uint16_t *nnzIndices,
                           [[maybe_unused]] int &nnzCount, uint8_t *output)
 {
-    povActivateAffine(pos, FinnyPointer, pos->side, base, nnzIndices, nnzCount, output);
-    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
+    povActivateAffine(pos, FinnyPointer, pos->side, threats, base, nnzIndices, nnzCount, output);
+    povActivateAffine(pos, FinnyPointer, pos->side ^ 1, threats, base, nnzIndices, nnzCount, &output[L1_SIZE / 2]);
 }
 
 int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer)
@@ -505,8 +507,10 @@ int NNUE::output(Position *pos, NNUE::FinnyTable *FinnyPointer)
     alignas(64) float L2Outputs[L3_SIZE];
     float L3Output;
 
+    const auto threats = getThreatFeatures(pos);
+
     // does FT activation for both accumulators
-    activateAffine(pos, FinnyPointer, base, nnzIndices, nnzCount, FTOutputs);
+    activateAffine(pos, FinnyPointer, threats, base, nnzIndices, nnzCount, FTOutputs);
 
     propagateL1(FTOutputs, nnzIndices, nnzCount, net->L1Weights[outputBucket], net->L1Biases[outputBucket], L1Outputs);
 

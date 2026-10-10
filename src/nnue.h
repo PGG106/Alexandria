@@ -106,8 +106,10 @@ struct NNUE {
 
     using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
 
-    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
-    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, const ThreatFeatures &threats,
+                               uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, const ThreatFeatures &threats,
+                                  uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
 
     static void propagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
     static void propagateL2(const float *inputs, const float *weights, const float *biases, float *output);
