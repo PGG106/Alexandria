@@ -111,7 +111,7 @@ struct NNUE {
         int removedCount = 0;
 
         bool computed[2] = {};
-        bool needsRefresh[2] = {true, true};
+        bool needsRefresh[2] = {};
     };
 
     struct alignas(64) FinnyTableEntry {
