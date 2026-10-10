@@ -80,27 +80,68 @@ QuantisedNetwork quantisedNet;
 Network permutedNet;
 
 uint16_t threatPairIndices[5][64][64];
+int32_t threatIndexBases[2][12][12][2];
 
 void NNUE::init()
 {
     net = reinterpret_cast<const Network *>(gEVALData);
 
-    for (int attackerType = KNIGHT; attackerType <= QUEEN; ++attackerType)
+    for (int attackerType = PAWN; attackerType <= QUEEN; ++attackerType)
     {
-        int pairCount = 0;
         for (int square = 0; square < 64; ++square)
-        {
             for (int destination = 0; destination < 64; ++destination)
                 threatPairIndices[attackerType][square][destination] = 0xFFFF;
 
-            Bitboard attacks = pieceAttacks(attackerType, square, 0ULL);
-            while (attacks)
+        int pairCount = 0;
+        for (int square = 0; square < 64; ++square)
+        {
+            if (attackerType == PAWN)
             {
-                const Square destination = popLsb(attacks);
-                threatPairIndices[attackerType][square][destination] = static_cast<uint16_t>(pairCount++);
+                const int rank = square / 8;
+                const int file = square % 8;
+                if (rank == 0 || rank == 7)
+                    continue;
+
+                for (int destination = 0; destination < 64; ++destination)
+                    if (std::abs(destination / 8 - rank) == 1
+                        && std::abs(destination % 8 - file) == 1)
+                        threatPairIndices[attackerType][square][destination] =
+                            static_cast<uint16_t>((rank - 1) * 14 + 2 * file
+                                                  + (destination % 8 > file) - 1);
+            }
+            else
+            {
+                Bitboard attacks = pieceAttacks(attackerType, square, 0ULL);
+                while (attacks)
+                {
+                    const Square destination = popLsb(attacks);
+                    threatPairIndices[attackerType][square][destination] = static_cast<uint16_t>(pairCount++);
+                }
             }
         }
     }
+
+    for (int perspective = WHITE; perspective <= BLACK; ++perspective)
+        for (int attacker = WP; attacker <= BK; ++attacker)
+            for (int victim = WP; victim <= BK; ++victim)
+                for (int destinationAfterSource = 0; destinationAfterSource <= 1; ++destinationAfterSource)
+                {
+                    const int attackerType = PieceType[attacker];
+                    const int targetType = PieceType[victim];
+                    const int map = attackerType == KING ? -1 : TargetMap[attackerType][targetType];
+                    if (map < 0
+                        || (attackerType != PAWN && targetType == attackerType && destinationAfterSource))
+                    {
+                        threatIndexBases[perspective][attacker][victim][destinationAfterSource] = -1;
+                        continue;
+                    }
+
+                    const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
+                    threatIndexBases[perspective][attacker][victim][destinationAfterSource] =
+                        (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE
+                        + ThreatOffset[attackerType]
+                        + targetBlock * ThreatCount[attackerType];
+                }
 }
 
 // get the threat features for the given position
@@ -879,39 +920,13 @@ size_t NNUE::getPsqtIndex(const int piece, const int square, const int side, con
 int NNUE::getThreatIndex(int attacker, int victim, Square from,
                          Square to, int perspective, bool flip)
 {
-    const int attackerType = PieceType[attacker];
-    const int targetType = PieceType[victim];
-    if (attackerType == KING)
-        return -1;
-
-    const int map = TargetMap[attackerType][targetType];
-    if (map < 0)
-        return -1;
-
     const int squareXor = (perspective == WHITE ? 56 : 0) ^ (flip ? 7 : 0);
     const int source = from ^ squareXor;
     const int destination = to ^ squareXor;
+    const int base = threatIndexBases[perspective][attacker][victim][destination > source];
+    if (base < 0)
+        return -1;
 
-    int pairIndex;
-    if (attackerType == PAWN)
-    {
-        pairIndex = (source / 8 - 1) * 14 + 2 * (source % 8) + (destination % 8 > source % 8) - 1;
-    }
-    else
-    {
-        // dedup
-        if (targetType == attackerType && destination > source)
-            return -1;
-
-        const uint16_t precomputedPairIndex = threatPairIndices[attackerType][source][destination];
-        if (precomputedPairIndex == 0xFFFF)
-            return -1;
-        pairIndex = precomputedPairIndex;
-    }
-
-    const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
-    const int index = (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE 
-                    + ThreatOffset[attackerType] 
-                    + targetBlock * ThreatCount[attackerType] + pairIndex;
-    return index;
+    const uint16_t pairIndex = threatPairIndices[PieceType[attacker]][source][destination];
+    return pairIndex == 0xFFFF ? -1 : base + pairIndex;
 }
