@@ -14,6 +14,7 @@
 #include "incbin/incbin.h"
 #include <fstream>
 #include "io.h"
+#include "attack.h"
 
 // Macro to embed the default efficiently updatable neural network (NNUE) file
 // data in the engine binary (using incbin.h, by Dale Weiler).
@@ -79,7 +80,50 @@ void NNUE::init() {
 }
 
 // get the threat features for the given position
-ThreatFeatures NNUE::getThreatFeatures(const Position *pos) {
+ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
+{
+    ThreatFeatures result;
+    const Bitboard occ = pos->Occupancy(BOTH);
+
+    for (int piece = WP; piece <= BK; ++piece)
+    {
+        const int attackerType = PieceType[piece];
+        if (attackerType == KING)
+            continue;
+
+        const int attackerColor = Color[piece];
+        Bitboard attackingPieces = pos->state().bitboards[piece];
+
+        while (attackingPieces)
+        {
+            const Square from = popLsb(attackingPieces);
+            // TODO: Finally create a uniform interface for this mess
+            Bitboard targets = attackerType == PAWN
+                                   ? getPawnAttacks(from, attackerColor)
+                                   : pieceAttacks(attackerType, from, occ);
+
+            targets &= occ;
+            while (targets)
+            {
+                const Square to = popLsb(targets);
+                const int victim = pos->PieceOn(to);
+                const int targetType = PieceType[victim];
+
+                if (TargetMap[attackerType][targetType] < 0)
+                    continue;
+
+                for (int perspective = WHITE; perspective <= BLACK; ++perspective)
+                {
+                    // get threat index
+                    const int index = 0;
+                    assert(result.count[perspective] < MAX_THREAT_FEATURES);
+                    result.indices[perspective][result.count[perspective]++] = index;
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 // does FT activate for one pov at a time
