@@ -15,10 +15,3 @@ struct ThreatFeatures {
     uint16_t indices[2][MAX_THREAT_FEATURES];
     int count[2] = {};
 };
-// one recorded change in the threat list
-struct ThreatDelta {
-    uint8_t attacker;
-    uint8_t from;
-    uint8_t victim;
-    uint8_t to;
-};
