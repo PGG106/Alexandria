@@ -94,6 +94,26 @@ struct NNUE {
 
     using PovAccumulator = std::array<int16_t, L1_SIZE>;
 
+    struct ThreatDelta {
+        uint8_t attacker;
+        uint8_t from;
+        uint8_t victim;
+        uint8_t to;
+    };
+
+    struct alignas(64) ThreatAccumulator {
+        std::array<PovAccumulator, 2> values;
+
+        ThreatDelta added[128];
+        ThreatDelta removed[128];
+
+        int addedCount = 0;
+        int removedCount = 0;
+
+        bool computed[2] = {};
+        bool needsRefresh[2] = {true, true};
+    };
+
     struct alignas(64) FinnyTableEntry {
         NNUE::PovAccumulator accumCache;
         Bitboard occupancies[12] = {};
