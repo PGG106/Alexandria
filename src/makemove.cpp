@@ -216,6 +216,8 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     NNUE::ThreatAccumulator &threatAccumulator = pos->threatAccumulator();
     threatAccumulator.addedCount = threatAccumulator.removedCount = 0;
     threatAccumulator.computed[WHITE] = threatAccumulator.computed[BLACK] = false;
+    if constexpr (UPDATE)
+        threatAccumulator.needsRefresh[WHITE] = threatAccumulator.needsRefresh[BLACK] = false;
 
     // Store position key in the array of searched position
     keyHistory.emplace_back(pos->getPoskey());
@@ -256,6 +258,9 @@ void MakeMove(const Move move, Position* pos, std::vector<ZobristKey>& keyHistor
     // Update pinmasks and checkers
     UpdatePinsAndCheckers(pos);
 
+    if (GetPieceType(Piece(move)) == KING && (get_file[From(move)] > 3) != (get_file[To(move)] > 3))
+        threatAccumulator.needsRefresh[Color[Piece(move)]] = true;
+
     // Make sure a freshly generated zobrist key matches the one we are incrementally updating
     assert(pos->getPoskey() == GeneratePosKey(pos));
     assert(pos->state().pawnKey == GeneratePawnKey(pos));
@@ -270,6 +275,13 @@ void UnmakeMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
 // MakeNullMove handles the playing of a null move (a move that doesn't move any piece)
 void MakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
     pos->history.push(pos->state());
+
+    // A null move changes no piece, so the parent's threat values carry over untouched
+    NNUE::ThreatAccumulator &threatAccumulator = pos->threatAccumulator();
+    threatAccumulator.addedCount = threatAccumulator.removedCount = 0;
+    threatAccumulator.computed[WHITE] = threatAccumulator.computed[BLACK] = false;
+    threatAccumulator.needsRefresh[WHITE] = threatAccumulator.needsRefresh[BLACK] = false;
+
     // Store position key in the array of searched position
     keyHistory.emplace_back(pos->getPoskey());
     resetEpSquare(pos);
