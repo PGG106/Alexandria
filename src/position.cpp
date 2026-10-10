@@ -12,6 +12,13 @@
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
     pos->history.head = 0;
+
+    // The root has no parent to update from, so it always starts out needing a refresh
+    NNUE::ThreatAccumulator &threatAccumulator = pos->threatAccumulator();
+    threatAccumulator.addedCount = threatAccumulator.removedCount = 0;
+    threatAccumulator.computed[WHITE] = threatAccumulator.computed[BLACK] = false;
+    threatAccumulator.needsRefresh[WHITE] = threatAccumulator.needsRefresh[BLACK] = true;
+
     // reset board position (pos->pos->bitboards)
     std::memset(pos->state().bitboards, 0ULL, sizeof(pos->state().bitboards));
 
