@@ -140,6 +140,9 @@ struct NNUE {
     static size_t getPsqtIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
     static int getThreatIndex(int attacker, int victim, Square from, Square to, int perspective, bool flip);
     static ThreatFeatures getThreatFeatures(const Position *pos);
+
+    static void recordPieceAddedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
+    static void recordPieceRemovedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
 };
 
 // NNZTable stores all the possible 8-bit combinations, active indices and active indices count

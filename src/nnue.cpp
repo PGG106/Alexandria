@@ -153,6 +153,232 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
     return result;
 }
 
+void NNUE::recordPieceAddedThreats(const Position *pos, const int piece, const int square,
+                                   ThreatAccumulator &accumulator)
+{
+    const Bitboard *bitboards = pos->state().bitboards;
+    const Bitboard occupancy = pos->Occupancy(BOTH);
+    const int pieceType = PieceType[piece];
+
+    ThreatDelta *created = accumulator.added;
+    int &createdCount = accumulator.addedCount;
+    ThreatDelta *blocked = accumulator.removed;
+    int &blockedCount = accumulator.removedCount;
+
+    // Kings don't generate threats so we can skip them
+    if (pieceType != KING)
+    {
+        // Add all the new threats created by the changed piece.
+        Bitboard attacked = (pieceType == PAWN
+                                 ? getPawnAttacks(square, Color[piece])
+                                 : pieceAttacks(pieceType, square, occupancy))
+                            & occupancy;
+
+        while (attacked)
+        {
+            const int to = popLsb(attacked);
+            created[createdCount++] = {
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+
+        // Non slider threats against the changed piece. (we don't have to care about discovered or blocked threats)
+        Bitboard attackers = (getPawnAttacks(square, BLACK) & bitboards[WP])
+                           | (getPawnAttacks(square, WHITE) & bitboards[BP])
+                           | (getKnightAttacks(square) & (bitboards[WN] | bitboards[BN]));
+
+        while (attackers)
+        {
+            const int from = popLsb(attackers);
+            created[createdCount++] = {
+                static_cast<uint8_t>(pos->PieceOn(from)),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+        }
+    }
+
+    const Bitboard squareBit = 1ULL << square;
+    const Bitboard queens = bitboards[WQ] | bitboards[BQ];
+    const Bitboard bishops = bitboards[WB] | bitboards[BB];
+    const Bitboard rooks = bitboards[WR] | bitboards[BR];
+
+    // Find every bishop or queen that reaches the empty focus square.
+    Bitboard diagonal = getBishopAttacks(square, occupancy)
+                      & (bishops | queens);
+                      
+    while (diagonal)
+    {
+        const int from = popLsb(diagonal);
+        const int slider = pos->PieceOn(from);
+
+        // record the threat from the slider to the added piece
+        if (pieceType != KING)
+            created[createdCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+
+        // figure out what pieces lie behind the piece we added on the same diagonal
+        const Bitboard behind = getBishopAttacks(from, occupancy)
+                              & ~getBishopAttacks(from, occupancy | squareBit)
+                              & occupancy;
+        // those attacks are not blocked by the newly added piece
+        if (behind)
+        {
+            const int to = GetLsbIndex(behind);
+            blocked[blockedCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+    }
+
+    // Repeat the same incoming/blocking calculation for rooks and queens.
+    Bitboard orthogonal = getRookAttacks(square, occupancy)
+                        & (rooks | queens);
+    while (orthogonal)
+    {
+        const int from = popLsb(orthogonal);
+        const int slider = pos->PieceOn(from);
+
+        if (pieceType != KING)
+            created[createdCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+
+        const Bitboard behind = getRookAttacks(from, occupancy)
+                              & ~getRookAttacks(from, occupancy | squareBit)
+                              & occupancy;
+        if (behind)
+        {
+            const int to = GetLsbIndex(behind);
+            blocked[blockedCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+    }
+}
+
+void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const int square,
+                                     ThreatAccumulator &accumulator)
+{
+    const Bitboard *bitboards = pos->state().bitboards;
+    const Bitboard occupancy = pos->Occupancy(BOTH);
+    const int pieceType = PieceType[piece];
+
+    ThreatDelta *destroyed = accumulator.removed;
+    int &destroyedCount = accumulator.removedCount;
+    ThreatDelta *uncovered = accumulator.added;
+    int &uncoveredCount = accumulator.addedCount;
+
+    // Kings don't generate threats so we can skip them.
+    if (pieceType != KING)
+    {
+        // Remove all threats that were made by the removed piece.
+        Bitboard attacked = (pieceType == PAWN
+                                 ? getPawnAttacks(square, Color[piece])
+                                 : pieceAttacks(pieceType, square, occupancy))
+                            & occupancy;
+
+        while (attacked)
+        {
+            const int to = popLsb(attacked);
+            destroyed[destroyedCount++] = {
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+
+        // Remove pawn and knight threats against the removed piece.
+        Bitboard attackers = (getPawnAttacks(square, BLACK) & bitboards[WP])
+                           | (getPawnAttacks(square, WHITE) & bitboards[BP])
+                           | (getKnightAttacks(square) & (bitboards[WN] | bitboards[BN]));
+
+        while (attackers)
+        {
+            const int from = popLsb(attackers);
+            destroyed[destroyedCount++] = {
+                static_cast<uint8_t>(pos->PieceOn(from)),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+        }
+    }
+
+    const Bitboard squareBit = 1ULL << square;
+    const Bitboard queens = bitboards[WQ] | bitboards[BQ];
+
+    // Find every bishop or queen that reached the removed piece.
+    Bitboard diagonal = getBishopAttacks(square, occupancy)
+                      & (bitboards[WB] | bitboards[BB] | queens);
+    while (diagonal)
+    {
+        const int from = popLsb(diagonal);
+        const int slider = pos->PieceOn(from);
+
+        if (pieceType != KING)
+            destroyed[destroyedCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+
+        // Removing the piece uncovers the slider's threat against the occupied
+        // square behind it.
+        const Bitboard behind = getBishopAttacks(from, occupancy)
+                              & ~getBishopAttacks(from, occupancy | squareBit)
+                              & occupancy;
+        if (behind)
+        {
+            const int to = GetLsbIndex(behind);
+            uncovered[uncoveredCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+    }
+
+    // Repeat the same destroyed/uncovered calculation for rooks and queens.
+    Bitboard orthogonal = getRookAttacks(square, occupancy)
+                        & (bitboards[WR] | bitboards[BR] | queens);
+    while (orthogonal)
+    {
+        const int from = popLsb(orthogonal);
+        const int slider = pos->PieceOn(from);
+
+        if (pieceType != KING)
+            destroyed[destroyedCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(piece),
+                static_cast<uint8_t>(square)};
+
+        const Bitboard behind = getRookAttacks(from, occupancy)
+                              & ~getRookAttacks(from, occupancy | squareBit)
+                              & occupancy;
+        if (behind)
+        {
+            const int to = GetLsbIndex(behind);
+            uncovered[uncoveredCount++] = {
+                static_cast<uint8_t>(slider),
+                static_cast<uint8_t>(from),
+                static_cast<uint8_t>(pos->PieceOn(to)),
+                static_cast<uint8_t>(to)};
+        }
+    }
+}
+
 // does FT activate for one pov at a time
 void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, const int side,
                              [[maybe_unused]] const ThreatFeatures &threats, uint16_t *base,
@@ -354,7 +580,7 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
     for (int i = 0; i < L1_SIZE / 2; ++i)
     {
         int32_t value0 = accumCache[i];
-        int32_t value1 = accumCache[i + L1_SIZE / 2]; 
+        int32_t value1 = accumCache[i + L1_SIZE / 2];
         for (int feature = 0; feature < threats.count[side]; ++feature)
         {
             const size_t offset = size_t(threats.indices[side][feature]) * L1_SIZE;
@@ -578,7 +804,7 @@ size_t NNUE::getPsqtIndex(const int piece, const int square, const int side, con
 }
 
 int NNUE::getThreatIndex(int attacker, int victim, Square from,
-                        Square to, int perspective, bool flip)
+                         Square to, int perspective, bool flip)
 {
     const int attackerType = PieceType[attacker];
     const int targetType = PieceType[victim];
@@ -596,8 +822,7 @@ int NNUE::getThreatIndex(int attacker, int victim, Square from,
     int pairIndex;
     if (attackerType == PAWN)
     {
-        pairIndex = (source / 8 - 1) * 14 + 2 * (source % 8)
-                  + (destination % 8 > source % 8) - 1;
+        pairIndex = (source / 8 - 1) * 14 + 2 * (source % 8) + (destination % 8 > source % 8) - 1;
     }
     else
     {
@@ -612,8 +837,8 @@ int NNUE::getThreatIndex(int attacker, int victim, Square from,
     }
 
     const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
-    const int index = (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE
-                    + ThreatOffset[attackerType]
+    const int index = (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE 
+                    + ThreatOffset[attackerType] 
                     + targetBlock * ThreatCount[attackerType] + pairIndex;
     return index;
 }
