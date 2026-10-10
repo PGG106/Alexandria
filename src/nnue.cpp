@@ -123,7 +123,6 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
                 for (int perspective = WHITE; perspective <= BLACK; ++perspective)
                 {
                     const int index = getThreatIndex(piece, victim, from, to, perspective, flip[perspective]);
-                    assert(result.count[perspective] < MAX_THREAT_FEATURES);
                     result.indices[perspective][result.count[perspective]++] = index;
                 }
             }
@@ -531,7 +530,46 @@ size_t NNUE::getPsqtIndex(const int piece, const int square, const int side, con
 }
 
 size_t NNUE::getThreatIndex(int attacker, int victim, Square from,
-                            Square to, int perspective, bool flip)
+                        Square to, int perspective, bool flip)
 {
-    return 0;
+    const int attackerType = PieceType[attacker];
+    const int targetType = PieceType[victim];
+    if (attackerType == KING)
+        return -1;
+
+    const int map = TargetMap[attackerType][targetType];
+    if (map < 0)
+        return -1;
+
+    const int squareXor = (perspective == WHITE ? 56 : 0) ^ (flip ? 7 : 0);
+    const int source = from ^ squareXor;
+    const int destination = to ^ squareXor;
+
+    int pairIndex;
+    if (attackerType == PAWN)
+    {
+        pairIndex = (source / 8 - 1) * 14 + 2 * (source % 8)
+                  + (destination % 8 > source % 8) - 1;
+    }
+    else
+    {
+        // dedup
+        if (targetType == attackerType && destination > source)
+            return -1;
+
+        pairIndex = 0;
+        // account for earlier source squares
+        for (int square = 0; square < source; ++square)
+            pairIndex += CountBits(pieceAttacks(attackerType, square, 0ULL));
+
+        // account for attacks from the current source square
+        const Bitboard attacks = pieceAttacks(attackerType, source, 0ULL);
+        pairIndex += CountBits(attacks & ((1ULL << destination) - 1));
+    }
+
+    const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
+    const int index = (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE
+                    + ThreatOffset[attackerType]
+                    + targetBlock * ThreatCount[attackerType] + pairIndex;
+    return index;
 }
