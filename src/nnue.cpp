@@ -79,10 +79,7 @@ namespace
 QuantisedNetwork quantisedNet;
 Network permutedNet;
 
-// for each attacker type and square, store the threat masks
-Bitboard threatMasks[5][64];
-// for each attacker type and square, store the base index into the threat features
-int threatBase[5][64];
+uint16_t threatPairIndices[5][64][64];
 
 void NNUE::init()
 {
@@ -93,9 +90,15 @@ void NNUE::init()
         int pairCount = 0;
         for (int square = 0; square < 64; ++square)
         {
-            threatMasks[attackerType][square] = pieceAttacks(attackerType, square, 0ULL);
-            threatBase[attackerType][square] = pairCount;
-            pairCount += CountBits(threatMasks[attackerType][square]);
+            for (int destination = 0; destination < 64; ++destination)
+                threatPairIndices[attackerType][square][destination] = 0xFFFF;
+
+            Bitboard attacks = pieceAttacks(attackerType, square, 0ULL);
+            while (attacks)
+            {
+                const Square destination = popLsb(attacks);
+                threatPairIndices[attackerType][square][destination] = static_cast<uint16_t>(pairCount++);
+            }
         }
     }
 }
@@ -602,8 +605,10 @@ int NNUE::getThreatIndex(int attacker, int victim, Square from,
         if (targetType == attackerType && destination > source)
             return -1;
 
-        pairIndex = threatBase[attackerType][source]
-                  + CountBits(threatMasks[attackerType][source] & ((1ULL << destination) - 1));
+        const uint16_t precomputedPairIndex = threatPairIndices[attackerType][source][destination];
+        if (precomputedPairIndex == 0xFFFF)
+            return -1;
+        pairIndex = precomputedPairIndex;
     }
 
     const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
