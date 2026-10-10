@@ -318,10 +318,20 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
         }
     }
 
+    // add the threat features contribution to the accumulator
     for (int i = 0; i < L1_SIZE / 2; ++i)
     {
-        int16_t clipped0 = std::clamp<int16_t>(accumCache[i], 0, FT_QUANT);
-        int16_t clipped1 = std::clamp<int16_t>(accumCache[i + L1_SIZE / 2], 0, FT_QUANT);
+        int32_t value0 = accumCache[i];
+        int32_t value1 = accumCache[i + L1_SIZE / 2]; 
+        for (int feature = 0; feature < threats.count[side]; ++feature)
+        {
+            const size_t offset = size_t(threats.indices[side][feature]) * L1_SIZE;
+            value0 += net->ThreatWeights[offset + i];
+            value1 += net->ThreatWeights[offset + i + L1_SIZE / 2];
+        }
+
+        const int16_t clipped0 = static_cast<int16_t>(std::clamp<int32_t>(value0, 0, FT_QUANT));
+        const int16_t clipped1 = static_cast<int16_t>(std::clamp<int32_t>(value1, 0, FT_QUANT));
         output[i] = static_cast<uint8_t>(clipped0 * clipped1 >> FT_SHIFT);
     }
 #endif
