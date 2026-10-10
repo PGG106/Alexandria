@@ -11,6 +11,7 @@
 #include "types.h"
 
 struct Position;
+struct ThreatFeatures;
 // Net arch: (768xINPUT_BUCKETS + THREAT_INPUTS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr bool MERGE_KING_PLANES = false;
 constexpr bool DUAL_ACTIVATION = true;
@@ -115,6 +116,7 @@ struct NNUE {
     static int output(Position *pos, FinnyTable* FinnyPointer);
     static void init();
     static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
+    static ThreatFeatures getThreatFeatures(const Position *pos);
 };
 
 // NNZTable stores all the possible 8-bit combinations, active indices and active indices count

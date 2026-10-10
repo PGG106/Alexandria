@@ -1,4 +1,5 @@
 #include "nnue.h"
+#include "threats.hpp"
 #include "simd.h"
 #include <algorithm>
 #include "position.h"
@@ -75,6 +76,10 @@ Network permutedNet;
 
 void NNUE::init() {
     net = reinterpret_cast<const Network *>(gEVALData);
+}
+
+// get the threat features for the given position
+ThreatFeatures NNUE::getThreatFeatures(const Position *pos) {
 }
 
 // does FT activate for one pov at a time
