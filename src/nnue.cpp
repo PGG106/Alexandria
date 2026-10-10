@@ -79,9 +79,25 @@ namespace
 QuantisedNetwork quantisedNet;
 Network permutedNet;
 
+// for each attacker type and square, store the threat masks
+Bitboard threatMasks[5][64];
+// for each attacker type and square, store the base index into the threat features
+int threatBase[5][64];
+
 void NNUE::init()
 {
     net = reinterpret_cast<const Network *>(gEVALData);
+
+    for (int attackerType = KNIGHT; attackerType <= QUEEN; ++attackerType)
+    {
+        int pairCount = 0;
+        for (int square = 0; square < 64; ++square)
+        {
+            threatMasks[attackerType][square] = pieceAttacks(attackerType, square, 0ULL);
+            threatBase[attackerType][square] = pairCount;
+            pairCount += CountBits(threatMasks[attackerType][square]);
+        }
+    }
 }
 
 // get the threat features for the given position
@@ -586,14 +602,8 @@ int NNUE::getThreatIndex(int attacker, int victim, Square from,
         if (targetType == attackerType && destination > source)
             return -1;
 
-        pairIndex = 0;
-        // account for earlier source squares
-        for (int square = 0; square < source; ++square)
-            pairIndex += CountBits(pieceAttacks(attackerType, square, 0ULL));
-
-        // account for attacks from the current source square
-        const Bitboard attacks = pieceAttacks(attackerType, source, 0ULL);
-        pairIndex += CountBits(attacks & ((1ULL << destination) - 1));
+        pairIndex = threatBase[attackerType][source]
+                  + CountBits(threatMasks[attackerType][source] & ((1ULL << destination) - 1));
     }
 
     const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
