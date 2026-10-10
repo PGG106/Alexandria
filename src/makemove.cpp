@@ -40,6 +40,21 @@ void AddPiece(const int piece, const int to, Position* pos) {
         HashKey(pos->state().blackNonPawnKey, PieceKeys[piece][to]);
 }
 
+void ClearPieceThreats(const int piece, const int from, Position* pos) {
+    ClearPiece(piece, from, pos);
+    NNUE::recordPieceRemovedThreats(pos, piece, from, pos->threatAccumulator());
+}
+
+void AddPieceThreats(const int piece, const int to, Position* pos) {
+    NNUE::recordPieceAddedThreats(pos, piece, to, pos->threatAccumulator());
+    AddPiece(piece, to, pos);
+}
+
+void MovePieceThreats(const int piece, const int from, const int to, Position* pos) {
+    ClearPieceThreats(piece, from, pos);
+    AddPieceThreats(piece, to, pos);
+}
+
 void MovePiece(const int piece, const int from, const int to, Position* pos) {
     ClearPiece(piece, from, pos);
     AddPiece(piece, to, pos);
@@ -72,10 +87,10 @@ void MakeCastle(const Move move, Position* pos) {
     const Square rookTargetSquare = pos->side == WHITE ? kingSide ? f1 : d1 : kingSide ? f8 : d8;
 
     // Move both pieces after clearing their original squares, which handles overlapping Chess960 paths.
-    ClearPiece(piece, sourceSquare, pos);
-    ClearPiece(GetPiece(ROOK, pos->side), rookSourceSquare, pos);
-    AddPiece(piece, targetSquare, pos);
-    AddPiece(GetPiece(ROOK, pos->side), rookTargetSquare, pos);
+    ClearPieceThreats(piece, sourceSquare, pos);
+    ClearPieceThreats(GetPiece(ROOK, pos->side), rookSourceSquare, pos);
+    AddPieceThreats(piece, targetSquare, pos);
+    AddPieceThreats(GetPiece(ROOK, pos->side), rookTargetSquare, pos);
     resetEpSquare(pos);
     UpdateCastlingPerms(pos, sourceSquare, targetSquare);
 }
@@ -91,12 +106,12 @@ void MakeEp(const Move move, Position* pos) {
 
     const int pieceCap = GetPiece(PAWN, pos->side ^ 1);
     const int capturedPieceLocation = targetSquare + SOUTH;
-    ClearPiece(pieceCap, capturedPieceLocation, pos);
+    ClearPieceThreats(pieceCap, capturedPieceLocation, pos);
 
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPieceThreats(piece, sourceSquare, pos);
     // Set the piece to the destination square
-    AddPiece(piece, targetSquare, pos);
+    AddPieceThreats(piece, targetSquare, pos);
 
     // Reset EP square
     assert(pos->getEpSquare() != no_sq);
@@ -113,16 +128,16 @@ void MakePromo(const Move move, Position* pos, const bool capture) {
     const int piece = Piece(move);
     const int promotedPiece = GetPiece(getPromotedPiecetype(move), pos->side);
     // Remove the piece fom the square it moved from
-    ClearPiece(piece, sourceSquare, pos);
+    ClearPieceThreats(piece, sourceSquare, pos);
 
     if(capture){
         const int pieceCap = pos->PieceOn(targetSquare);
         assert(pieceCap != EMPTY);
         assert(GetPieceType(pieceCap) != KING);
-        ClearPiece(pieceCap, targetSquare, pos);
+        ClearPieceThreats(pieceCap, targetSquare, pos);
     }
     // Set the piece to the destination square, if it was a promotion we directly set the promoted piece
-    AddPiece(promotedPiece , targetSquare, pos);
+    AddPieceThreats(promotedPiece , targetSquare, pos);
 
     resetEpSquare(pos);
 
@@ -139,7 +154,7 @@ void MakeQuiet(const Move move, Position* pos) {
     if (GetPieceType(piece) == PAWN)
         pos->state().fiftyMove = 0;
 
-    MovePiece(piece,sourceSquare,targetSquare,pos);
+    MovePieceThreats(piece,sourceSquare,targetSquare,pos);
 
     resetEpSquare(pos);
 
@@ -157,9 +172,9 @@ void MakeCapture(const Move move, Position* pos) {
     const int pieceCap = pos->PieceOn(targetSquare);
     assert(pieceCap != EMPTY);
     assert(GetPieceType(pieceCap) != KING);
-    ClearPiece(pieceCap, targetSquare, pos);
+    ClearPieceThreats(pieceCap, targetSquare, pos);
 
-    MovePiece(piece, sourceSquare, targetSquare, pos);
+    MovePieceThreats(piece, sourceSquare, targetSquare, pos);
 
     resetEpSquare(pos);
 
@@ -174,7 +189,7 @@ void MakeDP(const Move move, Position* pos)
     const Square targetSquare = To(move);
     const int piece = Piece(move);
 
-    MovePiece(piece,sourceSquare,targetSquare, pos);
+    MovePieceThreats(piece,sourceSquare,targetSquare, pos);
 
     resetEpSquare(pos);
 
