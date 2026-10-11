@@ -149,6 +149,8 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
 {
     ThreatFeatures result;
     const Bitboard occ = pos->Occupancy(BOTH);
+    // filter kings from the targets beforehand, as they aren't valid threat targets
+    const auto kings = getPieceBB(pos, KING);
     const bool flip[2] = {
         get_file[KingSQ(pos, WHITE)] > 3,
         get_file[KingSQ(pos, BLACK)] > 3};
@@ -170,7 +172,7 @@ ThreatFeatures NNUE::getThreatFeatures(const Position *pos)
                                    ? getPawnAttacks(from, attackerColor)
                                    : pieceAttacks(attackerType, from, occ);
 
-            targets &= occ;
+            targets &= occ & ~kings;
             while (targets)
             {
                 const Square to = popLsb(targets);
