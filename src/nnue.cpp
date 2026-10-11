@@ -471,20 +471,16 @@ void NNUE::updateThreatAccumulators(Position *pos)
         // apply incremental updates to the threat accumulator for this side
         for (++ply; ply <= head; ++ply)
         {
-            const ThreatAccumulator &parent = pos->threatAccumulators[ply - 1];
             ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
-            accumulator.values[side] = parent.values[side];
+            uint16_t adds[MAX_THREAT_FEATURES], subs[MAX_THREAT_FEATURES];
+            int addCount = 0, subCount = 0;
 
             for (int i = 0; i < accumulator.addedCount; ++i)
             {
                 const ThreatDelta &delta = accumulator.added[i];
                 const int index = getThreatIndex(delta.attacker, delta.victim, delta.from, delta.to, side, flip);
                 if (index >= 0)
-                {
-                    const size_t offset = size_t(index) * L1_SIZE;
-                    for (int j = 0; j < L1_SIZE; ++j)
-                        accumulator.values[side][j] += net->ThreatWeights[offset + j];
-                }
+                    adds[addCount++] = index;
             }
 
             for (int i = 0; i < accumulator.removedCount; ++i)
@@ -492,12 +488,61 @@ void NNUE::updateThreatAccumulators(Position *pos)
                 const ThreatDelta &delta = accumulator.removed[i];
                 const int index = getThreatIndex(delta.attacker, delta.victim, delta.from, delta.to, side, flip);
                 if (index >= 0)
-                {
-                    const size_t offset = size_t(index) * L1_SIZE;
-                    for (int j = 0; j < L1_SIZE; ++j)
-                        accumulator.values[side][j] -= net->ThreatWeights[offset + j];
-                }
+                    subs[subCount++] = index;
             }
+
+            const int16_t *src = pos->threatAccumulators[ply - 1].values[side].data();
+            int16_t *dst = accumulator.values[side].data();
+
+            // walk the accumulator once per register tile, applying every row to it, instead of once per feature
+#if defined(USE_SIMD)
+            constexpr int NUM_REGI = 8;
+            static_assert(L1_SIZE % (NUM_REGI * FT_CHUNK_SIZE) == 0);
+
+            for (int b = 0; b < L1_SIZE; b += NUM_REGI * FT_CHUNK_SIZE)
+            {
+                const vepi16 *srcPtr = reinterpret_cast<const vepi16 *>(&src[b]);
+                vepi16 acc[NUM_REGI];
+                for (int j = 0; j < NUM_REGI; ++j)
+                    acc[j] = srcPtr[j];
+
+                for (int i = 0; i < addCount; ++i)
+                {
+                    const vepi16 *row = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[size_t(adds[i]) * L1_SIZE + b]);
+                    for (int j = 0; j < NUM_REGI; ++j)
+                        acc[j] = vec_add_epi16(acc[j], row[j]);
+                }
+
+                for (int i = 0; i < subCount; ++i)
+                {
+                    const vepi16 *row = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[size_t(subs[i]) * L1_SIZE + b]);
+                    for (int j = 0; j < NUM_REGI; ++j)
+                        acc[j] = vec_sub_epi16(acc[j], row[j]);
+                }
+
+                vepi16 *dstPtr = reinterpret_cast<vepi16 *>(&dst[b]);
+                for (int j = 0; j < NUM_REGI; ++j)
+                    dstPtr[j] = acc[j];
+            }
+#else
+            const int minCount = std::min(addCount, subCount);
+
+            for (int j = 0; j < L1_SIZE; ++j)
+                dst[j] = src[j];
+            for (int i = 0; i < minCount; ++i)
+            {
+                const size_t added = size_t(adds[i]) * L1_SIZE;
+                const size_t removed = size_t(subs[i]) * L1_SIZE;
+                for (int j = 0; j < L1_SIZE; ++j)
+                    dst[j] += net->ThreatWeights[added + j] - net->ThreatWeights[removed + j];
+            }
+            for (int i = minCount; i < addCount; ++i)
+                for (int j = 0; j < L1_SIZE; ++j)
+                    dst[j] += net->ThreatWeights[size_t(adds[i]) * L1_SIZE + j];
+            for (int i = minCount; i < subCount; ++i)
+                for (int j = 0; j < L1_SIZE; ++j)
+                    dst[j] -= net->ThreatWeights[size_t(subs[i]) * L1_SIZE + j];
+#endif
 
             accumulator.computed[side] = true;
         }
