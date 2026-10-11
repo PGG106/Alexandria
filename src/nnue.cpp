@@ -201,6 +201,8 @@ void NNUE::recordPieceAddedThreats(const Position *pos, const int piece, const i
 {
     const Bitboard *bitboards = pos->state().bitboards;
     const Bitboard occupancy = pos->Occupancy(BOTH);
+    // filter kings from the targets beforehand, as they aren't valid threat targets
+    const Bitboard kings = getPieceBB(pos, KING);
     const int pieceType = PieceType[piece];
 
     ThreatDelta *created = accumulator.added;
@@ -215,7 +217,7 @@ void NNUE::recordPieceAddedThreats(const Position *pos, const int piece, const i
         Bitboard attacked = (pieceType == PAWN
                                  ? getPawnAttacks(square, Color[piece])
                                  : pieceAttacks(pieceType, square, occupancy))
-                            & occupancy;
+                            & occupancy & ~kings;
 
         while (attacked)
         {
@@ -268,7 +270,7 @@ void NNUE::recordPieceAddedThreats(const Position *pos, const int piece, const i
         // figure out what pieces lie behind the piece we added on the same diagonal
         const Bitboard behind = getBishopAttacks(from, occupancy)
                               & ~getBishopAttacks(from, occupancy | squareBit)
-                              & occupancy;
+                              & occupancy & ~kings;
         // those attacks are not blocked by the newly added piece
         if (behind)
         {
@@ -298,7 +300,7 @@ void NNUE::recordPieceAddedThreats(const Position *pos, const int piece, const i
 
         const Bitboard behind = getRookAttacks(from, occupancy)
                               & ~getRookAttacks(from, occupancy | squareBit)
-                              & occupancy;
+                              & occupancy & ~kings;
         if (behind)
         {
             const int to = GetLsbIndex(behind);
@@ -316,6 +318,7 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
 {
     const Bitboard *bitboards = pos->state().bitboards;
     const Bitboard occupancy = pos->Occupancy(BOTH);
+    const Bitboard kings = getPieceBB(pos, KING);
     const int pieceType = PieceType[piece];
 
     ThreatDelta *destroyed = accumulator.removed;
@@ -330,7 +333,7 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
         Bitboard attacked = (pieceType == PAWN
                                  ? getPawnAttacks(square, Color[piece])
                                  : pieceAttacks(pieceType, square, occupancy))
-                            & occupancy;
+                            & occupancy & ~kings;
 
         while (attacked)
         {
@@ -380,7 +383,7 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
         // square behind it.
         const Bitboard behind = getBishopAttacks(from, occupancy)
                               & ~getBishopAttacks(from, occupancy | squareBit)
-                              & occupancy;
+                              & occupancy & ~kings;
         if (behind)
         {
             const int to = GetLsbIndex(behind);
@@ -409,7 +412,7 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
 
         const Bitboard behind = getRookAttacks(from, occupancy)
                               & ~getRookAttacks(from, occupancy | squareBit)
-                              & occupancy;
+                              & occupancy & ~kings;
         if (behind)
         {
             const int to = GetLsbIndex(behind);
