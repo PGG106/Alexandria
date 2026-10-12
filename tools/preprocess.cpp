@@ -46,6 +46,16 @@ void permute_transpose(const NnzPermutation& permutation) {
                 = quantisedNet.FTWeights[feature * L1_SIZE + source + L1_SIZE / 2];
         }
 
+    // The threat accumulator is summed lane by lane with the PSQT one, so its lanes need the same permutation
+    for (int feature = 0; feature < THREAT_INPUTS; ++feature)
+        for (int output = 0; output < L1_SIZE / 2; ++output) {
+            const int source = permutation[output];
+            permutedNet.ThreatWeights[feature * L1_SIZE + output]
+                = quantisedNet.ThreatWeights[feature * L1_SIZE + source];
+            permutedNet.ThreatWeights[feature * L1_SIZE + output + L1_SIZE / 2]
+                = quantisedNet.ThreatWeights[feature * L1_SIZE + source + L1_SIZE / 2];
+        }
+
     for (int output = 0; output < L1_SIZE / 2; ++output) {
         const int source = permutation[output];
         permutedNet.FTBiases[output] = quantisedNet.FTBiases[source];
@@ -56,6 +66,7 @@ void permute_transpose(const NnzPermutation& permutation) {
     // Transpose FT weights and biases so that packus transposes it back to the intended order
 #if defined(USE_SIMD)
     __m128i *weight = reinterpret_cast<__m128i*>(permutedNet.FTWeights);
+    __m128i *threatWeight = reinterpret_cast<__m128i*>(permutedNet.ThreatWeights);
     __m128i *biases = reinterpret_cast<__m128i*>(permutedNet.FTBiases);
     constexpr int numChunks = sizeof(__m128i) / sizeof(int16_t);
 
@@ -78,6 +89,15 @@ void permute_transpose(const NnzPermutation& permutation) {
 
         for (int j = 0; j < numRegi; ++j)
             weight[i + j] = regi[order[j]];
+    }
+
+    // Transpose threat weights
+    for (int i = 0; i < THREAT_INPUTS * L1_SIZE / numChunks; i += numRegi) {
+        for (int j = 0; j < numRegi; ++j)
+            regi[j] = threatWeight[i + j];
+
+        for (int j = 0; j < numRegi; ++j)
+            threatWeight[i + j] = regi[order[j]];
     }
 
     // Transpose biases

@@ -11,12 +11,19 @@
 #include "types.h"
 
 struct Position;
-// Net arch: (768xINPUT_BUCKETS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
+struct ThreatFeatures;
+// Net arch: (768xINPUT_BUCKETS + THREAT_INPUTS -> L1_SIZE)x2 ->16-> 32 -> 1xOUTPUT_BUCKETS
 constexpr bool MERGE_KING_PLANES = false;
 constexpr bool DUAL_ACTIVATION = true;
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
-constexpr int L1_SIZE = 1536;
+// Threat inputs: (attacker, attacker square, attacked square, attacked piece) tuples, split in two halves
+// depending on whether the attacker belongs to the perspective's owner or to the opponent.
+constexpr int THREAT_INPUTS_PER_SIDE = 30072;
+constexpr int THREAT_INPUTS = 2 * THREAT_INPUTS_PER_SIDE;
+// Upper bound on the active threat features per perspective (asspulled)
+constexpr int MAX_THREAT_FEATURES = 128;
+constexpr int L1_SIZE = 512;
 constexpr int L2_SIZE = 16;
 constexpr int EFFECTIVE_L2_SIZE = 16 * (1 + DUAL_ACTIVATION);
 constexpr int L3_SIZE = 32;
@@ -59,6 +66,7 @@ using NNUEIndices = std::array<std::size_t, 2>;
 
 struct QuantisedNetwork {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t ThreatWeights[THREAT_INPUTS * L1_SIZE];
     int16_t FTBiases [L1_SIZE];
     int8_t  L1Weights[L1_SIZE][OUTPUT_BUCKETS][L2_SIZE];
     float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
@@ -70,6 +78,7 @@ struct QuantisedNetwork {
 
 struct Network {
     int16_t FTWeights[INPUT_BUCKETS * NUM_INPUTS * L1_SIZE];
+    int16_t ThreatWeights[THREAT_INPUTS * L1_SIZE];
     int16_t FTBiases [L1_SIZE];
     int8_t  L1Weights[OUTPUT_BUCKETS][L1_SIZE * L2_SIZE];
     float   L1Biases [OUTPUT_BUCKETS][L2_SIZE];
@@ -85,6 +94,26 @@ struct NNUE {
 
     using PovAccumulator = std::array<int16_t, L1_SIZE>;
 
+    struct ThreatDelta {
+        uint8_t attacker;
+        uint8_t from;
+        uint8_t victim;
+        uint8_t to;
+    };
+
+    struct alignas(64) ThreatAccumulator {
+        std::array<PovAccumulator, 2> values;
+
+        ThreatDelta added[128];
+        ThreatDelta removed[128];
+
+        int addedCount = 0;
+        int removedCount = 0;
+
+        bool computed[2] = {};
+        bool needsRefresh[2] = {};
+    };
+
     struct alignas(64) FinnyTableEntry {
         NNUE::PovAccumulator accumCache;
         Bitboard occupancies[12] = {};
@@ -97,8 +126,10 @@ struct NNUE {
 
     using FinnyTable = std::array<std::array<std::array<FinnyTableEntry, 2>, INPUT_BUCKETS>, 2>;
 
-    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
-    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void activateAffine(Position *pos, FinnyTable *FinnyPointer, const ThreatAccumulator &threatAccumulator,
+                               uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
+    static void povActivateAffine(Position *pos, FinnyTable *FinnyPointer, int side, const PovAccumulator &threatValues,
+                                  uint16_t *base, uint16_t *nnzIndices, int &nnzCount, uint8_t *output);
 
     static void propagateL1(const uint8_t *inputs, uint16_t *nnzIndices, int nnzCount, const int8_t *weights, const float *biases, float *output);
     static void propagateL2(const float *inputs, const float *weights, const float *biases, float *output);
@@ -106,7 +137,13 @@ struct NNUE {
 
     static int output(Position *pos, FinnyTable* FinnyPointer);
     static void init();
-    static size_t getIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
+    static size_t getPsqtIndex(const int piece, const int square, const int side, const int bucket, const bool flip);
+    static int getThreatIndex(int attacker, int victim, Square from, Square to, int perspective, bool flip);
+    static ThreatFeatures getThreatFeatures(const Position *pos);
+
+    static void recordPieceAddedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
+    static void recordPieceRemovedThreats(const Position *pos, int piece, int square, ThreatAccumulator &accumulator);
+    static void updateThreatAccumulators(Position *pos);
 };
 
 // NNZTable stores all the possible 8-bit combinations, active indices and active indices count
