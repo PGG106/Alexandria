@@ -11,17 +11,28 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: android-${{ github.event_name == 'release' && github.ref || 'nightly' }}
+  cancel-in-progress: false
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Extract engine version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-${GITHUB_SHA::7}")
+          if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            VERSION="${RELEASE_TAG}"
+          else
+            VERSION=$(git describe --tags --always 2>/dev/null || echo "dev-${GITHUB_SHA::7}")
+          fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Building Alexandria version: ${VERSION}"
 
@@ -84,30 +95,34 @@ jobs:
         with:
           name: alexandria-${{ env.VERSION }}-android-binaries
           retention-days: 30
+          if-no-files-found: error
           path: |
             Alexandria-${{ env.VERSION }}-android-arm64-v8a
             Alexandria-${{ env.VERSION }}-android-arm64-dotprod
 
-      - name: Publish prerelease (master push)
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.VERSION }}-android
-          name: Alexandria ${{ env.VERSION }} (Android)
-          prerelease: true
-          files: |
-            Alexandria-${{ env.VERSION }}-android-arm64-v8a
-            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
+      - name: Publish rolling prerelease (master)
+        if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view android-nightly >/dev/null 2>&1; then
+            gh release delete android-nightly --cleanup-tag --yes
+          fi
+          gh release create android-nightly \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Alexandria ${VERSION} (Android)" \
+            --notes "Built from ${GITHUB_SHA} on ${GITHUB_REF_NAME}" \
+            Alexandria-${VERSION}-android-arm64-v8a \
+            Alexandria-${VERSION}-android-arm64-dotprod
 
-      - name: Attach binaries to manual release
+      - name: Attach binaries to release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.release.tag_name }}
-          files: |
-            Alexandria-${{ env.VERSION }}-android-arm64-v8a
-            Alexandria-${{ env.VERSION }}-android-arm64-dotprod
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "${RELEASE_TAG}" \
+            Alexandria-${VERSION}-android-arm64-v8a \
+            Alexandria-${VERSION}-android-arm64-dotprod \
+            --clobber
