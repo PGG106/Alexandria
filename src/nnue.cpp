@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <numeric>
 #ifdef NNZ_PROFILE
 #include <array>
 #include <cstdlib>
@@ -590,8 +591,8 @@ void NNUE::povActivateAffine(Position *pos, NNUE::FinnyTable *FinnyPointer, cons
 
 #if defined(USE_SIMD)
 
-    // 8 measured to be optimal on both avx512 and avx2
-    constexpr int NUM_REGI = 8;
+    // Prefer 8 registers, reducing the tile to divide the accumulator half exactly.
+    constexpr int NUM_REGI = std::gcd(8, (L1_SIZE / 2) / FT_CHUNK_SIZE);
     static_assert(NUM_REGI % 2 == 0 && (L1_SIZE / 2) % (NUM_REGI * FT_CHUNK_SIZE) == 0);
 
     const vepi16 Zero = vec_zero_epi16();
