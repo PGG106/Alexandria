@@ -17,10 +17,11 @@ constexpr bool MERGE_KING_PLANES = false;
 constexpr bool DUAL_ACTIVATION = true;
 constexpr int NUM_INPUTS = 768;
 constexpr int INPUT_BUCKETS = 16;
+constexpr int PAWN_PAIR_INPUTS = 96 * 95 / 2;
 // Threat inputs: (attacker, attacker square, attacked square, attacked piece) tuples, split in two halves
 // depending on whether the attacker belongs to the perspective's owner or to the opponent.
-constexpr int THREAT_INPUTS_PER_SIDE = 30072;
-constexpr int THREAT_INPUTS = 2 * THREAT_INPUTS_PER_SIDE;
+constexpr int THREAT_INPUTS_PER_SIDE = 29904;
+constexpr int THREAT_INPUTS = PAWN_PAIR_INPUTS + 2 * THREAT_INPUTS_PER_SIDE;
 // Upper bound on the active threat features per perspective (asspulled)
 constexpr int MAX_THREAT_FEATURES = 128;
 constexpr int L1_SIZE = 768;
