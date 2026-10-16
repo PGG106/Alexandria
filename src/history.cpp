@@ -199,6 +199,9 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
     if ((ss - 1)->move && (ss - 2)->move)
         updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)],
                                   bonus);
+    if ((ss - 1)->move && (ss - 4)->move)
+        updateSingleCorrHistScore(sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 4)->move)],
+                                  bonus);
 }
 
 int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
@@ -210,6 +213,8 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
 
     if ((ss - 1)->move && (ss - 2)->move)
         adjustment += contCorrthistoryWeight() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 2)->move)];
+    if ((ss - 1)->move && (ss - 4)->move)
+        adjustment += contCorrthistoryWeight2() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 4)->move)];
 
     return adjustment / CORRHIST_GRAIN;
 }
