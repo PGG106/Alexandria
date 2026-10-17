@@ -82,10 +82,19 @@ Network permutedNet;
 
 uint16_t threatPairIndices[5][64][64];
 int32_t threatIndexBases[2][12][12][2];
+Bitboard pawnPairMasks[64];
 
 void NNUE::init()
 {
     net = reinterpret_cast<const Network *>(gEVALData);
+
+    for (int square = 0; square < 64; ++square)
+    {
+        pawnPairMasks[square] = 0ULL;
+        for (int other = 0; other < 64; ++other)
+            if (other != square && std::abs(get_file[other] - get_file[square]) <= 1)
+                pawnPairMasks[square] |= 1ULL << other;
+    }
 
     for (int attackerType = PAWN; attackerType <= QUEEN; ++attackerType)
     {
@@ -442,7 +451,7 @@ static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPa
         const int id = pawnId(square);
 
         // need masks
-        Bitboard partners = pawns & 0ULL;
+        Bitboard partners = pawns & pawnPairMasks[square];
         while (partners)
         {
             const int other = pawnId(popLsb(partners));
