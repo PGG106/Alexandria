@@ -10,8 +10,8 @@ constexpr int ThreatTargetCount[5] = {2, 5, 4, 4, 5};
 constexpr int ThreatCount[5]  = {84, 336, 560, 896, 1456};
 constexpr int ThreatOffset[5] = {0, 336, 3696, 8176, 15344};
 
-// Active threat list for each side
+// Active threat list for each side, with room for the pawn pairs
 struct ThreatFeatures {
-    uint16_t indices[2][MAX_THREAT_FEATURES];
+    uint16_t indices[2][MAX_THREAT_FEATURES + MAX_PAWN_PAIR_FEATURES];
     int count[2] = {};
 };

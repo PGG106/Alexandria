@@ -1,7 +1,7 @@
 #include "nnue.h"
 #include "position.h"
 #include "simd.h"
-#include "threats.hpp"
+#include "threats.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -426,6 +426,11 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
     }
 }
 
+static int getPawnPairFeatures()
+{
+    return 0;
+}
+
 void NNUE::updateThreatAccumulators(Position *pos)
 {
     const int head = pos->history.head;
@@ -449,22 +454,28 @@ void NNUE::updateThreatAccumulators(Position *pos)
         {
             ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
             pos->history.head = ply;
-            const ThreatFeatures threats = getThreatFeatures(pos);
+            ThreatFeatures threats = getThreatFeatures(pos);
             pos->history.head = head;
 
-            if (threats.count[side] == 0)
+           
+
+            uint16_t *indices = threats.indices[side];
+            int count = threats.count[side];
+            count += getPawnPairFeatures();
+
+            if (count == 0)
             {
                 accumulator.values[side].fill(0);
             }
             else
             {
-                size_t offset = size_t(threats.indices[side][0]) * L1_SIZE;
+                size_t offset = size_t(indices[0]) * L1_SIZE;
                 for (int j = 0; j < L1_SIZE; ++j)
                     accumulator.values[side][j] = net->ThreatWeights[offset + j];
 
-                for (int i = 1; i < threats.count[side]; ++i)
+                for (int i = 1; i < count; ++i)
                 {
-                    offset = size_t(threats.indices[side][i]) * L1_SIZE;
+                    offset = size_t(indices[i]) * L1_SIZE;
                     for (int j = 0; j < L1_SIZE; ++j)
                         accumulator.values[side][j] += net->ThreatWeights[offset + j];
                 }
@@ -473,7 +484,7 @@ void NNUE::updateThreatAccumulators(Position *pos)
             accumulator.computed[side] = true;
         }
 
-        const bool flip = get_file[KingSQ(pos, side)] > 3;
+         const bool flip = get_file[KingSQ(pos, side)] > 3;
         // apply incremental updates to the threat accumulator for this side
         for (++ply; ply <= head; ++ply)
         {
