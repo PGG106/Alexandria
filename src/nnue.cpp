@@ -480,6 +480,8 @@ void NNUE::updateThreatAccumulators(Position *pos)
                && !pos->threatAccumulators[ply].needsRefresh[side])
             --ply;
 
+        const bool flip = get_file[KingSQ(pos, side)] > 3;
+
         // if we can't work from a previously computed threat accumulator, refresh it from scratch at the ply that
         // needs it, so every later position in this subtree can update from it instead of refreshing again
         if (!pos->threatAccumulators[ply].computed[side])
@@ -489,11 +491,9 @@ void NNUE::updateThreatAccumulators(Position *pos)
             ThreatFeatures threats = getThreatFeatures(pos);
             pos->history.head = head;
 
-           
-
             uint16_t *indices = threats.indices[side];
             int count = threats.count[side];
-            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], side, flip);
+            count += getPawnPairFeatures(pos->getPieceColorBB(PAWN, WHITE), pos->getPieceColorBB(PAWN, BLACK), side, flip, indices);
 
             if (count == 0)
             {
@@ -516,7 +516,6 @@ void NNUE::updateThreatAccumulators(Position *pos)
             accumulator.computed[side] = true;
         }
 
-         const bool flip = get_file[KingSQ(pos, side)] > 3;
         // apply incremental updates to the threat accumulator for this side
         for (++ply; ply <= head; ++ply)
         {
