@@ -436,7 +436,9 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
     }
 }
 
-static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPawns, const int perspective, const bool flip, uint16_t *indices)
+// Collect pairs involving changed pawns; pass all pawns for a full refresh.
+static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPawns, Bitboard changed,
+                              const int perspective, const bool flip, uint16_t *indices)
 {
     const int squareXor = (perspective == WHITE ? 56 : 0) ^ (flip ? 7 : 0);
     Bitboard pawns = whitePawns | blackPawns;
@@ -446,12 +448,12 @@ static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPa
     };
 
     int count = 0;
-    while (pawns)
+    while (changed)
     {
-        const int square = popLsb(pawns);
+        const int square = popLsb(changed);
+        pawns &= ~(1ULL << square);
         const int id = pawnId(square);
 
-        // need masks
         Bitboard partners = pawns & pawnPairMasks[square];
         while (partners)
         {
@@ -495,7 +497,8 @@ void NNUE::updateThreatAccumulators(Position *pos)
             uint16_t *indices = threats.indices[side];
             int count = threats.count[side];
             const Bitboard *bitboards = pos->history.boardStateHistory[ply].bitboards;
-            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], side, flip, indices + count);
+            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], bitboards[WP] | bitboards[BP],
+                                        side, flip, indices + count);
 
             if (count == 0)
             {
@@ -545,8 +548,10 @@ void NNUE::updateThreatAccumulators(Position *pos)
             const Bitboard *curr = pos->history.boardStateHistory[ply].bitboards;
             if (prev[WP] != curr[WP] || prev[BP] != curr[BP])
             {
-                subCount += getPawnPairFeatures(prev[WP], prev[BP], side, flip, subs + subCount);
-                addCount += getPawnPairFeatures(curr[WP], curr[BP], side, flip, adds + addCount);
+                const Bitboard removed = (prev[WP] & ~curr[WP]) | (prev[BP] & ~curr[BP]);
+                const Bitboard added = (curr[WP] & ~prev[WP]) | (curr[BP] & ~prev[BP]);
+                subCount += getPawnPairFeatures(prev[WP], prev[BP], removed, side, flip, subs + subCount);
+                addCount += getPawnPairFeatures(curr[WP], curr[BP], added, side, flip, adds + addCount);
             }
 
             const int16_t *src = pos->threatAccumulators[ply - 1].values[side].data();
