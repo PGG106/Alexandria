@@ -541,6 +541,14 @@ void NNUE::updateThreatAccumulators(Position *pos)
                     subs[subCount++] = index;
             }
 
+            const Bitboard *prev = pos->history.boardStateHistory[ply - 1].bitboards;
+            const Bitboard *curr = pos->history.boardStateHistory[ply].bitboards;
+            if (prev[WP] != curr[WP] || prev[BP] != curr[BP])
+            {
+                subCount += getPawnPairFeatures(prev[WP], prev[BP], side, flip, subs + subCount);
+                addCount += getPawnPairFeatures(curr[WP], curr[BP], side, flip, adds + addCount);
+            }
+
             const int16_t *src = pos->threatAccumulators[ply - 1].values[side].data();
             int16_t *dst = accumulator.values[side].data();
 
