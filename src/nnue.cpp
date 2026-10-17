@@ -426,9 +426,32 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
     }
 }
 
-static int getPawnPairFeatures()
+static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPawns, const int perspective, const bool flip, uint16_t *indices)
 {
-    return 0;
+    const int squareXor = (perspective == WHITE ? 56 : 0) ^ (flip ? 7 : 0);
+    Bitboard pawns = whitePawns | blackPawns;
+    const auto pawnId = [&](const int square) {
+        const int color = (whitePawns >> square) & 1 ? WHITE : BLACK;
+        return (color != perspective) * 48 + (square ^ squareXor) - 8;
+    };
+
+    int count = 0;
+    while (pawns)
+    {
+        const int square = popLsb(pawns);
+        const int id = pawnId(square);
+
+        // need masks
+        Bitboard partners = pawns & 0ULL;
+        while (partners)
+        {
+            const int other = pawnId(popLsb(partners));
+            const int hi = std::max(id, other);
+            const int lo = std::min(id, other);
+            indices[count++] = static_cast<uint16_t>(hi * (hi - 1) / 2 + lo);
+        }
+    }
+    return count;
 }
 
 void NNUE::updateThreatAccumulators(Position *pos)
@@ -461,7 +484,7 @@ void NNUE::updateThreatAccumulators(Position *pos)
 
             uint16_t *indices = threats.indices[side];
             int count = threats.count[side];
-            count += getPawnPairFeatures();
+            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], side, flip);
 
             if (count == 0)
             {
