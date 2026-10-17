@@ -22,6 +22,7 @@ constexpr int PAWN_PAIR_INPUTS = 96 * 95 / 2;
 // depending on whether the attacker belongs to the perspective's owner or to the opponent.
 constexpr int THREAT_INPUTS_PER_SIDE = 29904;
 constexpr int THREAT_INPUTS = PAWN_PAIR_INPUTS + 2 * THREAT_INPUTS_PER_SIDE;
+constexpr int MAX_PAWN_PAIR_FEATURES = 128;
 // Upper bound on the active threat features per perspective (asspulled)
 constexpr int MAX_THREAT_FEATURES = 128;
 constexpr int L1_SIZE = 768;

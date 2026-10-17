@@ -148,6 +148,7 @@ void NNUE::init()
 
                     const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
                     threatIndexBases[perspective][attacker][victim][destinationAfterSource] =
+                        PAWN_PAIR_INPUTS +
                         (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE
                         + ThreatOffset[attackerType]
                         + targetBlock * ThreatCount[attackerType];
@@ -493,7 +494,8 @@ void NNUE::updateThreatAccumulators(Position *pos)
 
             uint16_t *indices = threats.indices[side];
             int count = threats.count[side];
-            count += getPawnPairFeatures(pos->getPieceColorBB(PAWN, WHITE), pos->getPieceColorBB(PAWN, BLACK), side, flip, indices);
+            const Bitboard *bitboards = pos->history.boardStateHistory[ply].bitboards;
+            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], side, flip, indices + count);
 
             if (count == 0)
             {
@@ -520,7 +522,7 @@ void NNUE::updateThreatAccumulators(Position *pos)
         for (++ply; ply <= head; ++ply)
         {
             ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
-            uint16_t adds[MAX_THREAT_FEATURES], subs[MAX_THREAT_FEATURES];
+            uint16_t adds[MAX_THREAT_FEATURES + MAX_PAWN_PAIR_FEATURES], subs[MAX_THREAT_FEATURES + MAX_PAWN_PAIR_FEATURES];
             int addCount = 0, subCount = 0;
 
             for (int i = 0; i < accumulator.addedCount; ++i)
