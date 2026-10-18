@@ -1,7 +1,7 @@
 #include "nnue.h"
 #include "position.h"
 #include "simd.h"
-#include "threats.hpp"
+#include "threats.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -82,10 +82,19 @@ Network permutedNet;
 
 uint16_t threatPairIndices[5][64][64];
 int32_t threatIndexBases[2][12][12][2];
+Bitboard pawnPairMasks[64];
 
 void NNUE::init()
 {
     net = reinterpret_cast<const Network *>(gEVALData);
+
+    for (int square = 0; square < 64; ++square)
+    {
+        pawnPairMasks[square] = 0ULL;
+        for (int other = 0; other < 64; ++other)
+            if (other != square && std::abs(get_file[other] - get_file[square]) <= 1)
+                pawnPairMasks[square] |= 1ULL << other;
+    }
 
     for (int attackerType = PAWN; attackerType <= QUEEN; ++attackerType)
     {
@@ -139,6 +148,7 @@ void NNUE::init()
 
                     const int targetBlock = (Color[victim] != perspective) * ThreatTargetCount[attackerType] + map;
                     threatIndexBases[perspective][attacker][victim][destinationAfterSource] =
+                        PAWN_PAIR_INPUTS +
                         (Color[attacker] != perspective) * THREAT_INPUTS_PER_SIDE
                         + ThreatOffset[attackerType]
                         + targetBlock * ThreatCount[attackerType];
@@ -426,6 +436,36 @@ void NNUE::recordPieceRemovedThreats(const Position *pos, const int piece, const
     }
 }
 
+// Collect pairs involving changed pawns; pass all pawns for a full refresh.
+static int getPawnPairFeatures(const Bitboard whitePawns, const Bitboard blackPawns, Bitboard changed,
+                              const int perspective, const bool flip, uint16_t *indices)
+{
+    const int squareXor = (perspective == WHITE ? 56 : 0) ^ (flip ? 7 : 0);
+    Bitboard pawns = whitePawns | blackPawns;
+    const auto pawnId = [&](const int square) {
+        const int color = (whitePawns >> square) & 1 ? WHITE : BLACK;
+        return (color != perspective) * 48 + (square ^ squareXor) - 8;
+    };
+
+    int count = 0;
+    while (changed)
+    {
+        const int square = popLsb(changed);
+        pawns &= ~(1ULL << square);
+        const int id = pawnId(square);
+
+        Bitboard partners = pawns & pawnPairMasks[square];
+        while (partners)
+        {
+            const int other = pawnId(popLsb(partners));
+            const int hi = std::max(id, other);
+            const int lo = std::min(id, other);
+            indices[count++] = static_cast<uint16_t>(hi * (hi - 1) / 2 + lo);
+        }
+    }
+    return count;
+}
+
 void NNUE::updateThreatAccumulators(Position *pos)
 {
     const int head = pos->history.head;
@@ -443,28 +483,36 @@ void NNUE::updateThreatAccumulators(Position *pos)
                && !pos->threatAccumulators[ply].needsRefresh[side])
             --ply;
 
+        const bool flip = get_file[KingSQ(pos, side)] > 3;
+
         // if we can't work from a previously computed threat accumulator, refresh it from scratch at the ply that
         // needs it, so every later position in this subtree can update from it instead of refreshing again
         if (!pos->threatAccumulators[ply].computed[side])
         {
             ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
             pos->history.head = ply;
-            const ThreatFeatures threats = getThreatFeatures(pos);
+            ThreatFeatures threats = getThreatFeatures(pos);
             pos->history.head = head;
 
-            if (threats.count[side] == 0)
+            uint16_t *indices = threats.indices[side];
+            int count = threats.count[side];
+            const Bitboard *bitboards = pos->history.boardStateHistory[ply].bitboards;
+            count += getPawnPairFeatures(bitboards[WP], bitboards[BP], bitboards[WP] | bitboards[BP],
+                                        side, flip, indices + count);
+
+            if (count == 0)
             {
                 accumulator.values[side].fill(0);
             }
             else
             {
-                size_t offset = size_t(threats.indices[side][0]) * L1_SIZE;
+                size_t offset = size_t(indices[0]) * L1_SIZE;
                 for (int j = 0; j < L1_SIZE; ++j)
                     accumulator.values[side][j] = net->ThreatWeights[offset + j];
 
-                for (int i = 1; i < threats.count[side]; ++i)
+                for (int i = 1; i < count; ++i)
                 {
-                    offset = size_t(threats.indices[side][i]) * L1_SIZE;
+                    offset = size_t(indices[i]) * L1_SIZE;
                     for (int j = 0; j < L1_SIZE; ++j)
                         accumulator.values[side][j] += net->ThreatWeights[offset + j];
                 }
@@ -473,12 +521,11 @@ void NNUE::updateThreatAccumulators(Position *pos)
             accumulator.computed[side] = true;
         }
 
-        const bool flip = get_file[KingSQ(pos, side)] > 3;
         // apply incremental updates to the threat accumulator for this side
         for (++ply; ply <= head; ++ply)
         {
             ThreatAccumulator &accumulator = pos->threatAccumulators[ply];
-            uint16_t adds[MAX_THREAT_FEATURES], subs[MAX_THREAT_FEATURES];
+            uint16_t adds[MAX_THREAT_FEATURES + MAX_PAWN_PAIR_FEATURES], subs[MAX_THREAT_FEATURES + MAX_PAWN_PAIR_FEATURES];
             int addCount = 0, subCount = 0;
 
             for (int i = 0; i < accumulator.addedCount; ++i)
@@ -495,6 +542,16 @@ void NNUE::updateThreatAccumulators(Position *pos)
                 const int index = getThreatIndex(delta.attacker, delta.victim, delta.from, delta.to, side, flip);
                 if (index >= 0)
                     subs[subCount++] = index;
+            }
+
+            const Bitboard *prev = pos->history.boardStateHistory[ply - 1].bitboards;
+            const Bitboard *curr = pos->history.boardStateHistory[ply].bitboards;
+            if (prev[WP] != curr[WP] || prev[BP] != curr[BP])
+            {
+                const Bitboard removed = (prev[WP] & ~curr[WP]) | (prev[BP] & ~curr[BP]);
+                const Bitboard added = (curr[WP] & ~prev[WP]) | (curr[BP] & ~prev[BP]);
+                subCount += getPawnPairFeatures(prev[WP], prev[BP], removed, side, flip, subs + subCount);
+                addCount += getPawnPairFeatures(curr[WP], curr[BP], added, side, flip, adds + addCount);
             }
 
             const int16_t *src = pos->threatAccumulators[ply - 1].values[side].data();
