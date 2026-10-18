@@ -80,8 +80,8 @@ void InitReductions() {
 
     for (int i = 1; i < 64; i++) {
         for (int j = 1; j < 64; j++) {
-            reductions[0][i][j] = lmrNoisyBase() / 100.0 + log(i) * log(j) / (lmrNoisytDivisor() / 100.0);
-            reductions[1][i][j] = lmrQuietBase() / 100.0 + log(i) * log(j) /  (lmrQuietDivisor() / 100.0);
+            reductions[0][i][j] = static_cast<int>(lmrNoisyBase() / 100.0 + log(i) * log(j) / (lmrNoisytDivisor() / 100.0)) * 1024;
+            reductions[1][i][j] = static_cast<int>(lmrQuietBase() / 100.0 + log(i) * log(j) /  (lmrQuietDivisor() / 100.0)) * 1024;
         }
     }
 
