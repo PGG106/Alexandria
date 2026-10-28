@@ -25,7 +25,7 @@ constexpr int THREAT_INPUTS = PAWN_PAIR_INPUTS + 2 * THREAT_INPUTS_PER_SIDE;
 constexpr int MAX_PAWN_PAIR_FEATURES = 128;
 // Upper bound on the active threat features per perspective (asspulled)
 constexpr int MAX_THREAT_FEATURES = 128;
-constexpr int L1_SIZE = 768;
+constexpr int L1_SIZE = 1024;
 constexpr int L2_SIZE = 16;
 constexpr int EFFECTIVE_L2_SIZE = 16 * (1 + DUAL_ACTIVATION);
 constexpr int L3_SIZE = 32;
