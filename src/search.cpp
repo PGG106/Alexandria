@@ -622,7 +622,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         }
     }
 
-    const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
+    int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
+    // probcut
     if (  !pvNode
         && depth > 4
         && !isDecisive(beta)
@@ -653,9 +654,28 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             MakeMove<true>(move, pos, td->keyHistory);
 
             int pcScore = -Quiescence<false>(-pcBeta, -pcBeta + 1, 0, td, ss + 1);
-            if (pcScore >= pcBeta)
-                pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, depth - 4,
+        
+            const int baseDepth = depth - 4;
+
+            int pcDepth = std::clamp(
+                baseDepth - std::clamp((pcScore - pcBeta - probcutAdaOffset()) / probcutAdaDiv(), 0, 3),
+                0, depth - 1);
+
+            const int adaBeta = std::clamp(pcBeta + (baseDepth - pcDepth) * probcutAdaDiv(),
+                                           -MATE_FOUND + 1, MATE_FOUND - 1);
+
+            // Avoid running double qsearch for no gain when pcDepth is 0
+            if (pcScore >= pcBeta && pcDepth > 0)
+            {
+                pcScore = -Negamax<false>(-adaBeta, -adaBeta + 1, pcDepth,
                                           !cutNode, td, ss + 1);
+
+                if (pcScore < adaBeta && pcBeta < adaBeta)
+                {
+                    pcDepth = baseDepth;
+                    pcScore = -Negamax<false>(-pcBeta, -pcBeta + 1, pcDepth, !cutNode, td, ss + 1);
+                }
+            }
 
             // Take move back
             UnmakeMove(pos, td->keyHistory);
@@ -663,7 +683,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (pcScore >= pcBeta) {
                 StoreTTEntry(pos->getPoskey(), MoveToTT(move),
                              ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
-                             depth - 3, pvNode, ttPv);
+                            pcDepth + 1, pvNode, ttPv);
                 return pcScore;
             }
         }
