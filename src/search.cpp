@@ -624,6 +624,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
     if (  !pvNode
+        && !inCheck
         && depth > 4
         && !isDecisive(beta)
         && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
