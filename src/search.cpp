@@ -624,6 +624,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
 
     const int pcBeta = beta + probcutBaseMargin() - probcutImprovingOffset() * improving;
     if (  !pvNode
+        && !inCheck
         && depth > 4
         && !isDecisive(beta)
         && (ttScore == SCORE_NONE || (ttBound & HFLOWER))
@@ -660,11 +661,16 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // Take move back
             UnmakeMove(pos, td->keyHistory);
 
-            if (pcScore >= pcBeta) {
+            if (pcScore >= pcBeta)
+            {
                 StoreTTEntry(pos->getPoskey(), MoveToTT(move),
                              ScoreToTT(pcScore, ss->ply), rawEval, HFLOWER,
                              depth - 3, pvNode, ttPv);
-                return pcScore;
+
+                if (isDecisive(pcScore))
+                    return pcScore;
+
+                return pcScore - (pcBeta - beta);
             }
         }
     }
