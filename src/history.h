@@ -23,8 +23,11 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
 int history_malus(const int depth);
+int pcm_history_bonus(const int depth);
 int capthistory_bonus(const int depth);
+int pcm_capthistory_bonus(const int depth);
 int conthistory_bonus(const int depth);
+int pcm_conthistory_bonus(const int depth);
 int pawnhistory_bonus(const int depth);
 int pawnhistory_malus(const int depth);
 // Getters for the history heuristics

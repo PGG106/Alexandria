@@ -941,8 +941,8 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     const Move priorMove = (ss - 1)->move;
     if (!rootNode && bound == HFUPPER && (cutNode || pvNode) && priorMove != NOMOVE) {
         if (!isTactical(priorMove)) {
-            updateOppHHScore(pos, sd, priorMove, history_bonus(depth));
-            updateCHScore(ss - 1, priorMove, conthistory_bonus(depth));
+            updateOppHHScore(pos, sd, priorMove, pcm_history_bonus(depth));
+            updateCHScore(ss - 1, priorMove, pcm_conthistory_bonus(depth));
         } else {
             const BoardState& previousPosition = pos->history.boardStateHistory[pos->history.head - 1];
             const bool nonCapturingPromotion = isPromo(priorMove) && !isCapture(priorMove);
@@ -950,7 +950,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (!isEnpassant(priorMove) && !nonCapturingPromotion) {
                 capturedPiece = GetPieceType(previousPosition.pieces[To(priorMove)]);
             }
-            updateCapthistScore(pos, sd, priorMove, capturedPiece, capthistory_bonus(depth));
+            updateCapthistScore(pos, sd, priorMove, capturedPiece, pcm_capthistory_bonus(depth));
         }
     }
 

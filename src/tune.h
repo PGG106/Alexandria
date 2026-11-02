@@ -166,6 +166,10 @@ TUNE_PARAM(historyBonusMax, 2795, 1, 4096, 256, 0.002)
 TUNE_PARAM(historyMalusMul, 407, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyMalusOffset, 129, -1024, 1024, 64, 0.002)
 TUNE_PARAM(historyMalusMax, 274, 1, 4096, 256, 0.002)
+// PCM main-history bonus
+TUNE_PARAM(pcmHistoryBonusMul, 422, 1, 1500, 32, 0.002)
+TUNE_PARAM(pcmHistoryBonusOffset, -87, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pcmHistoryBonusMax, 5658, 1, 8192, 256, 0.002)
 // Capthist
 TUNE_PARAM(capthistoryBonusMul, 354, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryBonusOffset, -132, -1024, 1024, 64, 0.002)
@@ -173,6 +177,10 @@ TUNE_PARAM(capthistoryBonusMax, 2289, 1, 4096, 256, 0.002)
 TUNE_PARAM(capthistoryMalusMul, 325, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryMalusOffset, -120, -1024, 1024, 64, 0.002)
 TUNE_PARAM(capthistoryMalusMax, 1514, 1, 4096, 256, 0.002)
+// PCM capture-history bonus
+TUNE_PARAM(pcmCapthistoryBonusMul, 50, 1, 1500, 32, 0.002)
+TUNE_PARAM(pcmCapthistoryBonusOffset, 0, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pcmCapthistoryBonusMax, 654, 1, 4096, 256, 0.002)
 // Conthist
 TUNE_PARAM(conthistoryBonusMul, 161, 1, 1500, 32, 0.002)
 TUNE_PARAM(conthistoryBonusOffset, -156, -1024, 1024, 64, 0.002)
@@ -182,6 +190,10 @@ TUNE_PARAM(conthistoryMalusOffset, 74, -1024, 1024, 64, 0.002)
 TUNE_PARAM(conthistoryMalusMax, 792, 1, 4096, 256, 0.002)
 TUNE_PARAM(conthistoryTTMalusMul, 161, 1, 1500, 32, 0.002)
 TUNE_PARAM(conthistoryTTMalusMax, 381, 1, 2048, 64, 0.002)
+// PCM continuation-history bonus
+TUNE_PARAM(pcmConthistoryBonusMul, 152, 1, 1500, 32, 0.002)
+TUNE_PARAM(pcmConthistoryBonusOffset, -47, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pcmConthistoryBonusMax, 1379, 1, 4096, 256, 0.002)
 // Pawnhist
 TUNE_PARAM(pawnhistoryBonusMul, 173, 1, 1500, 32, 0.002)
 TUNE_PARAM(pawnhistoryBonusOffset, -52, -1024, 1024, 64, 0.002)
