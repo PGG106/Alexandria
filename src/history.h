@@ -23,6 +23,8 @@ void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
 int history_malus(const int depth);
+int capthistory_bonus(const int depth);
+int conthistory_bonus(const int depth);
 int pawnhistory_bonus(const int depth);
 int pawnhistory_malus(const int depth);
 // Getters for the history heuristics
@@ -42,6 +44,7 @@ void updateHHScore(const Position* pos, SearchData* sd, const Move move, int bon
 void updateOppHHScore(const Position* pos, SearchData* sd, const Move move, int bonus);
 void updateCHScore(SearchStack* ss, const Move move, const int bonus);
 void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, int bonus);
+void updateCapthistScore(const Position* pos, SearchData* sd, const Move move, const int capturedPiece, const int bonus);
 void updateSingleCHScore(SearchStack* ss, const Move move, const int bonus, const int offset);
 void updatePawnHistScore(const Position* pos, SearchData* sd, const Move move, int bonus);
 

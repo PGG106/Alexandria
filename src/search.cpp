@@ -938,6 +938,22 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     // Set the TT bound based on whether we failed high or raised alpha
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
+    const Move priorMove = (ss - 1)->move;
+    if (!rootNode && bound == HFUPPER && (cutNode || pvNode) && priorMove != NOMOVE) {
+        if (!isTactical(priorMove)) {
+            updateOppHHScore(pos, sd, priorMove, history_bonus(depth));
+            updateCHScore(ss - 1, priorMove, conthistory_bonus(depth));
+        } else {
+            const BoardState& previousPosition = pos->history.boardStateHistory[pos->history.head - 1];
+            const bool nonCapturingPromotion = isPromo(priorMove) && !isCapture(priorMove);
+            int capturedPiece = PAWN;
+            if (!isEnpassant(priorMove) && !nonCapturingPromotion) {
+                capturedPiece = GetPieceType(previousPosition.pieces[To(priorMove)]);
+            }
+            updateCapthistScore(pos, sd, priorMove, capturedPiece, capthistory_bonus(depth));
+        }
+    }
+
     if (    !inCheck
         && (!bestMove || !isTactical(bestMove))
         &&  !(bound == HFLOWER && bestScore <= ss->staticEval)
