@@ -167,9 +167,9 @@ TUNE_PARAM(historyMalusMul, 407, 1, 1500, 32, 0.002)
 TUNE_PARAM(historyMalusOffset, 129, -1024, 1024, 64, 0.002)
 TUNE_PARAM(historyMalusMax, 274, 1, 4096, 256, 0.002)
 // PCM main-history bonus
-TUNE_PARAM(pcmHistoryBonusMul, 342, 1, 1500, 32, 0.002)
-TUNE_PARAM(pcmHistoryBonusOffset, 167, -1024, 1024, 64, 0.002)
-TUNE_PARAM(pcmHistoryBonusMax, 2795, 1, 4096, 256, 0.002)
+TUNE_PARAM(pcmHistoryBonusMul, 171, 1, 1500, 32, 0.002)
+TUNE_PARAM(pcmHistoryBonusOffset, 84, -1024, 1024, 64, 0.002)
+TUNE_PARAM(pcmHistoryBonusMax, 1398, 1, 4096, 256, 0.002)
 // Capthist
 TUNE_PARAM(capthistoryBonusMul, 354, 1, 1500, 32, 0.002)
 TUNE_PARAM(capthistoryBonusOffset, -132, -1024, 1024, 64, 0.002)
