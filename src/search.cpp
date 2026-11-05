@@ -941,7 +941,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     if (!rootNode && depth > 3 && bound == HFUPPER) {
         const Move priorMove = (ss - 1)->move;
         if (priorMove != NOMOVE && !isTactical(priorMove)) {
-            updateOppHHScore(pos, sd, priorMove, 2 * pcm_history_bonus(depth));
+            updateOppHHScore(pos, sd, priorMove, pcm_history_bonus(depth));
         }
     }
 
