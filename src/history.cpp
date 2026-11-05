@@ -28,20 +28,12 @@ int capthistory_bonus(const int depth) {
     return std::min(capthistoryBonusMul() * depth + capthistoryBonusOffset(), capthistoryBonusMax());
 }
 
-int pcm_capthistory_bonus(const int depth) {
-    return std::min(pcmCapthistoryBonusMul() * depth + pcmCapthistoryBonusOffset(), pcmCapthistoryBonusMax());
-}
-
 int capthistory_malus(const int depth) {
     return std::min(capthistoryMalusMul() * depth + capthistoryMalusOffset(), capthistoryMalusMax());
 }
 
 int conthistory_bonus(const int depth) {
     return std::min(conthistoryBonusMul() * depth + conthistoryBonusOffset(), conthistoryBonusMax());
-}
-
-int pcm_conthistory_bonus(const int depth) {
-    return std::min(pcmConthistoryBonusMul() * depth + pcmConthistoryBonusOffset(), pcmConthistoryBonusMax());
 }
 
 int conthistory_malus(const int depth) {

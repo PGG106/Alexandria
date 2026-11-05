@@ -22,12 +22,10 @@ constexpr int CORRHIST_GRAIN = 256;
 void UpdateHistories(const Position* pos, SearchData* sd, SearchStack* ss, const int depth, const Move bestMove, const StackMoveList* quietMoves, const StackMoveList* noisyMoves, const bool rootNode);
 // Fuction that returns the history bonus
 int history_bonus(const int depth);
-int history_malus(const int depth);
 int pcm_history_bonus(const int depth);
+int history_malus(const int depth);
 int capthistory_bonus(const int depth);
-int pcm_capthistory_bonus(const int depth);
 int conthistory_bonus(const int depth);
-int pcm_conthistory_bonus(const int depth);
 int pawnhistory_bonus(const int depth);
 int pawnhistory_malus(const int depth);
 // Getters for the history heuristics
