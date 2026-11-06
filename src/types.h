@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#define TUNE
 // include the tune stuff here to give it global visibility
 #include "tune.h"
 
