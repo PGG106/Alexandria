@@ -706,7 +706,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         if (   !rootNode
             && !isMated(bestScore)) {
 
-            const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
+            const int reduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)] / 1024;
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
             const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
@@ -799,55 +799,38 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // Get base reduction value
             int depthReduction = reductions[isQuiet][std::min(depth, 63)][std::min(totalMoves, 63)];
 
+            depthReduction += isQuiet ? lmrQuietConstant() : lmrNoisyConstant();
+            depthReduction += lmrCutNode() * cutNode;
+            depthReduction += lmrNotImproving() * !improving;
+            if (pos->getCheckers())
+                depthReduction += lmrCheck();
+
             if (isQuiet) {
-                // Fuck
-                if (cutNode)
-                    depthReduction += 2;
-
-                // Reduce more if we are not improving
-                if (!improving)
-                    depthReduction += 1;
-
                 // Reduce less if the move is a refutation
                 if (move == mp.killer || move == mp.counter)
-                    depthReduction -= 1;
-
-                // Decrease the reduction for moves that give check
-                if (pos->getCheckers())
-                    depthReduction -= 1;
+                    depthReduction += lmrRefutation();
 
                 // Reduce less if we have been on the PV
-                if (ttPv)
-                    depthReduction -= 1 + cutNode;
+                depthReduction += lmrTtPv() * ttPv;
+                depthReduction += lmrTtPvCutNode() * (ttPv && cutNode);
 
                 if(complexity > 50)
-                    depthReduction -= 1;
+                    depthReduction += lmrComplexity();
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / historyQuietLmrDivisor();
+                depthReduction -= moveHistory * historyQuietLmrMultiplier() / 1024;
             }
             else {
-                // Fuck
-                if (cutNode)
-                    depthReduction += 2;
-
-                // Reduce more if we are not improving
-                if (!improving)
-                    depthReduction += 1;
-
-                // Decrease the reduction for moves that give check
-                if (pos->getCheckers())
-                    depthReduction -= 1;
-
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
-                depthReduction -= moveHistory / historyNoisyLmrDivisor();
+                depthReduction -= moveHistory * historyNoisyLmrMultiplier() / 1024;
             }
 
+            const int reduction = depthReduction / 1024;
             // clamp the reduced depth so that we can't drop into Qsearch and to only allow a minor extension
-            int reducedDepth = std::max(1, std::min(newDepth - depthReduction, newDepth))  + pvNode;
+            int reducedDepth = std::max(1, std::min(newDepth - reduction, newDepth))  + pvNode;
 
             // search current move with reduced depth:
-            ss->reduction = static_cast<int16_t >(depthReduction);
+            ss->reduction = reduction;
             score = -Negamax<false>(-alpha - 1, -alpha, reducedDepth, true, td, ss + 1);
             ss->reduction = 0;
 
