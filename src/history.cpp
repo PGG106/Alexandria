@@ -205,6 +205,10 @@ void updateCorrHistScore(const Position *pos, SearchData *sd, const SearchStack 
 }
 
 int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
+    return GetRawCorrHistAdjustment(pos, sd, ss) / CORRHIST_GRAIN;
+}
+
+int GetRawCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss) {
     int adjustment = 0;
 
     adjustment += corrhistoryPawnWeight() * sd->pawnCorrHist[pos->side][pos->state().pawnKey % CORRHIST_SIZE];
@@ -216,7 +220,7 @@ int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const Searc
     if ((ss - 1)->move && (ss - 4)->move)
         adjustment += contCorrthistoryWeight2() * sd->contCorrHist[pos->side][PieceTypeTo((ss - 1)->move)][PieceTypeTo((ss - 4)->move)];
 
-    return adjustment / CORRHIST_GRAIN;
+    return adjustment;
 }
 
 int GetHistoryScore(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss,

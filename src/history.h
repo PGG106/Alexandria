@@ -35,6 +35,7 @@ int pawnhistory_malus(const int depth);
 [[nodiscard]] int GetHistoryScore(const Position* pos, const SearchData* sd, const Move move, const SearchStack* ss, const bool rootNode);
 [[nodiscard]] int GetHistoryScoreSearch(const Position *pos, const SearchData *sd, const Move move, const SearchStack *ss, const bool rootNode);
 [[nodiscard]] int GetCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss);
+[[nodiscard]] int GetRawCorrHistAdjustment(const Position *pos, const SearchData *sd, const SearchStack *ss);
 // Clean all the history tables
 void CleanHistories(SearchData* sd);
 // Updates history heuristics for a single move

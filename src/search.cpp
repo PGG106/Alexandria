@@ -498,6 +498,9 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     (ss + 1)->excludedMove = NOMOVE;
     (ss + 1)->searchKiller = NOMOVE;
 
+    const int rawCorrection = inCheck ? 0 : GetRawCorrHistAdjustment(pos, sd, ss);
+    const int correction = rawCorrection / CORRHIST_GRAIN;
+
     // If we are in check or searching a singular extension we avoid pruning before the move loop
     if (inCheck) {
         eval = rawEval = ss->staticEval = SCORE_NONE;
@@ -509,7 +512,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else if (ttHit) {
         // If the value in the TT is valid we use that, otherwise we call the static evaluation function
         rawEval = ttEval != SCORE_NONE ? ttEval : EvalPosition(pos, &td->FTable);
-        auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
 
         // We can also use the tt score as a more accurate form of eval
@@ -520,7 +522,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
     else {
         // If we don't have anything in the TT we have to call evalposition
         rawEval = EvalPosition(pos, &td->FTable);
-        auto correction = GetCorrHistAdjustment(pos, sd, ss);
         eval = ss->staticEval = adjustEval(pos,correction,  rawEval);
         // Save the eval into the TT
         StoreTTEntry(pos->getPoskey(), NOMOVE, SCORE_NONE, rawEval, HFNONE, 0, pvNode, ttPv);
@@ -534,13 +535,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
         Move move = (ss - 1)->move;
         updateOppHHScore(pos, sd, move, bonus);
     }
-
-    const int complexity = [&] {
-        if (eval == 0 || rawEval == 0)
-            return 0;
-        else
-            return 100 * std::abs(eval - rawEval) / std::abs(eval);
-    }();
 
     // Improving is a very important modifier to many heuristics. It checks if our static eval has improved since our last move.
     // As we don't evaluate in check, we look for the first ply we weren't in check between 2 and 4 plies ago. If we find that
@@ -802,6 +796,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             depthReduction += isQuiet ? lmrQuietConstant() : lmrNoisyConstant();
             depthReduction += lmrCutNode() * cutNode;
             depthReduction += lmrNotImproving() * !improving;
+            depthReduction -= lmrCorrectionMultiplier() * std::abs(rawCorrection) / 1024;
             if (pos->getCheckers())
                 depthReduction += lmrCheck();
 
@@ -813,9 +808,6 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
                 // Reduce less if we have been on the PV
                 depthReduction += lmrTtPv() * ttPv;
                 depthReduction += lmrTtPvCutNode() * (ttPv && cutNode);
-
-                if(complexity > 50)
-                    depthReduction += lmrComplexity();
 
                 // Decrease the reduction for moves that have a good history score and increase it for moves with a bad score
                 depthReduction -= moveHistory * historyQuietLmrMultiplier() / 1024;
