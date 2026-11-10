@@ -77,11 +77,15 @@ void InitReductions() {
     // Avoid log(0) because it's bad
     reductions[0][0][0] = 0;
     reductions[1][0][0] = 0;
+    pruningReductions[0][0][0] = 0;
+    pruningReductions[1][0][0] = 0;
 
     for (int i = 1; i < 64; i++) {
         for (int j = 1; j < 64; j++) {
             reductions[0][i][j] = 1024 * (lmrNoisyBase() / 100.0 + log(i) * log(j) / (lmrNoisytDivisor() / 100.0));
             reductions[1][i][j] = 1024 * (lmrQuietBase() / 100.0 + log(i) * log(j) / (lmrQuietDivisor() / 100.0));
+            pruningReductions[0][i][j] = pruningNoisyBase() / 100.0 + log(i) * log(j) / (pruningNoisyDivisor() / 100.0);
+            pruningReductions[1][i][j] = pruningQuietBase() / 100.0 + log(i) * log(j) / (pruningQuietDivisor() / 100.0);
         }
     }
 

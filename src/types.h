@@ -7,6 +7,7 @@
 #define NAME "Alexandria-9.1.10"
 
 inline int reductions[2][64][64];
+inline int pruningReductions[2][64][64];
 inline int lmp_margin[64][2];
 
 inline const std::string start_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
