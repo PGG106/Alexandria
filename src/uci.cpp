@@ -205,7 +205,7 @@ void UciLoop(int argc, char** argv) {
     // print engine info
     std::cout << NAME << "\n";
 
-#ifdef TUNE
+#if defined(TUNE) || defined(TUNE_LMR)
     // spsa info dump
     for (const auto &param: tunables()) {
         std::cout << param << std::endl;
@@ -245,7 +245,7 @@ void UciLoop(int argc, char** argv) {
             // Join previous search thread if it exists
             if (main_thread.joinable())
                 main_thread.join();
-#ifdef TUNE
+#if defined(TUNE) || defined(TUNE_LMR)
             InitReductions();
 #endif
 
@@ -284,7 +284,7 @@ void UciLoop(int argc, char** argv) {
                 uciOptions.chess960 = tokens.at(4) == "true";
             }
 
-#ifdef TUNE
+#if defined(TUNE) || defined(TUNE_LMR)
             else {
                 updateTuneVariable(tokens.at(2), std::stoi(tokens.at(4)));
         }
@@ -352,7 +352,7 @@ void UciLoop(int argc, char** argv) {
             std::cout << "option name Threads type spin default 1 min 1 max 256 \n";
             std::cout << "option name Minimal type check default false \n";
             std::cout << "option name UCI_Chess960 type check default false \n";
-#ifdef TUNE
+#if defined(TUNE) || defined(TUNE_LMR)
             // spsa info dump
             for (const auto &param: tunables()) {
                 std::cout << "option name " << param.name << " type spin default " << param.defaultValue <<" min " <<param.minValue <<" max " << param.maxValue << std::endl;
