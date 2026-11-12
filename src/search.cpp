@@ -935,6 +935,10 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
              :      inCheck ? -MATE_SCORE + ss->ply
                             : 0;
     }
+
+    if (bestScore >= beta && !isDecisive(bestScore) && !isDecisive(alpha))
+        bestScore = (bestScore * depth + beta) / (depth + 1);
+
     // Set the TT bound based on whether we failed high or raised alpha
     int bound = bestScore >= beta ? HFLOWER : alpha != old_alpha ? HFEXACT : HFUPPER;
 
