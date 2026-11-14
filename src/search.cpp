@@ -710,6 +710,16 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             // lmrDepth is the current depth minus the reduction the move would undergo in lmr, this is helpful because it helps us discriminate the bad moves with more accuracy
             const int lmrDepth = std::max(0, depth - reduction + moveHistory / lmrDepthDivisor());
 
+            if (!inCheck
+                && mp.stage == PICK_BAD_NOISY
+                && !isPromo(move)
+                && lmrDepth <= 5) {
+                const int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+                const int futilityValue = ss->staticEval + 100 + SEEValue[capturedPiece] + 150 * lmrDepth;
+                if (futilityValue <= alpha)
+                    continue;
+            }
+
             if (!skipQuiets) {
 
                 // Movecount pruning: if we searched enough moves and we are not in check we skip the rest
