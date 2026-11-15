@@ -506,6 +506,29 @@ void NNUE::updateThreatAccumulators(Position *pos)
             }
             else
             {
+#if defined(USE_SIMD)
+                constexpr int NUM_REGI = 8;
+                static_assert(L1_SIZE % (NUM_REGI * FT_CHUNK_SIZE) == 0);
+
+                for (int b = 0; b < L1_SIZE; b += NUM_REGI * FT_CHUNK_SIZE)
+                {
+                    const vepi16 *first = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[size_t(indices[0]) * L1_SIZE + b]);
+                    vepi16 acc[NUM_REGI];
+                    for (int j = 0; j < NUM_REGI; ++j)
+                        acc[j] = first[j];
+
+                    for (int i = 1; i < count; ++i)
+                    {
+                        const vepi16 *row = reinterpret_cast<const vepi16 *>(&net->ThreatWeights[size_t(indices[i]) * L1_SIZE + b]);
+                        for (int j = 0; j < NUM_REGI; ++j)
+                            acc[j] = vec_add_epi16(acc[j], row[j]);
+                    }
+
+                    vepi16 *dst = reinterpret_cast<vepi16 *>(&accumulator.values[side][b]);
+                    for (int j = 0; j < NUM_REGI; ++j)
+                        dst[j] = acc[j];
+                }
+#else
                 size_t offset = size_t(indices[0]) * L1_SIZE;
                 for (int j = 0; j < L1_SIZE; ++j)
                     accumulator.values[side][j] = net->ThreatWeights[offset + j];
@@ -516,6 +539,7 @@ void NNUE::updateThreatAccumulators(Position *pos)
                     for (int j = 0; j < L1_SIZE; ++j)
                         accumulator.values[side][j] += net->ThreatWeights[offset + j];
                 }
+#endif
             }
 
             accumulator.computed[side] = true;
