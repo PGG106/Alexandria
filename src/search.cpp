@@ -713,7 +713,7 @@ int Negamax(int alpha, int beta, int depth, const bool cutNode, ThreadData* td, 
             if (!inCheck
                 && mp.stage == PICK_BAD_NOISY
                 && !isPromo(move)
-                && lmrDepth <= 5) {
+                && lmrDepth <= 8) {
                 const int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
                 const int futilityValue = ss->staticEval + 100 + SEEValue[capturedPiece] + 150 * lmrDepth;
                 if (futilityValue <= alpha)
