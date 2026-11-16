@@ -33,6 +33,7 @@ struct BoardState {
     int plyFromNull = 0;
     Bitboard checkers = 0ULL;
     Bitboard pinned[2];
+    Bitboard checkSquares[6] = {};
     ZobristKey pawnKey = 0ULL;
     ZobristKey whiteNonPawnKey = 0ULL;
     ZobristKey blackNonPawnKey = 0ULL;
@@ -146,6 +147,10 @@ public:
         return state().checkers;
     }
 
+    [[nodiscard]] inline const Bitboard* getCheckSquares() const {
+        return state().checkSquares;
+    }
+
     [[nodiscard]] inline Bitboard getPinnedMask(int color) const {
         return state().pinned[color];
     }
@@ -208,6 +213,7 @@ void parse_moves(const std::string& moves, Position* pos, std::vector<ZobristKey
 [[nodiscard]] Square KingSQ(const Position* pos, const int c);
 
 void UpdatePinsAndCheckers(Position* pos);
+void UpdateCheckSquares(Position* pos);
 
 Bitboard RayBetween(unsigned int square1, unsigned int square2);
 

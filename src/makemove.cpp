@@ -287,6 +287,7 @@ void MakeNullMove(Position* pos, std::vector<ZobristKey>& keyHistory) {
     resetEpSquare(pos);
     pos->ChangeSide();
     HashKey(pos->state().posKey, SideKey);
+    UpdateCheckSquares(pos);
 
     pos->state().hisPly++;
     pos->state().fiftyMove++;

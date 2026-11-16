@@ -12,6 +12,7 @@
 // Reset the position to a clean state
 void ResetBoard(Position* pos) {
     pos->history.head = 0;
+    std::memset(pos->state().checkSquares, 0, sizeof(pos->state().checkSquares));
 
     // The root has no parent to update from, so it always starts out needing a refresh
     NNUE::ThreatAccumulator &threatAccumulator = pos->threatAccumulator();
@@ -462,6 +463,19 @@ Bitboard getThreats(const Position* pos, const int side) {
     return threats;
 }
 
+void UpdateCheckSquares(Position* pos) {
+    auto& checkSquares = pos->state().checkSquares;
+    const int them = pos->side ^ 1;
+    const Square kingSq = KingSQ(pos, them);
+    const Bitboard occupied = pos->Occupancy(BOTH);
+    checkSquares[PAWN] = getPawnAttacks(kingSq, them);
+    checkSquares[KNIGHT] = getKnightAttacks(kingSq);
+    checkSquares[BISHOP] = getBishopAttacks(kingSq, occupied);
+    checkSquares[ROOK] = getRookAttacks(kingSq, occupied);
+    checkSquares[QUEEN] = checkSquares[BISHOP] | checkSquares[ROOK];
+    checkSquares[KING] = 0;
+}
+
 // Return a piece based on the piecetype and the color
 int GetPiece(const int piecetype, const int color) {
     return piecetype + 6 * color;
@@ -523,6 +537,7 @@ void UpdatePinsAndCheckers(Position* pos) {
 
     updatePinsSide(pos, WHITE);
     updatePinsSide(pos, BLACK);
+    UpdateCheckSquares(pos);
 }
 
 Bitboard RayBetween(const unsigned int square1, const unsigned int square2) {

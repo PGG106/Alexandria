@@ -2,36 +2,30 @@
 #include "move.h"
 #include "movegen.h"
 #include "history.h"
-#include "attack.h"
 
-// ScoreMoves takes a list of move as an argument and assigns a score to each move
-void ScoreMoves(Movepicker* mp) {
+void ScoreNoisyMoves(Movepicker* mp) {
+    MoveList* moveList = &mp->moveList;
+    Position* pos = mp->pos;
+    SearchData* sd = mp->sd;
+    for (int i = mp->idx; i < moveList->count; i++) {
+        const Move move = moveList->moves[i].move;
+        int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
+        moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
+    }
+}
+
+void ScoreQuietMoves(Movepicker* mp) {
     MoveList* moveList = &mp->moveList;
     Position* pos = mp->pos;
     SearchData* sd = mp->sd;
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
-    Bitboard checkSquares[6] = {};
-    const Square kingSq = KingSQ(pos, pos->side ^ 1);
-    const Bitboard occupied = pos->Occupancy(BOTH);
-    checkSquares[PAWN] = getPawnAttacks(kingSq, pos->side ^ 1);
-    checkSquares[KNIGHT] = getKnightAttacks(kingSq);
-    checkSquares[BISHOP] = getBishopAttacks(kingSq, occupied);
-    checkSquares[ROOK] = getRookAttacks(kingSq, occupied);
-    checkSquares[QUEEN] = checkSquares[BISHOP] | checkSquares[ROOK];
-    // Loop through all the move in the movelist
+    const auto& checkSquares = pos->getCheckSquares();
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
-        if (isTactical(move)) {
-            // Score by most valuable victim and capthist
-            int capturedPiece = isEnpassant(move) ? PAWN : GetPieceType(pos->PieceOn(To(move)));
-            moveList->moves[i].score = SEEValue[capturedPiece] * 16 + GetCapthistScore(pos, sd, move);
-        }
-        else {
-            moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
-            if (get_bit(checkSquares[GetPieceType(Piece(move))], To(move)))
-                moveList->moves[i].score += 2048;
-        }
+        moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
+        if (get_bit(checkSquares[GetPieceType(Piece(move))], To(move)))
+            moveList->moves[i].score += 2048;
     }
 }
 
@@ -111,7 +105,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case GEN_NOISY:
         GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_NOISY);
-        ScoreMoves(mp);
+        ScoreNoisyMoves(mp);
         ++mp->stage;
         goto top;
 
@@ -152,7 +146,7 @@ Move NextMove(Movepicker* mp, const bool skip) {
 
     case GEN_QUIETS:
         GenerateMoves(&mp->moveList, mp->pos, MOVEGEN_QUIET);
-        ScoreMoves(mp);
+        ScoreQuietMoves(mp);
         ++mp->stage;
         goto top;
 
