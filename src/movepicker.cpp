@@ -2,6 +2,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "history.h"
+#include "attack.h"
 
 // ScoreMoves takes a list of move as an argument and assigns a score to each move
 void ScoreMoves(Movepicker* mp) {
@@ -10,6 +11,14 @@ void ScoreMoves(Movepicker* mp) {
     SearchData* sd = mp->sd;
     SearchStack* ss = mp->ss;
     bool rootNode = mp->rootNode;
+    Bitboard checkSquares[6] = {};
+    const Square kingSq = KingSQ(pos, pos->side ^ 1);
+    const Bitboard occupied = pos->Occupancy(BOTH);
+    checkSquares[PAWN] = getPawnAttacks(kingSq, pos->side ^ 1);
+    checkSquares[KNIGHT] = getKnightAttacks(kingSq);
+    checkSquares[BISHOP] = getBishopAttacks(kingSq, occupied);
+    checkSquares[ROOK] = getRookAttacks(kingSq, occupied);
+    checkSquares[QUEEN] = checkSquares[BISHOP] | checkSquares[ROOK];
     // Loop through all the move in the movelist
     for (int i = mp->idx; i < moveList->count; i++) {
         const Move move = moveList->moves[i].move;
@@ -20,6 +29,8 @@ void ScoreMoves(Movepicker* mp) {
         }
         else {
             moveList->moves[i].score = GetHistoryScore(pos, sd, move, ss, rootNode);
+            if (get_bit(checkSquares[GetPieceType(Piece(move))], To(move)))
+                moveList->moves[i].score += 2048;
         }
     }
 }
