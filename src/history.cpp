@@ -129,13 +129,14 @@ void UpdateHistories(const Position *pos, SearchData *sd, SearchStack *ss, const
             updateRHScore(pos, sd, bestMove, roothist_bonus);
         // Loop through all the quiet moves
         for (int i = 0; i < quietMoves->count; i++) {
-            // For all the quiets moves that didn't cause a cut-off decrease the HH score
+            const int denom = 1024 + 45 * i;
+            const int scale = 1024 * 1024 / (denom * denom / 1024);
             const Move move = quietMoves->moves[i];
-            updateHHScore(pos, sd, move, -malus);
-            updateCHScore(ss, move, -conthist_malus);
-            updatePawnHistScore(pos, sd, move, -pawnhist_malus);
+            updateHHScore(pos, sd, move, -malus * scale / 1024);
+            updateCHScore(ss, move, -conthist_malus * scale / 1024);
+            updatePawnHistScore(pos, sd, move, -pawnhist_malus * scale / 1024);
             if (rootNode)
-                updateRHScore(pos, sd, move, -roothist_malus);
+                updateRHScore(pos, sd, move, -roothist_malus * scale / 1024);
         }
     } else {
         // increase the bestMove Capthist score
